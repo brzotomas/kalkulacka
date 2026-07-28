@@ -410,6 +410,7 @@ details.gsec li{margin:3px 0}
       <label class="f">Expresní příplatek (% z práce)<input id="nExpresPct" type="number" min="0" step="1"></label>
       <label class="f">Koef. vynášky bez výtahu (h/m³/podlaží)<input id="nKoefVyn" type="number" min="0" step="0.01"></label>
       <label class="f">Koef. vynášky s výtahem (h/m³)<input id="nKoefVynV" type="number" min="0" step="0.01"><span class="hint">jen čas — klientovi se s výtahem neúčtuje</span></label>
+      <label class="f">Koeficient výkonu party<input id="nKoefVykon" type="number" min="0.5" step="0.05"><span class="hint">1,0 = držíte normy RTS · 1,3 = jste o 30 % pomalejší. Kalibrace v Přehledu ho nastaví z reálných zakázek.</span></label>
     </div>
   </div>
 
@@ -424,9 +425,9 @@ details.gsec li{margin:3px 0}
 
   <div class="card">
     <h2>Ceník prací</h2>
-    <p class="hint" style="margin:0 0 8px">Ceny vychází z cenové soustavy <b>RTS 25/II + 8 %</b> (reálný ceník demoliční firmy); B2B = B2C − 10 %. Suť t/MJ a hodiny/MJ jsou normy RTS — řídí výpočet kontejnerů a odhad dní. Vše lze upravit — změny se ukládají automaticky.</p>
+    <p class="hint" style="margin:0 0 8px">Ceny vychází z cenové soustavy <b>RTS 25/II + 8 %</b> (reálný ceník demoliční firmy), B2B = B2C − 10 %. Suť t/MJ a hodiny/MJ jsou normy RTS (najeď myší na název položky = kód RTS). <b>Náročnost</b> ★ = fyzická dřina a neoblíbenost práce, položky jsou podle ní seřazené. <b>Kč/hod</b> je kontrolní sloupec: kolik ti položka vydělá za hodinu práce — zelená nad 800, červená pod 500. Vše lze přepsat, ukládá se automaticky.</p>
     <div class="tscroll"><table id="cenikTab">
-      <thead><tr><th style="min-width:210px">Položka</th><th style="width:60px">MJ</th><th style="width:90px">B2C Kč</th><th style="width:90px">B2B Kč</th><th style="width:80px">Suť t/MJ</th><th style="width:80px">Suť m³/MJ</th><th style="width:80px">Hod/MJ</th><th></th></tr></thead>
+      <thead><tr><th style="min-width:230px">Položka</th><th style="width:96px">Náročnost</th><th style="width:56px">MJ</th><th style="width:88px">B2C Kč</th><th style="width:88px">B2B Kč</th><th style="width:76px">Suť t/MJ</th><th style="width:76px">Suť m³/MJ</th><th style="width:76px">Hod/MJ</th><th style="width:76px" class="r">Kč/hod</th><th></th></tr></thead>
       <tbody></tbody>
     </table></div>
     <div class="btnrow">
@@ -482,6 +483,16 @@ details.gsec li{margin:3px 0}
       <li><b>Morava je proti Praze o ~20–25 % levnější</b> — u B2C se drž spíš spodní hranice rozpětí, ať jsi konkurenceschopný.</li>
       <li><b>Cash-flow:</b> u zakázek nad ~100 tis. vždy záloha. Nákup kontejnerů a materiálu jde z tvé kapsy dřív, než klient zaplatí.</li>
       <li><b>Sleva jako obchodní tah:</b> profesionální firmy nacení plné ceníkové ceny a na konec nabídky dají viditelnou slevu 3–5 % — působí vstřícně a nesráží jednotkové ceny. Pole „Sleva pro klienta“ najdeš v Příplatcích; kalkulačka ji odečte z ceny i z tvého zisku, takže vždy vidíš, co tě sleva reálně stojí. Nejdřív hlídej hodinovku, pak slevuj.</li>
+    </ul>
+  </div></details>
+
+  <details class="gsec"><summary>Odkud jsou ceny a co znamená Kč/hod a ★</summary><div class="inner">
+    <ul>
+      <li><b>Zdroj:</b> cenová soustava <b>RTS 25/II</b> — reálný ceník demoliční firmy, 765 položek. Vzali jsme z něj cenu, hmotnost suti a normohodiny, ceny navýšili o 8 % (inflace za rok) a B2B nastavili na −10 %. U každé položky je v ceníku kód RTS (najeď myší na název), takže jde vždy dohledat.</li>
+      <li><b>Kč/hod u položky</b> = cena ÷ normohodiny. Ukazuje, kolik ti ta práce vydělá za hodinu. V celém ceníku vychází <b>560–900 Kč/hod</b>. Tohle je hrubá tržba za hodinu práce, ne čistý zisk — ten vidíš až v kalkulaci po odečtení nákladů.</li>
+      <li><b>Nejlépe placené jsou příčky a zdivo (800–840 Kč/h)</b>, nejhůř omítky (560 Kč/h). Zároveň jsou omítky nejnamáhavější práce v katalogu. Když si můžeš vybrat, ber bourání zdiva.</li>
+      <li><b>★ Náročnost</b> je fyzická dřina a neoblíbenost: ★ lehká čistá práce (fólie, koberec, kazetový podhled) · ★★★ běžné bourání · ★★★★★ to, co nikdo nechce dělat — otloukání omítek (prach, ruce nad hlavou, celý den), vynáška suti po schodech, broušení lepidla z podlahy, železobeton. U pětihvězdičkových prací počítej s pomalejším tempem a vyšší fluktuací, když budeš najímat lidi.</li>
+      <li><b>Normohodiny RTS platí pro sehranou profi partu.</b> Na začátku budete pomalejší — na to je v Nastavení <b>Koeficient výkonu party</b> (1,0 = držíte normy, 1,3 = jste o 30 % pomalejší). Po 5 dokončených zakázkách ti ho Přehled firmy spočítá z reálných dat sám. Ceník přitom zůstane nedotčený.</li>
     </ul>
   </div></details>
 
@@ -558,74 +569,91 @@ details.gsec li{margin:3px 0}
 <script>
 "use strict";
 /* ---------- výchozí data ---------- */
-const KAT = ["Příčky nenosné","Nosné konstrukce","Podhledy","Podlahy","Omítky, obklady, fasády","Bytová jádra","Zárubně, dveře, okna","Demolice objektů (m³)","Ostatní práce"];
+const KAT = ["Příčky nenosné","Nosné konstrukce","Podhledy","Podlahy","Omítky, obklady, fasády","Bytová jádra a vybavení","Zárubně, dveře, okna","Demolice objektů (m³)","Ostatní práce"];
 /* Ceny: RTS 25/II × 1,08 (B2C), B2B = B2C × 0,90. Suť t/MJ a hod/MJ = normy RTS (dem. hmotnost, Nhod/MJ). */
 function defCenik(){return [
- {id:"sdk",   kat:KAT[0], nazev:"SDK příčka, 1× opláštění – demontáž",mj:"m²", b2c:224,  b2b:202,  sutT:0.022,sutM3:0.063,hod:0.34},
- {id:"sdk2",  kat:KAT[0], nazev:"SDK příčka, 2×2 opláštění – demontáž",mj:"m²",b2c:353,  b2b:318,  sutT:0.051,sutM3:0.146,hod:0.55},
- {id:"pr75",  kat:KAT[0], nazev:"Příčka cihla plná tl. 65 mm",        mj:"m²", b2c:190,  b2b:171,  sutT:0.184,sutM3:0.142,hod:0.23},
- {id:"pr100", kat:KAT[0], nazev:"Příčka cihla děrovaná tl. 100 mm",   mj:"m²", b2c:176,  b2b:158,  sutT:0.154,sutM3:0.118,hod:0.21},
- {id:"pr150", kat:KAT[0], nazev:"Příčka cihla plná tl. 140 mm",       mj:"m²", b2c:255,  b2b:230,  sutT:0.319,sutM3:0.245,hod:0.32},
- {id:"pr200", kat:KAT[0], nazev:"Zděná příčka tl. 200 mm",            mj:"m²", b2c:255,  b2b:229,  sutT:0.36, sutM3:0.277,hod:0.30},
- {id:"ytong", kat:KAT[0], nazev:"Příčka pórobeton tl. 100 mm",        mj:"m²", b2c:129,  b2b:116,  sutT:0.107,sutM3:0.178,hod:0.16},
- {id:"pricka-beton",kat:KAT[0],nazev:"Příčka beton prostý do tl. 120 mm",mj:"m²",b2c:330,b2b:297,  sutT:0.20, sutM3:0.133,hod:0.42},
- {id:"pricka-zb",kat:KAT[0],nazev:"Příčka železobeton do tl. 100 mm", mj:"m²", b2c:392,  b2b:352,  sutT:0.168,sutM3:0.112,hod:0.49},
- {id:"nosna", kat:KAT[1], nazev:"Nosná stěna cihla tl. 300 mm (na MC)",mj:"m²",b2c:425,  b2b:383,  sutT:0.585,sutM3:0.45, hod:0.51},
- {id:"cihla", kat:KAT[1], nazev:"Zdivo cihelné na MVC (objem)",       mj:"m³", b2c:1270, b2b:1143, sutT:1.80, sutM3:1.38, hod:1.52},
- {id:"zdivo-mc",kat:KAT[1],nazev:"Zdivo cihelné na MC (objem)",       mj:"m³", b2c:1418, b2b:1276, sutT:1.95, sutM3:1.50, hod:1.70},
- {id:"zdivo-dute",kat:KAT[1],nazev:"Zdivo z dutých cihel / tvárnic (objem)",mj:"m³",b2c:1072,b2b:965,sutT:1.175,sutM3:0.90,hod:1.28},
- {id:"zdivo-porobeton",kat:KAT[1],nazev:"Zdivo pórobetonové (objem)", mj:"m³", b2c:834,  b2b:751,  sutT:0.687,sutM3:1.15, hod:1.08},
- {id:"zdivo-smisene",kat:KAT[1],nazev:"Zdivo smíšené na MVC (objem)", mj:"m³", b2c:1325, b2b:1193, sutT:2.27, sutM3:1.75, hod:1.59},
- {id:"beton-prosty",kat:KAT[1],nazev:"Zdivo z betonu prostého (objem)",mj:"m³",b2c:4126, b2b:3713, sutT:2.20, sutM3:1.47, hod:5.0},
- {id:"zb",    kat:KAT[1], nazev:"Zdivo železobetonové (objem)",       mj:"m³", b2c:6998, b2b:6298, sutT:2.40, sutM3:1.60, hod:8.5},
- {id:"komin", kat:KAT[1], nazev:"Komínové zdivo cihelné na MVC (objem)",mj:"m³",b2c:1635,b2b:1472, sutT:1.594,sutM3:1.23, hod:2.42},
- {id:"otvor-cihla",kat:KAT[1],nazev:"Vybourání otvoru v cihelné zdi do 4 m², tl. do 300 mm (objem)",mj:"m³",b2c:2021,b2b:1819,sutT:1.80,sutM3:1.38,hod:3.20},
- {id:"otvor-cihla-m2",kat:KAT[1],nazev:"Vybourání otvoru v cihelné zdi do 1 m², tl. do 150 mm",mj:"m²",b2c:492,b2b:443,sutT:0.27,sutM3:0.21,hod:0.70},
- {id:"klenba",kat:KAT[1], nazev:"Klenba cihelná do tl. 150 mm",       mj:"m²", b2c:261,  b2b:235,  sutT:0.279,sutM3:0.215,hod:0.33},
- {id:"strop-zb",kat:KAT[1],nazev:"Strop železobetonový deskový (objem)",mj:"m³",b2c:5659,b2b:5093, sutT:2.40, sutM3:1.60, hod:6.72},
- {id:"schod-cihla",kat:KAT[1],nazev:"Schodišťové stupně cihelné",     mj:"bm", b2c:162,  b2b:146,  sutT:0.076,sutM3:0.058,hod:0.27},
- {id:"schod-beton",kat:KAT[1],nazev:"Schodišťové stupně betonové",    mj:"bm", b2c:391,  b2b:352,  sutT:0.07, sutM3:0.047,hod:0.64},
- {id:"rez",   kat:KAT[1], nazev:"Řezání betonu / ŽB",                 mj:"m²", b2c:600,  b2b:250,  sutT:0,    sutM3:0,    hod:1.0},
- {id:"preklad",kat:KAT[1],nazev:"Osazení překladu vč. podepření",     mj:"bm", b2c:900,  b2b:500,  sutT:0,    sutM3:0,    hod:3.0},
- {id:"podhled-sdk",kat:KAT[2],nazev:"SDK podhled, 1× opláštění – demontáž",mj:"m²",b2c:226,b2b:204,sutT:0.012,sutM3:0.034,hod:0.35},
- {id:"podhled-kazety",kat:KAT[2],nazev:"Kazetový podhled 600×600 – demontáž",mj:"m²",b2c:144,b2b:130,sutT:0.011,sutM3:0.031,hod:0.21},
- {id:"poter50",kat:KAT[3],nazev:"Betonový potěr / mazanina do 50 mm", mj:"m²", b2c:234,  b2b:211,  sutT:0.11, sutM3:0.074,hod:0.36},
- {id:"poter100",kat:KAT[3],nazev:"Betonový potěr / mazanina do 100 mm",mj:"m²",b2c:468,  b2b:421,  sutT:0.22, sutM3:0.147,hod:0.72},
- {id:"mazanina100",kat:KAT[3],nazev:"Betonová mazanina do tl. 100 mm (objem)",mj:"m³",b2c:4676,b2b:4209,sutT:2.20,sutM3:1.47,hod:7.20},
- {id:"mazanina200",kat:KAT[3],nazev:"Betonová mazanina nad tl. 100 mm (objem)",mj:"m³",b2c:3812,b2b:3431,sutT:2.20,sutM3:1.47,hod:5.87},
- {id:"armovani",kat:KAT[3],nazev:"Příplatek: mazanina armovaná svařovanou sítí (objem)",mj:"m³",b2c:2716,b2b:2444,sutT:0,sutM3:0,hod:4.83},
- {id:"poter-lehceny",kat:KAT[3],nazev:"Lehčená mazanina / potěr (objem)",mj:"m³",b2c:2792,b2b:2513,sutT:1.60,sutM3:1.14,hod:4.29},
- {id:"podklad-poter",kat:KAT[3],nazev:"Betonový podklad s potěrem (objem)",mj:"m³",b2c:4811,b2b:4330,sutT:2.20,sutM3:1.47,hod:7.51},
- {id:"nasyp", kat:KAT[3], nazev:"Odstranění násypu podlah (objem)",   mj:"m³", b2c:591,  b2b:532,  sutT:1.40, sutM3:1.00, hod:1.05},
- {id:"dlazba",kat:KAT[3], nazev:"Dlažba keramická tl. 10 mm",         mj:"m²", b2c:105,  b2b:94,   sutT:0.02, sutM3:0.015,hod:0.15},
- {id:"teraco",kat:KAT[3], nazev:"Dlažba teracová / cementová do 30 mm",mj:"m²",b2c:185,  b2b:166,  sutT:0.087,sutM3:0.067,hod:0.26},
- {id:"sokl",  kat:KAT[3], nazev:"Soklík z dlažeb keramických",        mj:"bm", b2c:43,   b2b:39,   sutT:0,    sutM3:0,    hod:0.07},
- {id:"plovouci",kat:KAT[3],nazev:"Plovoucí / dřevěná podlaha",        mj:"m²", b2c:125,  b2b:100,  sutT:0.008,sutM3:0.02, hod:0.12},
- {id:"pvc",   kat:KAT[3], nazev:"PVC / lino vč. lepidla",             mj:"m²", b2c:70,   b2b:50,   sutT:0.004,sutM3:0.006,hod:0.15},
- {id:"omitka",kat:KAT[4], nazev:"Otlučení vnitřních omítek stěn (100 %)",mj:"m²",b2c:146,b2b:132,  sutT:0.046,sutM3:0.035,hod:0.26},
- {id:"omitka-strop",kat:KAT[4],nazev:"Otlučení omítek stropů (100 %)",mj:"m²", b2c:186,  b2b:167,  sutT:0.05, sutM3:0.038,hod:0.33},
- {id:"omitka-cement",kat:KAT[4],nazev:"Otlučení cementových omítek stěn (100 %)",mj:"m²",b2c:376,b2b:339,sutT:0.061,sutM3:0.047,hod:0.67},
- {id:"stuk",  kat:KAT[4], nazev:"Odstranění štukové vrstvy stěn",     mj:"m²", b2c:59,   b2b:53,   sutT:0.004,sutM3:0.003,hod:0.10},
- {id:"malba", kat:KAT[4], nazev:"Oškrábání malby (strojně, bezprašně)",mj:"m²",b2c:38,   b2b:22,   sutT:0.001,sutM3:0.001,hod:0.12},
- {id:"obklad",kat:KAT[4], nazev:"Odsekání vnitřních obkladů, plocha nad 2 m²",mj:"m²",b2c:184,b2b:165,sutT:0.068,sutM3:0.052,hod:0.30},
- {id:"obklad-mensi",kat:KAT[4],nazev:"Odsekání vnitřních obkladů, plocha do 2 m²",mj:"m²",b2c:293,b2b:264,sutT:0.068,sutM3:0.052,hod:0.48},
- {id:"omitka-vnejsi",kat:KAT[4],nazev:"Otlučení vnějších omítek MVC (100 %)",mj:"m²",b2c:169,b2b:152,sutT:0.059,sutM3:0.045,hod:0.30},
- {id:"zatepleni-eps",kat:KAT[4],nazev:"Odstranění zateplení EPS do 80 mm s omítkou",mj:"m²",b2c:137,b2b:123,sutT:0.013,sutM3:0.04,hod:0.24},
- {id:"zatepleni-mineral",kat:KAT[4],nazev:"Odstranění zateplení minerální vata do 80 mm s omítkou",mj:"m²",b2c:165,b2b:149,sutT:0.025,sutM3:0.06,hod:0.29},
- {id:"jadroU",kat:KAT[5], nazev:"Umakartové jádro (bez odvozu)",      mj:"kpl",b2c:7000, b2b:4500, sutT:0.8,  sutM3:4.0,  hod:16},
- {id:"jadroZ",kat:KAT[5], nazev:"Zděné jádro (bez odvozu)",           mj:"kpl",b2c:10000,b2b:6500, sutT:3.0,  sutM3:2.5,  hod:24},
- {id:"zaruben",kat:KAT[6],nazev:"Vybourání ocelové zárubně",          mj:"ks", b2c:400,  b2b:250,  sutT:0.02, sutM3:0.05, hod:1.0},
- {id:"oblozka",kat:KAT[6],nazev:"Demontáž obložkových dveří",         mj:"ks", b2c:150,  b2b:85,   sutT:0.01, sutM3:0.06, hod:0.5},
- {id:"okno",  kat:KAT[6], nazev:"Vybourání okna",                     mj:"ks", b2c:900,  b2b:700,  sutT:0.03, sutM3:0.10, hod:1.5},
- {id:"demolice-drevo",kat:KAT[7],nazev:"Demolice dřevěné budovy rozebráním (obestavěný prostor)",mj:"m³",b2c:429,b2b:386,sutT:0.222,sutM3:0.55,hod:0.47},
- {id:"demolice-zdivo15",kat:KAT[7],nazev:"Demolice zděné budovy, konstrukce do 15 % (obestavěný prostor)",mj:"m³",b2c:343,b2b:309,sutT:0.25,sutM3:0.19,hod:0.44},
- {id:"demolice-zdivo20",kat:KAT[7],nazev:"Demolice zděné budovy, konstrukce do 20 % (obestavěný prostor)",mj:"m³",b2c:469,b2b:422,sutT:0.35,sutM3:0.27,hod:0.61},
- {id:"demolice-mc20",kat:KAT[7],nazev:"Demolice zděné budovy na MC, konstrukce do 20 % (obestavěný prostor)",mj:"m³",b2c:926,b2b:833,sutT:0.37,sutM3:0.28,hod:1.23},
- {id:"sanita",kat:KAT[8], nazev:"Demontáž sanity (kus)",              mj:"ks", b2c:300,  b2b:200,  sutT:0.03, sutM3:0.08, hod:0.75},
- {id:"vynaska",kat:KAT[8],nazev:"Vynáška suti / přesun hmot",         mj:"hod",b2c:300,  b2b:220,  sutT:0,    sutM3:0,    hod:1},
- {id:"zakryti",kat:KAT[8],nazev:"Zakrytí a ochrana ploch",            mj:"m²", b2c:20,   b2b:15,   sutT:0,    sutM3:0,    hod:0.03},
- {id:"uklid", kat:KAT[8], nazev:"Hrubý úklid po bourání",             mj:"kpl",b2c:3500, b2b:2500, sutT:0,    sutM3:0,    hod:6},
- {id:"hodinovka",kat:KAT[8],nazev:"Bourací práce hodinové",           mj:"hod",b2c:450,  b2b:300,  sutT:0,    sutM3:0,    hod:1},
+ {id:"pricka-zb", kat:KAT[0], nazev:"Příčka železobeton do tl. 100 mm", mj:"m²", b2c:392, b2b:353, sutT:0.168, sutM3:0.112, hod:0.494, hvezd:5, kod:"962051115R00"},
+ {id:"pricka-beton", kat:KAT[0], nazev:"Příčka beton prostý do tl. 120 mm", mj:"m²", b2c:330, b2b:297, sutT:0.2, sutM3:0.1333, hod:0.418, hvezd:4, kod:"962041314R00"},
+ {id:"pr150", kat:KAT[0], nazev:"Příčka cihla plná tl. 140 mm", mj:"m²", b2c:255, b2b:230, sutT:0.319, sutM3:0.2454, hod:0.317, hvezd:3, kod:"962031116R00"},
+ {id:"pr-vapenopisk", kat:KAT[0], nazev:"Příčka vápenopísková tl. 100 mm", mj:"m²", b2c:200, b2b:180, sutT:0.217, sutM3:0.1669, hod:0.238, hvezd:3, kod:"962031163R00"},
+ {id:"pr100", kat:KAT[0], nazev:"Příčka cihla děrovaná tl. 115 mm", mj:"m²", b2c:193, b2b:174, sutT:0.18, sutM3:0.1385, hod:0.232, hvezd:3, kod:"962031124R00"},
+ {id:"pr65", kat:KAT[0], nazev:"Příčka cihla plná tl. 65 mm", mj:"m²", b2c:190, b2b:171, sutT:0.184, sutM3:0.1415, hod:0.227, hvezd:3, kod:"962031113R00"},
+ {id:"sdk2", kat:KAT[0], nazev:"SDK příčka, 2× kce., 2× opláštění", mj:"m²", b2c:353, b2b:318, sutT:0.051, sutM3:0.1457, hod:0.553, hvezd:2, kod:"962036125R00"},
+ {id:"sdk", kat:KAT[0], nazev:"SDK příčka, 1× opláštění 12,5 mm", mj:"m²", b2c:213, b2b:192, sutT:0.022, sutM3:0.0629, hod:0.325, hvezd:2, kod:"962036112R00"},
+ {id:"ytong150", kat:KAT[0], nazev:"Příčka pórobeton tl. 150 mm", mj:"m²", b2c:151, b2b:136, sutT:0.133, sutM3:0.2217, hod:0.188, hvezd:2, kod:"962031145R00"},
+ {id:"ytong", kat:KAT[0], nazev:"Příčka pórobeton tl. 100 mm", mj:"m²", b2c:129, b2b:116, sutT:0.107, sutM3:0.1783, hod:0.158, hvezd:2, kod:"962031143R00"},
+ {id:"zb", kat:KAT[1], nazev:"Zdivo železobetonové (objem)", mj:"m³", b2c:6998, b2b:6298, sutT:2.4, sutM3:1.6, hod:8.5, hvezd:5, kod:"962052211R00"},
+ {id:"strop-zb", kat:KAT[1], nazev:"Strop železobetonový deskový (objem)", mj:"m³", b2c:5659, b2b:5093, sutT:2.4, sutM3:1.6, hod:6.72, hvezd:5, kod:"963051113R00"},
+ {id:"beton-prosty", kat:KAT[1], nazev:"Zdivo z betonu prostého (objem)", mj:"m³", b2c:4126, b2b:3713, sutT:2.2, sutM3:1.4667, hod:4.996, hvezd:5, kod:"962042321R00"},
+ {id:"schod-zb", kat:KAT[1], nazev:"ŽB schodišťové rameno", mj:"m²", b2c:2027, b2b:1824, sutT:0.432, sutM3:0.288, hod:3, hvezd:5, kod:"963053936R00"},
+ {id:"zdivo-kamen", kat:KAT[1], nazev:"Zdivo kamenné na MVC (objem)", mj:"m³", b2c:1460, b2b:1314, sutT:2.5, sutM3:1.9231, hod:1.756, hvezd:5, kod:"962022391R00"},
+ {id:"otvor-cihla", kat:KAT[1], nazev:"Otvor v cihelné zdi do 4 m², tl. do 300 mm (objem)", mj:"m³", b2c:2021, b2b:1819, sutT:1.8, sutM3:1.3846, hod:3.196, hvezd:4, kod:"971033641R00"},
+ {id:"komin", kat:KAT[1], nazev:"Komínové zdivo cihelné na MVC (objem)", mj:"m³", b2c:1635, b2b:1472, sutT:1.594, sutM3:1.2262, hod:2.42, hvezd:4, kod:"962032631R00"},
+ {id:"zdivo-mc", kat:KAT[1], nazev:"Zdivo cihelné na MC (objem)", mj:"m³", b2c:1418, b2b:1276, sutT:1.95, sutM3:1.5, hod:1.701, hvezd:4, kod:"962032241R00"},
+ {id:"zdivo-smisene", kat:KAT[1], nazev:"Zdivo smíšené na MVC (objem)", mj:"m³", b2c:1325, b2b:1193, sutT:2.27, sutM3:1.7462, hod:1.586, hvezd:4, kod:"962023391R00"},
+ {id:"cihla", kat:KAT[1], nazev:"Zdivo cihelné na MVC (objem)", mj:"m³", b2c:1270, b2b:1143, sutT:1.8, sutM3:1.3846, hod:1.52, hvezd:4, kod:"962032231R00"},
+ {id:"rez", kat:KAT[1], nazev:"Diamantové řezání ŽB do tl. 200 mm", mj:"bm", b2c:1200, b2b:1080, sutT:0, sutM3:0, hod:1.5, hvezd:4, kod:"—"},
+ {id:"preklad", kat:KAT[1], nazev:"Osazení překladu vč. podepření a zapravení", mj:"bm", b2c:1200, b2b:1080, sutT:0, sutM3:0, hod:1.8, hvezd:4, kod:"—"},
+ {id:"nosna450", kat:KAT[1], nazev:"Nosná stěna cihla tl. 450 mm (na MC)", mj:"m²", b2c:638, b2b:574, sutT:0.8775, sutM3:0.675, hod:0.765, hvezd:4, kod:"962032241R00"},
+ {id:"strop-hurdis", kat:KAT[1], nazev:"Strop z tvárnic a nosníků do tl. 150 mm", mj:"m²", b2c:505, b2b:455, sutT:0.165, sutM3:0.1269, hod:0.636, hvezd:4, kod:"963011512R00"},
+ {id:"otvor-cihla-m2", kat:KAT[1], nazev:"Otvor v cihelné zdi do 1 m², tl. do 150 mm", mj:"m²", b2c:492, b2b:443, sutT:0.27, sutM3:0.2077, hod:0.705, hvezd:4, kod:"971033531R00"},
+ {id:"nosna", kat:KAT[1], nazev:"Nosná stěna cihla tl. 300 mm (na MC)", mj:"m²", b2c:425, b2b:383, sutT:0.585, sutM3:0.45, hod:0.51, hvezd:4, kod:"962032241R00"},
+ {id:"schod-beton", kat:KAT[1], nazev:"Schodišťové stupně betonové", mj:"bm", b2c:391, b2b:352, sutT:0.07, sutM3:0.0467, hod:0.64, hvezd:4, kod:"963042819R00"},
+ {id:"klenba", kat:KAT[1], nazev:"Klenba cihelná do tl. 150 mm", mj:"m²", b2c:261, b2b:235, sutT:0.279, sutM3:0.2146, hod:0.33, hvezd:4, kod:"963031432R00"},
+ {id:"zdivo-dute", kat:KAT[1], nazev:"Zdivo z dutých cihel / tvárnic (objem)", mj:"m³", b2c:1072, b2b:965, sutT:1.175, sutM3:0.9038, hod:1.283, hvezd:3, kod:"962032432R00"},
+ {id:"schod-cihla", kat:KAT[1], nazev:"Schodišťové stupně cihelné", mj:"bm", b2c:162, b2b:146, sutT:0.076, sutM3:0.0585, hod:0.265, hvezd:3, kod:"963032819R00"},
+ {id:"zdivo-porobeton", kat:KAT[1], nazev:"Zdivo pórobetonové (objem)", mj:"m³", b2c:834, b2b:751, sutT:0.687, sutM3:1.145, hod:1.08, hvezd:2, kod:"962032551R00"},
+ {id:"podhled-sdk2", kat:KAT[2], nazev:"SDK podhled, 2× opláštění 12,5 mm", mj:"m²", b2c:250, b2b:225, sutT:0.0221, sutM3:0.0631, hod:0.385, hvezd:3, kod:"963016113R00"},
+ {id:"podhled-izolace", kat:KAT[2], nazev:"Příplatek: vata v podhledu do 100 mm", mj:"m²", b2c:39, b2b:35, sutT:0.0032, sutM3:0.0107, hod:0.063, hvezd:3, kod:"963016994R00"},
+ {id:"podhled-sdk", kat:KAT[2], nazev:"SDK podhled, 1× opláštění 12,5 mm", mj:"m²", b2c:226, b2b:203, sutT:0.0118, sutM3:0.0337, hod:0.346, hvezd:2, kod:"963016111R00"},
+ {id:"podhled-kazety", kat:KAT[2], nazev:"Kazetový podhled 600×600 mm", mj:"m²", b2c:144, b2b:130, sutT:0.0107, sutM3:0.0306, hod:0.211, hvezd:1, kod:"963016211R00"},
+ {id:"armovani", kat:KAT[3], nazev:"Příplatek: mazanina armovaná sítí (objem)", mj:"m³", b2c:2716, b2b:2444, sutT:0, sutM3:0, hod:4.828, hvezd:5, kod:"965049111R00"},
+ {id:"lepidlo", kat:KAT[3], nazev:"Odstranění zbytků lepidla broušením", mj:"m²", b2c:195, b2b:176, sutT:0.002, sutM3:0.004, hod:0.3, hvezd:5, kod:"—"},
+ {id:"podklad-poter", kat:KAT[3], nazev:"Betonový podklad s potěrem (objem)", mj:"m³", b2c:4811, b2b:4330, sutT:2.2, sutM3:1.4667, hod:7.51, hvezd:4, kod:"965043341R00"},
+ {id:"mazanina100", kat:KAT[3], nazev:"Betonová mazanina do tl. 100 mm (objem)", mj:"m³", b2c:4676, b2b:4208, sutT:2.2, sutM3:1.4667, hod:7.195, hvezd:4, kod:"965042141R00"},
+ {id:"mazanina200", kat:KAT[3], nazev:"Betonová mazanina nad tl. 100 mm (objem)", mj:"m³", b2c:3812, b2b:3431, sutT:2.2, sutM3:1.4667, hod:5.867, hvezd:4, kod:"965042241R00"},
+ {id:"nasyp", kat:KAT[3], nazev:"Odstranění násypu podlah (objem)", mj:"m³", b2c:492, b2b:443, sutT:1.4, sutM3:1.0769, hod:0.875, hvezd:4, kod:"965082941R00"},
+ {id:"poter100", kat:KAT[3], nazev:"Betonový potěr / mazanina do 100 mm", mj:"m²", b2c:468, b2b:421, sutT:0.22, sutM3:0.1467, hod:0.72, hvezd:4, kod:"965042141R00"},
+ {id:"poter50", kat:KAT[3], nazev:"Betonový potěr / mazanina do 50 mm", mj:"m²", b2c:234, b2b:211, sutT:0.11, sutM3:0.0733, hod:0.36, hvezd:4, kod:"965042141R00"},
+ {id:"teraco", kat:KAT[3], nazev:"Dlažba teracová / cementová do 30 mm", mj:"m²", b2c:185, b2b:167, sutT:0.087, sutM3:0.0669, hod:0.259, hvezd:4, kod:"965081813R00"},
+ {id:"parkety", kat:KAT[3], nazev:"Dřevěné špalíky / parkety do asfaltu", mj:"m²", b2c:116, b2b:104, sutT:0.07, sutM3:0.175, hod:0.174, hvezd:4, kod:"965061831R00"},
+ {id:"poter-lehceny", kat:KAT[3], nazev:"Lehčená mazanina / škvárobeton (objem)", mj:"m³", b2c:2792, b2b:2513, sutT:1.6, sutM3:1.0667, hod:4.289, hvezd:3, kod:"965041341R00"},
+ {id:"dlazba", kat:KAT[3], nazev:"Dlažba keramická tl. 10 mm", mj:"m²", b2c:105, b2b:95, sutT:0.02, sutM3:0.0154, hod:0.147, hvezd:3, kod:"965081713R00"},
+ {id:"docisteni", kat:KAT[3], nazev:"Dočištění podkladu po dlažbě (tmel do 30 %)", mj:"m²", b2c:57, b2b:51, sutT:0.001, sutM3:0.0008, hod:0.099, hvezd:3, kod:"965048130R00"},
+ {id:"plovouci", kat:KAT[3], nazev:"Plovoucí / dřevěná podlaha", mj:"m²", b2c:90, b2b:81, sutT:0.008, sutM3:0.02, hod:0.14, hvezd:2, kod:"—"},
+ {id:"pvc", kat:KAT[3], nazev:"Stržení PVC / lina (bez lepidla)", mj:"m²", b2c:85, b2b:77, sutT:0.004, sutM3:0.012, hod:0.13, hvezd:2, kod:"—"},
+ {id:"koberec", kat:KAT[3], nazev:"Stržení koberce vč. lišt", mj:"m²", b2c:60, b2b:54, sutT:0.003, sutM3:0.015, hod:0.09, hvezd:1, kod:"—"},
+ {id:"sokl", kat:KAT[3], nazev:"Soklík z dlažeb keramických", mj:"bm", b2c:43, b2b:39, sutT:0.0004, sutM3:0.0003, hod:0.07, hvezd:1, kod:"965081702R00"},
+ {id:"omitka-cement", kat:KAT[4], nazev:"Otlučení cementových omítek stěn (100 %)", mj:"m²", b2c:376, b2b:338, sutT:0.061, sutM3:0.0469, hod:0.67, hvezd:5, kod:"978021191R00"},
+ {id:"omitka-strop", kat:KAT[4], nazev:"Otlučení omítek stropů (100 %)", mj:"m²", b2c:186, b2b:167, sutT:0.05, sutM3:0.0385, hod:0.33, hvezd:5, kod:"978011191R00"},
+ {id:"omitka-vnejsi", kat:KAT[4], nazev:"Otlučení vnějších omítek MVC (100 %)", mj:"m²", b2c:169, b2b:152, sutT:0.059, sutM3:0.0454, hod:0.3, hvezd:5, kod:"978015291R00"},
+ {id:"omitka", kat:KAT[4], nazev:"Otlučení vnitřních omítek stěn (100 %)", mj:"m²", b2c:146, b2b:131, sutT:0.046, sutM3:0.0354, hod:0.26, hvezd:5, kod:"978013191R00"},
+ {id:"obklad-mensi", kat:KAT[4], nazev:"Odsekání vnitřních obkladů, plocha do 2 m²", mj:"m²", b2c:293, b2b:264, sutT:0.068, sutM3:0.0523, hod:0.48, hvezd:4, kod:"978059521R00"},
+ {id:"obklad", kat:KAT[4], nazev:"Odsekání vnitřních obkladů, plocha nad 2 m²", mj:"m²", b2c:184, b2b:166, sutT:0.068, sutM3:0.0523, hod:0.3, hvezd:4, kod:"978059531R00"},
+ {id:"omitka50", kat:KAT[4], nazev:"Otlučení vnitřních omítek stěn (do 50 %)", mj:"m²", b2c:73, b2b:66, sutT:0.02, sutM3:0.0154, hod:0.13, hvezd:4, kod:"978013161R00"},
+ {id:"zatepleni-mineral", kat:KAT[4], nazev:"Odstranění zateplení minerální vata do 80 mm", mj:"m²", b2c:165, b2b:149, sutT:0.0251, sutM3:0.0837, hod:0.291, hvezd:3, kod:"978042108R00"},
+ {id:"zatepleni-eps", kat:KAT[4], nazev:"Odstranění zateplení EPS do 80 mm s omítkou", mj:"m²", b2c:137, b2b:123, sutT:0.0126, sutM3:0.042, hod:0.241, hvezd:3, kod:"978041108R00"},
+ {id:"stuk", kat:KAT[4], nazev:"Odstranění štukové vrstvy stěn", mj:"m²", b2c:59, b2b:53, sutT:0.0042, sutM3:0.0032, hod:0.105, hvezd:3, kod:"978013211R00"},
+ {id:"malba", kat:KAT[4], nazev:"Oškrábání malby (strojně, bezprašně)", mj:"m²", b2c:42, b2b:38, sutT:0.001, sutM3:0.002, hod:0.065, hvezd:3, kod:"—"},
+ {id:"jadroZ", kat:KAT[5], nazev:"Zděné bytové jádro (bez odvozu)", mj:"kpl", b2c:10000, b2b:9000, sutT:3, sutM3:2.3, hod:15, hvezd:4, kod:"—"},
+ {id:"jadroU", kat:KAT[5], nazev:"Umakartové bytové jádro (bez odvozu)", mj:"kpl", b2c:7000, b2b:6300, sutT:0.8, sutM3:3.2, hod:10, hvezd:4, kod:"—"},
+ {id:"vana", kat:KAT[5], nazev:"Demontáž vany vč. vynesení", mj:"ks", b2c:750, b2b:675, sutT:0.09, sutM3:0.25, hod:1.2, hvezd:4, kod:"—"},
+ {id:"sanita", kat:KAT[5], nazev:"Demontáž sanity (WC, umyvadlo, baterie)", mj:"ks", b2c:380, b2b:342, sutT:0.03, sutM3:0.08, hod:0.6, hvezd:2, kod:"—"},
+ {id:"kuchyn", kat:KAT[5], nazev:"Demontáž kuchyňské linky", mj:"bm", b2c:320, b2b:288, sutT:0.05, sutM3:0.18, hod:0.5, hvezd:2, kod:"—"},
+ {id:"zaruben", kat:KAT[6], nazev:"Vybourání ocelové zárubně", mj:"ks", b2c:550, b2b:495, sutT:0.022, sutM3:0.06, hod:0.8, hvezd:4, kod:"—"},
+ {id:"okno", kat:KAT[6], nazev:"Vybourání okna vč. rámu", mj:"ks", b2c:900, b2b:810, sutT:0.04, sutM3:0.12, hod:1.4, hvezd:3, kod:"—"},
+ {id:"zaruben-drevo", kat:KAT[6], nazev:"Demontáž dřevěné zárubně / obložky", mj:"ks", b2c:220, b2b:198, sutT:0.012, sutM3:0.05, hod:0.35, hvezd:2, kod:"—"},
+ {id:"dvere", kat:KAT[6], nazev:"Demontáž dveřního křídla", mj:"ks", b2c:90, b2b:81, sutT:0.02, sutM3:0.06, hod:0.15, hvezd:1, kod:"—"},
+ {id:"demolice-mc20", kat:KAT[7], nazev:"Demolice zděné budovy MC, konstrukce do 20 %", mj:"m³", b2c:926, b2b:833, sutT:0.37, sutM3:0.2846, hod:1.233, hvezd:5, kod:"981011413R00"},
+ {id:"demolice-zdivo20", kat:KAT[7], nazev:"Demolice zděné budovy MVC, konstrukce do 20 %", mj:"m³", b2c:469, b2b:422, sutT:0.35, sutM3:0.2692, hod:0.608, hvezd:4, kod:"981011313R00"},
+ {id:"demolice-drevo", kat:KAT[7], nazev:"Demolice dřevěné budovy rozebráním (obestavěný prostor)", mj:"m³", b2c:429, b2b:386, sutT:0.222, sutM3:0.555, hod:0.47, hvezd:4, kod:"981011112R00"},
+ {id:"demolice-zdivo15", kat:KAT[7], nazev:"Demolice zděné budovy MVC, konstrukce do 15 %", mj:"m³", b2c:343, b2b:309, sutT:0.25, sutM3:0.1923, hod:0.439, hvezd:4, kod:"981011312R00"},
+ {id:"vynaska", kat:KAT[8], nazev:"Vynáška suti / přesun hmot", mj:"hod", b2c:550, b2b:495, sutT:0, sutM3:0, hod:1, hvezd:5, kod:"—"},
+ {id:"hodinovka", kat:KAT[8], nazev:"Bourací práce hodinové", mj:"hod", b2c:650, b2b:585, sutT:0, sutM3:0, hod:1, hvezd:3, kod:"—"},
+ {id:"radiator", kat:KAT[8], nazev:"Demontáž radiátoru vč. odpojení", mj:"ks", b2c:420, b2b:378, sutT:0.06, sutM3:0.05, hod:0.65, hvezd:3, kod:"—"},
+ {id:"uklid", kat:KAT[8], nazev:"Hrubý úklid po bourání (byt do 80 m²)", mj:"kpl", b2c:3800, b2b:3420, sutT:0, sutM3:0, hod:6, hvezd:2, kod:"—"},
+ {id:"elektro", kat:KAT[8], nazev:"Demontáž elektroinstalace (byt)", mj:"m²", b2c:45, b2b:41, sutT:0.002, sutM3:0.01, hod:0.07, hvezd:2, kod:"—"},
+ {id:"zakryti", kat:KAT[8], nazev:"Zakrytí a ochrana ploch fólií", mj:"m²", b2c:22, b2b:20, sutT:0, sutM3:0, hod:0.033, hvezd:1, kod:"—"},
 ];}
 function defKontejnery(){return [
  {id:"k3", nazev:"3 m³ – čistá suť",     objem:3, nosnost:4.5, nakup:2600, prodej:3800},
@@ -634,7 +662,7 @@ function defKontejnery(){return [
  {id:"k9", nazev:"9 m³ – směsný odpad",  objem:9, nosnost:3,   nakup:5800, prodej:7200},
 ];}
 function defNastaveni(){return {firma:"", lide:2, hodDen:9, sazbaNajaty:250, odvozMarze:20, skladkovne:610, km:15, kmProdej:25, pausal:600, rezerva:12, zaloha:40,
-  koefVyn:0.35, koefVynV:0.12, minZiskOsHod:450, minTrzbaB2C:0, minTrzbaB2B:0, minCenaB2C:8000, vikendPct:25, expresPct:15, nabRok:0, nabPoradi:0};}
+  koefVyn:0.35, koefVynV:0.12, koefVykon:1.0, minZiskOsHod:450, minTrzbaB2C:0, minTrzbaB2B:0, minCenaB2C:8000, vikendPct:25, expresPct:15, nabRok:0, nabPoradi:0};}
 function defJob(n){return {id:null, nazev:"", klient:"", adresa:"", poznamka:"", zdroj:"", odberatelId:"", cenik:"b2c", dph:"12",
   patro:0, vytah:true, lide:n.lide, najati:0,
   prace:[], kontejnery:[], material:[], ostatni:[],
@@ -672,7 +700,7 @@ function migrate(){
   bump("malba","b2c",30,38);
   const kb=(id,stara,nova)=>{const k=S.kontejnery.find(x=>x.id===id); if(k&&k.prodej===stara)k.prodej=nova;};
   kb("k3",3400,3800); kb("k5",4900,5400);
-  /* v3: ceník dle RTS 25/II × 1,08 — přepíše jen položky, které uživatel nechal na výchozích cenách */
+  /* v3/v4: ceník dle RTS 25/II × 1,08 — přepíše jen položky, které uživatel nechal na výchozích cenách */
   if(!S.cenikV3){
     const nove=defCenik();
     const stareB2C={sdk:120,pr75:150,pr100:220,pr150:300,pr200:450,ytong:210,cihla:1400,nosna:1100,zb:3500,poter50:190,poter100:280,dlazba:150,omitka:110,obklad:120};
@@ -684,6 +712,29 @@ function migrate(){
     });
     S.cenik.forEach(i=>{if(i.kat==="Omítky, obklady, malby")i.kat="Omítky, obklady, fasády"});
     S.cenikV3=true;
+  }
+  /* v4: přepočet dle ověřených RTS kódů + náročnost; nedotčené položky se aktualizují, ručně upravené ceny zůstávají */
+  if(!S.cenikV4){
+    const v3={sdk:224,sdk2:353,pr75:190,pr100:176,pr150:255,pr200:255,ytong:129,cihla:1270,"zdivo-mc":1418,"zdivo-dute":1072,
+      "zdivo-porobeton":834,"zdivo-smisene":1325,"beton-prosty":4126,zb:6998,komin:1635,nosna:425,"otvor-cihla":2021,
+      "otvor-cihla-m2":492,klenba:261,"strop-zb":5659,"schod-cihla":162,"schod-beton":391,"podhled-sdk":226,"podhled-kazety":144,
+      poter50:234,poter100:468,mazanina100:4676,mazanina200:3812,armovani:2716,"poter-lehceny":2792,"podklad-poter":4811,
+      nasyp:591,dlazba:105,teraco:185,sokl:43,plovouci:125,pvc:70,omitka:146,"omitka-strop":186,"omitka-cement":376,stuk:59,
+      malba:38,obklad:184,"obklad-mensi":293,"omitka-vnejsi":169,"zatepleni-eps":137,"zatepleni-mineral":165,
+      jadroU:7000,jadroZ:10000,zaruben:400,oblozka:150,okno:900,"demolice-drevo":429,"demolice-zdivo15":343,
+      "demolice-zdivo20":469,"demolice-mc20":926,sanita:300,vynaska:300,zakryti:20,uklid:3500,hodinovka:450,rez:600,preklad:900};
+    const nove=defCenik();
+    nove.forEach(nv=>{
+      const ix=S.cenik.findIndex(i=>i.id===nv.id);
+      if(ix<0){S.cenik.push({...nv});return}
+      const st=S.cenik[ix];
+      if(v3[nv.id]!==undefined&&st.b2c===v3[nv.id]) S.cenik[ix]={...nv};       /* nedotčená → přepsat celou */
+      else { st.hvezd=st.hvezd||nv.hvezd; st.kod=st.kod||nv.kod; }             /* upravená → jen doplnit metadata */
+    });
+    /* zrušené id (nahrazené přesnějšími) */
+    ["pr200","oblozka"].forEach(id=>{const i=S.cenik.findIndex(x=>x.id===id); if(i>=0&&v3[id]!==undefined&&S.cenik[i].b2c===v3[id])S.cenik.splice(i,1);});
+    S.cenik.forEach(i=>{if(i.hvezd===undefined)i.hvezd=3; if(i.kod===undefined)i.kod="—";});
+    S.cenikV4=true;
   }
   normJob(S.job); S.zakazky.forEach(normJob);
 }
@@ -775,9 +826,10 @@ function fillHdr(){
 function cenikOptions(sel){
   let h="<option value=''>— vyber práci —</option>";
   KAT.concat(S.cenik.map(i=>i.kat).filter(k=>!KAT.includes(k)).filter((v,i,a)=>a.indexOf(v)===i)).forEach(k=>{
-    const items=S.cenik.filter(i=>i.kat===k); if(!items.length)return;
+    const items=S.cenik.filter(i=>i.kat===k).sort((a,b)=>(b.hvezd||0)-(a.hvezd||0)||(b.b2c||0)-(a.b2c||0));
+    if(!items.length)return;
     h+="<optgroup label='"+esc(k)+"'>";
-    items.forEach(i=>{h+="<option value='"+i.id+"'"+(i.id===sel?" selected":"")+">"+esc(i.nazev)+"</option>"});
+    items.forEach(i=>{h+="<option value='"+i.id+"'"+(i.id===sel?" selected":"")+">"+HVEZDY(i.hvezd||3).slice(0,i.hvezd||3)+" "+esc(i.nazev)+"</option>"});
     h+="</optgroup>";
   });
   return h;
@@ -801,7 +853,7 @@ $("#praceTab").addEventListener("change",e=>{
   if(e.target.classList.contains("pSel")){
     const it=S.cenik.find(i=>i.id===e.target.value);
     const r=J.prace[ix];
-    if(it){r.polozkaId=it.id; r.nazev=it.nazev; r.mj=it.mj; r.kat=it.kat; r.cena=it[J.cenik]; r.sutT=it.sutT; r.sutM3=it.sutM3; r.hod=it.hod;}
+    if(it){r.polozkaId=it.id; r.nazev=it.nazev; r.mj=it.mj; r.kat=it.kat; r.cena=it[J.cenik]; r.sutT=it.sutT; r.sutM3=it.sutM3; r.hod=it.hod; r.hvezd=it.hvezd;}
     renderPrace();save();
   }
 });
@@ -940,7 +992,8 @@ function sazbaVynasky(){const it=S.cenik.find(i=>i.id==="vynaska"); return it?((
 function vypocet(){
   const n=S.nastaveni;
   const prace=J.prace.reduce((a,r)=>a+(r.mnozstvi||0)*(r.cena||0),0);
-  const hodinyPrace=J.prace.reduce((a,r)=>a+(r.mnozstvi||0)*(r.hod||0),0);
+  const kv=n.koefVykon>0?n.koefVykon:1;
+  const hodinyPrace=J.prace.reduce((a,r)=>a+(r.mnozstvi||0)*(r.hod||0),0)*kv;
   const sut=sutCelkem();
   /* vynáška: bez výtahu = m³ × koef × podlaží (účtuje se hodinovou sazbou); s výtahem jen čas, klientovi 0 */
   const vynaskaHod=J.vytah? sut.m3*(n.koefVynV||0) : sut.m3*(n.koefVyn||0)*Math.max(0,J.patro||0);
@@ -1315,7 +1368,8 @@ function renderZdroje(){
 }
 /* ---------- plán vs. realita + kalibrace norem ---------- */
 function planZak(z){
-  const hod=(z.prace||[]).reduce((a,r)=>a+(r.mnozstvi||0)*(r.hod||0),0);
+  const kv=S.nastaveni.koefVykon>0?S.nastaveni.koefVykon:1;
+  const hod=(z.prace||[]).reduce((a,r)=>a+(r.mnozstvi||0)*(r.hod||0),0)*kv;
   const m3=(z.prace||[]).reduce((a,r)=>a+(r.mnozstvi||0)*(r.sutM3||0),0);
   const vyn=z.vytah? m3*(S.nastaveni.koefVynV||0) : m3*(S.nastaveni.koefVyn||0)*Math.max(0,z.patro||0);
   return {hod:hod+vyn, kont:(z.kontejnery||[]).reduce((a,r)=>a+(r.pocet||0),0), km:z.km||0};
@@ -1337,15 +1391,17 @@ function renderRealita(){
   const kal=$("#kalibrace");
   if(dokonc.length>=5&&sumP>0){
     const R=sumS/sumP;
-    kal.innerHTML="<div class='warnbox' style='margin:10px 0 0'>📐<span><b>Kalibrace norem:</b> na "+dokonc.length+" dokončených zakázkách jsi "+
-      (R>1?"o "+fmt0.format((R-1)*100)+" % pomalejší":"o "+fmt0.format((1-R)*100)+" % rychlejší")+" než normy ceníku (koeficient "+fmt1.format(R)+"×). "+
-      "Přepočet vynásobí hod/MJ u všech položek — odhady dní a hodinovky pak sedí na vaši reálnou partu.</span>"+
-      "<button class='b' id='kalibrovat'>Přepočítat normy ×"+fmt1.format(R)+"</button></div>";
+    const stary=S.nastaveni.koefVykon>0?S.nastaveni.koefVykon:1;
+    const novy=Math.round(stary*R*100)/100;
+    kal.innerHTML="<div class='warnbox' style='margin:10px 0 0'>📐<span><b>Kalibrace odhadů:</b> na "+dokonc.length+" dokončených zakázkách jsi "+
+      (R>1?"o "+fmt0.format((R-1)*100)+" % pomalejší":"o "+fmt0.format((1-R)*100)+" % rychlejší")+" než plán. "+
+      "Koeficient výkonu party se změní z "+fmt1.format(stary)+"× na <b>"+fmt1.format(novy)+"×</b> — ceníkové normy RTS zůstanou nedotčené, jen se přepočtou odhady dní a hodinovky.</span>"+
+      "<button class='b' id='kalibrovat'>Nastavit koeficient "+fmt1.format(novy)+"×</button></div>";
     document.getElementById("kalibrovat").onclick=()=>{
-      if(!confirm("Vynásobit hod/MJ u všech "+S.cenik.length+" položek ceníku koeficientem "+fmt1.format(R)+"×?\n(Vrátit jde jen ručně nebo obnovením výchozího ceníku.)"))return;
-      S.cenik.forEach(i=>{i.hod=Math.round(i.hod*R*100)/100});
-      save(); renderCenik(); recalc(); renderRealita();
-      alert("Normy přepočítány podle reálných dat.");
+      if(!confirm("Nastavit koeficient výkonu party na "+fmt1.format(novy)+"×?\n\nCeník se nemění — mění se jen přepočet hodin. Kdykoli lze vrátit v Nastavení."))return;
+      S.nastaveni.koefVykon=novy;
+      save(); fillNastaveni(); recalc(); renderRealita();
+      alert("Koeficient nastaven na "+fmt1.format(novy)+"×.");
     };
   } else kal.innerHTML="";
 }
@@ -1364,7 +1420,7 @@ function vybBadge(){
 
 /* ---------- nastavení ---------- */
 const nMap=[["nFirma","firma",1],["nLide","lide"],["nHodDen","hodDen"],["nSazbaNajaty","sazbaNajaty"],["nOdvozMarze","odvozMarze"],["nSkladkovne","skladkovne"],["nKm","km"],["nRezerva","rezerva"],["nZaloha","zaloha"],
-  ["nKmProdej","kmProdej"],["nPausal","pausal"],["nMinZisk","minZiskOsHod"],["nMinTrzbaB2C","minTrzbaB2C"],["nMinTrzbaB2B","minTrzbaB2B"],["nMinCena","minCenaB2C"],["nVikendPct","vikendPct"],["nExpresPct","expresPct"],["nKoefVyn","koefVyn"],["nKoefVynV","koefVynV"]];
+  ["nKmProdej","kmProdej"],["nPausal","pausal"],["nMinZisk","minZiskOsHod"],["nMinTrzbaB2C","minTrzbaB2C"],["nMinTrzbaB2B","minTrzbaB2B"],["nMinCena","minCenaB2C"],["nVikendPct","vikendPct"],["nExpresPct","expresPct"],["nKoefVyn","koefVyn"],["nKoefVynV","koefVynV"],["nKoefVykon","koefVykon"]];
 nMap.forEach(([id,k,txt])=>{$( "#"+id).addEventListener("input",e=>{S.nastaveni[k]=txt?e.target.value:num(e.target.value);recalc();save();})});
 function fillNastaveni(){nMap.forEach(([id,k])=>{$("#"+id).value=S.nastaveni[k]})}
 
@@ -1395,22 +1451,28 @@ $("#nKontTab").addEventListener("click",e=>{
 });
 $("#addNKont").addEventListener("click",()=>{S.kontejnery.push({id:uid(),nazev:"Nový kontejner",objem:3,nosnost:4.5,nakup:0,prodej:0});renderNKont();save();});
 
+const HVEZDY=n=>"★".repeat(n)+"☆".repeat(5-n);
 function renderCenik(){
   const tb=$("#cenikTab tbody"); tb.innerHTML="";
   const kats=KAT.concat(S.cenik.map(i=>i.kat).filter(k=>!KAT.includes(k)).filter((v,i,a)=>a.indexOf(v)===i));
   kats.forEach(kat=>{
-    const items=S.cenik.map((it,ix)=>({it,ix})).filter(x=>x.it.kat===kat);
+    const items=S.cenik.map((it,ix)=>({it,ix})).filter(x=>x.it.kat===kat)
+      .sort((a,b)=>(b.it.hvezd||0)-(a.it.hvezd||0)||(b.it.b2c||0)-(a.it.b2c||0));
     if(!items.length)return;
-    const kr=document.createElement("tr"); kr.innerHTML="<td colspan='8' class='kat'>"+esc(kat)+"</td>"; tb.appendChild(kr);
+    const kr=document.createElement("tr"); kr.innerHTML="<td colspan='10' class='kat'>"+esc(kat)+"</td>"; tb.appendChild(kr);
     items.forEach(({it,ix})=>{
+      const kchod=it.hod>0?Math.round(it.b2c/it.hod):0;
       const tr=document.createElement("tr");
-      tr.innerHTML="<td><input class='cN' data-ix='"+ix+"' value='"+esc(it.nazev)+"'></td>"+
+      tr.innerHTML="<td><input class='cN' data-ix='"+ix+"' value='"+esc(it.nazev)+"'"+(it.kod&&it.kod!=="—"?" title='RTS "+esc(it.kod)+"'":"")+"></td>"+
+        "<td><select class='cHV' data-ix='"+ix+"' title='Fyzická náročnost a neoblíbenost práce'>"+
+          [1,2,3,4,5].map(n=>"<option value='"+n+"'"+(n===(it.hvezd||3)?" selected":"")+">"+HVEZDY(n)+"</option>").join("")+"</select></td>"+
         "<td><input class='cMJ' data-ix='"+ix+"' value='"+esc(it.mj)+"'></td>"+
         "<td><input type='number' step='any' class='cB2C' data-ix='"+ix+"' value='"+it.b2c+"'></td>"+
         "<td><input type='number' step='any' class='cB2B' data-ix='"+ix+"' value='"+it.b2b+"'></td>"+
         "<td><input type='number' step='any' class='cST' data-ix='"+ix+"' value='"+it.sutT+"'></td>"+
         "<td><input type='number' step='any' class='cSM' data-ix='"+ix+"' value='"+it.sutM3+"'></td>"+
         "<td><input type='number' step='any' class='cH' data-ix='"+ix+"' value='"+it.hod+"'></td>"+
+        "<td class='r num' style='font-weight:700;color:"+(kchod<500?"var(--bad)":kchod>800?"var(--good)":"var(--muted)")+"'>"+(kchod||"—")+"</td>"+
         "<td><button class='mini cDel' data-ix='"+ix+"'>✕</button></td>";
       tb.appendChild(tr);
     });
@@ -1426,7 +1488,13 @@ $("#cenikTab").addEventListener("input",e=>{
   if(c.contains("cST"))it.sutT=num(e.target.value);
   if(c.contains("cSM"))it.sutM3=num(e.target.value);
   if(c.contains("cH"))it.hod=num(e.target.value);
+  const kchod=it.hod>0?Math.round(it.b2c/it.hod):0;
+  const cell=e.target.closest("tr").children[8];
+  if(cell){cell.textContent=kchod||"—";cell.style.color=kchod<500?"var(--bad)":kchod>800?"var(--good)":"var(--muted)";}
   save();
+});
+$("#cenikTab").addEventListener("change",e=>{
+  if(e.target.classList.contains("cHV")){const it=S.cenik[+e.target.dataset.ix]; if(it){it.hvezd=+e.target.value;save();}}
 });
 $("#cenikTab").addEventListener("click",e=>{
   if(e.target.classList.contains("cDel")){
@@ -1438,7 +1506,7 @@ $("#addCenik").addEventListener("click",()=>{
   const kat=prompt("Kategorie položky:\n"+KAT.map((k,i)=>(i+1)+" = "+k).join("\n")+"\n(číslo, nebo napiš vlastní název kategorie)","7");
   if(kat===null)return;
   const k=(/^[1-9]$/.test(kat.trim()))?KAT[+kat.trim()-1]:(kat.trim()||KAT[8]);
-  S.cenik.push({id:uid(),kat:k,nazev:"Nová položka",mj:"m²",b2c:0,b2b:0,sutT:0,sutM3:0,hod:0});
+  S.cenik.push({id:uid(),kat:k,nazev:"Nová položka",mj:"m²",b2c:0,b2b:0,sutT:0,sutM3:0,hod:0,hvezd:3,kod:"—"});
   renderCenik();renderPrace();save();
 });
 
