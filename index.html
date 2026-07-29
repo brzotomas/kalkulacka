@@ -183,6 +183,21 @@ details.gsec li{margin:3px 0}
 .rradek:last-child{border-bottom:0}
 .rradek b{font-variant-numeric:tabular-nums}
 
+/* šablony zpráv */
+.sab{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:11px}
+.sab .sh{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.sab h3{font-size:16px;font-weight:700;margin:0}
+.sab .kdy{font-size:12px;color:var(--warn-ink);background:var(--warn-bg);border:1px solid var(--warn-line);
+  border-radius:20px;padding:2px 10px;font-weight:600;white-space:nowrap}
+.sab textarea{width:100%;min-height:150px;border:1px solid var(--line);border-radius:8px;padding:10px 12px;
+  background:var(--ground);color:var(--ink);font:14px/1.55 -apple-system,"Segoe UI",system-ui,sans-serif;resize:vertical}
+/* investice */
+.invbox{background:var(--surface2);border-radius:11px;padding:18px 20px;margin-top:14px}
+.invverdikt{font-size:22px;font-weight:800;letter-spacing:-.01em;margin-bottom:10px}
+.invverdikt.ano{color:var(--good)}.invverdikt.ne{color:var(--bad)}.invverdikt.hranice{color:var(--warn-ink)}
+.invradek{display:flex;justify-content:space-between;gap:12px;padding:5px 0;font-size:14.5px;border-bottom:1px solid var(--line)}
+.invradek:last-child{border-bottom:0}
+.invradek b{font-variant-numeric:tabular-nums;white-space:nowrap}
 /* kalendář */
 .kal{display:grid;grid-template-columns:repeat(7,minmax(78px,1fr));gap:3px;min-width:560px}
 .kal .dh{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:center;padding:4px 0}
@@ -234,6 +249,7 @@ details.gsec li{margin:3px 0}
       <button data-tab="kalkulace" class="on">Kalkulace</button>
       <button data-tab="zakazky">Zakázky <span id="zakCount" class="badge"></span></button>
       <button data-tab="plan">📅 Plán</button>
+      <button data-tab="zpravy">✉ Zprávy</button>
       <button data-tab="prehled">Přehled firmy</button>
       <button data-tab="cenik">Ceník a nastavení</button>
       <button data-tab="pruvodce">Průvodce</button>
@@ -519,6 +535,21 @@ details.gsec li{margin:3px 0}
   </div>
 </section>
 
+<!-- ============ ZPRÁVY ============ -->
+<section id="tab-zpravy" class="tab">
+  <div class="card">
+    <h2>Zprávy klientovi <span class="hint" style="float:right;text-transform:none;letter-spacing:0">texty se vyplní údaji z otevřené kalkulace</span></h2>
+    <p class="hint" style="margin:0 0 10px">Devět situací, které se opakují u každé zakázky. Klikneš na Kopírovat, vložíš do SMS nebo mailu, případně doladíš. <b>Texty si můžeš přepsat</b> — uloží se automaticky. Zástupné značky ve složených závorkách se nahradí sami: {klient}, {zakazka}, {adresa}, {cena}, {zaloha}, {doplatek}, {terminOd}, {terminDo}, {dni}, {firma}.</p>
+    <div class="sut" id="zpravyZdroj" style="margin-bottom:14px"></div>
+    <div id="sablonySeznam"></div>
+    <div class="btnrow"><button class="b" id="sablonyReset">Obnovit původní znění všech šablon</button></div>
+  </div>
+  <div class="card">
+    <h2>Připomínka: požádat o hodnocení</h2>
+    <div id="recenzeSeznam"></div>
+  </div>
+</section>
+
 <!-- ============ PŘEHLED FIRMY ============ -->
 <section id="tab-prehled" class="tab">
   <div class="statgrid" id="pKpi"></div>
@@ -591,6 +622,21 @@ details.gsec li{margin:3px 0}
       <tbody></tbody>
     </table></div>
     <p class="hint" id="odpSouhrnEmpty">Zatím žádná evidence. Vyplňuj ji u zakázek podle váženek ze skládky — je to zákonná povinnost a zároveň nejlepší způsob, jak si zpřesnit koeficienty suti.</p>
+  </div>
+
+  <div class="card">
+    <h2>Vyplatí se to koupit? — investiční kalkulačka</h2>
+    <p class="hint" style="margin:0 0 12px">Nejdražší chyby začínajících firem nejsou špatně naceněné zakázky, ale <b>špatné investice</b>. Vyber, co zvažuješ, uprav čísla podle konkrétní nabídky — a uvidíš návratnost i to, kolik zakázek měsíčně na to musíš mít.</p>
+    <div class="grid g3">
+      <label class="f">Co zvažuješ<select id="invPreset"></select></label>
+      <label class="f">Pořizovací cena (Kč)<input id="invCena" type="number" min="0" step="1000"><span class="hint">0 = platíš jen měsíčně</span></label>
+      <label class="f">Měsíční fixní náklad (Kč)<input id="invFix" type="number" min="0" step="500"><span class="hint">splátka, pojištění, servis, mzda…</span></label>
+      <label class="f">Přínos na jednu zakázku (Kč)<input id="invPrinos" type="number" min="0" step="500"><span class="hint">kolik ušetříš nebo vyděláš navíc</span></label>
+      <label class="f">Zakázek měsíčně<input id="invZakazek" type="number" min="0" step="1"><span class="hint" id="invZakHint"></span></label>
+      <label class="f">Horizont (měsíců)<input id="invHorizont" type="number" min="1" step="6"><span class="hint">za jak dlouho to chceš vyhodnotit</span></label>
+    </div>
+    <p class="hint" id="invPozn" style="margin:10px 0 0"></p>
+    <div id="invVysledek"></div>
   </div>
 
   <div class="card">
@@ -983,6 +1029,38 @@ function defJob(n){return {id:null, nazev:"", klient:"", adresa:"", poznamka:"",
 const ZDROJE=["Nejřemeslníci","Poptavky.cz","Google","Facebook","Stavebniny","Doporučení řemeslníka","Stálá firma","Rodina / známí","Jiné"];
 const DUVODY_VICEPRACE=["Skrytý beton","Armatura ve zdivu","Dvojitá konstrukce","Neočekávané instalace","Rozšíření rozsahu klientem","Horší přístup než při prohlídce","Jiné"];
 const DUVODY_PROHRY=["Drahé","Vzal jiného dodavatele","Odložil / zrušil záměr","Nereagoval","Nevyhovoval termín","Jiné"];
+/* ---- šablony zpráv klientovi ---- */
+function defSablony(){return [
+ {id:"poptavka",nazev:"1 · Odpověď na poptávku",kdy:"do hodiny od poptávky",text:
+  "Dobrý den,\n\nděkuji za poptávku. Bourací práce v rozsahu, který popisujete, děláme běžně.\n\nOrientačně počítám s cenou kolem {cena} včetně DPH a odvozu suti, práce na {dni} pracovních dní. Závaznou cenu vám dám po krátké prohlídce na místě — zabere 15 minut a můžu přijet i po pracovní době.\n\nKdy by se vám to hodilo?\n\nS pozdravem\n{firma}"},
+ {id:"nabidka",nazev:"2 · Odeslání nabídky",kdy:"hned po prohlídce, nejpozději druhý den",text:
+  "Dobrý den,\n\nděkuji za čas při prohlídce. V příloze posílám cenovou nabídku na akci {zakazka}.\n\nCena celkem: {cena} včetně DPH, včetně odvozu a likvidace suti.\nTermín: umím nastoupit {terminOd}, práce na {dni} pracovních dní.\nZáloha: {zaloha} před zahájením, doplatek do 14 dnů od předání.\n\nNabídka platí 14 dní. Kdyby cokoliv nebylo jasné, zavolejte.\n\nS pozdravem\n{firma}"},
+ {id:"potvrzeni",nazev:"3 · Potvrzení termínu",kdy:"jakmile klient odsouhlasí",text:
+  "Dobrý den,\n\nděkuji za odsouhlasení nabídky. Potvrzuji termín {terminOd} – {terminDo}.\n\nAby vše proběhlo hladce, poprosím do zahájení zajistit:\n• odpojení elektřiny, vody a plynu v bouraných částech\n• vyklizení prostoru a odvezení věcí, které mají zůstat\n• přístup a možnost postavit kontejner\n• klíče, případně kdo nám otevře\n\nZálohu {zaloha} poprosím uhradit před zahájením.\n\nS pozdravem\n{firma}"},
+ {id:"zaloha",nazev:"4 · Připomínka zálohy",kdy:"2–3 dny před nástupem, když záloha nedorazila",text:
+  "Dobrý den,\n\nblíží se termín {terminOd} a chtěl bych se ujistit, že je vše připraveno.\n\nZatím u nás nedorazila záloha {zaloha}. Poprosím o úhradu, ať můžeme nastoupit podle plánu — objednávám podle ní kontejnery a materiál.\n\nDěkuji\n{firma}"},
+ {id:"denPred",nazev:"5 · Den před nástupem",kdy:"večer před nástupem",text:
+  "Dobrý den,\n\njen krátce potvrzuji, že zítra {terminOd} nastupujeme na {adresa}. Na místě budeme kolem 7:30.\n\nPoprosím, ať je prostor přístupný a sítě odpojené. Budeme dělat prach a hluk, tak je fér upozornit sousedy.\n\nDěkuji\n{firma}"},
+ {id:"viceprace",nazev:"6 · Oznámení víceprací",kdy:"hned, jak na něco narazíte — nikdy ne zpětně",text:
+  "Dobrý den,\n\npři bourání jsme narazili na skutečnost, kterou nebylo možné vidět při prohlídce — posílám fotku.\n\nŘešení znamená práci navíc, kterou nabídka nezahrnuje. Připravil jsem dodatek s cenou. Dokud ho neodsouhlasíte, tuhle část neděláme a pokračujeme na zbytku.\n\nMůžete se na to prosím podívat? Ať vás to nezdrží.\n\nDěkuji\n{firma}"},
+ {id:"predani",nazev:"7 · Po předání + žádost o recenzi",kdy:"do 24 hodin po předání — potom už se to nestane",text:
+  "Dobrý den,\n\nděkuji za spolupráci, práci máme hotovou a prostor předaný.\n\nDoplatek {doplatek} poprosím uhradit do 14 dnů.\n\nA jedna prosba: pokud jste byli spokojení, moc by nám pomohlo krátké hodnocení — pro malou firmu jako je naše je to ta nejlepší reklama. Zabere to minutu.\n\nDěkuji a kdyby bylo potřeba cokoliv dalšího, ozvěte se.\n{firma}"},
+ {id:"upominka",nazev:"8 · Upomínka nezaplacené částky",kdy:"3–5 dní po splatnosti",text:
+  "Dobrý den,\n\ndovoluji si připomenout doplatek {doplatek} za akci {zakazka}, který je po splatnosti.\n\nPravděpodobně jen zapadl — kdyby byl problém, dejte prosím vědět a domluvíme se.\n\nDěkuji\n{firma}"},
+ {id:"odmitnuti",nazev:"9 · Slušné odmítnutí",kdy:"když nemáte kapacitu — vždy odpovězte",text:
+  "Dobrý den,\n\nděkuji za poptávku. Bohužel mám v tomhle termínu plno a nechci vám slibovat něco, co bych nestihl.\n\nKdyby vám vyhovoval pozdější termín, rád se ozvu — nebo se ozvěte příště, práce tohoto typu děláme běžně.\n\nS pozdravem\n{firma}"},
+];}
+const INVESTICE_PRESETY=[
+ {id:"vlastni",nazev:"— vlastní výpočet —",cena:0,fix:0,prinos:0,pozn:""},
+ {id:"valnik",nazev:"Valník s hydraulickou rukou + vlastní kontejnery",cena:450000,fix:12000,prinos:6000,
+  pozn:"Přínos = ušetřený nákup kontejnerů od dopravce (nákup mínus vlastní PHM a skládkovné). Fixní náklad = splátka, pojištění, servis, STK, dálniční známka."},
+ {id:"clovek",nazev:"Třetí člověk do party",cena:0,fix:58000,prinos:14000,
+  pozn:"Fixní náklad = superhrubá mzda včetně odvodů. Přínos = zisk navíc díky vyšší kapacitě — zakázky uděláte rychleji, takže jich stihnete víc."},
+ {id:"technika",nazev:"Minibagr s kladivem / bourací robot",cena:900000,fix:22000,prinos:16000,
+  pozn:"Přínos = úspora času u těžkého bourání (beton, ŽB) plus zakázky, na které dnes nemáte techniku."},
+ {id:"vysavac",nazev:"Průmyslová technika (vysavač M, bezprašné frézy)",cena:85000,fix:1500,prinos:2500,
+  pozn:"Přínos = možnost účtovat bezprašnou technologii a rychlejší úklid. Menší investice, rychlá návratnost."},
+];
 const FOTO_SKUPINY=[["pred","Před bouráním"],["prubeh","V průběhu"],["po","Po dokončení"]];
 /* katalogové kódy odpadů dle vyhlášky 8/2021 Sb. — nejčastější u demolic */
 const ODPADY_KODY=[
@@ -1018,11 +1096,14 @@ function normJob(j){ if(!j)return;
   j.zalohaCastka=j.zalohaCastka||0; j.zalohaSplatnost=j.zalohaSplatnost||""; j.zalohaZaplaceno=j.zalohaZaplaceno||"";
   j.doplatekCastka=j.doplatekCastka||0; j.doplatekSplatnost=j.doplatekSplatnost||""; j.doplatekZaplaceno=j.doplatekZaplaceno||"";
   j.duvodProhry=j.duvodProhry||""; j.cenaViteze=j.cenaViteze||0; j.poznProhry=j.poznProhry||""; j.cisloDod=j.cisloDod||0;
+  j.recenzeOdeslana=j.recenzeOdeslana||"";
   delete j.vynaska;
 }
 function migrate(){
   if(!S.vydaje)S.vydaje=[]; if(!S.vybava)S.vybava={}; if(!S.zakazky)S.zakazky=[]; if(!S.odberatele)S.odberatele=[];
   if(!S.dopravci)S.dopravci=[];
+  if(!S.sablony||!S.sablony.length)S.sablony=defSablony();
+  if(!S.investice)S.investice=[];
   const n=S.nastaveni, d=defNastaveni();
   /* v2.1: práh přepnut z Kč/os./den na Kč/os./hod; prahy denní tržby ve výchozím vypnuté */
   if(n.minZiskOsHod===undefined){
@@ -1114,6 +1195,7 @@ document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()
   if(b.dataset.tab==="zakazky")renderZakazky();
   if(b.dataset.tab==="prehled")renderPrehled();
   if(b.dataset.tab==="plan")renderPlan();
+  if(b.dataset.tab==="zpravy"){renderSablony();renderRecenze();}
 }));
 
 /* ---------- kalkulace: hlavička ---------- */
@@ -2236,6 +2318,152 @@ function renderRust(){
     nej?"Sem dávej čas i peníze. Zbytek utlum.":"Zatím žádná hotová zakázka se zdrojem.",null);
 }
 
+/* ================= ŠABLONY ZPRÁV ================= */
+function znacky(){
+  const v=vypocet();
+  const d=x=>x?new Date(x).toLocaleDateString("cs-CZ"):"…";
+  return {
+    "{klient}":J.klient||"…",
+    "{zakazka}":J.nazev||"…",
+    "{adresa}":J.adresa||"…",
+    "{cena}":v.celkem>0?kc(v.celkem):"…",
+    "{zaloha}":(J.zalohaCastka||0)>0?kc(J.zalohaCastka):kc(v.celkem*S.nastaveni.zaloha/100),
+    "{doplatek}":(J.doplatekCastka||0)>0?kc(J.doplatekCastka):kc(Math.max(0,v.celkem-(J.zalohaCastka||0))),
+    "{terminOd}":d(J.terminOd),
+    "{terminDo}":d(J.terminDo),
+    "{dni}":v.dny>0?String(Math.ceil(v.dny)):"…",
+    "{firma}":S.nastaveni.firma||"…",
+  };
+}
+function naplnSablonu(text){
+  const z=znacky();
+  return text.replace(/\{\w+\}/g,m=>z[m]!==undefined?z[m]:m);
+}
+function renderSablony(){
+  const v=vypocet();
+  $("#zpravyZdroj").innerHTML="Vyplňuje se z kalkulace: <b>"+esc(J.nazev||"(bez názvu)")+"</b>"+
+    (J.klient?" · klient "+esc(J.klient):"")+(v.celkem>0?" · cena "+kc(v.celkem):"")+
+    (J.terminOd?" · termín "+new Date(J.terminOd).toLocaleDateString("cs-CZ"):"")+
+    "&nbsp;&nbsp;<span class='hint'>(otevři jinou zakázku a texty se přepíšou)</span>";
+  const el=$("#sablonySeznam"); el.innerHTML="";
+  S.sablony.forEach((s,ix)=>{
+    const d=document.createElement("div"); d.className="sab";
+    d.innerHTML="<div class='sh'><h3>"+esc(s.nazev)+"</h3><span class='kdy'>⏱ "+esc(s.kdy||"")+"</span></div>"+
+      "<textarea class='sabT' data-ix='"+ix+"'>"+esc(s.text)+"</textarea>"+
+      "<div class='btnrow'><button class='b prim sabKop' data-ix='"+ix+"'>📋 Kopírovat s vyplněnými údaji</button>"+
+      "<button class='b sabNah' data-ix='"+ix+"'>Náhled</button></div>"+
+      "<div class='hint sabNahled' data-ix='"+ix+"' style='display:none;white-space:pre-wrap;background:var(--surface2);border-radius:8px;padding:12px;margin-top:8px'></div>";
+    el.appendChild(d);
+  });
+}
+$("#sablonySeznam").addEventListener("input",e=>{
+  if(e.target.classList.contains("sabT")){S.sablony[+e.target.dataset.ix].text=e.target.value;save();}
+});
+$("#sablonySeznam").addEventListener("click",e=>{
+  const ix=+e.target.dataset.ix;
+  if(e.target.classList.contains("sabKop")){
+    const t=naplnSablonu(S.sablony[ix].text);
+    navigator.clipboard.writeText(t).then(()=>{
+      const b=e.target; b.textContent="✓ Zkopírováno"; setTimeout(()=>b.textContent="📋 Kopírovat s vyplněnými údaji",1600);
+    });
+  }
+  if(e.target.classList.contains("sabNah")){
+    const n=document.querySelector(".sabNahled[data-ix='"+ix+"']");
+    if(n.style.display==="none"){n.textContent=naplnSablonu(S.sablony[ix].text);n.style.display="block";e.target.textContent="Skrýt náhled";}
+    else{n.style.display="none";e.target.textContent="Náhled";}
+  }
+});
+$("#sablonyReset").addEventListener("click",()=>{
+  if(!confirm("Obnovit původní znění všech šablon? Tvoje úpravy se ztratí."))return;
+  S.sablony=defSablony(); renderSablony(); save();
+});
+function renderRecenze(){
+  const el=$("#recenzeSeznam");
+  const hot=S.zakazky.filter(z=>z.status==="hotovo"&&!z.recenzeOdeslana);
+  if(!hot.length){
+    el.innerHTML="<p class='hint' style='margin:0'>Žádná dokončená zakázka nečeká na žádost o hodnocení. Až nějakou označíš jako „hotovo“, objeví se tady — a pošli ji <b>do 24 hodin</b>, potom už se to nikdy nestane.</p>";
+    return;
+  }
+  el.innerHTML="<p class='hint' style='margin:0 0 10px'>Tyhle zakázky jsou hotové a ještě jsi u nich nepožádal o hodnocení. Recenze na poptávkových portálech přímo určují, kolik poptávek ti chodí — je to nejlevnější marketing, jaký existuje.</p>"+
+    hot.map(z=>{
+      const dnu=z.ulozeno?Math.floor((Date.now()-new Date(z.ulozeno).getTime())/864e5):0;
+      return "<span class='odbrow'>"+esc(z.nazev)+(dnu?" · "+dnu+" dní":"")+
+        "<button class='mini act recHotovo' data-id='"+z.id+"'>✓ požádáno</button></span>";
+    }).join("");
+}
+$("#recenzeSeznam").addEventListener("click",e=>{
+  if(e.target.classList.contains("recHotovo")){
+    const z=S.zakazky.find(x=>x.id===e.target.dataset.id);
+    if(z){z.recenzeOdeslana=new Date().toISOString().slice(0,10);save();renderRecenze();}
+  }
+});
+
+/* ================= INVESTIČNÍ KALKULAČKA ================= */
+function invData(){
+  return {cena:num($("#invCena").value),fix:num($("#invFix").value),
+    prinos:num($("#invPrinos").value),zakazek:num($("#invZakazek").value),
+    horizont:Math.max(1,num($("#invHorizont").value)||36)};
+}
+function prumerZakazekMesicne(){
+  const hot=S.zakazky.filter(z=>z.status==="hotovo"&&z.ulozeno);
+  if(hot.length<2)return null;
+  const data=hot.map(z=>new Date(z.ulozeno).getTime()).sort((a,b)=>a-b);
+  const mesicu=Math.max(1,(data[data.length-1]-data[0])/(30.44*864e5));
+  return Math.round(hot.length/mesicu*10)/10;
+}
+function spocitatInvestici(){
+  const d=invData();
+  const el=$("#invVysledek");
+  if(d.fix<=0&&d.cena<=0){el.innerHTML="";return}
+  const mesicniPrinos=d.prinos*d.zakazek;
+  const bilance=mesicniPrinos-d.fix;
+  const navratnost=bilance>0?d.cena/bilance:null;
+  const breakEven=d.prinos>0?d.fix/d.prinos:null;
+  const zaHorizont=bilance*d.horizont-d.cena;
+  let verdikt,tr,rada;
+  if(bilance<=0){
+    verdikt="Nevyplatí se"; tr="ne";
+    rada="Měsíční náklad je vyšší než přínos — <b>prodělával bys každý měsíc</b>, i kdyby to nic nestálo pořídit. Buď potřebuješ víc zakázek, nebo vyšší přínos na zakázku, nebo levnější variantu.";
+  } else if(navratnost!==null&&navratnost>d.horizont){
+    verdikt="Nestihne se zaplatit"; tr="ne";
+    rada="Kladná bilance sice je, ale návratnost "+fmt1.format(navratnost)+" měsíců přesahuje tvůj horizont "+d.horizont+" měsíců. <b>Za tu dobu se ti to nevrátí.</b>";
+  } else if(navratnost!==null&&navratnost>d.horizont*0.6){
+    verdikt="Na hraně — rozmysli si to"; tr="hranice";
+    rada="Vrátí se to, ale až ke konci horizontu. <b>Nemáš rezervu na to, aby zakázek ubylo.</b> Zvaž levnější variantu, nebo počkej, až bude zakázek víc.";
+  } else {
+    verdikt="Vyplatí se"; tr="ano";
+    rada="Investice se vrátí"+(navratnost!==null?" za "+fmt1.format(navratnost)+" měsíců":"")+" a pak už vydělává. <b>Hlídej jen, ať ti nespadne počet zakázek</b> — od "+(breakEven!==null?fmt1.format(breakEven):"—")+" zakázek měsíčně jsi na nule.";
+  }
+  el.innerHTML="<div class='invbox'>"+
+    "<div class='invverdikt "+tr+"'>"+verdikt+"</div>"+
+    "<div class='invradek'><span>Měsíční přínos ("+fmt1.format(d.zakazek)+" zakázek × "+kc(d.prinos)+")</span><b style='color:var(--good)'>+"+kc(mesicniPrinos)+"</b></div>"+
+    "<div class='invradek'><span>Měsíční fixní náklad</span><b style='color:var(--bad)'>−"+kc(d.fix)+"</b></div>"+
+    "<div class='invradek'><span><b>Čistý měsíční efekt</b></span><b style='color:"+(bilance>0?"var(--good)":"var(--bad)")+"'>"+(bilance>0?"+":"")+kc(bilance)+"</b></div>"+
+    (d.cena>0?"<div class='invradek'><span>Návratnost pořizovací ceny "+kc(d.cena)+"</span><b>"+(navratnost!==null?fmt1.format(navratnost)+" měsíců":"nikdy")+"</b></div>":"")+
+    "<div class='invradek'><span>Break-even — kolik zakázek měsíčně to musí uživit</span><b>"+(breakEven!==null?fmt1.format(breakEven)+" zakázek":"—")+"</b></div>"+
+    "<div class='invradek'><span>Celkem za "+d.horizont+" měsíců (po odečtení pořizovací ceny)</span><b style='color:"+(zaHorizont>0?"var(--good)":"var(--bad)")+"'>"+(zaHorizont>0?"+":"")+kc(zaHorizont)+"</b></div>"+
+    "<p class='hint' style='margin:12px 0 0'>"+rada+"</p>"+
+  "</div>";
+}
+function renderInvestice(){
+  const sel=$("#invPreset");
+  if(!sel.options.length)sel.innerHTML=INVESTICE_PRESETY.map(p=>"<option value='"+p.id+"'>"+esc(p.nazev)+"</option>").join("");
+  const prum=prumerZakazekMesicne();
+  $("#invZakHint").textContent=prum?("z tvých dat vychází "+fmt1.format(prum)+"/měsíc"):"zatím málo dat — odhadni";
+  if(!$("#invZakazek").value)$("#invZakazek").value=prum||3;
+  if(!$("#invHorizont").value)$("#invHorizont").value=36;
+  spocitatInvestici();
+}
+$("#invPreset").addEventListener("change",e=>{
+  const p=INVESTICE_PRESETY.find(x=>x.id===e.target.value); if(!p)return;
+  $("#invCena").value=p.cena||""; $("#invFix").value=p.fix||""; $("#invPrinos").value=p.prinos||"";
+  $("#invPozn").innerHTML=p.pozn?"💡 "+esc(p.pozn):"";
+  spocitatInvestici();
+});
+["invCena","invFix","invPrinos","invZakazek","invHorizont"].forEach(id=>{
+  $("#"+id).addEventListener("input",spocitatInvestici);
+});
+
 /* ---------- nabídka: číslo a klauzule ---------- */
 function cisloNabidky(){
   if(!J.cisloNab){
@@ -2527,7 +2755,9 @@ function renderProhry(){
 /* ---------- roční souhrn odpadů ---------- */
 function renderOdpSouhrn(){
   const m={};
-  const vse=S.zakazky.concat(S.job&&S.job.odpady&&S.job.odpady.length?[S.job]:[]);
+  /* otevřenou zakázku započítat jen když ještě není uložená (jinak by se počítala dvakrát) */
+  const jobNavic=(S.job&&S.job.odpady&&S.job.odpady.length&&!S.zakazky.some(z=>z.id===S.job.id))?[S.job]:[];
+  const vse=S.zakazky.concat(jobNavic);
   vse.forEach(z=>(z.odpady||[]).forEach(o=>{
     if(!(o.tuny>0))return;
     m[o.kod]=m[o.kod]||{t:0,n:0};
@@ -2545,7 +2775,7 @@ function renderOdpSouhrn(){
     tb.appendChild(tr);
   });
 }
-function renderPrehled(){renderVydaje();renderOdberatele();renderZdroje();renderRealita();renderPohledavky();renderProhry();renderRust();renderOdpSouhrn();pStats();}
+function renderPrehled(){renderVydaje();renderOdberatele();renderZdroje();renderRealita();renderPohledavky();renderProhry();renderRust();renderOdpSouhrn();renderInvestice();pStats();}
 
 /* ---------- výbava checklist ---------- */
 document.querySelectorAll("[data-vyb]").forEach(ch=>{
@@ -2726,7 +2956,7 @@ document.querySelectorAll("[data-copy]").forEach(b=>b.addEventListener("click",(
 }));
 
 /* ---------- init ---------- */
-function fillAll(){fillHdr();fillNastaveni();renderPrace();renderKont();renderMat();renderOst();renderVP();renderFotky();renderDZ();renderOdp();renderDopravci();renderNKont();renderCenik();renderRychle();zakCount();syncVybava();renderPrehled();recalc();}
+function fillAll(){fillHdr();fillNastaveni();renderPrace();renderKont();renderMat();renderOst();renderVP();renderFotky();renderDZ();renderOdp();renderDopravci();renderNKont();renderCenik();renderRychle();renderSablony();renderRecenze();zakCount();syncVybava();renderPrehled();recalc();}
 fillAll();
 </script>
 
