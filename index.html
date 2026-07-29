@@ -354,6 +354,18 @@ details.gsec li{margin:3px 0}
   </div>
 
   <div class="card">
+    <h2>Vynáška a přesun suti <span class="badge" id="vynBadge"></span></h2>
+    <p class="hint" style="margin:0 0 10px">Počítá se <b>z tonáže suti</b>, ne z hodin — čím výš a čím dál se nosí, tím dráž. Sazby najdeš v Nastavení. Tohle je nejnamáhavější práce v celém oboru, tak ji nepodhodnocuj.</p>
+    <div class="grid g4">
+      <label class="f">Vzdálenost ke kontejneru (m)<input id="jVzdalenost" type="number" min="0" step="5"><span class="hint">od místa bourání k autu/kontejneru</span></label>
+      <div class="f" style="justify-content:flex-end"><span>&nbsp;</span><label class="chk"><input id="jVytahNaSut" type="checkbox"> Výtah lze použít na suť</label></div>
+      <div class="f" style="justify-content:flex-end"><span>&nbsp;</span><label class="chk"><input id="jRucniNoseni" type="checkbox"> Ruční nošení bez kolečka</label></div>
+      <div class="f" style="justify-content:flex-end"><span class="hint">Podlaží a výtah se berou z hlavičky zakázky</span><span>&nbsp;</span></div>
+    </div>
+    <div class="sut" id="vynRozpis" style="margin:12px 0 0;display:block"></div>
+  </div>
+
+  <div class="card">
     <h2>Materiál <span class="hint" style="float:right;text-transform:none;letter-spacing:0">HEB nosník, kotouče, fólie, pytle…</span></h2>
     <div class="tscroll"><table id="matTab">
       <thead><tr><th style="min-width:180px">Položka</th><th style="width:110px">Nákup (náklad)</th><th style="width:110px">Prodej klientovi</th><th class="r">Marže</th><th></th></tr></thead>
@@ -677,10 +689,22 @@ details.gsec li{margin:3px 0}
       <label class="f">Minimální paušál výjezdu (Kč)<input id="nPausal" type="number" min="0" step="50"></label>
       <label class="f">Víkendový příplatek (% z práce)<input id="nVikendPct" type="number" min="0" step="1"></label>
       <label class="f">Expresní příplatek (% z práce)<input id="nExpresPct" type="number" min="0" step="1"></label>
-      <label class="f">Koef. vynášky bez výtahu (h/m³/podlaží)<input id="nKoefVyn" type="number" min="0" step="0.01"></label>
-      <label class="f">Koef. vynášky s výtahem (h/m³)<input id="nKoefVynV" type="number" min="0" step="0.01"><span class="hint">jen čas — klientovi se s výtahem neúčtuje</span></label>
       <label class="f">Koeficient výkonu party<input id="nKoefVykon" type="number" min="0.5" step="0.05"><span class="hint">1,0 = držíte normy RTS · 1,3 = jste o 30 % pomalejší. Kalibrace v Přehledu ho nastaví z reálných zakázek.</span></label>
     </div>
+  </div>
+
+  <div class="card">
+    <h2>Vynáška suti — sazby</h2>
+    <p class="hint" style="margin:0 0 10px">Vynáška se počítá jako <b>hodiny na tunu × hodinová sazba</b>. Výslednou cenu za tunu vidíš přímo u zakázky a mění se podle pater a vzdálenosti. Výchozí čísla odpovídají realitě: parta zvládne vynést zhruba <b>3,7 t za hodinu z přízemí</b>, ale jen <b>1 t za hodinu ze 3. patra</b>.</p>
+    <div class="grid g3">
+      <label class="f">Hodinová sazba za vynášku (Kč/h)<input id="nVynSazba" type="number" min="0" step="5"><span class="hint">nejnamáhavější práce — drž vysoko (715–800)</span></label>
+      <label class="f">Základ — vodorovný přesun do 10 m (h/t)<input id="nVynZaklad" type="number" min="0" step="0.01"><span class="hint">platí vždy, i s výtahem</span></label>
+      <label class="f">Za každé podlaží po schodech (h/t)<input id="nVynPatro" type="number" min="0" step="0.01"><span class="hint">hlavní nákladová položka</span></label>
+      <label class="f">Koeficient při použití výtahu<input id="nVynVytahKoef" type="number" min="0" max="1" step="0.05"><span class="hint">0,3 = výtah ušetří 70 % práce s patry</span></label>
+      <label class="f">Za každých 10 m navíc vodorovně (h/t)<input id="nVynVzdalenost" type="number" min="0" step="0.01"></label>
+      <label class="f">Přirážka za ruční nošení bez kolečka<input id="nVynRucniKoef" type="number" min="1" step="0.05"><span class="hint">úzké nebo točité schodiště</span></label>
+    </div>
+    <div id="vynUkazka"></div>
   </div>
 
   <div class="card">
@@ -767,6 +791,24 @@ details.gsec li{margin:3px 0}
       <li><b>Morava je proti Praze o ~20–25 % levnější</b> — u B2C se drž spíš spodní hranice rozpětí, ať jsi konkurenceschopný.</li>
       <li><b>Cash-flow:</b> u zakázek nad ~100 tis. vždy záloha. Nákup kontejnerů a materiálu jde z tvé kapsy dřív, než klient zaplatí.</li>
       <li><b>Sleva jako obchodní tah:</b> profesionální firmy nacení plné ceníkové ceny a na konec nabídky dají viditelnou slevu 3–5 % — působí vstřícně a nesráží jednotkové ceny. Pole „Sleva pro klienta“ najdeš v Příplatcích; kalkulačka ji odečte z ceny i z tvého zisku, takže vždy vidíš, co tě sleva reálně stojí. Nejdřív hlídej hodinovku, pak slevuj.</li>
+    </ul>
+  </div></details>
+
+  <details class="gsec"><summary>Vynáška suti — nejpodceňovanější položka rozpočtu</summary><div class="inner">
+    <ul>
+      <li><b>Nosí se hmotnost, ne plocha.</b> Proto se vynáška počítá z tun suti, ne z hodin ani z m². Kalkulačka si tonáž vezme z bouracích prací a sama spočítá cenu za tunu podle konkrétních podmínek.</li>
+      <li><b>Patra jsou hlavní nákladová položka.</b> Podívej se, jak dramaticky to roste (výchozí sazby, 18 t suti):
+        <ul>
+          <li>přízemí, do 10 m — <b>107 Kč/t</b>, tempo 6,7 t/hod</li>
+          <li>1. patro po schodech — <b>300 Kč/t</b>, tempo 2,4 t/hod</li>
+          <li>3. patro po schodech — <b>686 Kč/t</b>, tempo 1 t/hod</li>
+          <li>5. patro, 30 m, ručně bez kolečka — <b>1 622 Kč/t</b>, tempo 0,4 t/hod</li>
+        </ul>
+        Ze třetího patra vynese parta za hodinu jednu tunu. Kdo to nacení jako přízemí, prodělá.</li>
+      <li><b>Zeptej se, jestli smíte použít výtah na suť</b> — samotná existence výtahu nestačí, SVJ to často zakazuje. V sekci vynášky je na to samostatné zaškrtávátko a rozdíl je zásadní: 3. patro s výtahem 281 Kč/t, bez něj 686 Kč/t.</li>
+      <li><b>Vzdálenost ke kontejneru</b> se měří od místa bourání k autu. Když kontejner nemůže stát u vchodu (zábor, úzká ulice), připočti reálné metry — každých 10 m navíc něco stojí.</li>
+      <li><b>Ruční nošení bez kolečka</b> zaškrtni u úzkých nebo točitých schodišť, kde se s kolečkem nedá projet. Práce je pak zhruba o 40 % pomalejší.</li>
+      <li><b>Hodinovka zůstává vždy na nastavené sazbě</b> (výchozí 715 Kč/h) — cena za tunu je jen jiný pohled na tutéž práci. V Nastavení máš názornou tabulku, jak sazby dopadnou na typické situace.</li>
     </ul>
   </div></details>
 
@@ -907,7 +949,7 @@ details.gsec li{margin:3px 0}
   <details class="gsec"><summary>Jak kalkulačka počítá</summary><div class="inner">
     <ul>
       <li><b>Tržba bez DPH</b> = práce + rezerva + vynáška + příplatky (víkend, expres) + prodej materiálu + prodej odvozu (+ skládkovné s marží, doprava je-li účtovaná, vlastní položky „účtováno klientovi") − sleva pro klienta.</li>
-      <li><b>Vynáška suti</b>: bez výtahu = suť m³ × koeficient × podlaží, účtuje se hodinovou sazbou položky „Vynáška suti / přesun hmot". S výtahem se počítá jen menší koeficient času (klientovi 0 Kč) — zohlední se v odhadu dní.</li>
+      <li><b>Vynáška suti</b> má vlastní sekci a počítá se <b>z tonáže</b>: hodiny/t = základ + podlaží × sazba (s výtahem × koeficient) + vzdálenost navíc, celé × přirážka za ruční nošení. Výsledek se násobí hodinovou sazbou → cena za tunu. Sazby v Nastavení.</li>
       <li><b>Doprava</b>: náklad = km × nákladová sazba; klientovi se účtuje max(km × prodejní sazba; minimální paušál výjezdu). Rozdíl je tvoje marže.</li>
       <li><b>Náklady</b> = nákup kontejnerů + skládkovné + nákup materiálu + doprava (km × nákladová sazba) + provize + mzdy najatých (dny × hod/den × sazba) + vlastní položky „náš náklad".</li>
       <li><b>Čistý zisk firmy</b> = tržba − náklady. Hlavní číslo je <b>bez rezervy</b> — rezerva je pojistka na skrytý beton, ne výplata. Zisk se dělí mezi majitele (lidé − najatí).</li>
@@ -1017,11 +1059,11 @@ function defKontejnery(){return [
  {id:"k9", nazev:"9 m³ – směsný odpad",  objem:9, nosnost:3,   nakup:5800, prodej:7200},
 ];}
 function defNastaveni(){return {firma:"", lide:2, hodDen:9, sazbaNajaty:250, odvozMarze:20, skladkovne:610, km:15, kmProdej:25, pausal:600, rezerva:12, zaloha:40,
-  koefVyn:0.35, koefVynV:0.12, koefVykon:1.0, minZiskOsHod:450, minTrzbaB2C:0, minTrzbaB2B:0, minCenaB2C:8000, vikendPct:25, expresPct:15, nabRok:0, nabPoradi:0};}
+  vynSazba:715, vynZaklad:0.15, vynPatro:0.27, vynVytahKoef:0.30, vynVzdalenost:0.06, vynRucniKoef:1.4, koefVykon:1.0, minZiskOsHod:450, minTrzbaB2C:0, minTrzbaB2B:0, minCenaB2C:8000, vikendPct:25, expresPct:15, nabRok:0, nabPoradi:0};}
 function defJob(n){return {id:null, nazev:"", klient:"", adresa:"", poznamka:"", zdroj:"", odberatelId:"", cenik:"b2c", dph:"12",
   patro:0, vytah:true, lide:n.lide, najati:0,
   prace:[], kontejnery:[], material:[], ostatni:[], viceprace:[], fotky:[], denniZapis:[], odpady:[],
-  terminOd:"", terminDo:"", dopravceId:"",
+  terminOd:"", terminDo:"", dopravceId:"", vzdalenost:10, rucniNoseni:false, vytahNaSut:true,
   skladkovne:false, rezerva:n.rezerva, provize:0, sleva:0, km:0, dopravaUctovat:true, vikend:false, expres:false,
   zalohaCastka:0, zalohaSplatnost:"", zalohaZaplaceno:"", doplatekCastka:0, doplatekSplatnost:"", doplatekZaplaceno:"",
   duvodProhry:"", cenaViteze:0, poznProhry:"",
@@ -1097,6 +1139,9 @@ function normJob(j){ if(!j)return;
   j.doplatekCastka=j.doplatekCastka||0; j.doplatekSplatnost=j.doplatekSplatnost||""; j.doplatekZaplaceno=j.doplatekZaplaceno||"";
   j.duvodProhry=j.duvodProhry||""; j.cenaViteze=j.cenaViteze||0; j.poznProhry=j.poznProhry||""; j.cisloDod=j.cisloDod||0;
   j.recenzeOdeslana=j.recenzeOdeslana||"";
+  if(j.vzdalenost===undefined)j.vzdalenost=10;
+  j.rucniNoseni=!!j.rucniNoseni;
+  if(j.vytahNaSut===undefined)j.vytahNaSut=true;
   delete j.vynaska;
 }
 function migrate(){
@@ -1104,6 +1149,13 @@ function migrate(){
   if(!S.dopravci)S.dopravci=[];
   if(!S.sablony||!S.sablony.length)S.sablony=defSablony();
   if(!S.investice)S.investice=[];
+  /* v7: vynáška přepočtena z hodin na tuny — staré koeficienty už nejsou potřeba */
+  if(!S.vynaskaV7){
+    const st=S.cenik.find(i=>i.id==="vynaska");
+    if(st&&st.b2c>0)S.nastaveni.vynSazba=st.b2c;   /* zachovat sazbu, kterou si uživatel případně upravil */
+    delete S.nastaveni.koefVyn; delete S.nastaveni.koefVynV;
+    S.vynaskaV7=true;
+  }
   const n=S.nastaveni, d=defNastaveni();
   /* v2.1: práh přepnut z Kč/os./den na Kč/os./hod; prahy denní tržby ve výchozím vypnuté */
   if(n.minZiskOsHod===undefined){
@@ -1259,6 +1311,7 @@ function fillHdr(){
   $("#jZalohaCastka").value=J.zalohaCastka||""; $("#jZalohaSplatnost").value=J.zalohaSplatnost; $("#jZalohaZaplaceno").value=J.zalohaZaplaceno;
   $("#jDoplatekCastka").value=J.doplatekCastka||""; $("#jDoplatekSplatnost").value=J.doplatekSplatnost; $("#jDoplatekZaplaceno").value=J.doplatekZaplaceno;
   $("#jTerminOd").value=J.terminOd; $("#jTerminDo").value=J.terminDo;
+  $("#jVzdalenost").value=J.vzdalenost; $("#jVytahNaSut").checked=J.vytahNaSut; $("#jRucniNoseni").checked=J.rucniNoseni;
   fillDopravceSelect();
 }
 
@@ -1380,6 +1433,35 @@ $("#navrhKont").addEventListener("click",()=>{
 });
 function sutCelkem(){let t=0,m3=0;J.prace.forEach(r=>{t+=(r.mnozstvi||0)*(r.sutT||0);m3+=(r.mnozstvi||0)*(r.sutM3||0)});return{t,m3}}
 
+/* ---------- vynáška: rozpis a ovládání ---------- */
+$("#jVzdalenost").addEventListener("input",e=>{J.vzdalenost=num(e.target.value);recalc();save()});
+$("#jVytahNaSut").addEventListener("change",e=>{J.vytahNaSut=e.target.checked;recalc();save()});
+$("#jRucniNoseni").addEventListener("change",e=>{J.rucniNoseni=e.target.checked;recalc();save()});
+function renderVynaska(v){
+  const y=v.vyn, b=$("#vynBadge"), el=$("#vynRozpis");
+  b.textContent=y.t>0?fmt0.format(y.cenaT)+" Kč/t":"";
+  b.className="badge"+(y.cenaT>=600?" bad":y.cenaT>=350?"":" good");
+  b.style.display=b.textContent?"":"none";
+  if(y.t<=0){el.innerHTML="<span class='hint'>Zatím není co nosit — přidej bourací práce a suť se spočítá sama.</span>";return}
+  const casti=[];
+  casti.push("základ "+fmt1.format(y.zaklad*(y.rucni!==1?1:1))+" h/t");
+  if(y.patra>0)casti.push(y.patra+"× podlaží "+(y.vytahOK?"(výtah, ×"+fmt1.format(S.nastaveni.vynVytahKoef)+") ":"")+"= "+fmt1.format(y.zaPatro)+" h/t");
+  if(y.vzdNavic>0)casti.push(y.vzdNavic+"× 10 m navíc = "+fmt1.format(y.zaVzd)+" h/t");
+  if(y.rucni!==1)casti.push("ruční nošení ×"+fmt1.format(y.rucni));
+  el.innerHTML=
+    "<div style='display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:baseline'>"+
+      "<b style='font-size:19px'>"+fmt0.format(y.cenaT)+" Kč za tunu</b>"+
+      "<b style='font-size:19px'>"+kc(y.cena)+" celkem</b>"+
+    "</div>"+
+    "<div class='hint' style='margin-top:6px'>"+esc(casti.join(" + "))+" &nbsp;=&nbsp; <b>"+fmt1.format(y.hodT)+" h/t</b></div>"+
+    "<div class='hint' style='margin-top:4px'>"+fmt1.format(y.t)+" t suti × "+fmt1.format(y.hodT)+" h/t = <b>"+
+      fmt1.format(y.hodiny)+" hodin</b> × "+fmt0.format(y.sazba)+" Kč/h"+
+      " &nbsp;·&nbsp; tempo <b>"+fmt1.format(y.tZaHod)+" t/hod</b>"+
+      (y.patra>0&&!y.vytahOK?" &nbsp;·&nbsp; <span class='ne'>"+y.patra+". podlaží po schodech</span>":"")+
+      (y.vytahOK&&y.patra>0?" &nbsp;·&nbsp; <span class='ok'>výtah šetří "+kc((y.patra*(S.nastaveni.vynPatro||0)*(1-(S.nastaveni.vynVytahKoef||0))*y.rucni)*y.t*y.sazba)+"</span>":"")+
+    "</div>";
+}
+
 /* ---------- kalkulace: materiál a ostatní ---------- */
 function renderMat(){
   const tb=$("#matTab tbody"); tb.innerHTML="";
@@ -1429,16 +1511,32 @@ $("#addOst").addEventListener("click",()=>{J.ostatni.push({nazev:"",naklad:0,pro
 
 /* ---------- výpočet ---------- */
 function maNosne(){return J.prace.some(r=>{const kat=r.kat||((S.cenik.find(i=>i.id===r.polozkaId)||{}).kat); return kat===KAT[1]&&(r.mnozstvi||0)>0});}
-function sazbaVynasky(){const it=S.cenik.find(i=>i.id==="vynaska"); return it?((J.cenik==="b2b"?it.b2b:it.b2c)||250):250;}
+/* Vynáška suti — počítá se z tonáže, ne z hodin.
+   hodiny/t = základ + podlaží × sazba(× koef. výtahu) + vzdálenost navíc, celé × přirážka za ruční nošení */
+function vynaskaVypocet(sut){
+  const n=S.nastaveni;
+  const t=sut?sut.t:sutCelkem().t;
+  const patra=Math.max(0,J.patro||0);
+  const vytahOK=!!(J.vytah&&J.vytahNaSut);
+  const koefP=vytahOK?(n.vynVytahKoef>=0?n.vynVytahKoef:0.3):1;
+  const vzdNavic=Math.max(0,Math.ceil(((J.vzdalenost||0)-10)/10));
+  const zaklad=n.vynZaklad||0, zaPatro=patra*(n.vynPatro||0)*koefP, zaVzd=vzdNavic*(n.vynVzdalenost||0);
+  const rucni=J.rucniNoseni?(n.vynRucniKoef||1):1;
+  const hodT=(zaklad+zaPatro+zaVzd)*rucni;
+  const sazba=(J.cenik==="b2b"?(n.vynSazba||0)*0.9:(n.vynSazba||0));
+  const hodiny=t*hodT;
+  return {t,patra,vytahOK,vzdNavic,zaklad,zaPatro,zaVzd,rucni,hodT,hodiny,sazba,
+    cenaT:hodT*sazba, cena:hodiny*sazba, tZaHod:hodT>0?1/hodT:0};
+}
 function vypocet(){
   const n=S.nastaveni;
   const prace=J.prace.reduce((a,r)=>a+(r.mnozstvi||0)*(r.cena||0),0);
   const kv=n.koefVykon>0?n.koefVykon:1;
   const hodinyPrace=J.prace.reduce((a,r)=>a+(r.mnozstvi||0)*(r.hod||0),0)*kv;
   const sut=sutCelkem();
-  /* vynáška: bez výtahu = m³ × koef × podlaží (účtuje se hodinovou sazbou); s výtahem jen čas, klientovi 0 */
-  const vynaskaHod=J.vytah? sut.m3*(n.koefVynV||0) : sut.m3*(n.koefVyn||0)*Math.max(0,J.patro||0);
-  const vynaska=(!J.vytah&&vynaskaHod>0)? vynaskaHod*sazbaVynasky() : 0;
+  const vyn=vynaskaVypocet(sut);
+  const vynaskaHod=vyn.hodiny;
+  const vynaska=vyn.cena;
   const hodinyVP=J.viceprace.filter(r=>r.stav==="odsouhlaseno").reduce((a,r)=>a+(r.hod||0),0);
   const hodiny=hodinyPrace+vynaskaHod+hodinyVP;
   const rezerva=prace*(J.rezerva||0)/100;
@@ -1475,7 +1573,7 @@ function vypocet(){
   const majitele=Math.max(1,lide-(J.najati||0));
   const zaloha=J.zalohaCastka||0, doplatek=J.doplatekCastka||0;
   const neuhrazeno=(J.zalohaZaplaceno?0:zaloha)+(J.doplatekZaplaceno?0:doplatek);
-  return {prace,hodiny,hodinyPrace,hodinyVP,vynaskaHod,sut,rezerva,vynaska,vikend,expres,matP,matN,kontP,kontN,sklN,sklP,
+  return {prace,hodiny,hodinyPrace,hodinyVP,vynaskaHod,vyn,sut,rezerva,vynaska,vikend,expres,matP,matN,kontP,kontN,sklN,sklP,
     dopravaN,dopravaP,ostP,ostN,provize,najatiN,dny,mezisoucet,sleva,viceprace,vicepraceCeka,trzba,naklady,zisk,
     ziskBezRezervy:zisk-rezerva,dph,dphInfo,celkem,majitele,sazba,zaloha,doplatek,neuhrazeno};
 }
@@ -1498,6 +1596,7 @@ function recalc(){
   $("#planKmHint").textContent="plán: "+(J.km||0)+" km";
   $("#nosneBanner").style.display=maNosne()?"":"none";
   terminHint();
+  renderVynaska(v);
   /* vícepráce + platby */
   const vpB=$("#vpBadge");
   vpB.textContent=J.viceprace.length?(v.viceprace?kc(v.viceprace)+" odsouhlaseno":"")+(v.vicepraceCeka?(v.viceprace?" · ":"")+kc(v.vicepraceCeka)+" čeká":""):"";
@@ -1517,7 +1616,7 @@ function recalc(){
   /* souhrn */
   let t="<div class='sumline'><span>Bourací práce</span><b>"+kc(v.prace)+"</b></div>";
   if(v.rezerva)t+="<div class='sumline sub'><span>+ rezerva "+J.rezerva+" %</span><b>"+kc(v.rezerva)+"</b></div>";
-  if(v.vynaska)t+="<div class='sumline sub'><span>+ vynáška suti ("+fmt1.format(v.vynaskaHod)+" h, "+J.patro+". podlaží bez výtahu)</span><b>"+kc(v.vynaska)+"</b></div>";
+  if(v.vynaska)t+="<div class='sumline sub'><span>+ vynáška suti ("+fmt1.format(v.sut.t)+" t × "+fmt0.format(v.vyn.cenaT)+" Kč/t)</span><b>"+kc(v.vynaska)+"</b></div>";
   if(v.vikend)t+="<div class='sumline sub'><span>+ víkend "+n.vikendPct+" %</span><b>"+kc(v.vikend)+"</b></div>";
   if(v.expres)t+="<div class='sumline sub'><span>+ expres "+n.expresPct+" %</span><b>"+kc(v.expres)+"</b></div>";
   if(v.matP)t+="<div class='sumline'><span>Materiál (prodej)</span><b>"+kc(v.matP)+"</b></div>";
@@ -1898,8 +1997,11 @@ function rychlyOdhad(){
     radky.push({nazev:it.nazev,mn,mj:it.mj,cena});
   });
   hod*=(n.koefVykon>0?n.koefVykon:1);
-  const vynaskaHod=vytah? sutM3*(n.koefVynV||0) : sutM3*(n.koefVyn||0)*Math.max(0,patro);
-  const vynaska=(!vytah&&vynaskaHod>0)? vynaskaHod*sazbaVynasky() : 0;
+  /* vynáška ze stejného modelu jako v plné kalkulaci (z tonáže) */
+  const koefP=vytah?(n.vynVytahKoef>=0?n.vynVytahKoef:0.3):1;
+  const hodT=(n.vynZaklad||0)+Math.max(0,patro)*(n.vynPatro||0)*koefP;
+  const vynaskaHod=sutT*hodT;
+  const vynaska=vynaskaHod*(n.vynSazba||0);
   hod+=vynaskaHod;
   /* kontejnery: nejlevnější kombinace */
   const vars=kontVarianty(sutM3,sutT);
@@ -1924,7 +2026,7 @@ function zobrazRychle(){
   let rad="";
   o.radky.forEach(r=>{rad+="<div class='rradek'><span>"+esc(r.nazev)+" — "+fmt1.format(r.mn)+" "+esc(r.mj)+"</span><b>"+kc(r.cena)+"</b></div>"});
   if(o.rezerva)rad+="<div class='rradek'><span>Rezerva na skryté konstrukce</span><b>"+kc(o.rezerva)+"</b></div>";
-  if(o.vynaska)rad+="<div class='rradek'><span>Vynáška suti ("+o.patro+". podlaží bez výtahu)</span><b>"+kc(o.vynaska)+"</b></div>";
+  if(o.vynaska)rad+="<div class='rradek'><span>Vynáška suti ("+fmt1.format(o.sutT)+" t"+(o.patro?", "+o.patro+". podlaží"+(o.vytah?" s výtahem":" po schodech"):"")+")</span><b>"+kc(o.vynaska)+"</b></div>";
   rad+="<div class='rradek'><span>Odvoz suti — "+esc(o.kontPopis)+"</span><b>"+kc(o.kontP)+"</b></div>";
   const varovani=stari==="2"?"<div class='warnbox' style='margin:12px 0 0'>⚠️<span><b>Stavba před rokem 1990</b> — do odpovědi napiš azbestovou klauzuli. Při nálezu se práce přeruší a přecení.</span></div>":"";
   el.innerHTML="<div class='card'>"+
@@ -2493,7 +2595,7 @@ $("#tisk").addEventListener("click",()=>{
   J.prace.filter(r=>r.nazev&&(r.mnozstvi||0)>0).forEach(r=>{
     rows+="<tr><td>"+esc(r.nazev)+"</td><td class='r'>"+fmt1.format(r.mnozstvi)+" "+esc(r.mj)+"</td><td class='r'>"+kc(r.cena)+"</td><td class='r'>"+kc(r.mnozstvi*r.cena)+"</td></tr>";
   });
-  if(v.vynaska)rows+="<tr><td>Vynáška suti (objekt bez výtahu, "+J.patro+". podlaží)</td><td class='r'></td><td class='r'></td><td class='r'>"+kc(v.vynaska)+"</td></tr>";
+  if(v.vynaska)rows+="<tr><td>Vynáška a přesun suti"+(J.patro?" ("+J.patro+". podlaží"+(v.vyn.vytahOK?" s výtahem":" po schodech")+")":"")+"</td><td class='r'>"+fmt1.format(v.sut.t)+" t</td><td class='r'>"+kc(v.vyn.cenaT)+"</td><td class='r'>"+kc(v.vynaska)+"</td></tr>";
   if(v.rezerva)rows+="<tr><td>Rezerva na skryté konstrukce ("+J.rezerva+" %)</td><td class='r'></td><td class='r'></td><td class='r'>"+kc(v.rezerva)+"</td></tr>";
   if(v.vikend)rows+="<tr><td>Příplatek za práci o víkendu / svátku</td><td class='r'></td><td class='r'></td><td class='r'>"+kc(v.vikend)+"</td></tr>";
   if(v.expres)rows+="<tr><td>Příplatek za expresní termín</td><td class='r'></td><td class='r'></td><td class='r'>"+kc(v.expres)+"</td></tr>";
@@ -2532,7 +2634,7 @@ $("#kopieNabidky").addEventListener("click",()=>{
   L.push("Vystaveno: "+new Date().toLocaleDateString("cs-CZ")+" · platnost 14 dní");
   L.push("——————————————");
   J.prace.filter(r=>r.nazev&&(r.mnozstvi||0)>0).forEach(r=>L.push("• "+r.nazev+": "+fmt1.format(r.mnozstvi)+" "+r.mj+" × "+fmt0.format(r.cena)+" Kč = "+kc(r.mnozstvi*r.cena)));
-  if(v.vynaska)L.push("• Vynáška suti (objekt bez výtahu, "+J.patro+". podlaží): "+kc(v.vynaska));
+  if(v.vynaska)L.push("• Vynáška a přesun suti: "+fmt1.format(v.sut.t)+" t × "+fmt0.format(v.vyn.cenaT)+" Kč/t = "+kc(v.vynaska));
   if(v.rezerva)L.push("• Rezerva na skryté konstrukce ("+J.rezerva+" %): "+kc(v.rezerva));
   if(v.vikend)L.push("• Příplatek za práci o víkendu / svátku: "+kc(v.vikend));
   if(v.expres)L.push("• Příplatek za expresní termín: "+kc(v.expres));
@@ -2664,8 +2766,11 @@ function renderZdroje(){
 function planZak(z){
   const kv=S.nastaveni.koefVykon>0?S.nastaveni.koefVykon:1;
   const hod=(z.prace||[]).reduce((a,r)=>a+(r.mnozstvi||0)*(r.hod||0),0)*kv;
-  const m3=(z.prace||[]).reduce((a,r)=>a+(r.mnozstvi||0)*(r.sutM3||0),0);
-  const vyn=z.vytah? m3*(S.nastaveni.koefVynV||0) : m3*(S.nastaveni.koefVyn||0)*Math.max(0,z.patro||0);
+  const n=S.nastaveni;
+  const t=(z.prace||[]).reduce((a,r)=>a+(r.mnozstvi||0)*(r.sutT||0),0);
+  const koefP=(z.vytah&&z.vytahNaSut!==false)?(n.vynVytahKoef>=0?n.vynVytahKoef:0.3):1;
+  const vzdNavic=Math.max(0,Math.ceil(((z.vzdalenost||10)-10)/10));
+  const vyn=t*(((n.vynZaklad||0)+Math.max(0,z.patro||0)*(n.vynPatro||0)*koefP+vzdNavic*(n.vynVzdalenost||0))*(z.rucniNoseni?(n.vynRucniKoef||1):1));
   return {hod:hod+vyn, kont:(z.kontejnery||[]).reduce((a,r)=>a+(r.pocet||0),0), km:z.km||0};
 }
 function renderRealita(){
@@ -2790,9 +2895,27 @@ function vybBadge(){
 
 /* ---------- nastavení ---------- */
 const nMap=[["nFirma","firma",1],["nLide","lide"],["nHodDen","hodDen"],["nSazbaNajaty","sazbaNajaty"],["nOdvozMarze","odvozMarze"],["nSkladkovne","skladkovne"],["nKm","km"],["nRezerva","rezerva"],["nZaloha","zaloha"],
-  ["nKmProdej","kmProdej"],["nPausal","pausal"],["nMinZisk","minZiskOsHod"],["nMinTrzbaB2C","minTrzbaB2C"],["nMinTrzbaB2B","minTrzbaB2B"],["nMinCena","minCenaB2C"],["nVikendPct","vikendPct"],["nExpresPct","expresPct"],["nKoefVyn","koefVyn"],["nKoefVynV","koefVynV"],["nKoefVykon","koefVykon"]];
-nMap.forEach(([id,k,txt])=>{$( "#"+id).addEventListener("input",e=>{S.nastaveni[k]=txt?e.target.value:num(e.target.value);recalc();save();})});
-function fillNastaveni(){nMap.forEach(([id,k])=>{$("#"+id).value=S.nastaveni[k]})}
+  ["nKmProdej","kmProdej"],["nPausal","pausal"],["nMinZisk","minZiskOsHod"],["nMinTrzbaB2C","minTrzbaB2C"],["nMinTrzbaB2B","minTrzbaB2B"],["nMinCena","minCenaB2C"],["nVikendPct","vikendPct"],["nExpresPct","expresPct"],["nKoefVykon","koefVykon"],["nVynSazba","vynSazba"],["nVynZaklad","vynZaklad"],["nVynPatro","vynPatro"],
+  ["nVynVytahKoef","vynVytahKoef"],["nVynVzdalenost","vynVzdalenost"],["nVynRucniKoef","vynRucniKoef"]];
+nMap.forEach(([id,k,txt])=>{$( "#"+id).addEventListener("input",e=>{S.nastaveni[k]=txt?e.target.value:num(e.target.value);recalc();vynUkazka();save();})});
+function fillNastaveni(){nMap.forEach(([id,k])=>{$("#"+id).value=S.nastaveni[k]});vynUkazka();}
+/* názorná tabulka, jak sazby dopadnou na typické situace */
+function vynUkazka(){
+  const n=S.nastaveni, el=$("#vynUkazka"); if(!el)return;
+  const sc=[["Přízemí, do 10 m",0,false,10],["1. patro po schodech",1,false,10],
+    ["3. patro po schodech",3,false,10],["3. patro s výtahem",3,true,10],
+    ["5. patro po schodech, 30 m",5,false,30]];
+  let h="<div class='tscroll' style='margin-top:12px'><table><thead><tr><th>Situace</th><th class='r'>h/t</th><th class='r'>Kč/t</th><th class='r'>Tempo</th><th class='r'>10 t vynese za</th></tr></thead><tbody>";
+  sc.forEach(([lbl,p,v,d])=>{
+    const vzd=Math.max(0,Math.ceil((d-10)/10));
+    const hodT=(n.vynZaklad||0)+p*(n.vynPatro||0)*(v?(n.vynVytahKoef||0):1)+vzd*(n.vynVzdalenost||0);
+    h+="<tr><td>"+lbl+"</td><td class='r num'>"+fmt1.format(hodT)+"</td>"+
+      "<td class='r num' style='font-weight:700'>"+fmt0.format(hodT*(n.vynSazba||0))+" Kč</td>"+
+      "<td class='r num'>"+(hodT>0?fmt1.format(1/hodT):"—")+" t/h</td>"+
+      "<td class='r num'>"+fmt1.format(hodT*10)+" h</td></tr>";
+  });
+  el.innerHTML=h+"</tbody></table></div>";
+}
 
 function renderNKont(){
   const tb=$("#nKontTab tbody"); tb.innerHTML="";
