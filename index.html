@@ -337,20 +337,22 @@ details.gsec li{margin:3px 0}
   <div class="card">
     <h2>Odvoz suti a likvidace</h2>
     <div class="sut" id="sutInfo"></div>
+    <div class="grid g4" style="margin-bottom:10px">
+      <label class="f">Dopravce<select id="jDopravce"></select></label>
+      <label class="f">Vzdálenost dopravce → stavba (km)<input id="jKmDopravce" type="number" min="0" step="1"><span class="hint" id="kmDopHint"></span></label>
+      <label class="f">Dní na stavbě<input id="jDnyKontejneru" type="number" min="1" step="1"><span class="hint" id="dnyKontHint"></span></label>
+      <div class="f" style="justify-content:flex-end"><span>&nbsp;</span><label class="chk"><input id="jSkladkovne" type="checkbox"> Účtovat likvidaci (skládkovné)</label></div>
+    </div>
     <div class="tscroll"><table id="kontTab">
-      <thead><tr><th style="min-width:180px">Kontejner</th><th style="width:70px">Počet</th><th style="width:100px">Nákup/ks</th><th style="width:100px">Prodej/ks</th><th class="r">Marže</th><th></th></tr></thead>
+      <thead><tr><th style="min-width:170px">Kontejner</th><th style="width:66px">Počet</th><th style="width:96px">Nákup/ks</th><th style="width:96px">Prodej/ks</th><th class="r">Marže</th><th></th></tr></thead>
       <tbody></tbody>
     </table></div>
     <div class="btnrow">
       <button class="b" id="addKont">+ Přidat kontejner</button>
       <button class="b" id="navrhKont">Navrhnout podle suti</button>
-      <label class="f" style="min-width:220px"><span class="stitek" style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700">Dopravce</span>
-        <select id="jDopravce"></select></label>
+      <button class="b" id="prepocitatKont">Přepočítat nákupní ceny dle dopravce</button>
     </div>
-    <div style="margin-top:10px;display:flex;gap:14px;flex-wrap:wrap;align-items:center">
-      <label class="chk"><input id="jSkladkovne" type="checkbox"> Účtovat skládkovné zvlášť</label>
-      <span class="hint" id="sklHint"></span>
-    </div>
+    <div class="sut" id="kontRozpis" style="margin:12px 0 0;display:block"></div>
   </div>
 
   <div class="card">
@@ -671,7 +673,11 @@ details.gsec li{margin:3px 0}
       <label class="f">Pracovních hodin / den<input id="nHodDen" type="number" min="1" step="0.5"></label>
       <label class="f">Náklad na najatého pracovníka (Kč/hod)<input id="nSazbaNajaty" type="number" min="0" step="10"></label>
       <label class="f">Marže na odvozu (%) — pro návrh prodejní ceny<input id="nOdvozMarze" type="number" min="0" step="1"></label>
-      <label class="f">Skládkovné (Kč/t bez DPH)<input id="nSkladkovne" type="number" min="0" step="10"></label>
+      <label class="f">Skládkovné / likvidace (Kč/t bez DPH)<input id="nSkladkovne" type="number" min="0" step="10"></label>
+      <label class="f">Výchozí sazba dopravy kontejneru (Kč/km)<input id="nKontCenaKm" type="number" min="0" step="1"><span class="hint">použije se, když dopravce nemá vlastní</span></label>
+      <label class="f">Dní v ceně kontejneru zdarma<input id="nKontDnyZdarma" type="number" min="0" step="1"></label>
+      <label class="f">Cena za každý další den (Kč)<input id="nKontCenaDen" type="number" min="0" step="10"></label>
+      <label class="f">Rezerva místa v kontejnerech (%)<input id="nKontRezerva" type="number" min="0" step="1"><span class="hint">návrh počítá s tímhle náskokem, ať to není na knop</span></label>
       <label class="f">Nákladová sazba dopravy (Kč/km)<input id="nKm" type="number" min="0" step="1"></label>
       <label class="f">Rezerva na skryté konstrukce (výchozí %)<input id="nRezerva" type="number" min="0" step="1"></label>
       <label class="f">Doporučená záloha (% z ceny)<input id="nZaloha" type="number" min="0" step="5"></label>
@@ -797,14 +803,16 @@ details.gsec li{margin:3px 0}
   <details class="gsec"><summary>Vynáška suti — nejpodceňovanější položka rozpočtu</summary><div class="inner">
     <ul>
       <li><b>Nosí se hmotnost, ne plocha.</b> Proto se vynáška počítá z tun suti, ne z hodin ani z m². Kalkulačka si tonáž vezme z bouracích prací a sama spočítá cenu za tunu podle konkrétních podmínek.</li>
-      <li><b>Patra jsou hlavní nákladová položka.</b> Podívej se, jak dramaticky to roste (výchozí sazby, 18 t suti):
+      <li><b>Výkony jsou ověřené fyzikou i trhem.</b> Kolečko se sutí uveze reálně 60–70 kg a cyklus trvá skoro dvě minuty — to dává <b>2 t za hodinu na osobu</b> po rovině. Po schodech s kbelíky (2× 20 kg) je to zlomek. Tržní kontrola sedí: odnos suti se prodává za 1 200–1 600 Kč/m³ a náš model dává ve 2. patře 1 301 Kč/m³.
         <ul>
-          <li>přízemí, do 10 m — <b>107 Kč/t</b>, tempo 6,7 t/hod</li>
-          <li>1. patro po schodech — <b>300 Kč/t</b>, tempo 2,4 t/hod</li>
-          <li>3. patro po schodech — <b>686 Kč/t</b>, tempo 1 t/hod</li>
-          <li>5. patro, 30 m, ručně bez kolečka — <b>1 622 Kč/t</b>, tempo 0,4 t/hod</li>
+          <li>přízemí, do 10 m — <b>358 Kč/t</b>, tempo 2,0 t/hod</li>
+          <li>1. patro po schodech — <b>679 Kč/t</b>, tempo 1,05 t/hod</li>
+          <li>2. patro po schodech — <b>1 001 Kč/t</b>, tempo 0,71 t/hod</li>
+          <li>3. patro po schodech — <b>1 323 Kč/t</b>, tempo 0,54 t/hod</li>
+          <li>3. patro s výtahem — <b>599 Kč/t</b>, tempo 1,19 t/hod</li>
+          <li>5. patro, 30 m, ručně bez kolečka — <b>2 886 Kč/t</b>, tempo 0,25 t/hod</li>
         </ul>
-        Ze třetího patra vynese parta za hodinu jednu tunu. Kdo to nacení jako přízemí, prodělá.</li>
+        Ze třetího patra vynese člověk za hodinu <b>půl tuny</b>. Kdo to nacení jako přízemí, prodělá — a hodně.</li>
       <li><b>Zeptej se, jestli smíte použít výtah na suť</b> — samotná existence výtahu nestačí, SVJ to často zakazuje. V sekci vynášky je na to samostatné zaškrtávátko a rozdíl je zásadní: 3. patro s výtahem 281 Kč/t, bez něj 686 Kč/t.</li>
       <li><b>Vzdálenost ke kontejneru</b> se měří od místa bourání k autu. Když kontejner nemůže stát u vchodu (zábor, úzká ulice), připočti reálné metry — každých 10 m navíc něco stojí.</li>
       <li><b>Ruční nošení bez kolečka</b> zaškrtni u úzkých nebo točitých schodišť, kde se s kolečkem nedá projet. Práce je pak zhruba o 40 % pomalejší.</li>
@@ -833,11 +841,18 @@ details.gsec li{margin:3px 0}
     </ul>
   </div></details>
 
-  <details class="gsec"><summary>Dopravci kontejnerů — kde je schovaná marže</summary><div class="inner">
+  <details class="gsec"><summary>Kontejnery — jak se doopravdy počítají a kde je marže</summary><div class="inner">
     <ul>
-      <li>V Nastavení si zadej <b>2–3 dopravce a jejich nákupní ceny</b> pro každý typ kontejneru. Aplikace ti rovnou napíše, kdo je na co nejlevnější a kolik ušetříš proti nejdražšímu.</li>
-      <li>U zakázky pak vybereš dopravce a <b>nákupní ceny se propíšou automaticky</b>. Prodejní cena klientovi zůstává stejná — celý rozdíl je tvůj zisk.</li>
-      <li>Reálný dopad: rozdíl 300–600 Kč na kontejneru × 4 kontejnery na zakázce × 30 zakázek ročně = <b>desítky tisíc ročně za pět minut práce</b>.</li>
+      <li><b>Cena kontejneru nejsou paušální peníze.</b> Dopravci ji skládají ze tří částí, a přesně tak to počítá i kalkulačka:
+        <ol>
+          <li><b>Paušál za přistavení a odvoz</b> — základ za každý kontejner</li>
+          <li><b>Doprava podle km</b> od dopravce na stavbu</li>
+          <li><b>Pronájem za dny</b>, které kontejner stojí na místě (pár dní bývá v ceně)</li>
+        </ol>
+        A <b>až nakonec likvidace</b> — skládkovné podle skutečné tonáže.</li>
+      <li><b>Nejlevnější dopravce se mění podle zakázky!</b> Kdo má levný paušál a drahé km vyhrává blízko; kdo má dražší paušál, levné km a víc dní zdarma vyhrává daleko a na dlouhých zakázkách. Reálný příklad z aplikace: při 12 km a 3 dnech je Müller o 212 Kč levnější, při 45 km a 12 dnech je Smětal o <b>1 180 Kč levnější</b>. Proto porovnání v Nastavení počítá vždy pro konkrétní zakázku.</li>
+      <li>Zadej si u každého dopravce <b>Kč/km, dny zdarma, cenu za další den a paušál za každý typ kontejneru</b>. Pak u zakázky jen vybereš dopravce a nákupní ceny se propíšou.</li>
+      <li><b>Rezerva místa 18 %</b> — návrh kontejnerů nikdy nepočítá na knop. Suť se nedá skládat jako kostky, něco se nevejde a nikdo nechce objednávat pátý kontejner kvůli půl metru krychlovému. Rezervu si můžeš změnit v Nastavení.</li>
       <li>Vyžádej si u dopravců <b>subdodavatelský ceník</b>, ne ten pro koncové zákazníky. Jako firma s pravidelným objemem na něj máš nárok.</li>
     </ul>
   </div></details>
@@ -1059,12 +1074,14 @@ function defKontejnery(){return [
  {id:"k9", nazev:"9 m³ – směsný odpad",  objem:9, nosnost:3,   nakup:5800, prodej:7200},
 ];}
 function defNastaveni(){return {firma:"", lide:2, hodDen:9, sazbaNajaty:250, odvozMarze:20, skladkovne:610, km:15, kmProdej:25, pausal:600, rezerva:12, zaloha:40,
-  vynSazba:715, vynZaklad:0.15, vynPatro:0.27, vynVytahKoef:0.30, vynVzdalenost:0.06, vynRucniKoef:1.4, koefVykon:1.0, minZiskOsHod:450, minTrzbaB2C:0, minTrzbaB2B:0, minCenaB2C:8000, vikendPct:25, expresPct:15, nabRok:0, nabPoradi:0};}
+  vynSazba:715, vynZaklad:0.50, vynPatro:0.45, vynVytahKoef:0.25, vynVzdalenost:0.12, vynRucniKoef:1.35, koefVykon:1.0,
+  kontCenaKm:32, kontDnyZdarma:3, kontCenaDen:180, kontRezerva:18, minZiskOsHod:450, minTrzbaB2C:0, minTrzbaB2B:0, minCenaB2C:8000, vikendPct:25, expresPct:15, nabRok:0, nabPoradi:0};}
 function defJob(n){return {id:null, nazev:"", klient:"", adresa:"", poznamka:"", zdroj:"", odberatelId:"", cenik:"b2c", dph:"12",
   patro:0, vytah:true, lide:n.lide, najati:0,
   prace:[], kontejnery:[], material:[], ostatni:[], viceprace:[], fotky:[], denniZapis:[], odpady:[],
   terminOd:"", terminDo:"", dopravceId:"", vzdalenost:10, rucniNoseni:false, vytahNaSut:true,
-  skladkovne:false, rezerva:n.rezerva, provize:0, sleva:0, km:0, dopravaUctovat:true, vikend:false, expres:false,
+  kmDopravce:15, dnyKontejneru:3,
+  skladkovne:true, rezerva:n.rezerva, provize:0, sleva:0, km:0, dopravaUctovat:true, vikend:false, expres:false,
   zalohaCastka:0, zalohaSplatnost:"", zalohaZaplaceno:"", doplatekCastka:0, doplatekSplatnost:"", doplatekZaplaceno:"",
   duvodProhry:"", cenaViteze:0, poznProhry:"",
   skutHodiny:0, skutKont:0, skutKm:0, skutPozn:"", cisloNab:"", cisloDod:0, status:"nabídka"};}
@@ -1142,6 +1159,8 @@ function normJob(j){ if(!j)return;
   if(j.vzdalenost===undefined)j.vzdalenost=10;
   j.rucniNoseni=!!j.rucniNoseni;
   if(j.vytahNaSut===undefined)j.vytahNaSut=true;
+  if(j.kmDopravce===undefined)j.kmDopravce=15;
+  if(j.dnyKontejneru===undefined)j.dnyKontejneru=3;
   delete j.vynaska;
 }
 function migrate(){
@@ -1155,6 +1174,27 @@ function migrate(){
     if(st&&st.b2c>0)S.nastaveni.vynSazba=st.b2c;   /* zachovat sazbu, kterou si uživatel případně upravil */
     delete S.nastaveni.koefVyn; delete S.nastaveni.koefVynV;
     S.vynaskaV7=true;
+  }
+  /* v8: přepočet výkonů vynášky podle fyziky a tržních cen — původní byly ~3× optimistické */
+  if(!S.vynaskaV8){
+    const n=S.nastaveni;
+    if(n.vynZaklad===0.15)n.vynZaklad=0.50;
+    if(n.vynPatro===0.27)n.vynPatro=0.45;
+    if(n.vynVytahKoef===0.30)n.vynVytahKoef=0.25;
+    if(n.vynVzdalenost===0.06)n.vynVzdalenost=0.12;
+    if(n.vynRucniKoef===1.4)n.vynRucniKoef=1.35;
+    S.vynaskaV8=true;
+  }
+  /* v8: kontejnery — model dopravce (paušál + km + dny + likvidace) */
+  if(!S.kontV8){
+    S.dopravci.forEach(d=>{
+      if(d.cenaKm===undefined)d.cenaKm=S.nastaveni.kontCenaKm;
+      if(d.dnyZdarma===undefined)d.dnyZdarma=S.nastaveni.kontDnyZdarma;
+      if(d.cenaDen===undefined)d.cenaDen=S.nastaveni.kontCenaDen;
+    });
+    if(S.job&&!S.job.skladkovne)S.job.skladkovne=true;
+    S.zakazky.forEach(z=>{if(z.skladkovne===undefined)z.skladkovne=true});
+    S.kontV8=true;
   }
   const n=S.nastaveni, d=defNastaveni();
   /* v2.1: práh přepnut z Kč/os./den na Kč/os./hod; prahy denní tržby ve výchozím vypnuté */
@@ -1248,6 +1288,7 @@ document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()
   if(b.dataset.tab==="prehled")renderPrehled();
   if(b.dataset.tab==="plan")renderPlan();
   if(b.dataset.tab==="zpravy"){renderSablony();renderRecenze();}
+  if(b.dataset.tab==="cenik")renderDopravciNejlepsi();
 }));
 
 /* ---------- kalkulace: hlavička ---------- */
@@ -1312,6 +1353,7 @@ function fillHdr(){
   $("#jDoplatekCastka").value=J.doplatekCastka||""; $("#jDoplatekSplatnost").value=J.doplatekSplatnost; $("#jDoplatekZaplaceno").value=J.doplatekZaplaceno;
   $("#jTerminOd").value=J.terminOd; $("#jTerminDo").value=J.terminDo;
   $("#jVzdalenost").value=J.vzdalenost; $("#jVytahNaSut").checked=J.vytahNaSut; $("#jRucniNoseni").checked=J.rucniNoseni;
+  $("#jKmDopravce").value=J.kmDopravce; $("#jDnyKontejneru").value=J.dnyKontejneru;
   fillDopravceSelect();
 }
 
@@ -1400,17 +1442,21 @@ $("#kontTab").addEventListener("click",e=>{
 });
 $("#addKont").addEventListener("click",()=>{const t=S.kontejnery[0]; if(!t){alert("Nejdřív přidej typ kontejneru v nastavení.");return}
   J.kontejnery.push(kontRow(t,1));renderKont();save();});
-function kontVarianty(m3,t){
+function kontVarianty(m3syr,tsyr){
+  /* rezerva místa — kontejner se nikdy neplní na knop */
+  const rez=1+(S.nastaveni.kontRezerva||0)/100;
+  const m3=m3syr*rez, t=tsyr*rez;
   const types=S.kontejnery.filter(k=>(k.objem||0)>0&&(k.nosnost||0)>0&&(k.nakup||0)>0);
   if(!types.length)return[];
   const maxPer=types.map(k=>Math.min(10,Math.max(Math.ceil(m3/k.objem),Math.ceil(t/k.nosnost))));
   const res=[]; const counts=new Array(types.length).fill(0);
   let bestCost=Infinity;
+  const cenaTypu=types.map(k=>dopravceCena(k.id,J.dopravceId)||k.nakup);
   const rec=(i,obj,nos,cost,cnt)=>{
     if(cost>bestCost*2.5)return;
     if(obj>=m3&&nos>=t){res.push({counts:counts.slice(),cost,cnt}); if(cost<bestCost)bestCost=cost; return;}
     if(i>=types.length)return;
-    for(let c=0;c<=maxPer[i];c++){counts[i]=c;rec(i+1,obj+c*types[i].objem,nos+c*types[i].nosnost,cost+c*types[i].nakup,cnt+c);}
+    for(let c=0;c<=maxPer[i];c++){counts[i]=c;rec(i+1,obj+c*types[i].objem,nos+c*types[i].nosnost,cost+c*cenaTypu[i],cnt+c);}
     counts[i]=0;
   };
   rec(0,0,0,0,0);
@@ -1423,7 +1469,10 @@ $("#navrhKont").addEventListener("click",()=>{
   const s=sutCelkem(); if(s.t<=0&&s.m3<=0){alert("Nejdřív zadej bourací práce — z nich se suť počítá.");return}
   const vars=kontVarianty(s.m3,s.t);
   if(!vars.length){alert("V nastavení chybí použitelné typy kontejnerů (objem, nosnost, nákupní cena).");return}
-  let txt="Suť: "+fmt1.format(s.m3)+" m³ / "+fmt1.format(s.t)+" t. Varianty podle nákladu:\n\n";
+  const rez=S.nastaveni.kontRezerva||0;
+  let txt="Suť: "+fmt1.format(s.m3)+" m³ / "+fmt1.format(s.t)+" t\n"+
+    "Návrh počítá s rezervou "+rez+" % → nutno pokrýt "+fmt1.format(s.m3*(1+rez/100))+" m³ / "+fmt1.format(s.t*(1+rez/100))+" t\n\n"+
+    "Varianty podle nákladu ("+(J.kmDopravce||0)+" km, "+(J.dnyKontejneru||0)+" dní):\n\n";
   vars.forEach((v,i)=>{txt+=(i+1)+") "+v.label+" — nákup "+kc(v.cost)+"\n"});
   txt+="\nPoužít variantu 1 (nejlevnější)?";
   if(!confirm(txt))return;
@@ -1432,6 +1481,28 @@ $("#navrhKont").addEventListener("click",()=>{
   renderKont();save();
 });
 function sutCelkem(){let t=0,m3=0;J.prace.forEach(r=>{t+=(r.mnozstvi||0)*(r.sutT||0);m3+=(r.mnozstvi||0)*(r.sutM3||0)});return{t,m3}}
+
+/* ---------- kontejnery: rozpis nákladů dle modelu dopravce ---------- */
+function renderKontRozpis(v){
+  const el=$("#kontRozpis"); if(!el)return;
+  const ks=J.kontejnery.reduce((a,r)=>a+(r.pocet||0),0);
+  if(!ks){el.innerHTML="<span class='hint'>Zatím žádný kontejner. Klikni na „Navrhnout podle suti“ — počítá s rezervou "+(S.nastaveni.kontRezerva||0)+" % místa.</span>";return}
+  const typ=J.kontejnery[0]?J.kontejnery[0].typId:null;
+  const r=typ?kontRozpisCeny(typ):null;
+  const sz=kontSazby(J.dopravceId);
+  el.innerHTML=
+    "<div style='display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:baseline'>"+
+      "<b>Odvoz a likvidace celkem</b>"+
+      "<b style='font-size:19px'>"+kc(v.kontP+v.sklP)+"</b></div>"+
+    "<div class='hint' style='margin-top:6px'>"+
+      "Doprava a pronájem: "+ks+" kontejnerů → nákup "+kc(v.kontN)+", klientovi "+kc(v.kontP)+
+      " <b style='color:var(--good)'>(marže "+kc(v.kontP-v.kontN)+")</b>"+
+      (r?"<br>Cena za kontejner = paušál "+kc(r.pausal)+" + doprava "+kc(r.km)+" + "+(r.dnyNavic>0?"pronájem "+r.dnyNavic+" dní "+kc(r.dny):"dny v ceně")
+        +(sz.dopravce?" &nbsp;·&nbsp; dle ceníku „"+esc(sz.dopravce.nazev)+"“":" &nbsp;·&nbsp; výchozí sazby"):"")+
+      (v.sklN?"<br>Likvidace: "+fmt1.format(v.sut.t)+" t × "+fmt0.format(S.nastaveni.skladkovne)+" Kč/t = nákup "+kc(v.sklN)+", klientovi "+kc(v.sklP):
+        "<br><span class='ne'>Likvidace se neúčtuje</span> — zapni ji, pokud skládkovné není v ceně kontejneru")+
+    "</div>";
+}
 
 /* ---------- vynáška: rozpis a ovládání ---------- */
 $("#jVzdalenost").addEventListener("input",e=>{J.vzdalenost=num(e.target.value);recalc();save()});
@@ -1584,10 +1655,19 @@ function recalc(){
   /* suť */
   const kObjem=J.kontejnery.reduce((a,r)=>a+(r.objem||0)*(r.pocet||0),0);
   const kNos=J.kontejnery.reduce((a,r)=>a+(r.nosnost||0)*(r.pocet||0),0);
-  const staci=kObjem>=v.sut.m3&&kNos>=v.sut.t;
+  const rezPct=S.nastaveni.kontRezerva||0;
+  const potrebaM3=v.sut.m3*(1+rezPct/100), potrebaT=v.sut.t*(1+rezPct/100);
+  const staci=kObjem>=potrebaM3&&kNos>=potrebaT;
+  const volno=kObjem>0?Math.round((kObjem/Math.max(v.sut.m3,0.001)-1)*100):0;
   $("#sutInfo").innerHTML="Odhad suti: <b>"+fmt1.format(v.sut.m3)+" m³</b> / <b>"+fmt1.format(v.sut.t)+" t</b>"+
-    (J.kontejnery.length?" &nbsp;·&nbsp; kontejnery pokryjí "+fmt1.format(kObjem)+" m³ / "+fmt1.format(kNos)+" t "+(staci?"<span class='ok'>✓ stačí</span>":"<span class='ne'>✗ nestačí</span>"):"");
-  $("#sklHint").textContent=J.skladkovne?fmt1.format(v.sut.t)+" t × "+fmt0.format(n.skladkovne)+" Kč/t = "+kc(v.sklN)+" náklad, klientovi "+kc(v.sklP):"(sazba "+fmt0.format(n.skladkovne)+" Kč/t — zapni, pokud není v ceně kontejneru)";
+    " &nbsp;·&nbsp; s rezervou "+rezPct+" % nutno pokrýt "+fmt1.format(potrebaM3)+" m³ / "+fmt1.format(potrebaT)+" t"+
+    (J.kontejnery.length?"<br>Kontejnery pokryjí <b>"+fmt1.format(kObjem)+" m³ / "+fmt1.format(kNos)+" t</b> "+
+      (staci?"<span class='ok'>✓ stačí, volno "+volno+" %</span>":"<span class='ne'>✗ nestačí — přidej kontejner</span>"):"");
+  $("#kmDopHint").textContent=(J.kmDopravce||0)+" km × "+fmt0.format(kontSazby(J.dopravceId).cenaKm)+" Kč = "+kc((J.kmDopravce||0)*kontSazby(J.dopravceId).cenaKm)+" na kontejner";
+  const sz=kontSazby(J.dopravceId);
+  const dnyNavic=Math.max(0,(J.dnyKontejneru||0)-sz.dnyZdarma);
+  $("#dnyKontHint").textContent=dnyNavic>0?(sz.dnyZdarma+" zdarma, "+dnyNavic+" navíc × "+fmt0.format(sz.cenaDen)+" Kč = "+kc(dnyNavic*sz.cenaDen)):(sz.dnyZdarma+" dní v ceně — bez příplatku");
+  renderKontRozpis(v);
   $("#dopravaHint").textContent=(J.dopravaUctovat&&(J.km||0)>0)?
     "klientovi "+kc(v.dopravaP)+" = max("+(J.km||0)+" km × "+fmt0.format(n.kmProdej)+" Kč; paušál "+fmt0.format(n.pausal)+"), náklad "+kc(v.dopravaN):
     ((J.km||0)>0?"náklad "+kc(v.dopravaN)+" (neúčtuje se)":"");
@@ -2187,44 +2267,78 @@ $("#odpZeSuti").addEventListener("click",()=>{
 });
 
 /* ================= DOPRAVCI ================= */
-function dopravceCena(typId,dopravceId){
-  const d=S.dopravci.find(x=>x.id===dopravceId);
-  if(d&&d.ceny&&d.ceny[typId]>0)return d.ceny[typId];
+/* Cena kontejneru podle modelu dopravce: paušál za přistavení+odvoz + km + dny nad limit.
+   Likvidace (skládkovné) se počítá zvlášť z tonáže — tak, jak to dělají dopravci. */
+function kontSazby(dopravceId){
+  const n=S.nastaveni, d=S.dopravci.find(x=>x.id===dopravceId);
+  return {cenaKm:(d&&d.cenaKm>=0)?d.cenaKm:(n.kontCenaKm||0),
+          dnyZdarma:(d&&d.dnyZdarma>=0)?d.dnyZdarma:(n.kontDnyZdarma||0),
+          cenaDen:(d&&d.cenaDen>=0)?d.cenaDen:(n.kontCenaDen||0), dopravce:d};
+}
+function dopravceCena(typId,dopravceId,km,dny){
+  const s=kontSazby(dopravceId);
   const t=S.kontejnery.find(k=>k.id===typId);
-  return t?t.nakup:0;
+  const pausal=(s.dopravce&&s.dopravce.ceny&&s.dopravce.ceny[typId]>0)?s.dopravce.ceny[typId]:(t?t.nakup:0);
+  const kmv=km!==undefined?km:(J.kmDopravce||0);
+  const dnyv=dny!==undefined?dny:(J.dnyKontejneru||0);
+  const dnyNavic=Math.max(0,dnyv-s.dnyZdarma);
+  return Math.round(pausal+kmv*s.cenaKm+dnyNavic*s.cenaDen);
+}
+function kontRozpisCeny(typId){
+  const s=kontSazby(J.dopravceId);
+  const t=S.kontejnery.find(k=>k.id===typId);
+  const pausal=(s.dopravce&&s.dopravce.ceny&&s.dopravce.ceny[typId]>0)?s.dopravce.ceny[typId]:(t?t.nakup:0);
+  const dnyNavic=Math.max(0,(J.dnyKontejneru||0)-s.dnyZdarma);
+  return {pausal,km:(J.kmDopravce||0)*s.cenaKm,dny:dnyNavic*s.cenaDen,dnyNavic,sazby:s};
 }
 function fillDopravceSelect(){
   $("#jDopravce").innerHTML="<option value=''>— výchozí ceny z ceníku —</option>"+
     S.dopravci.map(d=>"<option value='"+d.id+"'"+(d.id===J.dopravceId?" selected":"")+">"+esc(d.nazev)+"</option>").join("");
 }
-$("#jDopravce").addEventListener("change",e=>{
-  J.dopravceId=e.target.value;
-  J.kontejnery.forEach(r=>{r.nakup=dopravceCena(r.typId,J.dopravceId)});
+function prepocitatKontejnery(){
+  const m=1+(S.nastaveni.odvozMarze||0)/100;
+  J.kontejnery.forEach(r=>{
+    r.nakup=dopravceCena(r.typId,J.dopravceId);
+    r.prodej=Math.round(r.nakup*m);
+  });
   renderKont();save();
-});
+}
+$("#jDopravce").addEventListener("change",e=>{J.dopravceId=e.target.value;prepocitatKontejnery();});
+$("#jKmDopravce").addEventListener("input",e=>{J.kmDopravce=num(e.target.value);prepocitatKontejnery();});
+$("#jDnyKontejneru").addEventListener("input",e=>{J.dnyKontejneru=num(e.target.value);prepocitatKontejnery();});
+$("#prepocitatKont").addEventListener("click",prepocitatKontejnery);
 function renderDopravci(){
   const head=$("#dopHead"); const tb=$("#dopTab tbody");
-  head.innerHTML="<th style='min-width:170px'>Dopravce</th><th style='width:130px'>Telefon</th>"+
-    S.kontejnery.map(k=>"<th style='width:104px'>"+esc(k.nazev)+"</th>").join("")+"<th></th>";
+  head.innerHTML="<th style='min-width:150px'>Dopravce</th><th style='width:118px'>Telefon</th>"+
+    "<th style='width:84px'>Kč/km</th><th style='width:82px'>Dní zdarma</th><th style='width:96px'>Kč/další den</th>"+
+    S.kontejnery.map(k=>"<th style='width:100px'>"+esc(k.nazev)+"<br><span style='font-weight:400;text-transform:none'>paušál</span></th>").join("")+"<th></th>";
   tb.innerHTML="";
   S.dopravci.forEach((d,ix)=>{
     const tr=document.createElement("tr");
     tr.innerHTML="<td><input class='dpN' data-ix='"+ix+"' value='"+esc(d.nazev)+"'></td>"+
       "<td><input class='dpT' data-ix='"+ix+"' value='"+esc(d.tel||"")+"'></td>"+
+      "<td><input type='number' min='0' step='any' class='dpKm' data-ix='"+ix+"' value='"+(d.cenaKm!==undefined?d.cenaKm:"")+"' placeholder='"+(S.nastaveni.kontCenaKm||0)+"'></td>"+
+      "<td><input type='number' min='0' step='1' class='dpDz' data-ix='"+ix+"' value='"+(d.dnyZdarma!==undefined?d.dnyZdarma:"")+"' placeholder='"+(S.nastaveni.kontDnyZdarma||0)+"'></td>"+
+      "<td><input type='number' min='0' step='any' class='dpCd' data-ix='"+ix+"' value='"+(d.cenaDen!==undefined?d.cenaDen:"")+"' placeholder='"+(S.nastaveni.kontCenaDen||0)+"'></td>"+
       S.kontejnery.map(k=>"<td><input type='number' min='0' step='any' class='dpC' data-ix='"+ix+"' data-typ='"+k.id+"' value='"+((d.ceny&&d.ceny[k.id])||"")+"' placeholder='—'></td>").join("")+
       "<td><button class='mini dpDel' data-ix='"+ix+"'>✕</button></td>";
     tb.appendChild(tr);
   });
-  /* kdo je nejlevnější */
-  const el=$("#dopNejlepsi");
-  if(S.dopravci.length<2){el.innerHTML="";return}
-  let h="<div class='sut' style='margin:12px 0 0;display:block'><b>Nejlevnější na každý kontejner:</b><br>";
+  renderDopravciNejlepsi();
+}
+/* porovnání dopravců pro konkrétní situaci — vzdálenost a dny z otevřené zakázky */
+function renderDopravciNejlepsi(){
+  const el=$("#dopNejlepsi"); if(!el)return;
+  if(S.dopravci.length<2){el.innerHTML=S.dopravci.length?"<p class='hint' style='margin:10px 0 0'>Přidej druhého dopravce a uvidíš tady, kdo je pro danou zakázku levnější.</p>":"";return}
+  const km=J.kmDopravce||0, dny=J.dnyKontejneru||0;
+  let h="<div class='sut' style='margin:12px 0 0;display:block'><b>Kdo je levnější při "+km+" km a "+dny+" dnech</b> "+
+    "<span class='hint'>(bere se ze současné zakázky)</span><br>";
   S.kontejnery.forEach(k=>{
-    const nab=S.dopravci.filter(d=>d.ceny&&d.ceny[k.id]>0).sort((a,b)=>a.ceny[k.id]-b.ceny[k.id]);
-    if(!nab.length)return;
-    const usetri=nab.length>1?nab[nab.length-1].ceny[k.id]-nab[0].ceny[k.id]:0;
-    h+="• "+esc(k.nazev)+": <b>"+esc(nab[0].nazev)+"</b> za "+kc(nab[0].ceny[k.id])+
-      (usetri>0?" <span class='ok'>(ušetříš "+kc(usetri)+" proti nejdražšímu)</span>":"")+"<br>";
+    const nab=S.dopravci.map(d=>({d,c:dopravceCena(k.id,d.id,km,dny)})).filter(x=>x.c>0).sort((a,b)=>a.c-b.c);
+    if(nab.length<2)return;
+    const usetri=nab[nab.length-1].c-nab[0].c;
+    h+="• "+esc(k.nazev)+": <b>"+esc(nab[0].d.nazev)+"</b> za "+kc(nab[0].c)+
+      (usetri>0?" <span class='ok'>(o "+kc(usetri)+" levnější než "+esc(nab[nab.length-1].d.nazev)+")</span>":"")+"<br>";
   });
   el.innerHTML=h+"</div>";
 }
@@ -2232,8 +2346,11 @@ $("#dopTab").addEventListener("input",e=>{
   const d=S.dopravci[+e.target.dataset.ix]; if(!d)return; const c=e.target.classList;
   if(c.contains("dpN"))d.nazev=e.target.value;
   if(c.contains("dpT"))d.tel=e.target.value;
+  if(c.contains("dpKm"))d.cenaKm=num(e.target.value);
+  if(c.contains("dpDz"))d.dnyZdarma=num(e.target.value);
+  if(c.contains("dpCd"))d.cenaDen=num(e.target.value);
   if(c.contains("dpC")){d.ceny=d.ceny||{}; d.ceny[e.target.dataset.typ]=num(e.target.value);}
-  save();
+  renderDopravciNejlepsi(); save();
 });
 $("#dopTab").addEventListener("click",e=>{
   if(e.target.classList.contains("dpDel")){
@@ -2247,7 +2364,8 @@ $("#dopTab").addEventListener("click",e=>{
 $("#addDop").addEventListener("click",()=>{
   const n=$("#dopNazev").value.trim();
   if(!n){alert("Napiš název dopravce.");$("#dopNazev").focus();return}
-  S.dopravci.push({id:uid(),nazev:n,tel:$("#dopTel").value.trim(),ceny:{}});
+  S.dopravci.push({id:uid(),nazev:n,tel:$("#dopTel").value.trim(),ceny:{},
+    cenaKm:S.nastaveni.kontCenaKm,dnyZdarma:S.nastaveni.kontDnyZdarma,cenaDen:S.nastaveni.kontCenaDen});
   $("#dopNazev").value="";$("#dopTel").value="";
   renderDopravci();fillDopravceSelect();save();
 });
@@ -2896,7 +3014,8 @@ function vybBadge(){
 /* ---------- nastavení ---------- */
 const nMap=[["nFirma","firma",1],["nLide","lide"],["nHodDen","hodDen"],["nSazbaNajaty","sazbaNajaty"],["nOdvozMarze","odvozMarze"],["nSkladkovne","skladkovne"],["nKm","km"],["nRezerva","rezerva"],["nZaloha","zaloha"],
   ["nKmProdej","kmProdej"],["nPausal","pausal"],["nMinZisk","minZiskOsHod"],["nMinTrzbaB2C","minTrzbaB2C"],["nMinTrzbaB2B","minTrzbaB2B"],["nMinCena","minCenaB2C"],["nVikendPct","vikendPct"],["nExpresPct","expresPct"],["nKoefVykon","koefVykon"],["nVynSazba","vynSazba"],["nVynZaklad","vynZaklad"],["nVynPatro","vynPatro"],
-  ["nVynVytahKoef","vynVytahKoef"],["nVynVzdalenost","vynVzdalenost"],["nVynRucniKoef","vynRucniKoef"]];
+  ["nVynVytahKoef","vynVytahKoef"],["nVynVzdalenost","vynVzdalenost"],["nVynRucniKoef","vynRucniKoef"],
+  ["nKontCenaKm","kontCenaKm"],["nKontDnyZdarma","kontDnyZdarma"],["nKontCenaDen","kontCenaDen"],["nKontRezerva","kontRezerva"]];
 nMap.forEach(([id,k,txt])=>{$( "#"+id).addEventListener("input",e=>{S.nastaveni[k]=txt?e.target.value:num(e.target.value);recalc();vynUkazka();save();})});
 function fillNastaveni(){nMap.forEach(([id,k])=>{$("#"+id).value=S.nastaveni[k]});vynUkazka();}
 /* názorná tabulka, jak sazby dopadnou na typické situace */
