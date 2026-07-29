@@ -191,6 +191,25 @@ details.gsec li{margin:3px 0}
   border-radius:20px;padding:2px 10px;font-weight:600;white-space:nowrap}
 .sab textarea{width:100%;min-height:150px;border:1px solid var(--line);border-radius:8px;padding:10px 12px;
   background:var(--ground);color:var(--ink);font:14px/1.55 -apple-system,"Segoe UI",system-ui,sans-serif;resize:vertical}
+/* milníky */
+.fazehl{margin:18px 0 8px;padding-top:14px;border-top:1px solid var(--line2)}
+.fazehl:first-child{border-top:0;padding-top:0;margin-top:0}
+.fazehl h3{font-size:16.5px;font-weight:800;margin:0 0 2px}
+.fazehl .fp{font-size:13px;color:var(--muted)}
+.fazehl .fs{float:right;font-size:13px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+.mil{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:9px}
+.mil.hotovo{opacity:.62;border-style:dashed}
+.mil.setrime{border-color:var(--accent)}
+.mil.prio{border-left:4px solid var(--bad)}
+.milhl{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline}
+.mil h4{font-size:15.5px;font-weight:700;margin:0;flex:1;min-width:190px}
+.mil .cena{font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.mil .proc{font-size:13.5px;color:var(--ink2,var(--muted));margin-top:6px;line-height:1.5}
+.mil .prog{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;margin-top:9px}
+.mil .prog i{display:block;height:100%;background:var(--accent);transition:width .2s}
+.mil .prog i.plno{background:var(--good)}
+.milovl{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-top:9px}
+.milovl input{width:104px;border:1px solid var(--line);border-radius:6px;padding:4px 7px;background:var(--ground);color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
 /* investice */
 .invbox{background:var(--surface2);border-radius:11px;padding:18px 20px;margin-top:14px}
 .invverdikt{font-size:22px;font-weight:800;letter-spacing:-.01em;margin-bottom:10px}
@@ -250,6 +269,7 @@ details.gsec li{margin:3px 0}
       <button data-tab="zakazky">Zakázky <span id="zakCount" class="badge"></span></button>
       <button data-tab="plan">📅 Plán</button>
       <button data-tab="zpravy">✉ Zprávy</button>
+      <button data-tab="rust">💰 Růst a investice</button>
       <button data-tab="prehled">Přehled firmy</button>
       <button data-tab="cenik">Ceník a nastavení</button>
       <button data-tab="pruvodce">Průvodce</button>
@@ -565,6 +585,43 @@ details.gsec li{margin:3px 0}
   </div>
 </section>
 
+<!-- ============ RŮST A INVESTICE ============ -->
+<section id="tab-rust" class="tab">
+  <div class="statgrid" id="milKpi"></div>
+
+  <div class="card">
+    <h2>Na co šetřit a v jakém pořadí <span class="badge" id="milBadge"></span></h2>
+    <p class="hint" style="margin:0 0 12px">Pořadí není náhodné — každá fáze staví na předchozí. U každé položky je napsané <b>proč</b>, ne jen kolik stojí. Částky uprav podle skutečných nabídek, stav přepínej tlačítky. Co nepotřebujete, smažte; co chybí, přidejte dole.</p>
+    <div style="margin-bottom:12px;display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end">
+      <label class="f" style="max-width:260px">Kolik % ze zisku odkládáte<input id="nOdkladPct" type="number" min="0" max="100" step="5"><span class="hint">doporučeno 25 % — z toho se plní milníky</span></label>
+      <span class="hint" id="odkladHint" style="padding-bottom:8px"></span>
+    </div>
+    <div id="milnikySeznam"></div>
+    <div class="btnrow">
+      <input id="milNazev" placeholder="název vlastního milníku" style="border:1px solid var(--line);border-radius:7px;padding:7px 9px;background:var(--ground);color:var(--ink);min-width:220px">
+      <input id="milCastka" type="number" placeholder="částka Kč" style="border:1px solid var(--line);border-radius:7px;padding:7px 9px;background:var(--ground);color:var(--ink);width:130px">
+      <select id="milFaze" style="border:1px solid var(--line);border-radius:7px;padding:7px 9px;background:var(--ground);color:var(--ink)"></select>
+      <button class="b" id="addMil">+ Přidat milník</button>
+      <button class="b" id="milReset">Obnovit výchozí seznam</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Vyplatí se to koupit? — investiční kalkulačka</h2>
+    <p class="hint" style="margin:0 0 12px">U větších položek si spočítej návratnost dřív, než podepíšeš. Nejdražší chyby začínajících firem nejsou špatně naceněné zakázky, ale <b>špatné investice</b>. Tlačítkem „Spočítat návratnost“ u milníku se sem částka rovnou přenese.</p>
+    <div class="grid g3">
+      <label class="f">Co zvažuješ<select id="invPreset"></select></label>
+      <label class="f">Pořizovací cena (Kč)<input id="invCena" type="number" min="0" step="1000"><span class="hint">0 = platíš jen měsíčně</span></label>
+      <label class="f">Měsíční fixní náklad (Kč)<input id="invFix" type="number" min="0" step="500"><span class="hint">splátka, pojištění, servis, mzda…</span></label>
+      <label class="f">Přínos na jednu zakázku (Kč)<input id="invPrinos" type="number" min="0" step="500"><span class="hint">kolik ušetříš nebo vyděláš navíc</span></label>
+      <label class="f">Zakázek měsíčně<input id="invZakazek" type="number" min="0" step="1"><span class="hint" id="invZakHint"></span></label>
+      <label class="f">Horizont (měsíců)<input id="invHorizont" type="number" min="1" step="6"><span class="hint">za jak dlouho to chceš vyhodnotit</span></label>
+    </div>
+    <p class="hint" id="invPozn" style="margin:10px 0 0"></p>
+    <div id="invVysledek"></div>
+  </div>
+</section>
+
 <!-- ============ PŘEHLED FIRMY ============ -->
 <section id="tab-prehled" class="tab">
   <div class="statgrid" id="pKpi"></div>
@@ -637,21 +694,6 @@ details.gsec li{margin:3px 0}
       <tbody></tbody>
     </table></div>
     <p class="hint" id="odpSouhrnEmpty">Zatím žádná evidence. Vyplňuj ji u zakázek podle váženek ze skládky — je to zákonná povinnost a zároveň nejlepší způsob, jak si zpřesnit koeficienty suti.</p>
-  </div>
-
-  <div class="card">
-    <h2>Vyplatí se to koupit? — investiční kalkulačka</h2>
-    <p class="hint" style="margin:0 0 12px">Nejdražší chyby začínajících firem nejsou špatně naceněné zakázky, ale <b>špatné investice</b>. Vyber, co zvažuješ, uprav čísla podle konkrétní nabídky — a uvidíš návratnost i to, kolik zakázek měsíčně na to musíš mít.</p>
-    <div class="grid g3">
-      <label class="f">Co zvažuješ<select id="invPreset"></select></label>
-      <label class="f">Pořizovací cena (Kč)<input id="invCena" type="number" min="0" step="1000"><span class="hint">0 = platíš jen měsíčně</span></label>
-      <label class="f">Měsíční fixní náklad (Kč)<input id="invFix" type="number" min="0" step="500"><span class="hint">splátka, pojištění, servis, mzda…</span></label>
-      <label class="f">Přínos na jednu zakázku (Kč)<input id="invPrinos" type="number" min="0" step="500"><span class="hint">kolik ušetříš nebo vyděláš navíc</span></label>
-      <label class="f">Zakázek měsíčně<input id="invZakazek" type="number" min="0" step="1"><span class="hint" id="invZakHint"></span></label>
-      <label class="f">Horizont (měsíců)<input id="invHorizont" type="number" min="1" step="6"><span class="hint">za jak dlouho to chceš vyhodnotit</span></label>
-    </div>
-    <p class="hint" id="invPozn" style="margin:10px 0 0"></p>
-    <div id="invVysledek"></div>
   </div>
 
   <div class="card">
@@ -787,6 +829,45 @@ details.gsec li{margin:3px 0}
     <label><input type="checkbox" data-start="s12"><span><b>Odpovídej na poptávky do hodiny</b>, ne do večera. Použij záložku ⚡ Rychlá cena. Kdo odpoví první, bere zakázku — i když je dražší.</span></label>
     <label><input type="checkbox" data-start="s13"><span><b>Po každé zakázce požádej o hodnocení</b> do 24 hodin (šablona je v záložce Zprávy). Prvních pět recenzí rozhoduje o tom, jestli vám poptávky pochodí dál.</span></label>
     <label><input type="checkbox" data-start="s14"><span><b>Vyplň „Po dokončení“ u první zakázky</b> — skutečné hodiny, kontejnery, km. Bez toho se odhady nikdy nezpřesní a budeš navždy střílet od boku.</span></label>
+  </div></details>
+
+  <details class="gsec"><summary>Jak řídit firmu — denní, týdenní a měsíční rytmus</summary><div class="inner">
+    <p style="margin:0 0 10px">Firma se neřídí tím, že se o ní přemýšlí, ale tím, že se pravidelně dělá pár konkrétních věcí. Tady je celý rytmus — víc toho není potřeba.</p>
+    <div class="vyb">
+      <div class="vybg">Každý den (10 minut)</div>
+      <ul style="margin:4px 0 0;padding-left:20px">
+        <li><b>Odpovědět na všechny poptávky do hodiny</b> přes ⚡ Rychlá cena. Tohle jediné rozhoduje, jestli budete mít práci.</li>
+        <li><b>Zapsat den do denního zápisu</b> — kdo, kolik hodin, co se udělalo, co zdrželo.</li>
+        <li><b>Vyfotit průběh</b>, když se objeví cokoli neočekávaného.</li>
+      </ul>
+      <div class="vybg">Každý týden (30 minut, třeba v pátek)</div>
+      <ul style="margin:4px 0 0;padding-left:20px">
+        <li><b>Peníze na cestě</b> (Přehled firmy) — kdo nezaplatil, co je po splatnosti. Upomínku pošli hned, ne za měsíc.</li>
+        <li><b>Vytížení a nasmlouváno dopředu</b> (Plán). Pod 5 dní dopředu = tento týden sháněj práci. Nad 15 dní = zvedej ceny.</li>
+        <li><b>Poslat nabídky</b>, které se nahromadily. Cíl jsou zhruba 4 týdně.</li>
+        <li><b>Požádat o hodnocení</b> u zakázek dokončených tento týden (záložka Zprávy to připomíná).</li>
+      </ul>
+      <div class="vybg">Každý měsíc (1 hodina)</div>
+      <ul style="margin:4px 0 0;padding-left:20px">
+        <li><b>Uzavřít měsíc</b> — všechny hotové zakázky přepnout na „hotovo“, doplnit skutečné hodiny a odpady.</li>
+        <li><b>Projít Růstový přehled</b> — pět čísel a co s nimi. Zvlášť konverzi a zisk na hodinu.</li>
+        <li><b>Odložit peníze na milníky</b> podle nastaveného procenta. Převeď je fyzicky na jiný účet, jinak se rozkutálejí.</li>
+        <li><b>Zaplatit si výplatu</b> — a to i sobě. Firma, která majitele neplatí, není firma, ale koníček.</li>
+      </ul>
+      <div class="vybg">Každé čtvrtletí (2 hodiny)</div>
+      <ul style="margin:4px 0 0;padding-left:20px">
+        <li><b>Zkalibrovat normy</b> (Přehled → Plán vs. realita). Po 5 dokončených zakázkách vám aplikace nabídne přepočet koeficientu výkonu.</li>
+        <li><b>Projít ceník</b> — kde je Kč/hod pod 500, tam prodáváte pod cenou. Zdražte, nebo tu práci přestaňte nabízet.</li>
+        <li><b>Obvolat dopravce</b>, jestli nemají nový ceník, a porovnat je znovu.</li>
+        <li><b>Zkontrolovat, co říká „Proč prohráváme“</b> — a podle toho upravit ceny nebo rychlost odpovědí.</li>
+      </ul>
+    </div>
+    <p style="margin:14px 0 0"><b>Tři pravidla, která nedodržet znamená problém:</b></p>
+    <ul>
+      <li><b>Nikdy nezačít práci bez zálohy.</b> Ani u známého, ani „on to určitě zaplatí“.</li>
+      <li><b>Nikdy neudělat vícepráci bez písemného odsouhlasení.</b> Dodatek je na jedno kliknutí.</li>
+      <li><b>Nikdy nesáhnout na rezervu</b> kvůli nářadí. Rezerva je na měsíc bez zakázek, ne na nové kladivo.</li>
+    </ul>
   </div></details>
 
   <details class="gsec"><summary>Kolik nabídek musíte poslat, abyste uživili firmu</summary><div class="inner">
@@ -1146,6 +1227,49 @@ function defSablony(){return [
  {id:"odmitnuti",nazev:"9 · Slušné odmítnutí",kdy:"když nemáte kapacitu — vždy odpovězte",text:
   "Dobrý den,\n\nděkuji za poptávku. Bohužel mám v tomhle termínu plno a nechci vám slibovat něco, co bych nestihl.\n\nKdyby vám vyhovoval pozdější termín, rád se ozvu — nebo se ozvěte příště, práce tohoto typu děláme běžně.\n\nS pozdravem\n{firma}"},
 ];}
+/* ---- milníky: co pořídit a v jakém pořadí ---- */
+const MILNIK_FAZE=[
+ {id:0,nazev:"Než vezmete první zakázku",popis:"Bez tohohle nemůžete vyjet. Neinvestice, ale vstupenka."},
+ {id:1,nazev:"Po prvních 3–5 zakázkách",popis:"Zrychlí práci a sníží dřinu. Zaplatí se z prvních zakázek."},
+ {id:2,nazev:"Po půl roce",popis:"Rozšíří, co umíte nabídnout, a otevře dražší zakázky."},
+ {id:3,nazev:"Rok a dál — škálování",popis:"Velké investice. Napřed si je spočítej v kalkulačce níž."},
+];
+function defMilniky(){return [
+ {id:"m01",faze:0,nazev:"Pojištění odpovědnosti 5–10 mil. Kč",castka:7000,
+  proc:"Jedna prasklá stoupačka v panelu stojí víc než deset let pojistného. Bez pojistky nebere vážně ani žádná stavební firma."},
+ {id:"m02",faze:0,nazev:"Druhé bourací kladivo SDS-max",castka:13000,
+  proc:"Jedno kladivo = jeden člověk bourá a druhý nosí. Dvě kladiva = oba bourají a zakázka je hotová dřív. Nejrychlejší návratnost ze všeho."},
+ {id:"m03",faze:0,nazev:"Průmyslový vysavač třídy M",castka:11000,
+  proc:"Bez něj nesmíš legálně brousit ani frézovat a v obydleném bytě tě klient vyhodí. Zároveň umožňuje účtovat bezprašnou technologii."},
+ {id:"m04",faze:0,nazev:"OOPP pro dva — FFP3, přilby, brýle, sluch, obuv S3",castka:9000,
+  proc:"Respirátory FFP3 nejsou volitelné — křemenný prach z omítek a betonu ničí plíce nevratně. Tohle je investice do toho, abyste v padesáti ještě dýchali."},
+ {id:"m05",faze:0,nazev:"Ruční nářadí, kolečko, kbelíky, fólie",castka:9000,
+  proc:"Palice, sekáče, páčidla, kolečko, vany, zakrývací fólie a pásky. Bez toho se nedá začít ani ta nejmenší zakázka."},
+ {id:"m06",faze:1,nazev:"Finanční rezerva na 3 měsíce provozu",castka:150000,priorita:true,neinvestice:true,
+  proc:"NEJDŮLEŽITĚJŠÍ POLOŽKA CELÉHO SEZNAMU. Když přijde měsíc bez zakázek nebo klient nezaplatí, rezerva rozhoduje, jestli firma přežije. Šetři na ni dřív než na jakékoli nářadí."},
+ {id:"m07",faze:1,nazev:"Podpěrné stojky 6 ks + hranoly",castka:9000,
+  proc:"Bez stojek nemůžete vzít žádnou zakázku s nosnou zdí — a to jsou ty nejlépe placené (833 Kč/hod)."},
+ {id:"m08",faze:1,nazev:"Prachové zábrany, zip dveře, zásoba fólií",castka:6000,
+  proc:"V obydleném bytě je to rozdíl mezi spokojeným klientem a reklamací za zaprášený nábytek. Levné a vrací se v recenzích."},
+ {id:"m09",faze:1,nazev:"Úhlová bruska 230 mm + diamantové kotouče",castka:8000,
+  proc:"Otevře řezání betonu a armatury. Bez ní musíš odmítat zakázky se železobetonem."},
+ {id:"m10",faze:1,nazev:"Aku technika a stavební osvětlení",castka:13000,
+  proc:"V bouraném bytě obvykle není elektřina. LED světla a aku nářadí = můžete pracovat i tam, kde jsou sítě odpojené."},
+ {id:"m11",faze:2,nazev:"Vlastní dodávka nebo valník s vozíkem",castka:250000,
+  proc:"Konec placení dopravy a půjčoven. Spočítej si návratnost v kalkulačce níž — vyplatí se až od určitého počtu zakázek měsíčně."},
+ {id:"m12",faze:2,nazev:"Shoz na suť / stavební výtah",castka:40000,
+  proc:"Vynáška z pater je nejdražší a nejnamáhavější práce (2. patro 1 400 Kč/m³). Shoz ji zlevní na zlomek — a to je čistý zisk, protože klientovi účtuješ stejně."},
+ {id:"m13",faze:2,nazev:"Bezprašná fréza na omítky s odsáváním",castka:35000,
+  proc:"Omítky jsou nejhůř placená a nejnamáhavější práce v ceníku. Fréza je zrychlí a umožní účtovat příplatek za bezprašnost."},
+ {id:"m14",faze:2,nazev:"Diamantová pila na beton",castka:45000,
+  proc:"Řezání ŽB se prodává za 1 500 Kč/bm a dnes ho musíte odmítat nebo subdodávat."},
+ {id:"m15",faze:3,nazev:"Vlastní kontejnery + hydraulická ruka",castka:450000,
+  proc:"Odvoz je druhá největší položka rozpočtu. S vlastními kontejnery je celá marže vaše. Nejdřív ale ověř v kalkulačce, kolik zakázek měsíčně to uživí."},
+ {id:"m16",faze:3,nazev:"Třetí člověk do party (rezerva na 3 měsíce mzdy)",castka:174000,
+  proc:"Nenajímej člověka, dokud nemáš rezervu na tři jeho výplaty a plný kalendář. Kapacita bez zakázek je nejrychlejší cesta do mínusu."},
+ {id:"m17",faze:3,nazev:"Minibagr s kladivem nebo bourací robot",castka:900000,
+  proc:"Otevře demolice celých objektů a těžké ŽB. Až když máte stabilní přísun zakázek, které to uživí."},
+];}
 const INVESTICE_PRESETY=[
  {id:"vlastni",nazev:"— vlastní výpočet —",cena:0,fix:0,prinos:0,pozn:""},
  {id:"valnik",nazev:"Valník s hydraulickou rukou + vlastní kontejnery",cena:450000,fix:12000,prinos:6000,
@@ -1205,6 +1329,15 @@ function migrate(){
   if(!S.dopravci)S.dopravci=[];
   if(!S.sablony||!S.sablony.length)S.sablony=defSablony();
   if(!S.investice)S.investice=[];
+  if(!S.milniky||!S.milniky.length)S.milniky=defMilniky();
+  /* doplnit metadata výchozích milníků (proč, priorita, neinvestice), aniž by se přepsal stav a naspořeno */
+  const defM=defMilniky();
+  S.milniky.forEach(m=>{
+    m.stav=m.stav||"ceka"; m.naspor=m.naspor||0;
+    const d=defM.find(x=>x.id===m.id);
+    if(d){if(!m.proc)m.proc=d.proc; if(d.priorita)m.priorita=true; if(d.neinvestice)m.neinvestice=true;}
+  });
+  if(S.nastaveni.odkladPct===undefined)S.nastaveni.odkladPct=25;
   /* v7: vynáška přepočtena z hodin na tuny — staré koeficienty už nejsou potřeba */
   if(!S.vynaskaV7){
     const st=S.cenik.find(i=>i.id==="vynaska");
@@ -1335,6 +1468,7 @@ document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()
   if(b.dataset.tab==="plan")renderPlan();
   if(b.dataset.tab==="zpravy"){renderSablony();renderRecenze();}
   if(b.dataset.tab==="cenik")renderDopravciNejlepsi();
+  if(b.dataset.tab==="rust"){renderMilniky();renderInvestice();}
 }));
 
 /* ---------- kalkulace: hlavička ---------- */
@@ -2714,6 +2848,119 @@ $("#recenzeSeznam").addEventListener("click",e=>{
   }
 });
 
+/* ================= MILNÍKY ================= */
+function prumZiskZakazky(){
+  const hot=S.zakazky.filter(z=>z.status==="hotovo"&&z.vysZisk);
+  if(!hot.length)return null;
+  return Math.round(hot.reduce((a,z)=>a+z.vysZisk,0)/hot.length);
+}
+function renderMilniky(){
+  const el=$("#milnikySeznam"); el.innerHTML="";
+  $("#nOdkladPct").value=S.nastaveni.odkladPct;
+  $("#milFaze").innerHTML=MILNIK_FAZE.map(f=>"<option value='"+f.id+"'>"+f.id+" · "+esc(f.nazev)+"</option>").join("");
+  const prum=prumZiskZakazky();
+  const odklad=prum?Math.round(prum*(S.nastaveni.odkladPct||0)/100):null;
+  $("#odkladHint").innerHTML=prum?
+    ("průměrný zisk ze zakázky <b>"+kc(prum)+"</b> → na milníky odkládáš <b>"+kc(odklad)+"</b> z každé"):
+    "průměrný zisk se spočítá, až budeš mít první hotovou zakázku";
+  MILNIK_FAZE.forEach(f=>{
+    const ms=S.milniky.filter(m=>m.faze===f.id);
+    if(!ms.length)return;
+    const zbyva=ms.filter(m=>m.stav!=="hotovo").reduce((a,m)=>a+Math.max(0,(m.castka||0)-(m.naspor||0)),0);
+    const hot=ms.filter(m=>m.stav==="hotovo").length;
+    const d=document.createElement("div"); d.className="fazehl";
+    d.innerHTML="<span class='fs'>"+hot+"/"+ms.length+" hotovo"+(zbyva?" · zbývá "+kc(zbyva):"")+"</span>"+
+      "<h3>Fáze "+f.id+" — "+esc(f.nazev)+"</h3><div class='fp'>"+esc(f.popis)+"</div>";
+    el.appendChild(d);
+    ms.forEach(m=>{
+      const ix=S.milniky.indexOf(m);
+      const pct=m.castka>0?Math.min(100,Math.round((m.naspor||0)/m.castka*100)):0;
+      const zbyvaKc=Math.max(0,(m.castka||0)-(m.naspor||0));
+      const zakazek=(odklad&&zbyvaKc>0)?Math.ceil(zbyvaKc/odklad):null;
+      const c=document.createElement("div");
+      c.className="mil"+(m.stav==="hotovo"?" hotovo":m.stav==="setrime"?" setrime":"")+(m.priorita?" prio":"");
+      c.innerHTML="<div class='milhl'><h4>"+(m.priorita?"⚑ ":"")+esc(m.nazev)+"</h4>"+
+          "<span class='cena'>"+kc(m.castka)+"</span></div>"+
+        (m.proc?"<div class='proc'>"+esc(m.proc)+"</div>":"")+
+        (m.stav!=="hotovo"?"<div class='prog'><i class='"+(pct>=100?"plno":"")+"' style='width:"+pct+"%'></i></div>":"")+
+        "<div class='milovl'>"+
+          (m.stav==="hotovo"?"<span class='pill ok'>✓ pořízeno</span>":
+            "<span class='hint'>naspořeno</span><input type='number' min='0' step='1000' class='milN' data-ix='"+ix+"' value='"+(m.naspor||"")+"'>"+
+            "<span class='hint'>z "+kc(m.castka)+" ("+pct+" %)"+(zakazek?" · ještě "+zakazek+" zakáz"+(zakazek===1?"ka":zakazek<5?"ky":"ek"):"")+"</span>")+
+          "<span style='flex:1'></span>"+
+          (m.stav!=="hotovo"?"<button class='b milSetr' data-ix='"+ix+"' style='padding:4px 10px'>"+(m.stav==="setrime"?"Zrušit šetření":"Šetříme na to")+"</button>":"")+
+          "<button class='b milHot' data-ix='"+ix+"' style='padding:4px 10px'>"+(m.stav==="hotovo"?"Vrátit":"✓ Pořízeno")+"</button>"+
+          ((m.castka||0)>=30000&&!m.neinvestice?"<button class='b milInv' data-ix='"+ix+"' style='padding:4px 10px'>Spočítat návratnost</button>":"")+
+          "<button class='mini milDel' data-ix='"+ix+"'>✕</button>"+
+        "</div>";
+      el.appendChild(c);
+    });
+  });
+  milKpi();
+}
+function milKpi(){
+  const ms=S.milniky;
+  const celkem=ms.reduce((a,m)=>a+(m.castka||0),0);
+  const hotovo=ms.filter(m=>m.stav==="hotovo").reduce((a,m)=>a+(m.castka||0),0);
+  const naspor=ms.filter(m=>m.stav!=="hotovo").reduce((a,m)=>a+(m.naspor||0),0);
+  const zbyva=ms.filter(m=>m.stav!=="hotovo").reduce((a,m)=>a+Math.max(0,(m.castka||0)-(m.naspor||0)),0);
+  /* nejbližší nesplněný milník */
+  const dalsi=ms.find(m=>m.stav!=="hotovo");
+  const prum=prumZiskZakazky();
+  const odklad=prum?prum*(S.nastaveni.odkladPct||0)/100:null;
+  const kpi=(l,v,cls)=>"<div class='stat'><div class='v"+(cls?" "+cls:"")+"'>"+v+"</div><div class='l'>"+l+"</div></div>";
+  $("#milKpi").innerHTML=
+    kpi("Pořízeno",kc(hotovo),"plus")+
+    kpi("Naspořeno na rozdělané",kc(naspor))+
+    kpi("Zbývá pořídit",kc(zbyva),zbyva?"minus":"plus")+
+    kpi("Nejbližší cíl",dalsi?esc(dalsi.nazev.slice(0,26)):"vše hotovo")+
+    kpi("Zakázek do dalšího cíle",(dalsi&&odklad>0)?Math.ceil(Math.max(0,(dalsi.castka||0)-(dalsi.naspor||0))/odklad)+"×":"—");
+  const b=$("#milBadge");
+  b.textContent=ms.filter(m=>m.stav==="hotovo").length+" / "+ms.length+" hotovo";
+  b.className="badge"+(hotovo===celkem?" good":"");
+}
+$("#milnikySeznam").addEventListener("input",e=>{
+  if(e.target.classList.contains("milN")){
+    const m=S.milniky[+e.target.dataset.ix]; if(!m)return;
+    m.naspor=num(e.target.value);
+    if(m.naspor>0&&m.stav==="ceka")m.stav="setrime";
+    milKpi(); save();
+  }
+});
+$("#milnikySeznam").addEventListener("click",e=>{
+  const ix=+e.target.dataset.ix; const m=S.milniky[ix];
+  if(!m||isNaN(ix))return;
+  if(e.target.classList.contains("milSetr")){m.stav=m.stav==="setrime"?"ceka":"setrime";renderMilniky();save();}
+  if(e.target.classList.contains("milHot")){
+    m.stav=m.stav==="hotovo"?"ceka":"hotovo";
+    if(m.stav==="hotovo")m.naspor=m.castka;
+    renderMilniky();save();
+  }
+  if(e.target.classList.contains("milDel")){
+    if(!confirm("Smazat milník „"+m.nazev+"“?"))return;
+    S.milniky.splice(ix,1);renderMilniky();save();
+  }
+  if(e.target.classList.contains("milInv")){
+    $("#invPreset").value="vlastni";
+    $("#invCena").value=m.castka; $("#invFix").value=""; $("#invPrinos").value="";
+    $("#invPozn").innerHTML="💡 Počítáš návratnost pro: <b>"+esc(m.nazev)+"</b>. Doplň měsíční náklad (splátka, servis) a kolik ti to ušetří nebo vydělá na jedné zakázce.";
+    spocitatInvestici();
+    document.querySelector("#tab-rust .card:last-child").scrollIntoView({behavior:"smooth",block:"start"});
+  }
+});
+$("#addMil").addEventListener("click",()=>{
+  const n=$("#milNazev").value.trim(), c=num($("#milCastka").value);
+  if(!n){alert("Napiš název milníku.");$("#milNazev").focus();return}
+  S.milniky.push({id:uid(),faze:+$("#milFaze").value,nazev:n,castka:c,proc:"",stav:"ceka",naspor:0});
+  $("#milNazev").value="";$("#milCastka").value="";
+  renderMilniky();save();
+});
+$("#milReset").addEventListener("click",()=>{
+  if(!confirm("Obnovit výchozí seznam milníků? Tvoje vlastní položky i naspořené částky se ztratí."))return;
+  S.milniky=defMilniky(); renderMilniky(); save();
+});
+$("#nOdkladPct").addEventListener("input",e=>{S.nastaveni.odkladPct=num(e.target.value);renderMilniky();save();});
+
 /* ================= INVESTIČNÍ KALKULAČKA ================= */
 function invData(){
   return {cena:num($("#invCena").value),fix:num($("#invFix").value),
@@ -3095,7 +3342,7 @@ function renderOdpSouhrn(){
     tb.appendChild(tr);
   });
 }
-function renderPrehled(){renderVydaje();renderOdberatele();renderZdroje();renderRealita();renderPohledavky();renderProhry();renderRust();renderOdpSouhrn();renderInvestice();pStats();}
+function renderPrehled(){renderVydaje();renderOdberatele();renderZdroje();renderRealita();renderPohledavky();renderProhry();renderRust();renderOdpSouhrn();pStats();}
 
 /* ---------- výbava checklist ---------- */
 document.querySelectorAll("[data-vyb]").forEach(ch=>{
@@ -3314,7 +3561,7 @@ document.querySelectorAll("[data-copy]").forEach(b=>b.addEventListener("click",(
 }));
 
 /* ---------- init ---------- */
-function fillAll(){fillHdr();fillNastaveni();renderPrace();renderKont();renderMat();renderOst();renderVP();renderFotky();renderDZ();renderOdp();renderDopravci();renderNKont();renderCenik();renderRychle();renderSablony();renderRecenze();zakCount();syncVybava();renderPrehled();recalc();}
+function fillAll(){fillHdr();fillNastaveni();renderPrace();renderKont();renderMat();renderOst();renderVP();renderFotky();renderDZ();renderOdp();renderDopravci();renderNKont();renderCenik();renderRychle();renderSablony();renderRecenze();renderMilniky();renderInvestice();zakCount();syncVybava();renderPrehled();recalc();}
 fillAll();
 </script>
 
