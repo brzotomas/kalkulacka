@@ -831,6 +831,17 @@ details.gsec li{margin:3px 0}
   <div class="card">
     <h2>Ceník prací</h2>
     <p class="hint" style="margin:0 0 8px">Ceny vychází z cenové soustavy <b>RTS 25/II + 8 %</b> (reálný ceník demoliční firmy), B2B = B2C − 10 %. Suť t/MJ a hodiny/MJ jsou normy RTS (najeď myší na název položky = kód RTS). <b>Náročnost</b> ★ = fyzická dřina a neoblíbenost práce, položky jsou podle ní seřazené. <b>Kč/hod</b> je kontrolní sloupec: kolik ti položka vydělá za hodinu práce — zelená nad 800, červená pod 500. Vše lze přepsat, ukládá se automaticky.</p>
+    <div class="sut" id="hladinaInfo" style="display:block;margin-bottom:12px"></div>
+    <div class="grid g4" style="margin-bottom:12px">
+      <label class="f">Změnit všechny ceny o (%)<input id="zdrazitPct" type="number" step="0.5" placeholder="např. 6"><span class="hint">záporné číslo = zlevnění</span></label>
+      <label class="f">Rozsah<select id="zdrazitRozsah">
+        <option value="vse">všechny položky ceníku</option>
+        <option value="zobrazene">jen zobrazené (dle filtru)</option>
+      </select></label>
+      <div class="f" style="justify-content:flex-end"><span>&nbsp;</span><label class="chk"><input id="zdrazitVse" type="checkbox" checked> Zdražit i vynášku, kontejnery a skládkovné</label></div>
+      <div class="f" style="justify-content:flex-end"><span>&nbsp;</span><button class="b prim" id="zdrazitBtn">Přepočítat ceny</button></div>
+    </div>
+    <div id="cenikHistorie"></div>
     <div class="grid g3" style="margin-bottom:10px">
       <label class="f">Hledat v ceníku<input id="cFiltr" placeholder="název nebo RTS kód…"></label>
       <label class="f">Kategorie<select id="cKat"></select></label>
@@ -2183,6 +2194,9 @@ function migrate(){
     S.cenik.forEach(i=>{if(!platneKat.has(i.kat))i.kat=KAT[KAT.length-1];});
     S.cenikV11=true;
   }
+  /* hladina ceníku proti tabulce RTS a historie hromadných úprav */
+  if(S.nastaveni.cenikHladina===undefined)S.nastaveni.cenikHladina=1.08;
+  if(!S.cenikHistorie)S.cenikHistorie=[{datum:"2026-07-26",pct:8,pocet:792,hladina:1.08,pozn:"základ — RTS 25/II + 8 %"}];
   if(!S.klienti)S.klienti=[];
   if(!S.naradi)S.naradi=[];
   if(!S.milniky||!S.milniky.length)S.milniky=defMilniky();
@@ -4796,6 +4810,7 @@ function renderCenik(){
       tb.appendChild(tr);
     });
   });
+  renderHladina();
   const p=$("#cPocet");
   if(p)p.innerHTML="Ceník má <b>"+S.cenik.length+"</b> položek"+
     ((filtr||jenKat)?" · odpovídá "+nalezeno:"")+
@@ -4803,6 +4818,66 @@ function renderCenik(){
 }
 ["#cFiltr","#cKat"].forEach(s=>{const el=$(s); if(el)el.addEventListener("input",renderCenik);});
 $("#cKat")&&$("#cKat").addEventListener("change",renderCenik);
+
+/* ---------- hromadná změna cen (inflace) ---------- */
+function zobrazeneCenikPolozky(){
+  const filtr=bezDiakritiky(($("#cFiltr")&&$("#cFiltr").value)||"").trim();
+  const jenKat=($("#cKat")&&$("#cKat").value)||"";
+  return S.cenik.filter(i=>{
+    if(jenKat&&i.kat!==jenKat)return false;
+    if(filtr&&!bezDiakritiky(i.nazev+" "+(i.kod||"")).includes(filtr))return false;
+    return true;
+  });
+}
+function renderHladina(){
+  const el=$("#hladinaInfo"); if(!el)return;
+  const h=S.nastaveni.cenikHladina||1.08;
+  const pct=Math.round((h-1)*1000)/10;
+  el.innerHTML="Ceník stojí na cenové soustavě <b>RTS 25/II</b>. Vaše hladina je aktuálně "+
+    "<b style='font-size:17px;color:var(--accent)'>"+(pct>=0?"+":"")+fmt1.format(pct)+" %</b> proti tabulce."+
+    " <span class='hint'>Jednou ročně sem přidej inflaci — ceníkové soustavy se aktualizují taky.</span>";
+  const hi=$("#cenikHistorie");
+  if(hi){
+    const h2=S.cenikHistorie.slice().reverse();
+    hi.innerHTML=h2.length>1?("<p class='hint' style='margin:0 0 12px'><b>Historie úprav:</b> "+
+      h2.map(z=>new Date(z.datum).toLocaleDateString("cs-CZ")+" · "+(z.pct>=0?"+":"")+fmt1.format(z.pct)+" % ("+z.pocet+" položek)"+
+        (z.pozn?" — "+esc(z.pozn):"")).join(" &nbsp;·&nbsp; ")+"</p>"):"";
+  }
+}
+$("#zdrazitBtn").addEventListener("click",()=>{
+  const pct=num($("#zdrazitPct").value);
+  if(!pct){alert("Zadej o kolik procent chceš ceny změnit. Kladné číslo zdraží, záporné zlevní.");$("#zdrazitPct").focus();return}
+  if(pct<-50||pct>100){alert("Zadej rozumnou hodnotu mezi −50 % a +100 %.");return}
+  const vse=$("#zdrazitRozsah").value==="vse";
+  const polozky=vse?S.cenik:zobrazeneCenikPolozky();
+  if(!polozky.length){alert("Filtru neodpovídá žádná položka.");return}
+  const k=1+pct/100;
+  const ukazky=polozky.slice(0,3).map(i=>"   "+i.nazev.slice(0,40)+": "+kc(i.b2c)+" → "+kc(Math.round(i.b2c*k)));
+  const iOstatni=$("#zdrazitVse").checked;
+  if(!confirm((pct>0?"Zdražit":"Zlevnit")+" o "+Math.abs(pct)+" % u "+polozky.length+" položek?\n\n"+
+    ukazky.join("\n")+"\n\n"+
+    (iOstatni?"Zároveň se upraví hodinová sazba vynášky, prodejní ceny kontejnerů a skládkovné.\n\n":"")+
+    "Vrátit zpět to jde jen ruční změnou nebo importem zálohy."))return;
+  polozky.forEach(i=>{
+    i.b2c=Math.max(0,Math.round(i.b2c*k));
+    i.b2b=Math.max(0,Math.round(i.b2b*k));
+  });
+  if(iOstatni){
+    const n=S.nastaveni;
+    n.vynSazba=Math.round(n.vynSazba*k);
+    n.skladkovne=Math.round(n.skladkovne*k);
+    n.kmProdej=Math.round(n.kmProdej*k);
+    n.pausal=Math.round(n.pausal*k);
+    n.minZiskOsHod=Math.round(n.minZiskOsHod*k);
+    S.kontejnery.forEach(t=>{t.prodej=Math.round((t.prodej||0)*k)});
+  }
+  if(vse)S.nastaveni.cenikHladina=(S.nastaveni.cenikHladina||1.08)*k;
+  S.cenikHistorie.push({datum:new Date().toISOString().slice(0,10),pct,pocet:polozky.length,
+    hladina:S.nastaveni.cenikHladina,pozn:vse?"":"jen filtrovaný výběr"});
+  $("#zdrazitPct").value="";
+  renderCenik(); renderHladina(); fillNastaveni(); renderNKont(); recalc(); save();
+  alert("Hotovo — upraveno "+polozky.length+" položek o "+(pct>0?"+":"")+pct+" %.");
+});
 $("#cenikTab").addEventListener("input",e=>{
   const it=S.cenik[+e.target.dataset.ix]; if(!it)return;
   const c=e.target.classList;
