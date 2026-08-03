@@ -355,7 +355,7 @@ details.gsec li{margin:3px 0}
       <label class="f">Ceník
         <select id="jCenik"><option value="b2c">B2C – koncový zákazník</option><option value="b2b">B2B – subdodávka</option></select></label>
       <label class="f">Režim DPH
-        <select id="jDph"><option value="12">12 % — bydlení (byt do 120 m², RD do 350 m²)</option><option value="21">21 % — ostatní</option><option value="rc">Reverse charge §92e (0 % na faktuře)</option><option value="ne">Neplátce DPH</option></select></label>
+        <select id="jDph"><option value="12">12 % — bydlení (byt do 120 m², RD do 350 m²)</option><option value="21">21 % — ostatní</option><option value="rc">Reverse charge §92e (0 % na faktuře)</option><option value="ne">Neplátce DPH</option></select><span class="hint" id="dphHint"></span></label>
       <label class="f">Podlaží<input id="jPatro" type="number" min="0" step="1"></label>
       <div class="f" style="justify-content:flex-end"><span>&nbsp;</span><label class="chk"><input id="jVytah" type="checkbox" checked> Výtah v domě</label></div>
       <label class="f">Lidí na stavbě<input id="jLide" type="number" min="1" step="1"></label>
@@ -607,7 +607,7 @@ details.gsec li{margin:3px 0}
 <section id="tab-zpravy" class="tab">
   <div class="card">
     <h2>Zprávy klientovi <span class="hint" style="float:right;text-transform:none;letter-spacing:0">texty se vyplní údaji z otevřené kalkulace</span></h2>
-    <p class="hint" style="margin:0 0 10px">Devět situací, které se opakují u každé zakázky. Klikneš na Kopírovat, vložíš do SMS nebo mailu, případně doladíš. <b>Texty si můžeš přepsat</b> — uloží se automaticky. Zástupné značky ve složených závorkách se nahradí sami: {klient}, {zakazka}, {adresa}, {cena}, {zaloha}, {doplatek}, {terminOd}, {terminDo}, {dni}, {firma}.</p>
+    <p class="hint" style="margin:0 0 10px">Devět situací, které se opakují u každé zakázky. Klikneš na Kopírovat, vložíš do SMS nebo mailu, případně doladíš. <b>Texty si můžeš přepsat</b> — uloží se automaticky. Zástupné značky ve složených závorkách se nahradí sami: {klient}, {zakazka}, {adresa}, {cena}, {dph}, {zaloha}, {doplatek}, {terminOd}, {terminDo}, {dni}, {firma}. Značka <b>{dph}</b> se sama přepne podle režimu zakázky — u neplátce napíše, že je cena konečná.</p>
     <div class="sut" id="zpravyZdroj" style="margin-bottom:14px"></div>
     <div id="sablonySeznam"></div>
     <div class="btnrow"><button class="b" id="sablonyReset">Obnovit původní znění všech šablon</button></div>
@@ -782,6 +782,7 @@ details.gsec li{margin:3px 0}
       <label class="f">IBAN (pro QR platbu)<input id="nIban" placeholder="CZ6508000000000123456789"><span class="hint">bez mezer — z něj se generuje QR kód</span></label>
       <label class="f">Splatnost faktur (dní)<input id="nFakSplatnost" type="number" min="1" step="1"></label>
       <div class="f" style="justify-content:flex-end"><span>&nbsp;</span><label class="chk"><input id="nPlatceDPH" type="checkbox"> Jsme plátci DPH</label></div>
+      <label class="f">Limit obratu pro registraci k DPH (Kč)<input id="nDphLimit" type="number" min="0" step="10000"><span class="hint">hlídá se jen když nejste plátci; aktuální hodnotu si ověř u účetní</span></label>
       <label class="f">Lidí v partě (výchozí)<input id="nLide" type="number" min="1" step="1"></label>
       <label class="f">Pracovních hodin / den<input id="nHodDen" type="number" min="1" step="0.5"></label>
       <label class="f">Náklad na najatého pracovníka (Kč/hod)<input id="nSazbaNajaty" type="number" min="0" step="10"></label>
@@ -1007,7 +1008,7 @@ details.gsec li{margin:3px 0}
       <li><b>Souhlasy:</b> SVJ / vlastník / stavební úřad u zásahů do nosných konstrukcí.</li>
       <li><b>Sítě:</b> kdo odpojí elektřinu, vodu, plyn? Musí být potvrzené před začátkem.</li>
       <li><b>Platby:</b> záloha 30–50 % předem, doplatek při předání. Splatnost 60 dní tě položí — nepodepisuj.</li>
-      <li><b>DPH režim:</b> byt do 120 m² / RD do 350 m² = 12 %. Jinak 21 %. Subdodávka plátce→plátci = přenesená daňová povinnost (fakturuješ bez DPH).</li>
+      <li><b>DPH režim:</b> dokud nejste plátci, vybírej <b>Neplátce DPH</b> — je to výchozí a žádná daň se nepřičítá. (Až budete plátci: byt do 120 m² / RD do 350 m² = 12 %, jinak 21 %, subdodávka plátce→plátci = přenesená daňová povinnost.)</li>
     </ul>
   </div></details>
 
@@ -1070,7 +1071,7 @@ details.gsec li{margin:3px 0}
     <div class="vybg">Krok 1 — hlavička zakázky</div>
     <ul style="margin:4px 0 12px;padding-left:20px">
       <li>Název, klient, adresa, <b>Zdroj</b> (bez něj nejde uložit)</li>
-      <li>Ceník <b>B2C</b>, DPH <b>12 %</b> (byt do 120 m² = bydlení)</li>
+      <li>Ceník <b>B2C</b>, DPH <b>Neplátce</b> — nejste plátci, takže žádnou daň neúčtujete</li>
       <li><b>Podlaží 0</b> — přízemí. Tohle je zásadní, vynáška ze třetího patra by stála 4× víc.</li>
       <li>Termín od–do, ať se zakázka objeví v Plánu</li>
     </ul>
@@ -1127,17 +1128,17 @@ details.gsec li{margin:3px 0}
         <tr><td>Materiál</td><td class="r">20 200 Kč</td></tr>
         <tr><td>Kontejnery + likvidace</td><td class="r">9 004 Kč</td></tr>
         <tr><td>Doprava</td><td class="r">600 Kč</td></tr>
-        <tr><td><b>Cena bez DPH</b></td><td class="r"><b>69 859 Kč</b></td></tr>
-        <tr><td>DPH 12 %</td><td class="r">8 383 Kč</td></tr>
-        <tr><td class="tot"><b>CENA CELKEM PRO KLIENTA</b></td><td class="r tot"><b>78 242 Kč</b></td></tr>
+        <tr><td class="tot"><b>CENA CELKEM PRO KLIENTA</b></td><td class="r tot"><b>69 859 Kč</b></td></tr>
+        <tr><td colspan="2" class="hint">Nejste plátci DPH — žádná daň se nepřičítá, klient platí přesně tuhle částku.</td></tr>
       </tbody>
     </table></div>
-    <p style="margin:10px 0 0"><b>Vaše ekonomika:</b> náklady 22 738 Kč → <b>čistý zisk 47 121 Kč</b>, tj. <b>1 034 Kč na hodinu</b> na osobu. Práce 45,6 osobohodin = <b>2,5 dne</b> pro dva. Záloha 40 % = 31 297 Kč, doplatek 46 945 Kč.</p>
+    <p style="margin:10px 0 0"><b>Vaše ekonomika:</b> náklady 22 738 Kč → <b>čistý zisk 47 121 Kč</b>, tj. <b>1 034 Kč na hodinu</b> na osobu. Práce 45,6 osobohodin = <b>2,5 dne</b> pro dva. Záloha 40 % = 27 944 Kč, doplatek 41 915 Kč.</p>
 
-    <div class="warn" style="margin:10px 0 0"><b>Účtujete vůbec DPH?</b> Těch 12 % je správná sazba pro bourání v bytě do 120 m² (bydlení) — ale platí jen pro plátce DPH.
-      Na startu s obratem pod 2 miliony Kč ročně <b>nejspíš plátci nejste</b> a pak žádné DPH neúčtujete: klient zaplatí <b>69 859 Kč</b> místo 78 242 Kč a vy vyděláte úplně stejně.
-      Je to o 8 tisíc levnější nabídka než od plátce — na začátku vaše největší konkurenční výhoda.
-      Přepíná se v <b>Nastavení → „Jsme plátci DPH“</b> a u konkrétní zakázky v poli <b>DPH</b>.</div>
+    <div class="warn" style="margin:10px 0 0"><b>To, že nejste plátci DPH, je vaše konkurenční výhoda — používejte ji.</b>
+      Konkurent, který je plátce, musí ke stejné ceně přidat 12 % a klient od něj zaplatí <b>78 242 Kč</b>. Od vás <b>69 859 Kč</b>, a vy vyděláte úplně stejně.
+      <b>U domácností to řekněte nahlas</b> („cena je konečná, nic se k ní nepřičítá“) — běžný člověk si DPH neodečte, takže ho zajímá jen výsledná částka.
+      <br><br><b>U firem a stavebních společností to výhoda není</b> — ty si DPH odečtou, takže je zajímá cena bez daně a vaše nabídka jim vyjde stejně. Tam nesoutěžte cenou, ale termínem a spolehlivostí.
+      <br><br>Až obrat překročí limit, aplikace vás upozorní v <b>Přehledu firmy</b> — ukazatel „Obrat pro DPH“ vidíte průběžně.</div>
 
     <div class="vybg">⚠️ Co musí být vyřešené, než začnete</div>
     <ul style="margin:4px 0 0;padding-left:20px">
@@ -2170,8 +2171,10 @@ function defNastaveni(){return {firma:"", lide:2, hodDen:9, sazbaNajaty:250, odv
   vynKbelik:40, vynKbelikM3:0.040, vynPatroSek:35, vynVzdalenostSek:25,
   vynVytahKoef:0.25, vynRucniKoef:1.35, koefVykon:1.0,
   kontCenaKm:32, kontDnyZdarma:3, kontCenaDen:180, kontRezerva:18,
-  ico:"", dic:"", adresaFirmy:"", bankUcet:"", iban:"", platceDPH:false, fakSplatnost:14, fakRok:0, fakPoradi:0, minZiskOsHod:450, minTrzbaB2C:0, minTrzbaB2B:0, minCenaB2C:8000, vikendPct:25, expresPct:15, nabRok:0, nabPoradi:0};}
-function defJob(n){return {id:null, nazev:"", klient:"", adresa:"", poznamka:"", zdroj:"", odberatelId:"", cenik:"b2c", dph:"12",
+  ico:"", dic:"", adresaFirmy:"", bankUcet:"", iban:"", platceDPH:false, dphLimit:2000000, fakSplatnost:14, fakRok:0, fakPoradi:0, minZiskOsHod:450, minTrzbaB2C:0, minTrzbaB2B:0, minCenaB2C:8000, vikendPct:25, expresPct:15, nabRok:0, nabPoradi:0};}
+/* režim DPH nové zakázky vychází z toho, jestli je firma plátcem — neplátce neúčtuje nic */
+function vychoziDph(n){return n&&n.platceDPH?"12":"ne";}
+function defJob(n){return {id:null, nazev:"", klient:"", adresa:"", poznamka:"", zdroj:"", odberatelId:"", cenik:"b2c", dph:vychoziDph(n),
   patro:0, vytah:true, lide:n.lide, najati:0,
   prace:[], kontejnery:[], material:[], ostatni:[], viceprace:[], fotky:[], denniZapis:[], odpady:[],
   terminOd:"", terminDo:"", dopravceId:"", vzdalenost:10, rucniNoseni:false, vytahNaSut:true,
@@ -2360,9 +2363,9 @@ const DUVODY_PROHRY=["Drahé","Vzal jiného dodavatele","Odložil / zrušil zám
 /* ---- šablony zpráv klientovi ---- */
 function defSablony(){return [
  {id:"poptavka",nazev:"1 · Odpověď na poptávku",kdy:"do hodiny od poptávky",text:
-  "Dobrý den,\n\nděkuji za poptávku. Bourací práce v rozsahu, který popisujete, děláme běžně.\n\nOrientačně počítám s cenou kolem {cena} včetně DPH a odvozu suti, práce na {dni} pracovních dní. Závaznou cenu vám dám po krátké prohlídce na místě — zabere 15 minut a můžu přijet i po pracovní době.\n\nKdy by se vám to hodilo?\n\nS pozdravem\n{firma}"},
+  "Dobrý den,\n\nděkuji za poptávku. Bourací práce v rozsahu, který popisujete, děláme běžně.\n\nOrientačně počítám s cenou kolem {cena}, včetně odvozu a likvidace suti, práce na {dni} pracovních dní. {dph} Závaznou cenu vám dám po krátké prohlídce na místě — zabere 15 minut a můžu přijet i po pracovní době.\n\nKdy by se vám to hodilo?\n\nS pozdravem\n{firma}"},
  {id:"nabidka",nazev:"2 · Odeslání nabídky",kdy:"hned po prohlídce, nejpozději druhý den",text:
-  "Dobrý den,\n\nděkuji za čas při prohlídce. V příloze posílám cenovou nabídku na akci {zakazka}.\n\nCena celkem: {cena} včetně DPH, včetně odvozu a likvidace suti.\nTermín: umím nastoupit {terminOd}, práce na {dni} pracovních dní.\nZáloha: {zaloha} před zahájením, doplatek do 14 dnů od předání.\n\nNabídka platí 14 dní. Kdyby cokoliv nebylo jasné, zavolejte.\n\nS pozdravem\n{firma}"},
+  "Dobrý den,\n\nděkuji za čas při prohlídce. V příloze posílám cenovou nabídku na akci {zakazka}.\n\nCena celkem: {cena}, včetně odvozu a likvidace suti. {dph}\nTermín: umím nastoupit {terminOd}, práce na {dni} pracovních dní.\nZáloha: {zaloha} před zahájením, doplatek do 14 dnů od předání.\n\nNabídka platí 14 dní. Kdyby cokoliv nebylo jasné, zavolejte.\n\nS pozdravem\n{firma}"},
  {id:"potvrzeni",nazev:"3 · Potvrzení termínu",kdy:"jakmile klient odsouhlasí",text:
   "Dobrý den,\n\nděkuji za odsouhlasení nabídky. Potvrzuji termín {terminOd} – {terminDo}.\n\nAby vše proběhlo hladce, poprosím do zahájení zajistit:\n• odpojení elektřiny, vody a plynu v bouraných částech\n• vyklizení prostoru a odvezení věcí, které mají zůstat\n• přístup a možnost postavit kontejner\n• klíče, případně kdo nám otevře\n\nZálohu {zaloha} poprosím uhradit před zahájením.\n\nS pozdravem\n{firma}"},
  {id:"zaloha",nazev:"4 · Připomínka zálohy",kdy:"2–3 dny před nástupem, když záloha nedorazila",text:
@@ -2565,6 +2568,22 @@ function migrate(){
     delete n.vynVzdalenost;
     S.vynaskaV10=true;
   }
+  /* v11: firma není plátcem DPH — zakázky, které měly jen výchozí 12 %, přepnout na neplátce */
+  if(!S.dphV11){
+    if(S.nastaveni.dphLimit===undefined)S.nastaveni.dphLimit=2000000;
+    if(!S.nastaveni.platceDPH){
+      if(S.job&&S.job.dph==="12")S.job.dph="ne";
+      S.zakazky.forEach(z=>{if(z.dph==="12")z.dph="ne"});
+    }
+    /* šablony zpráv psaly „včetně DPH“ natvrdo — nahradit značkou, ale jen pokud si je uživatel nepřepsal */
+    (S.sablony||[]).forEach(s=>{
+      if(!s||typeof s.text!=="string")return;
+      s.text=s.text
+        .replace("kolem {cena} včetně DPH a odvozu suti, práce na {dni} pracovních dní.","kolem {cena}, včetně odvozu a likvidace suti, práce na {dni} pracovních dní. {dph}")
+        .replace("Cena celkem: {cena} včetně DPH, včetně odvozu a likvidace suti.","Cena celkem: {cena}, včetně odvozu a likvidace suti. {dph}");
+    });
+    S.dphV11=true;
+  }
   /* v8: kontejnery — model dopravce (paušál + km + dny + likvidace) */
   if(!S.kontV8){
     S.dopravci.forEach(d=>{
@@ -2696,7 +2715,19 @@ $("#jOdberatel").addEventListener("change",e=>{
   b2bHint();save();
 });
 $("#jZdroj").addEventListener("change",e=>{J.zdroj=e.target.value;save()});
-$("#jDph").addEventListener("change",e=>{J.dph=e.target.value;recalc();save()});
+$("#jDph").addEventListener("change",e=>{J.dph=e.target.value;dphHint();recalc();save()});
+/* upozornit, když si neplátce omylem vybere sazbu — účtoval by daň, kterou nesmí */
+function dphHint(){
+  const el=$("#dphHint"); if(!el)return;
+  const platce=!!S.nastaveni.platceDPH;
+  if(!platce&&(J.dph==="12"||J.dph==="21")){
+    el.innerHTML="<b class='ne'>⚠ V Nastavení máš „nejsme plátci DPH“, ale tady účtuješ "+J.dph+" %.</b> Neplátce daň vybírat nesmí — přepni na <b>Neplátce DPH</b>, nebo si v Nastavení zapni plátcovství.";
+  }else if(!platce&&J.dph==="ne"){
+    el.textContent="Nejste plátci DPH — na faktuře žádná daň nebude a klient platí přesně cenu bez DPH.";
+  }else if(platce&&J.dph==="ne"){
+    el.innerHTML="<b class='ne'>⚠ V Nastavení máš „jsme plátci DPH“, ale u téhle zakázky neúčtuješ nic.</b> Zkontroluj, jestli je to záměr.";
+  }else el.textContent="";
+}
 $("#jPatro").addEventListener("input",e=>{J.patro=num(e.target.value);recalc();save()});
 $("#jVytah").addEventListener("change",e=>{J.vytah=e.target.checked;recalc();save()});
 $("#jLide").addEventListener("input",e=>{J.lide=Math.max(1,num(e.target.value));recalc();save()});
@@ -2725,7 +2756,7 @@ function fillHdr(){
   $("#jNazev").value=J.nazev; $("#jKlient").value=J.klient; $("#jAdresa").value=J.adresa; $("#jPoznamka").value=J.poznamka;
   $("#jZdroj").innerHTML="<option value=''>— vyber —</option>"+ZDROJE.map(z=>"<option"+(J.zdroj===z?" selected":"")+">"+z+"</option>").join("");
   fillOdberatelSelect(); fillKlientSelect(); b2bHint();
-  $("#jCenik").value=J.cenik; $("#jDph").value=J.dph; $("#jPatro").value=J.patro; $("#jVytah").checked=J.vytah;
+  $("#jCenik").value=J.cenik; $("#jDph").value=J.dph; dphHint(); $("#jPatro").value=J.patro; $("#jVytah").checked=J.vytah;
   $("#jLide").value=J.lide; $("#jNajati").value=J.najati; $("#jRezerva").value=J.rezerva;
   $("#jProvize").value=J.provize; $("#jSleva").value=J.sleva||""; $("#jKm").value=J.km; $("#jDopravaUctovat").checked=J.dopravaUctovat;
   $("#jVikend").checked=J.vikend; $("#jExpres").checked=J.expres; $("#jSkladkovne").checked=J.skladkovne;
@@ -3579,7 +3610,7 @@ function rychlyOdhad(){
   const kontPopis=vars.length?vars[0].label:"—";
   const rezerva=prace*(n.rezerva||0)/100;
   const zaklad=prace+rezerva+vynaska+kontP;
-  const sazba=0.12;
+  const sazba=n.platceDPH?0.12:0;
   const lide=Math.max(1,n.lide||2);
   const dny=hod/(lide*(n.hodDen||9));
   const zisk=zaklad-kontN;
@@ -3599,7 +3630,7 @@ function zobrazRychle(){
   rad+="<div class='rradek'><span>Odvoz suti — "+esc(o.kontPopis)+"</span><b>"+kc(o.kontP)+"</b></div>";
   const varovani=stari==="2"?"<div class='warnbox' style='margin:12px 0 0'>⚠️<span><b>Stavba před rokem 1990</b> — do odpovědi napiš azbestovou klauzuli. Při nálezu se práce přeruší a přecení.</span></div>":"";
   el.innerHTML="<div class='card'>"+
-    "<h2>Orientační cena vč. DPH 12 %</h2>"+
+    "<h2>Orientační cena"+(S.nastaveni.platceDPH?" vč. DPH 12 %":" — neúčtujeme DPH")+"</h2>"+
     "<div class='rvysledek'>"+
       "<div class='rcena'>"+kc(o.od)+" – "+kc(o.do)+"</div>"+
       "<p class='hint' style='margin:4px 0 14px'>Střed odhadu "+kc(o.stred)+" · rozpětí kryje neznámý stav konstrukcí a přístup</p>"+
@@ -4504,6 +4535,10 @@ function znacky(){
     "{terminDo}":d(J.terminDo),
     "{dni}":v.dny>0?String(Math.ceil(v.dny)):"…",
     "{firma}":S.nastaveni.firma||"…",
+    /* věta o dani — plátce ji uvede, neplátce naopak zdůrazní, že je cena konečná (je to prodejní argument) */
+    "{dph}":J.dph==="12"||J.dph==="21"?"Cena je uvedena včetně DPH "+J.dph+" %."
+      :J.dph==="rc"?"Fakturováno bez DPH v režimu přenesené daňové povinnosti (§ 92e)."
+      :"Cena je konečná — nejsme plátci DPH, nic se k ní nepřičítá.",
   };
 }
 function naplnSablonu(text){
@@ -4795,10 +4830,13 @@ $("#tisk").addEventListener("click",()=>{
     "<div class='meta'>"+esc(n.firma||"")+(n.firma?" · ":"")+"vystaveno "+new Date().toLocaleDateString("cs-CZ")+" · platnost 14 dní"+
     (J.nazev?" · "+esc(J.nazev):"")+(J.klient?"<br>Objednatel: "+esc(J.klient):"")+(J.adresa?" · Místo: "+esc(J.adresa):"")+"</div>"+
     "<table><thead><tr><th>Položka</th><th class='r'>Množství</th><th class='r'>Kč/MJ</th><th class='r'>Celkem</th></tr></thead><tbody>"+rows+
-    "<tr><td colspan='3' class='tot'>Cena celkem bez DPH</td><td class='r tot'>"+kc(v.trzba)+"</td></tr>"+
-    (J.dph!=="rc"&&J.dph!=="ne"?"<tr><td colspan='3'>DPH "+(v.sazba*100)+" %</td><td class='r'>"+kc(v.dph)+"</td></tr>":"")+
-    (J.dph==="rc"?"<tr><td colspan='3'>DPH 21 % — přenesená daňová povinnost (informativně, odvádí odběratel)</td><td class='r'>"+kc(v.dphInfo)+"</td></tr>":"")+
-    "<tr><td colspan='3' class='tot'>Cena celkem"+(J.dph==="rc"||J.dph==="ne"?"":" vč. DPH")+"</td><td class='r tot'>"+kc(v.celkem)+"</td></tr>"+
+    (J.dph==="ne"
+      ? "<tr><td colspan='3' class='tot'>CENA CELKEM</td><td class='r tot'>"+kc(v.celkem)+"</td></tr>"+
+        "<tr><td colspan='4' style='font-size:12px'>Nejsme plátci DPH — uvedená cena je konečná, nic se k ní nepřičítá.</td></tr>"
+      : "<tr><td colspan='3' class='tot'>Cena celkem bez DPH</td><td class='r tot'>"+kc(v.trzba)+"</td></tr>"+
+        (J.dph!=="rc"?"<tr><td colspan='3'>DPH "+(v.sazba*100)+" %</td><td class='r'>"+kc(v.dph)+"</td></tr>":"")+
+        (J.dph==="rc"?"<tr><td colspan='3'>DPH 21 % — přenesená daňová povinnost (informativně, odvádí odběratel)</td><td class='r'>"+kc(v.dphInfo)+"</td></tr>":"")+
+        "<tr><td colspan='3' class='tot'>Cena celkem"+(J.dph==="rc"?"":" vč. DPH")+"</td><td class='r tot'>"+kc(v.celkem)+"</td></tr>")+
     "</tbody></table>"+
     "<p><b>Záloha: "+kc(v.celkem*n.zaloha/100)+" ("+n.zaloha+" %)</b> před zahájením prací; doplatek se splatností 14 dní od předání.</p>"+
     "<div class='kl'>"+klauzule().map(esc).join("<br>")+"</div>";
@@ -4831,7 +4869,7 @@ $("#kopieNabidky").addEventListener("click",()=>{
   L.push("Cena celkem bez DPH: "+kc(v.trzba));
   if(J.dph==="12"||J.dph==="21"){L.push("DPH "+(v.sazba*100)+" %: "+kc(v.dph));L.push("CENA CELKEM vč. DPH: "+kc(v.celkem));}
   else if(J.dph==="rc")L.push("CENA CELKEM: "+kc(v.celkem)+" (DPH 21 % informativně "+kc(v.dphInfo)+" — odvádí odběratel, § 92e)");
-  else L.push("CENA CELKEM: "+kc(v.celkem)+" (dodavatel není plátcem DPH)");
+  else L.push("CENA CELKEM: "+kc(v.celkem)+" — cena je konečná, nejsme plátci DPH");
   L.push("Záloha "+n.zaloha+" %: "+kc(v.celkem*n.zaloha/100)+" před zahájením prací.");
   L.push("");
   klauzule().forEach(k=>L.push(k));
@@ -4891,7 +4929,11 @@ function pStats(){
     kpi("Z toho po splatnosti",kc(poSplat),poSplat?"minus":"plus")+
     kpi("Zisk z hotových zakázek ("+hot.length+")",kc(ziskHot),"plus")+
     kpi("Výdaje firmy",kc(vyd),vyd?"minus":"")+
-    kpi("Výsledek firmy",kc(vysledek),vysledek>=0?"plus":"minus");
+    kpi("Výsledek firmy",kc(vysledek),vysledek>=0?"plus":"minus")+
+    (S.nastaveni.platceDPH?"":(()=>{const o=obratDPH();
+      return kpi("Obrat "+o.rok+" pro DPH<br><span class='hint'>limit "+kc(o.limit)+"</span>",
+        kc(o.obrat)+" <span style='font-size:13px;font-weight:400'>("+Math.round(o.pct*100)+" %)</span>",
+        o.pct>=1?"minus":o.pct>=0.75?"":"plus");})());
   const m={};
   hot.forEach(z=>{const k=(z.ulozeno||"").slice(0,7); if(!k)return; m[k]=m[k]||{n:0,z:0,v:0}; m[k].n++; m[k].z+=z.vysZisk||0;});
   S.vydaje.forEach(r=>{const k=(r.datum||"").slice(0,7); if(!k)return; m[k]=m[k]||{n:0,z:0,v:0}; m[k].v+=r.castka||0;});
@@ -5203,6 +5245,19 @@ function renderOdpSouhrn(){
   });
 }
 /* ---------- automatické připomínky ---------- */
+/* Obrat pro účely registrace k DPH — z dokončených zakázek běžného kalendářního roku, vždy bez daně. */
+function obratDPH(){
+  const limit=S.nastaveni.dphLimit>0?S.nastaveni.dphLimit:2000000;
+  const rok=new Date().getFullYear();
+  let obrat=0, poctu=0;
+  S.zakazky.filter(z=>z.status==="hotovo").forEach(z=>{
+    const d=z.terminDo||z.ulozeno; if(!d||new Date(d).getFullYear()!==rok)return;
+    const s=z.dph==="12"?1.12:z.dph==="21"?1.21:1;   /* uložená částka je vč. daně, obrat se počítá bez ní */
+    obrat+=(z.vysCelkem||0)/s; poctu++;
+  });
+  obrat=Math.round(obrat);   /* jinak by dělení sazbou nechalo haléřové zbytky a limit by se „těsně nesplnil“ */
+  return {obrat,limit,rok,poctu,zbyva:Math.max(0,limit-obrat),pct:limit>0?obrat/limit:0};
+}
 function renderPripominky(){
   const el=$("#pripominky"); if(!el)return;
   const p=[];
@@ -5229,6 +5284,17 @@ function renderPripominky(){
   /* vícepráce čekající */
   const vp=S.zakazky.filter(z=>(z.viceprace||[]).some(r=>r.stav==="navrženo"&&(r.cena||0)>0)).length;
   if(vp)p.push({t:"warn",ikona:"📄",txt:vp+"× zakázka má <b>vícepráce čekající na odsouhlasení</b>. Bez podpisu je nedělej."});
+  /* hlídání limitu pro povinné plátcovství DPH */
+  if(!S.nastaveni.platceDPH){
+    const o=obratDPH();
+    if(o.obrat>=o.limit)p.push({t:"bad",ikona:"🧾",txt:"<b>Překročili jste limit obratu pro DPH.</b> Za rok "+o.rok+
+      " máte z dokončených zakázek "+kc(o.obrat)+", limit je "+kc(o.limit)+
+      ". <b>Volej účetní hned</b> — na registraci je krátká lhůta a zpětné doměření DPH by vám sebralo marži z už vyfakturovaných zakázek. "+
+      "Až budete zaregistrovaní, zapni si v Nastavení „Jsme plátci DPH“."});
+    else if(o.pct>=0.75)p.push({t:"warn",ikona:"🧾",txt:"<b>Blížíte se k limitu obratu pro DPH.</b> Za rok "+o.rok+" máte "+
+      kc(o.obrat)+" z "+kc(o.limit)+" ("+Math.round(o.pct*100)+" %), zbývá "+kc(o.zbyva)+
+      ". Domluv se s účetní <b>dřív</b>, než limit překročíš — ať víš, kdy přestat brát zakázky nebo kdy se registrovat dobrovolně."});
+  }
   el.innerHTML=p.length?p.map(x=>
     "<div class='"+(x.t==="bad"?"bigwarn":"warnbox")+"' style='margin-bottom:9px"+(x.t==="bad"?"":";margin-left:0;margin-right:0")+"'>"+
     x.ikona+" <span>"+x.txt+"</span></div>").join(""):
@@ -5265,9 +5331,10 @@ const nMap=[["nFirma","firma",1],["nIco","ico",1],["nDic","dic",1],["nAdresaFirm
   ["nVynKolecko","vynKolecko"],["nVynKoleckoM3","vynKoleckoM3"],["nVynCyklusSek","vynCyklusSek"],
   ["nVynKbelik","vynKbelik"],["nVynKbelikM3","vynKbelikM3"],["nVynPatroSek","vynPatroSek"],
   ["nVynVzdalenostSek","vynVzdalenostSek"],["nVynVytahKoef","vynVytahKoef"],["nVynRucniKoef","vynRucniKoef"],
-  ["nKontCenaKm","kontCenaKm"],["nKontDnyZdarma","kontDnyZdarma"],["nKontCenaDen","kontCenaDen"],["nKontRezerva","kontRezerva"]];
+  ["nKontCenaKm","kontCenaKm"],["nKontDnyZdarma","kontDnyZdarma"],["nKontCenaDen","kontCenaDen"],["nKontRezerva","kontRezerva"],
+  ["nDphLimit","dphLimit"]];
 nMap.forEach(([id,k,txt])=>{$( "#"+id).addEventListener("input",e=>{S.nastaveni[k]=txt?e.target.value:num(e.target.value);recalc();vynUkazka();save();})});
-$("#nPlatceDPH").addEventListener("change",e=>{S.nastaveni.platceDPH=e.target.checked;save();});
+$("#nPlatceDPH").addEventListener("change",e=>{S.nastaveni.platceDPH=e.target.checked;dphHint();renderPripominky();recalc();save();});
 function fillNastaveni(){nMap.forEach(([id,k])=>{$("#"+id).value=S.nastaveni[k]});$("#nPlatceDPH").checked=!!S.nastaveni.platceDPH;vynUkazka();}
 /* názorná tabulka, jak sazby dopadnou na typické situace */
 function vynUkazka(){
