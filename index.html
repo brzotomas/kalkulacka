@@ -328,10 +328,10 @@ details.gsec li{margin:3px 0}
     <div id="sablonyVyber" class="sabgrid"></div>
     <div id="sablonaForm" style="display:none;margin-top:12px;border-top:1px solid var(--line);padding-top:12px"></div>
     <details style="margin-top:12px">
-      <summary style="cursor:pointer;font-weight:600;font-size:14px">📥 Načíst zakázku z textu (kód od parťáka)</summary>
+      <summary style="cursor:pointer;font-weight:600;font-size:14px">📥 Načíst zakázku z textu (od Clauda nebo od parťáka)</summary>
       <div style="margin-top:8px">
-        <p class="hint" style="margin:0 0 6px">Sem vlož kód zakázky, který ti někdo poslal (začíná <b>DK1|</b>), nebo zálohu jedné zakázky ve formátu JSON. Vytvoří se z toho hotová kalkulace.</p>
-        <textarea id="importZak" rows="3" placeholder="DK1|..." style="width:100%;font-family:ui-monospace,Consolas,monospace;font-size:12px"></textarea>
+        <p class="hint" style="margin:0 0 6px">Sem vlož <b>blok DKT1 od Clauda</b> (klidně i s textem okolo, vyzobe se sám), nebo <b>kód DK1|</b> od parťáka, nebo zálohu jedné zakázky v JSON. Vytvoří se z toho hotová kalkulace — vynáška, kontejnery a ceny se dopočítají podle tvého ceníku.</p>
+        <textarea id="importZak" rows="3" placeholder="Sem vlož odpověď od Clauda (blok začínající DKT1), nebo kód DK1|..." style="width:100%;font-family:ui-monospace,Consolas,monospace;font-size:12px"></textarea>
         <div class="btns" style="margin-top:8px">
           <button class="b p" id="importZakBtn">Načíst zakázku</button>
           <button class="b" id="exportZakBtn">📤 Zkopírovat kód téhle zakázky</button>
@@ -5319,7 +5319,24 @@ function dktCislo(s){
   const x = parseFloat(String(s == null ? "" : s).replace(/\s/g, "").replace(",", "."));
   return isFinite(x) ? x : 0;
 }
+/* Z celé odpovědi Clauda vyřízne jen blok DKT1.
+   Uživatel obvykle zkopíruje víc, než chtěl — text nad blokem, text pod ním,
+   markdown ohraničení. Tohle to spolehlivě očistí, aby se běžné věty
+   nehlásily jako „nerozumím“. */
+function vyriznoutDKT(text){
+  const radky = String(text).split(/\r?\n/);
+  const zac = radky.findIndex(r => /^\s*DKT1\s*$/i.test(r.trim()));
+  if (zac < 0) return text;                       /* hlavička není — necháme, jak přišlo */
+  let kon = radky.length;
+  for (let i = zac + 1; i < radky.length; i++) {
+    const r = radky[i].trim();
+    if (/^`{3,}/.test(r)) { kon = i; break; }      /* konec code bloku */
+  }
+  return radky.slice(zac, kon).join("\n");
+}
+
 function zakZTextuDKT(text){
+  text = vyriznoutDKT(text);
   const z = {prace:[], material:[], ostatni:[]};
   const varovani = [], nezname = [];
   const textova = {nazev:"nazev", klient:"klient", adresa:"adresa", poznamka:"poznamka", zdroj:"zdroj"};

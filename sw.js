@@ -1,4 +1,4 @@
-const CACHE="dk-v5";
+const CACHE="dk-v6";
 const CORE=["./","./index.html","./manifest.json","./icons/icon-192.png","./icons/icon-512.png"];
 self.addEventListener("install",e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)));});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
