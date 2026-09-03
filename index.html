@@ -339,6 +339,19 @@ details.gsec li{margin:3px 0}
         <div id="importZakStav" class="hint" style="margin-top:6px"></div>
       </div>
     </details>
+    <details style="margin-top:8px">
+      <summary style="cursor:pointer;font-weight:600;font-size:14px">📸 Nacenit z fotek přes Claude (funguje i z mobilu)</summary>
+      <div style="margin-top:8px">
+        <p class="hint" style="margin:0 0 8px">Vygeneruje <b>naceňovací brief</b> — kompletní zadání s tvým ceníkem a pravidly. Vlož ho do Clauda (web nebo appka v mobilu), přidej fotky a míry z prohlídky, a Claude ti vrátí blok <b>DKT1</b>. Ten vložíš do pole výše a máš hotovou kalkulaci.</p>
+        <div class="btns">
+          <button class="b p" id="briefKopie">📋 Zkopírovat brief</button>
+          <button class="b" id="briefStah">💾 Stáhnout jako .txt</button>
+          <button class="b" id="briefKopieU">Úplný ceník (velké)</button>
+        </div>
+        <div id="briefStav" class="hint" style="margin-top:6px"></div>
+        <p class="hint" style="margin:8px 0 0">Brief obsahuje ceny, které máš <b>právě teď</b>. Když si zdražíš ceník, vygeneruj si ho znovu. Podrobný návod je v <b>Průvodci</b>.</p>
+      </div>
+    </details>
   </div>
   <div class="card">
     <h2>Zakázka</h2>
@@ -432,12 +445,24 @@ details.gsec li{margin:3px 0}
     <div class="grid g3">
       <label class="f">Rezerva na skryté konstrukce (% z práce)<input id="jRezerva" type="number" min="0" step="1"></label>
       <label class="f">Provize za dohození (% z práce)<input id="jProvize" type="number" min="0" step="1"><span class="hint">běžně ~7 %, jinak 0</span></label>
-      <label class="f">Sleva pro klienta (% z celkové ceny)<input id="jSleva" type="number" min="0" step="0.5"><span class="hint">obchodní sleva na konci nabídky — jde celá z tvého zisku</span></label>
+      <label class="f">Sleva pro klienta (% z celkové ceny)<input id="jSleva" type="number" min="0" step="0.5"><span class="hint">viditelná sleva na konci nabídky — jde celá z tvého zisku</span></label>
+      <label class="f">Důvod slevy (uvidí ho klient)<input id="jSlevaDuvod" placeholder="např. Sleva stálému zákazníkovi" list="slevaDuvody"><span class="hint">vytiskne se v nabídce i na faktuře</span></label>
+      <label class="f">Interní přirážka k práci (%)<input id="jPrirazka" type="number" min="-50" step="1"><span class="hint" id="prirazkaHint"></span></label>
       <label class="f">Doprava celkem (km, všechny jízdy)<input id="jKm" type="number" min="0" step="1"><span class="hint" id="dopravaHint"></span></label>
       <div class="f" style="justify-content:flex-end"><span>&nbsp;</span><label class="chk"><input id="jDopravaUctovat" type="checkbox"> Dopravu účtovat klientovi</label></div>
       <div class="f" style="justify-content:flex-end"><span>&nbsp;</span><label class="chk"><input id="jVikend" type="checkbox"> Práce o víkendu / svátku</label></div>
       <div class="f" style="justify-content:flex-end"><span>&nbsp;</span><label class="chk"><input id="jExpres" type="checkbox"> Expresní termín</label></div>
     </div>
+    <div class="vybg" style="margin-top:14px">💰 Platba předem — sleva výměnou za jistotu peněz</div>
+    <div class="grid g2" style="margin-top:8px">
+      <div class="f" style="justify-content:flex-start"><label class="chk"><input id="jPlatbaPredem" type="checkbox"> <b>Klient platí celou částku předem</b></label><span class="hint">uplatní se sleva z Nastavení, záloha se nastaví na 100 %</span></div>
+      <div class="f" style="justify-content:flex-start"><label class="chk"><input id="jNabidnoutPredem" type="checkbox"> Nabídnout tuhle možnost v nabídce</label><span class="hint">do nabídky se přidá druhá, levnější cena při platbě předem — klient si vybere</span></div>
+    </div>
+    <div id="predemBox" class="hint" style="margin-top:8px"></div>
+    <datalist id="slevaDuvody">
+      <option value="Sleva za platbu předem"><option value="Sleva stálému zákazníkovi"><option value="Sleva za doporučení">
+      <option value="Sleva při zadání více bytů najednou"><option value="Sleva za volný termín"><option value="Zaokrouhlení dolů">
+    </datalist>
     <p class="hint" style="margin:8px 0 0">Vynáška suti se počítá automaticky z objemu suti, podlaží a výtahu — koeficienty najdeš v Nastavení. Příplatky za víkend a expres jsou % z práce (sazby v Nastavení).</p>
     <div style="margin-top:14px">
       <h2 style="margin-bottom:8px">Vlastní položky <span class="hint" style="float:right;text-transform:none;letter-spacing:0">cokoliv navíc — vyplň náklad, prodej, nebo obojí</span></h2>
@@ -782,6 +807,7 @@ details.gsec li{margin:3px 0}
       <label class="f">IBAN (pro QR platbu)<input id="nIban" placeholder="CZ6508000000000123456789"><span class="hint">bez mezer — z něj se generuje QR kód</span></label>
       <label class="f">Splatnost faktur (dní)<input id="nFakSplatnost" type="number" min="1" step="1"></label>
       <div class="f" style="justify-content:flex-end"><span>&nbsp;</span><label class="chk"><input id="nPlatceDPH" type="checkbox"> Jsme plátci DPH</label></div>
+      <label class="f">Sleva za platbu předem (%)<input id="nSlevaPredem" type="number" min="0" step="0.5"><span class="hint">nabízí se klientovi výměnou za peníze dopředu — běžně 3–5 %</span></label>
       <label class="f">Limit obratu pro registraci k DPH (Kč)<input id="nDphLimit" type="number" min="0" step="10000"><span class="hint">hlídá se jen když nejste plátci; aktuální hodnotu si ověř u účetní</span></label>
       <label class="f">Lidí v partě (výchozí)<input id="nLide" type="number" min="1" step="1"></label>
       <label class="f">Pracovních hodin / den<input id="nHodDen" type="number" min="1" step="0.5"></label>
@@ -1033,6 +1059,102 @@ details.gsec li{margin:3px 0}
       <li><b>Cash-flow:</b> u zakázek nad ~100 tis. vždy záloha. Nákup kontejnerů a materiálu jde z tvé kapsy dřív, než klient zaplatí.</li>
       <li><b>Sleva jako obchodní tah:</b> profesionální firmy nacení plné ceníkové ceny a na konec nabídky dají viditelnou slevu 3–5 % — působí vstřícně a nesráží jednotkové ceny. Pole „Sleva pro klienta“ najdeš v Příplatcích; kalkulačka ji odečte z ceny i z tvého zisku, takže vždy vidíš, co tě sleva reálně stojí. Nejdřív hlídej hodinovku, pak slevuj.</li>
     </ul>
+  </div></details>
+
+  <details class="gsec"><summary>📸 Nacenit zakázku z fotek přes Claude — i z mobilu na prohlídce</summary><div class="inner">
+    <p style="margin:0 0 10px">Tohle je nejrychlejší cesta od prohlídky k nabídce. Na místě naměříš a nafotíš, Claude ti to nacení podle <b>tvého</b> ceníku a tvých pravidel, a výsledek vložíš do kalkulačky. Funguje z telefonu, z počítače, odkudkoliv.</p>
+
+    <div class="vybg">Jednorázová příprava (uděláš jednou, pak už ne)</div>
+    <ol style="margin:4px 0 12px;padding-left:20px">
+      <li>V <b>Kalkulaci</b> nahoře rozbal <b>„📸 Nacenit z fotek přes Claude“</b> a dej <b>Stáhnout jako .txt</b>.</li>
+      <li>Soubor si ulož tam, kde na něj dosáhneš z mobilu — Google Disk, Dropbox, pošli si ho mailem sám sobě.</li>
+      <li>Kdo používá Clauda častěji: založ si v něm <b>projekt</b> a brief do něj vlož jako trvalou instrukci. Pak už ho nemusíš vkládat pokaždé.</li>
+    </ol>
+    <p class="hint" style="margin:0 0 12px"><b>Brief obsahuje ceny, které máš právě teď.</b> Když si zdražíš ceník nebo změníš sazby, vygeneruj si ho znovu — jinak bude Claude počítat se starými čísly.</p>
+
+    <div class="vybg">Na prohlídce</div>
+    <ol style="margin:4px 0 12px;padding-left:20px">
+      <li><b>Nafoť to.</b> Každou konstrukci, která se bude bourat, celkový pohled na místnost, cestu ven (schody, dveře, výtah) a místo pro kontejner.</li>
+      <li><b>Změř to.</b> Fotka sama nestačí — Claude z ní nepozná tloušťku zdi ani vzdálenost. Vždycky si zapiš:
+        <ul style="margin:4px 0;padding-left:18px">
+          <li>rozměry všeho, co se bourá (šířka × výška, u podlah plochu)</li>
+          <li><b>tloušťku</b> zdí a příček — a čím jsou (cihla / beton / železobeton)</li>
+          <li><b>podlaží</b>, jestli je výtah a <b>jestli se do něj smí suť</b> (SVJ to často zakazuje)</li>
+          <li><b>vzdálenost</b> od dveří domu k místu, kde bude stát kontejner</li>
+          <li>stáří domu — před rokem 1990 hlídej azbest</li>
+        </ul>
+      </li>
+      <li>Otevři Clauda, vlož brief (nebo použij svůj projekt), přidej fotky a napiš popis vlastními slovy.</li>
+    </ol>
+
+    <div class="vybg">Co ti Claude vrátí</div>
+    <ul style="margin:4px 0 12px;padding-left:20px">
+      <li>Nejdřív <b>doplňující otázky</b>, když mu něco chybí. Odpověz — je to levnější než špatná cena.</li>
+      <li>Rozpad ceny a seznam toho, co si <b>musel domyslet</b>. Tohle si přečti, tam bývá chyba.</li>
+      <li>Na konci blok, který začíná <b>DKT1</b>. Ten zkopíruj.</li>
+    </ul>
+
+    <div class="vybg">Zpátky v kalkulačce</div>
+    <ol style="margin:4px 0 12px;padding-left:20px">
+      <li>V <b>Kalkulaci</b> rozbal <b>„📥 Načíst zakázku z textu“</b>, vlož blok DKT1 a dej <b>Načíst zakázku</b>.</li>
+      <li>Kalkulačka si <b>sama</b> dopočítá vynášku, navrhne kontejnery a ocení položky <b>tvým</b> ceníkem — i kdyby Claude počítal se starými cenami.</li>
+      <li>Přečti si hlášku pod polem. Vypíše, co je potřeba zkontrolovat, a <b>upozorní tě, když zisk spadne pod tvůj práh</b>.</li>
+      <li>Projdi výměry, doplň klienta a zdroj zakázky, ulož a vytiskni nabídku.</li>
+    </ol>
+
+    <div class="warn" style="margin:10px 0 0"><b>Kde tomu nevěřit na slovo</b>
+      <ul style="margin:6px 0 0;padding-left:18px">
+        <li><b>Tloušťku a materiál zdi</b> z fotky nikdo nepozná. Když je nezměříš, Claude si je domyslí — a rozdíl mezi cihlou 115 mm a železobetonem 150 mm jsou tisíce.</li>
+        <li><b>Ceny materiálu</b> (půjčovné, ocel) jsou vždycky jen odhad. Zavolej do půjčovny a do stavebnin, než nabídku pošleš.</li>
+        <li><b>Skryté konstrukce</b> fotka neukáže. Proto je v ceně rezerva — nesnižuj ji, protože ti to vyjde hezčí.</li>
+        <li>Cena z fotek je <b>podklad pro tvoje rozhodnutí</b>, ne hotová nabídka. Podepisuješ ji ty, ne Claude.</li>
+      </ul>
+    </div>
+
+    <div class="vybg" style="margin-top:14px">Formát DKT1 — kdyby sis ho chtěl napsat sám</div>
+    <p style="margin:4px 0 6px">Je to obyčejný text, jeden údaj na řádek. Klidně si ho naťukej ručně, když víš, co chceš:</p>
+    <pre style="background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:10px;overflow-x:auto;font-size:12px;margin:0 0 8px">DKT1
+nazev: Byt 3+1 Zábřeh
+patro: 2
+vytah: ne
+vzdalenost: 20
+prace: pr100 | 18
+prace: jadroU | 1
+prace: uklid | 1
+material: Fólie a pytle | 800 | 1100</pre>
+    <p class="hint" style="margin:0">ID položek najdeš v <b>Ceníku</b>. Vynášku, kontejnery ani skládkovné nepiš — dopočítají se samy. Neznámé řádky se přeskočí a kalkulačka ti je vypíše.</p>
+  </div></details>
+
+  <details class="gsec"><summary>💰 Slevy, interní přirážka a platba předem</summary><div class="inner">
+    <p style="margin:0 0 10px">Tři páky na cenu, každá dělá něco jiného. Najdeš je v <b>Kalkulaci</b> → <b>Příplatky, režie a další</b>.</p>
+
+    <div class="vybg">Sleva pro klienta — vidí ji</div>
+    <ul style="margin:4px 0 12px;padding-left:20px">
+      <li>Procento z celkové ceny. Na nabídce i na faktuře se objeví jako <b>samostatný řádek s důvodem</b>, který napíšeš.</li>
+      <li>Do pole <b>Důvod slevy</b> napiš něco konkrétního — „Sleva stálému zákazníkovi“, „Sleva za doporučení“. Sleva bez důvodu vypadá, jako by byla cena nafouknutá.</li>
+      <li><b>Jde celá z tvého zisku.</b> Kalkulačka ti hned ukáže, kolik ti po ní zbude.</li>
+      <li>Profesionální postup: naceň plné ceny a slev viditelně 3–5 %. Nesrážej jednotkové ceny — ty si klient zapamatuje a bude je chtít i příště.</li>
+    </ul>
+
+    <div class="vybg">Interní přirážka — klient ji nevidí</div>
+    <ul style="margin:4px 0 12px;padding-left:20px">
+      <li>Zvedne cenu práce i vynášky proti ceníku o zadané procento.</li>
+      <li><b>V nabídce ani na faktuře se neobjeví žádný řádek „přirážka“.</b> Promítne se rovnou do jednotkových cen, takže klient vidí jen o něco vyšší Kč/MJ a nemá co dopočítávat.</li>
+      <li>Na co je: složitý přístup, protivný klient, nabitý termín, zakázka daleko, cokoliv, co ti sebere čas a v ceníku pro to položka není.</li>
+      <li>Jde i do minusu — záporné číslo cenu sníží, aniž by klient viděl slevu. Hodí se, když chceš být levnější, ale nechceš dávat najevo, že slevuješ.</li>
+      <li>Tlačítko <b>„Dorovnat na minimum“</b> u varování o nízkém zisku ji nastaví za tebe tak, abys byl nad prahem. <b>Ceníkové ceny zůstanou nedotčené</b> — je to vratné, stačí přepsat na 0.</li>
+    </ul>
+
+    <div class="vybg">Platba předem — sleva výměnou za jistotu</div>
+    <ul style="margin:4px 0 12px;padding-left:20px">
+      <li>Sazbu si nastavíš v <b>Nastavení → Sleva za platbu předem</b> (výchozí 5 %).</li>
+      <li>Zaškrtneš <b>„Nabídnout tuhle možnost v nabídce“</b> a v nabídce se klientovi objeví <b>dvě varianty</b>: běžná se zálohou a doplatkem, a levnější s platbou předem. Vidí přesně, kolik ušetří.</li>
+      <li>Když si vybere platbu předem, zaškrtneš <b>„Klient platí celou částku předem“</b> — sleva se uplatní a záloha se nastaví na 100 %.</li>
+      <li><b>Proč se to vyplatí:</b> peníze máš na účtu <b>před</b> nástupem. Nefinancuješ kontejnery, materiál ani půjčovné z vlastního, a nemůže se stát, že po odvedené práci sháníš doplatek. Na startu, kdy nemáš rezervu, je tohle cennější než těch pár procent.</li>
+      <li>Kalkulačka ti pod přepínačem ukáže, kolik tě sleva stojí a co ti po ní zbude na hodinu — ať se rozhoduješ podle čísel.</li>
+    </ul>
+
+    <div class="warn" style="margin:10px 0 0"><b>Pořadí, ve kterém to používat:</b> nejdřív naceň poctivě podle ceníku. Pak se podívej na <b>zisk na osobohodinu</b> vpravo dole. Když je nízký, zvedni <b>interní přirážku</b> — ne že bys osekal rezervu nebo vynášku. Teprve když jsi nad prahem, můžeš uvažovat o <b>slevě</b>. Slevovat z ceny, která už je pod tvým prahem, znamená pracovat zadarmo.</div>
   </div></details>
 
   <details class="gsec"><summary>⚡ Šablony zakázek — nacenění za minutu místo za půl hodiny</summary><div class="inner">
@@ -2171,7 +2293,7 @@ function defNastaveni(){return {firma:"", lide:2, hodDen:9, sazbaNajaty:250, odv
   vynKbelik:40, vynKbelikM3:0.040, vynPatroSek:35, vynVzdalenostSek:25,
   vynVytahKoef:0.25, vynRucniKoef:1.35, koefVykon:1.0,
   kontCenaKm:32, kontDnyZdarma:3, kontCenaDen:180, kontRezerva:18,
-  ico:"", dic:"", adresaFirmy:"", bankUcet:"", iban:"", platceDPH:false, dphLimit:2000000, fakSplatnost:14, fakRok:0, fakPoradi:0, minZiskOsHod:450, minTrzbaB2C:0, minTrzbaB2B:0, minCenaB2C:8000, vikendPct:25, expresPct:15, nabRok:0, nabPoradi:0};}
+  ico:"", dic:"", adresaFirmy:"", bankUcet:"", iban:"", platceDPH:false, dphLimit:2000000, slevaPredemPct:5, fakSplatnost:14, fakRok:0, fakPoradi:0, minZiskOsHod:450, minTrzbaB2C:0, minTrzbaB2B:0, minCenaB2C:8000, vikendPct:25, expresPct:15, nabRok:0, nabPoradi:0};}
 /* režim DPH nové zakázky vychází z toho, jestli je firma plátcem — neplátce neúčtuje nic */
 function vychoziDph(n){return n&&n.platceDPH?"12":"ne";}
 function defJob(n){return {id:null, nazev:"", klient:"", adresa:"", poznamka:"", zdroj:"", odberatelId:"", cenik:"b2c", dph:vychoziDph(n),
@@ -2179,7 +2301,8 @@ function defJob(n){return {id:null, nazev:"", klient:"", adresa:"", poznamka:"",
   prace:[], kontejnery:[], material:[], ostatni:[], viceprace:[], fotky:[], denniZapis:[], odpady:[],
   terminOd:"", terminDo:"", dopravceId:"", vzdalenost:10, rucniNoseni:false, vytahNaSut:true,
   kmDopravce:15, dnyKontejneru:3,
-  skladkovne:true, rezerva:n.rezerva, provize:0, sleva:0, km:0, dopravaUctovat:true, vikend:false, expres:false,
+  skladkovne:true, rezerva:n.rezerva, provize:0, sleva:0, slevaDuvod:"", km:0,
+  prirazka:0, platbaPredem:false, nabidnoutPredem:true, dopravaUctovat:true, vikend:false, expres:false,
   zalohaCastka:0, zalohaSplatnost:"", zalohaZaplaceno:"", doplatekCastka:0, doplatekSplatnost:"", doplatekZaplaceno:"",
   duvodProhry:"", cenaViteze:0, poznProhry:"",
   skutHodiny:0, skutKont:0, skutKm:0, skutPozn:"", cisloNab:"", cisloDod:0, status:"nabídka"};}
@@ -2584,6 +2707,17 @@ function migrate(){
     });
     S.dphV11=true;
   }
+  /* v12: interní přirážka, důvod slevy a platba předem */
+  if(!S.slevaV12){
+    if(S.nastaveni.slevaPredemPct===undefined)S.nastaveni.slevaPredemPct=5;
+    const dopln=z=>{if(!z)return;
+      if(z.prirazka===undefined)z.prirazka=0;
+      if(z.slevaDuvod===undefined)z.slevaDuvod=z.sleva>0?"Sleva":"";
+      if(z.platbaPredem===undefined)z.platbaPredem=false;
+      if(z.nabidnoutPredem===undefined)z.nabidnoutPredem=true;};
+    dopln(S.job); S.zakazky.forEach(dopln);
+    S.slevaV12=true;
+  }
   /* v8: kontejnery — model dopravce (paušál + km + dny + likvidace) */
   if(!S.kontV8){
     S.dopravci.forEach(d=>{
@@ -2735,6 +2869,14 @@ $("#jNajati").addEventListener("input",e=>{J.najati=Math.max(0,num(e.target.valu
 $("#jRezerva").addEventListener("input",e=>{J.rezerva=num(e.target.value);recalc();save()});
 $("#jProvize").addEventListener("input",e=>{J.provize=num(e.target.value);recalc();save()});
 $("#jSleva").addEventListener("input",e=>{J.sleva=num(e.target.value);recalc();save()});
+$("#jSlevaDuvod").addEventListener("input",e=>{J.slevaDuvod=e.target.value;recalc();save()});
+$("#jPrirazka").addEventListener("input",e=>{J.prirazka=num(e.target.value);recalc();save()});
+$("#jPlatbaPredem").addEventListener("change",e=>{
+  J.platbaPredem=e.target.checked;
+  if(J.platbaPredem){ const v=vypocet(); J.zalohaCastka=Math.round(v.celkem); J.doplatekCastka=0; }
+  fillHdr(); recalc(); save();
+});
+$("#jNabidnoutPredem").addEventListener("change",e=>{J.nabidnoutPredem=e.target.checked;recalc();save()});
 function prevodnik(){const m2=num($("#pvM2").value),cm=num($("#pvCm").value);$("#pvM3").textContent=(m2>0&&cm>0)?fmt1.format(m2*cm/100):"—";}
 $("#pvM2").addEventListener("input",prevodnik);$("#pvCm").addEventListener("input",prevodnik);
 $("#jKm").addEventListener("input",e=>{J.km=num(e.target.value);recalc();save()});
@@ -2758,7 +2900,8 @@ function fillHdr(){
   fillOdberatelSelect(); fillKlientSelect(); b2bHint();
   $("#jCenik").value=J.cenik; $("#jDph").value=J.dph; dphHint(); $("#jPatro").value=J.patro; $("#jVytah").checked=J.vytah;
   $("#jLide").value=J.lide; $("#jNajati").value=J.najati; $("#jRezerva").value=J.rezerva;
-  $("#jProvize").value=J.provize; $("#jSleva").value=J.sleva||""; $("#jKm").value=J.km; $("#jDopravaUctovat").checked=J.dopravaUctovat;
+  $("#jProvize").value=J.provize; $("#jSleva").value=J.sleva||""; $("#jSlevaDuvod").value=J.slevaDuvod||"";
+  $("#jPrirazka").value=J.prirazka||""; $("#jPlatbaPredem").checked=!!J.platbaPredem; $("#jNabidnoutPredem").checked=J.nabidnoutPredem!==false; $("#jKm").value=J.km; $("#jDopravaUctovat").checked=J.dopravaUctovat;
   $("#jVikend").checked=J.vikend; $("#jExpres").checked=J.expres; $("#jSkladkovne").checked=J.skladkovne;
   $("#jKlientId").value=J.klientId||"";
   $("#jSkutHod").value=J.skutHodiny||""; $("#jSkutKont").value=J.skutKont||""; $("#jSkutKm").value=J.skutKm||""; $("#jSkutPozn").value=J.skutPozn;
@@ -3113,14 +3256,28 @@ function vynJadro(t,m3,patra,vytahOK,vzdalenost,rucniNoseni){
 function vynaskaVypocet(sut){
   const n=S.nastaveni, s=sut||sutCelkem();
   const r=vynJadro(s.t,s.m3,J.patro,!!(J.vytah&&J.vytahNaSut),J.vzdalenost,J.rucniNoseni);
-  const sazba=(J.cenik==="b2b"?(n.vynSazba||0)*0.9:(n.vynSazba||0));
+  const sazba=(J.cenik==="b2b"?(n.vynSazba||0)*0.9:(n.vynSazba||0))*prirKoef();
   return Object.assign(r,{sazba, cena:r.hodiny*sazba,
     cenaT:r.t>0?r.hodiny*sazba/r.t:0, cenaM3:r.m3>0?r.hodiny*sazba/r.m3:0,
     tZaHod:r.hodiny>0?r.t/r.hodiny:0});
 }
+/* Interní přirážka — zvedá naši cenu proti ceníku.
+   Do dokumentů se NIKDY nepropíše jako samostatná položka: promítne se rovnou
+   do jednotkových cen, takže klient vidí jen vyšší Kč/MJ a nic nedopočítá. */
+function prirKoef(){return 1+(J.prirazka||0)/100;}
+function cenaMJ(r){return (r.cena||0)*prirKoef();}
+/* Sleva se skládá z ruční obchodní slevy a ze slevy za platbu předem. */
+function slevaSlozky(){
+  const s=[];
+  if((J.sleva||0)>0)s.push({pct:J.sleva,popis:J.slevaDuvod||"Sleva"});
+  if(J.platbaPredem&&(S.nastaveni.slevaPredemPct||0)>0)
+    s.push({pct:S.nastaveni.slevaPredemPct,popis:"Sleva za platbu předem"});
+  return s;
+}
+function slevaPct(){return slevaSlozky().reduce((a,x)=>a+x.pct,0);}
 function vypocet(){
   const n=S.nastaveni;
-  const prace=J.prace.reduce((a,r)=>a+(r.mnozstvi||0)*(r.cena||0),0);
+  const prace=J.prace.reduce((a,r)=>a+(r.mnozstvi||0)*(r.cena||0),0)*prirKoef();
   const kv=n.koefVykon>0?n.koefVykon:1;
   const hodinyPrace=J.prace.reduce((a,r)=>a+(r.mnozstvi||0)*(r.hod||0),0)*kv;
   const sut=sutCelkem();
@@ -3152,7 +3309,8 @@ function vypocet(){
   const vicepraceCeka=vpCeka.reduce((a,r)=>a+(r.cena||0),0);
   const vpHod=vpOK.reduce((a,r)=>a+(r.hod||0),0);
   const mezisoucet=prace+rezerva+vynaska+vikend+expres+matP+kontP+sklP+dopravaP+ostP;
-  const sleva=mezisoucet*(J.sleva||0)/100;
+  const slevaP=slevaPct();
+  const sleva=mezisoucet*slevaP/100;
   const trzba=mezisoucet-sleva+viceprace;
   const naklady=matN+kontN+sklN+dopravaN+provize+najatiN+ostN;
   const zisk=trzba-naklady;
@@ -3164,10 +3322,31 @@ function vypocet(){
   const zaloha=J.zalohaCastka||0, doplatek=J.doplatekCastka||0;
   const neuhrazeno=(J.zalohaZaplaceno?0:zaloha)+(J.doplatekZaplaceno?0:doplatek);
   return {prace,hodiny,hodinyPrace,hodinyVP,vynaskaHod,vyn,sut,rezerva,vynaska,vikend,expres,matP,matN,kontP,kontN,sklN,sklP,
-    dopravaN,dopravaP,ostP,ostN,provize,najatiN,dny,mezisoucet,sleva,viceprace,vicepraceCeka,trzba,naklady,zisk,
+    dopravaN,dopravaP,ostP,ostN,provize,najatiN,dny,mezisoucet,sleva,slevaP,slevaSlozky:slevaSlozky(),viceprace,vicepraceCeka,trzba,naklady,zisk,
     ziskBezRezervy:zisk-rezerva,dph,dphInfo,celkem,majitele,sazba,zaloha,doplatek,neuhrazeno};
 }
 
+function renderPredem(v){
+  const el=$("#predemBox"); if(!el)return;
+  const pct=S.nastaveni.slevaPredemPct||0;
+  const ph=$("#prirazkaHint");
+  if(ph)ph.textContent=(J.prirazka||0)===0
+    ? "0 = ceníkové ceny. Kladné číslo zvedne cenu práce i vynášky — v nabídce ani na faktuře se neobjeví jako samostatná položka, promítne se do jednotkových cen."
+    : (J.prirazka>0?"+":"")+J.prirazka+" % k práci i vynášce. Klient uvidí jen vyšší Kč/MJ, žádný řádek „přirážka“.";
+  if(pct<=0){el.innerHTML="<span class='ne'>V Nastavení je sleva za platbu předem 0 % — nastav si ji, jinak tenhle přepínač nic neudělá.</span>";return}
+  /* kolik by zakázka stála bez slevy za platbu předem */
+  const bylo=J.platbaPredem, bylaSleva=J.sleva;
+  J.platbaPredem=false; const bez=vypocet(); J.platbaPredem=true; const s=vypocet();
+  J.platbaPredem=bylo; J.sleva=bylaSleva;
+  const usetri=bez.celkem-s.celkem;
+  el.innerHTML=J.platbaPredem
+    ? "<span class='ok'>✓ Platba předem zapnutá.</span> Klient zaplatí <b>"+kc(s.celkem)+"</b> místo "+kc(bez.celkem)+
+      " — ušetří <b>"+kc(usetri)+"</b>. Vy máte celou částku na účtu <b>před nástupem</b>: nefinancujete kontejnery, materiál ani půjčovné z vlastního a nemůže se stát, že po odvedené práci sháníte doplatek."+
+      " Stojí vás to "+kc(usetri)+" ze zisku, zbývá "+kc(s.zisk)+"."
+    : "Při zapnutí: klient zaplatí <b>"+kc(s.celkem)+"</b> místo "+kc(bez.celkem)+" (ušetří "+kc(usetri)+
+      "), vy dostanete vše předem. Váš zisk klesne z "+kc(bez.zisk)+" na <b>"+kc(s.zisk)+"</b>"+
+      (s.zisk>0&&s.hodiny>0?" = "+fmt0.format(s.zisk/s.hodiny)+" Kč na osobohodinu.":".");
+}
 function recalc(){
   const v=vypocet(); const n=S.nastaveni;
   $("#praceBadge").textContent=fmt1.format(v.hodiny)+" hod práce";
@@ -3213,7 +3392,7 @@ function recalc(){
   else{pb.textContent="neuhrazeno "+kc(v.neuhrazeno);pb.className="badge";}
   pb.style.display="";
   /* souhrn */
-  let t="<div class='sumline'><span>Bourací práce</span><b>"+kc(v.prace)+"</b></div>";
+  let t="<div class='sumline'><span>Bourací práce"+((J.prirazka||0)!==0?" <span class='hint'>(vč. interní přirážky "+(J.prirazka>0?"+":"")+J.prirazka+" %)</span>":"")+"</span><b>"+kc(v.prace)+"</b></div>";
   if(v.rezerva)t+="<div class='sumline sub'><span>+ rezerva "+J.rezerva+" %</span><b>"+kc(v.rezerva)+"</b></div>";
   if(v.vynaska)t+="<div class='sumline sub'><span>+ vynáška suti ("+fmt1.format(v.sut.t)+" t × "+fmt0.format(v.vyn.cenaT)+" Kč/t)</span><b>"+kc(v.vynaska)+"</b></div>";
   if(v.vikend)t+="<div class='sumline sub'><span>+ víkend "+n.vikendPct+" %</span><b>"+kc(v.vikend)+"</b></div>";
@@ -3222,8 +3401,13 @@ function recalc(){
   if(v.kontP+v.sklP)t+="<div class='sumline'><span>Odvoz a likvidace (prodej)</span><b>"+kc(v.kontP+v.sklP)+"</b></div>";
   if(v.dopravaP)t+="<div class='sumline'><span>Doprava (účtovaná)</span><b>"+kc(v.dopravaP)+"</b></div>";
   if(v.ostP)t+="<div class='sumline'><span>Vlastní položky (prodej)</span><b>"+kc(v.ostP)+"</b></div>";
-  if(v.sleva)t+="<div class='sumline'><span>Mezisoučet</span><b>"+kc(v.mezisoucet)+"</b></div>"+
-    "<div class='sumline'><span>Sleva "+J.sleva+" %</span><b style='color:var(--bad)'>−"+kc(v.sleva)+"</b></div>";
+  if(v.sleva){
+    t+="<div class='sumline'><span>Mezisoučet</span><b>"+kc(v.mezisoucet)+"</b></div>";
+    v.slevaSlozky.forEach(s=>{
+      t+="<div class='sumline'><span>"+esc(s.popis)+" "+s.pct+" %</span><b style='color:var(--bad)'>−"+
+        kc(v.mezisoucet*s.pct/100)+"</b></div>";
+    });
+  }
   if(v.viceprace)t+="<div class='sumline'><span>Vícepráce (odsouhlasené)</span><b>"+kc(v.viceprace)+"</b></div>";
   t+="<div class='sumline' style='border-top:1px solid var(--line);margin-top:4px;padding-top:8px'><span><b>Tržba bez DPH</b></span><b>"+kc(v.trzba)+"</b></div>";
   if(v.vicepraceCeka)t+="<div class='sumline'><span style='color:var(--warn-ink)'>Vícepráce čekající na souhlas</span><b style='color:var(--warn-ink)'>+"+kc(v.vicepraceCeka)+"</b></div>";
@@ -3234,6 +3418,7 @@ function recalc(){
       nkRow("Doprava "+(J.km||0)+" km",v.dopravaN)+nkRow("Provize",v.provize)+nkRow("Najatí pracovníci",v.najatiN)+nkRow("Vlastní položky (náklad)",v.ostN);
   if(nk)nk="<div class='sumline' style='margin-top:6px'><span><b>Náklady</b></span><b style='color:var(--bad)'>−"+kc(v.naklady)+"</b></div>"+nk;
   $("#sumNaklady").innerHTML=nk;
+  renderPredem(v);
   $("#sumCelkem").textContent=kc(v.celkem);
   if(J.dph==="rc"){$("#dphLabel").textContent="DPH 21 % — odvádí odběratel (informativně)";$("#sumDph").textContent=kc(v.dphInfo);}
   else if(J.dph==="ne"){$("#dphLabel").textContent="DPH — neplátce";$("#sumDph").textContent=kc(0);}
@@ -3282,7 +3467,7 @@ function dorovnat(){
   if(!v.dny||v.prace<=0)return;
   const r=(J.rezerva||0)/100, vik=J.vikend?(n.vikendPct||0)/100:0, ex=J.expres?(n.expresPct||0)/100:0, pr=(J.provize||0)/100;
   const minT=J.cenik==="b2b"?n.minTrzbaB2B:n.minTrzbaB2C;
-  const sc=1-(J.sleva||0)/100;
+  const sc=1-slevaPct()/100;
   const fT=(1+r+vik+ex)*sc, fZ=fT-pr;
   const needZ=n.minZiskOsHod*v.hodiny-v.zisk;
   const needT=minT>0?minT*v.dny-v.trzba:0;
@@ -3291,13 +3476,18 @@ function dorovnat(){
   x=Math.ceil(x*100)/100;
   const dT=v.prace*x*fT, dZ=v.prace*x*fZ;
   const noveCelkem=(v.trzba+dT)*(1+v.sazba);
-  const ok=confirm("Dorovnání na minimum: přirážka +"+Math.round(x*100)+" % ke všem položkám práce.\n\n"+
+  /* Nastavíme interní přirážku místo přepisování ceníkových cen — je to vratné
+     a ceníkové ceny zůstanou čisté pro porovnání s dalšími zakázkami. */
+  const nova=Math.round(((1+(J.prirazka||0)/100)*(1+x)-1)*100);
+  const okd=confirm("Dorovnání na minimum přes interní přirážku.\n\n"+
+    "Interní přirážka:  "+(J.prirazka||0)+" %  →  "+nova+" %\n"+
     "Cena celkem"+(v.sazba?" s DPH":"")+":  "+kc(v.celkem)+"  →  "+kc(noveCelkem)+"\n"+
     "Čistý zisk:  "+kc(v.zisk)+"  →  "+kc(v.zisk+dZ)+"\n"+
-    "Zisk / hod. / osoba:  "+kc(v.zisk/v.hodiny)+"/h  →  "+kc((v.zisk+dZ)/v.hodiny)+"/h\n\nPoužít?");
-  if(!ok)return;
-  J.prace.forEach(row=>{row.cena=Math.ceil((row.cena||0)*(1+x))});
-  renderPrace();save();
+    "Zisk / hod. / osoba:  "+kc(v.zisk/v.hodiny)+"/h  →  "+kc((v.zisk+dZ)/v.hodiny)+"/h\n\n"+
+    "Ceníkové ceny položek zůstanou beze změny — klient uvidí jen vyšší Kč/MJ.\nPoužít?");
+  if(!okd)return;
+  J.prirazka=nova;
+  fillHdr();recalc();save();
 }
 
 /* ---------- uložení / zakázky ---------- */
@@ -3822,7 +4012,8 @@ function sablonaPouzit(){
 /* ========== přenos zakázky textem (kód DK1|…) ========== */
 const ZAK_POLE=["nazev","klient","adresa","poznamka","zdroj","cenik","dph","patro","vytah","vytahNaSut",
   "vzdalenost","rucniNoseni","lide","najati","kmDopravce","dnyKontejneru","skladkovne","rezerva","provize",
-  "sleva","km","dopravaUctovat","vikend","expres","terminOd","terminDo","prace","material","ostatni","kontejnery","odpady"];
+  "sleva","slevaDuvod","prirazka","platbaPredem","nabidnoutPredem",
+  "km","dopravaUctovat","vikend","expres","terminOd","terminDo","prace","material","ostatni","kontejnery","odpady"];
 function zakDoTextu(z){
   const o={};
   ZAK_POLE.forEach(k=>{if(z[k]!==undefined&&z[k]!==""&&!(Array.isArray(z[k])&&!z[k].length))o[k]=z[k]});
@@ -3832,6 +4023,231 @@ function zakDoTextu(z){
     :{nazev:r.nazev,mj:r.mj,mnozstvi:r.mnozstvi,cena:r.cena,sutT:r.sutT,sutM3:r.sutM3,hod:r.hod});
   return "DK1|"+btoa(unescape(encodeURIComponent(JSON.stringify(o))));
 }
+
+/* ================= NACEŇOVACÍ BRIEF PRO CLAUDE =================
+   Vygeneruje jedno velké zadání, které se vloží do Clauda (web/mobil) spolu
+   s fotkami a mírami z prohlídky. Claude vrátí blok DKT1, ten se sem vloží
+   zpátky a je z něj hotová kalkulace.
+
+   Brief se generuje z ŽIVÝCH dat — ceník, sazby i pravidla firmy se do něj
+   propíšou tak, jak je má uživatel právě teď nastavené. Když si zdraží ceník,
+   musí si vygenerovat nový brief. */
+function briefPolozky(uplny){
+  if(uplny)return S.cenik;
+  /* krátká verze: vlastní (nekódové) položky + všechno, co už někdy použili */
+  const pouzite=new Set();
+  S.zakazky.forEach(z=>(z.prace||[]).forEach(r=>{if(r.polozkaId)pouzite.add(r.polozkaId)}));
+  (S.job&&S.job.prace||[]).forEach(r=>{if(r.polozkaId)pouzite.add(r.polozkaId)});
+  return S.cenik.filter(i=>!/^rts-/.test(i.id)||pouzite.has(i.id));
+}
+function brief(uplny){
+  const n=S.nastaveni, L=[];
+  const polozky=briefPolozky(uplny);
+  const p=x=>L.push(x);
+
+  p("Jsi zkušený rozpočtář interiérových demolic. Nacenuješ zakázku pro moji firmu.");
+  p("Níže máš MŮJ ceník a MOJE pravidla. Drž se jich doslova — nevymýšlej si vlastní ceny ani sazby.");
+  p("");
+  p("=== CO OD TEBE CHCI ===");
+  p("1) Zeptej se na to, co ti chybí a co zásadně mění cenu. Neodhaduj naslepo:");
+  p("   podlaží, výtah (a jestli se do něj smí suť), vzdálenost od výstupu ke kontejneru,");
+  p("   rozměry a tloušťky konstrukcí, materiál (cihla / beton / železobeton), stáří domu.");
+  p("   Když je něco nejasné z fotky, ZEPTEJ SE. Radši jedna otázka navíc než špatná cena.");
+  p("2) Vypiš, co jsi z fotek a popisu vyčetl, a co sis musel domyslet. Domyšlené věci označ.");
+  p("3) Naceň to podle pravidel níž a ukaž mi rozpad: položky, vynáška, kontejnery, cena, můj zisk na hodinu.");
+  p("4) Na konec dej blok DKT1 (formát je popsaný dole) v jednom code bloku, ať ho zkopíruju do aplikace.");
+  p("");
+  p("=== MOJE FIRMA A SAZBY ===");
+  p("Parta: "+(n.lide||2)+" lidi, "+(n.hodDen||9)+" h/den. Interiérové demolice, Zábřeh a okolí.");
+  p("DPH: "+(n.platceDPH?"jsme plátci":"NEJSME plátci DPH — k ceně se nic nepřičítá, cena je konečná"));
+  p("Rezerva na skryté konstrukce: "+(n.rezerva||0)+" % z ceny práce (dávej ji vždy).");
+  p("Minimální zisk, pod který nesmím jít: "+(n.minZiskOsHod||0)+" Kč na osobu a hodinu.");
+  p("Vynáška se účtuje sazbou "+(n.vynSazba||0)+" Kč/h.");
+  p("Skládkovné (likvidace): "+(n.skladkovne||0)+" Kč/t, marže na odvozu "+(n.odvozMarze||0)+" %.");
+  p("");
+  p("=== JAK SE POČÍTÁ VYNÁŠKA SUTI (tohle se plete nejčastěji) ===");
+  p("Vynáška NENÍ podle váhy. Je podle POČTU CEST, a cesty určuje váha NEBO objem — podle toho, co dojde dřív.");
+  p("Kolečko uveze "+(n.vynKolecko||65)+" kg NEBO "+(n.vynKoleckoM3||0.065)+" m³. Jeden cyklus trvá "+(n.vynCyklusSek||240)+" s.");
+  p("Kbelík (po schodech) uveze "+(n.vynKbelik||40)+" kg NEBO "+(n.vynKbelikM3||0.04)+" m³, "+(n.vynPatroSek||35)+" s na patro navíc.");
+  p("Za každých 10 m nad 10 m vzdálenosti: +"+(n.vynVzdalenostSek||25)+" s na cestu.");
+  p("Výtah, do kterého se smí suť, zlevní svislou dopravu na "+(n.vynVytahKoef||0.25)+"× (vodorovný přesun zůstává).");
+  p("POSTUP: cesty = max(tuny×1000/kg_na_kolečko, m³/objem_kolečka). Pak hodiny = cesty × cyklus / 3600.");
+  p("Pozor na lehkou objemnou suť — umakartové jádro váží 0,8 t, ale má 3,2 m³. Kolečko se naplní objemem");
+  p("dávno před "+(n.vynKolecko||65)+" kg, takže cest je několikanásobek. Sádrokarton, izolace a sanita stejně.");
+  p("Aplikace si vynášku i kontejnery dopočítá sama — ty ji jen zmíň v rozpadu, do DKT1 ji NEDÁVEJ.");
+  p("");
+  p("=== KONTEJNERY ===");
+  p("Nepiš je do DKT1, aplikace je navrhne sama. V rozpadu ale zmiň odhad počtu.");
+  p("Model dopravce: paušál za přistavení + km × sazba + dny nad limit × sazba, likvidace až nakonec podle tonáže.");
+  p("Do kontejneru se počítá rezerva místa "+(n.kontRezerva||18)+" % — nikdy se neplní na knop.");
+  p("");
+  p("=== KONTROLA, KTEROU MUSÍŠ UDĚLAT PŘED ODEVZDÁNÍM ===");
+  p("a) U každé položky si ověř poměr cena ÷ normohodiny. Musí padnout mezi 400 a 2200 Kč/normohodinu");
+  p("   (medián mého ceníku je kolem 570). Když ti něco vyjde mimo, spletl ses v položce nebo ve výměře.");
+  p("b) Spočítej můj zisk na osobohodinu. Když je pod "+(n.minZiskOsHod||0)+" Kč, NAPIŠ MI TO");
+  p("   a navrhni interní přirážku (pole 'prirazka' v DKT1), která to srovná.");
+  p("c) Ověř, že sedí jednotky. m² × tloušťka ≠ m³ automaticky, a ks není bm.");
+  p("");
+  p("=== CO MUSÍŠ VŽDYCKY PŘIPOMENOUT (jinak na tom prodělám) ===");
+  p("• Nosná stěna nebo strop → statický posudek zajišťuje objednatel, bez něj neřežu. Ocelový překlad");
+  p("  a jeho profil určí až statik — do ceny dávej ocel jako samostatný materiál s poznámkou 'dle posudku'.");
+  p("• Panelák → zásah do nosné konstrukce i změna fasády potřebuje souhlas SVJ.");
+  p("• Dům před rokem 1990 → možný azbest (jádra, podhledy, lepenky). Při podezření STOP a odběr vzorku,");
+  p("  likvidace azbestu je zvlášť a dělá ji oprávněná firma.");
+  p("• Železobeton se neřeže kladivem — půjčovné diamantové pily patří do materiálu (orientačně 2 500–4 500 Kč/den");
+  p("  plus segmenty), ale VŽDY napiš, že si mám cenu ověřit v půjčovně, protože se liší.");
+  p("• Ceny materiálu, které si nevymyslím z ceníku, označ jako ODHAD K OVĚŘENÍ.");
+  p("");
+  p("=== FORMÁT DKT1, KTERÝ MI VRÁTÍŠ ===");
+  p("Jeden code blok, jeden údaj na řádek, klíč: hodnota. Přesně tyhle klíče:");
+  p("");
+  p("DKT1");
+  p("nazev: krátký název zakázky");
+  p("klient: jméno, když ho znáš");
+  p("adresa: místo");
+  p("patro: číslo (0 = přízemí)");
+  p("vytah: ano / ne          (ano jen když se do něj SMÍ suť)");
+  p("vzdalenost: metry od výstupu z domu ke kontejneru");
+  p("km: kilometry k dopravci (když nevíš, dej 15)");
+  p("dny: kolik dní bude kontejner stát (když nevíš, dej 3)");
+  p("rezerva: "+(n.rezerva||0)+"");
+  p("prirazka: 0             (kladné číslo zvedne moji cenu, klient to na faktuře nepozná)");
+  p("sleva: 0                (viditelná sleva pro klienta v %)");
+  p("poznamka: co musí být vyřešené před nástupem");
+  p("prace: ID_POLOZKY | množství");
+  p("prace: ID_POLOZKY | množství");
+  p("material: název | můj nákup | cena klientovi");
+  p("");
+  p("PRAVIDLA FORMÁTU:");
+  p("• ID musí být DOSLOVA z ceníku níž. Nikdy si ID nevymýšlej ani needituj.");
+  p("• Když pro něco v ceníku položka není, použij: vlastni: název | množství | MJ | cena | t/MJ | m³/MJ | hodiny/MJ");
+  p("  a v textu nad blokem mi napiš, proč jsi ji musel vymyslet a jak jsi došel k ceně.");
+  p("• Desetinná čísla s tečkou. Množství v MJ té položky (m², bm, ks, m³, kpl).");
+  p("• Vynášku, kontejnery, skládkovné ani dopravu do bloku NEDÁVEJ — dopočítají se.");
+  p("");
+  p("=== MŮJ CENÍK ("+polozky.length+" položek) ===");
+  p("Formát: ID | název | MJ | Kč za MJ | suť t/MJ | suť m³/MJ | normohodiny/MJ");
+  p("");
+  let katAkt="";
+  polozky.forEach(i=>{
+    if(i.kat!==katAkt){katAkt=i.kat;L.push("--- "+katAkt+" ---");}
+    L.push(i.id+" | "+i.nazev+" | "+i.mj+" | "+i.b2c+" | "+i.sutT+" | "+i.sutM3+" | "+i.hod);
+  });
+  if(!uplny){
+    p("");
+    p("(Tohle je zkrácený ceník — nejpoužívanější položky. Když pro něco nenajdeš položku,");
+    p(" řekni mi to a já ti pošlu úplný ceník, kde jich je "+S.cenik.length+".)");
+  }
+  p("");
+  p("=== ZAKÁZKA ===");
+  p("(sem napíšu popis a přiložím fotky)");
+  return L.join("\n");
+}
+function briefStav(t,zprava){
+  const el=$("#briefStav"); if(!el)return;
+  el.innerHTML="<span class='"+(t==="ok"?"ok":"ne")+"'>"+zprava+"</span>";
+}
+function zkopirujBrief(uplny){
+  const t=brief(uplny);
+  const ta=document.createElement("textarea");
+  ta.value=t; ta.style.position="fixed"; ta.style.opacity="0";
+  document.body.appendChild(ta); ta.select();
+  let ok=false;
+  try{ok=document.execCommand("copy")}catch(e){}
+  document.body.removeChild(ta);
+  const kb=Math.round(t.length/1024);
+  if(ok)briefStav("ok","✓ Brief zkopírován ("+kb+" kB, "+briefPolozky(uplny).length+" položek ceníku). Vlož ho do Clauda, přidej fotky a popis.");
+  else if(navigator.clipboard)navigator.clipboard.writeText(t).then(
+    ()=>briefStav("ok","✓ Brief zkopírován ("+kb+" kB)."),
+    ()=>briefStav("ne","Nepovedlo se zkopírovat — použij tlačítko Stáhnout."));
+  else briefStav("ne","Prohlížeč nepustil kopírování — použij tlačítko Stáhnout.");
+}
+function stahniBrief(uplny){
+  const t=brief(uplny);
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([t],{type:"text/plain;charset=utf-8"}));
+  a.download="nacenovaci-brief-"+(uplny?"uplny":"kratky")+"-"+new Date().toISOString().slice(0,10)+".txt";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  briefStav("ok","✓ Staženo. Soubor si ulož třeba do Google Disku, ať ho máš po ruce i v telefonu.");
+}
+
+/* ================= DKT1 — textový formát zakázky =================
+   Formát, který spolehlivě napíše i jazykový model a člověk ho přečte.
+   Je záměrně tolerantní: neznámé klíče ignoruje, čárku bere jako desetinnou tečku,
+   „ano/ne“ i „true/false“, a u položek si dohledá ID v ceníku. */
+const DKT_ANO = /^(ano|a|true|1|yes|ok|je)$/i;
+function dktCislo(s){
+  const x = parseFloat(String(s == null ? "" : s).replace(/\s/g, "").replace(",", "."));
+  return isFinite(x) ? x : 0;
+}
+function zakZTextuDKT(text){
+  const z = {prace:[], material:[], ostatni:[]};
+  const varovani = [], nezname = [];
+  const textova = {nazev:"nazev", klient:"klient", adresa:"adresa", poznamka:"poznamka", zdroj:"zdroj"};
+  const ciselna = {patro:"patro", vzdalenost:"vzdalenost", km:"kmDopravce", rezerva:"rezerva",
+    prirazka:"prirazka", sleva:"sleva", lide:"lide", dny:"dnyKontejneru"};
+  const logicka = {vytah:"vytah", rucni:"rucniNoseni", predem:"platbaPredem"};
+  /* ceník se musí načíst dřív než položky, aby se ceny vzaly ze správné hladiny */
+  const mCenik = String(text).match(/^\s*cenik\s*[:=]\s*(.*)$/im);
+  z.cenik = mCenik && /b2b/i.test(mCenik[1]) ? "b2b" : "b2c";
+
+  String(text).split(/\r?\n/).forEach((radek, ix) => {
+    const r = radek.trim();
+    if (!r || /^(DKT1|#|\/\/|-{3,}|`{3,}|={3,})/i.test(r)) return;
+    const m = r.match(/^([A-Za-zÁ-Žá-ž_]+)\s*[:=]\s*(.*)$/);
+    if (!m) { varovani.push("řádek " + (ix + 1) + ": nerozumím — „" + r.slice(0, 50) + "“"); return; }
+    const k = bezDiakritiky(m[1]).toLowerCase(), hodnota = m[2].trim();
+    if (!hodnota) return;
+
+    if (k === "prace" || k === "polozka") {
+      const c = hodnota.split("|").map(x => x.trim());
+      const id = c[0], mn = dktCislo(c[1]);
+      const it = S.cenik.find(x => x.id === id);
+      if (!it) { nezname.push(id); return; }
+      if (!(mn > 0)) { varovani.push("položka " + id + " má nulové množství — vynechána"); return; }
+      z.prace.push({polozkaId: it.id, nazev: it.nazev, mj: it.mj, kat: it.kat, mnozstvi: mn,
+        cena: z.cenik === "b2b" ? (it.b2b || it.b2c) : it.b2c,
+        sutT: it.sutT, sutM3: it.sutM3, hod: it.hod, hvezd: it.hvezd});
+    } else if (k === "vlastni") {
+      const c = hodnota.split("|").map(x => x.trim());
+      if (!c[0]) return;
+      z.prace.push({polozkaId: "", nazev: c[0], mj: c[2] || "kpl", mnozstvi: dktCislo(c[1]) || 1,
+        cena: dktCislo(c[3]), sutT: dktCislo(c[4]), sutM3: dktCislo(c[5]), hod: dktCislo(c[6])});
+      varovani.push("vlastní položka „" + c[0] + "“ není z ceníku — zkontroluj cenu i normohodiny");
+    } else if (k === "material") {
+      const c = hodnota.split("|").map(x => x.trim());
+      if (!c[0]) return;
+      z.material.push({nazev: c[0], nakup: dktCislo(c[1]), prodej: dktCislo(c[2]) || dktCislo(c[1])});
+    } else if (k === "ostatni") {
+      const c = hodnota.split("|").map(x => x.trim());
+      if (!c[0]) return;
+      z.ostatni.push({nazev: c[0], naklad: dktCislo(c[1]), prodej: dktCislo(c[2])});
+    } else if (k === "cenik") {
+      /* už zpracováno výše */
+    } else if (k === "dph") {
+      z.dph = /^(12|21|rc|ne)$/i.test(hodnota) ? hodnota.toLowerCase() : vychoziDph(S.nastaveni);
+    } else if (textova[k]) {
+      z[textova[k]] = hodnota;
+    } else if (ciselna[k]) {
+      z[ciselna[k]] = dktCislo(hodnota);
+    } else if (logicka[k]) {
+      z[logicka[k]] = DKT_ANO.test(hodnota);
+    } else {
+      varovani.push("neznámý údaj „" + m[1] + "“ — přeskočeno");
+    }
+  });
+
+  if (nezname.length) varovani.push("NENÍ V CENÍKU: " + nezname.join(", ") +
+    " — tyhle položky se nepřidaly, doplň je ručně");
+  if (!z.prace.length) throw new Error("Text neobsahuje žádnou známou položku práce. " +
+    "Řádky musí začínat „prace:“ a ID musí sedět na tvůj ceník." +
+    (nezname.length ? " Nenalezená ID: " + nezname.join(", ") : ""));
+  if (z.vytah !== undefined) z.vytahNaSut = z.vytah;
+  z._varovani = varovani;
+  return z;
+}
+
 function zakZTextu(s){
   s=(s||"").trim();
   if(!s)throw new Error("Nic jsi nevložil.");
@@ -3841,7 +4257,9 @@ function zakZTextu(s){
     catch(e){throw new Error("Kód je poškozený — zkontroluj, že jsi zkopíroval celý text včetně „DK1|“.")}
   }else if(s.startsWith("{")){
     try{o=JSON.parse(s)}catch(e){throw new Error("Text není platný JSON.")}
-  }else throw new Error("Nepoznaný formát. Kód zakázky začíná „DK1|“.");
+  }else if(/^DKT1/i.test(s)||/^[ 	]*(prace|polozka)[ 	]*[:=]/im.test(s)){
+    o=zakZTextuDKT(s);
+  }else throw new Error("Nepoznaný formát. Čekám kód „DK1|…“, textovou zakázku „DKT1“, nebo JSON.");
   if(typeof o!=="object"||!o)throw new Error("Kód neobsahuje zakázku.");
   return o;
 }
@@ -3853,6 +4271,9 @@ $("#exportZakBtn").addEventListener("click",()=>{
   if(navigator.clipboard&&!ok)navigator.clipboard.writeText(kod).catch(()=>{});
   $("#importZakStav").innerHTML="<span class='ok'>Kód zakázky ("+kod.length+" znaků) je v poli výše"+(ok?" a ve schránce":"")+". Pošli ho parťákovi třeba přes WhatsApp.</span>";
 });
+$("#briefKopie").addEventListener("click",()=>zkopirujBrief(false));
+$("#briefKopieU").addEventListener("click",()=>zkopirujBrief(true));
+$("#briefStah").addEventListener("click",()=>stahniBrief(false));
 $("#importZakBtn").addEventListener("click",()=>{
   const st=$("#importZakStav");
   let o;
@@ -3873,14 +4294,30 @@ $("#importZakBtn").addEventListener("click",()=>{
       cena:J.cenik==="b2b"?(it.b2b||it.b2c):it.b2c,
       sutT:it.sutT,sutM3:it.sutM3,hod:it.hod,hvezd:it.hvezd};
   });
-  ["material","ostatni","kontejnery","odpady"].forEach(k=>{if(!Array.isArray(J[k]))J[k]=[]});
+  ["material","ostatni","kontejnery","odpady"].forEach(k=>{if(!Array.isArray(J[k])) J[k]=[]});
   J.id=null; J.status="nabídka"; J.cisloNab="";
+  /* kontejnery navrhnout podle suti, pokud v textu nepřišly */
+  if(!J.kontejnery.length){
+    const sut=sutCelkem(), vars=kontVarianty(sut.m3,sut.t);
+    if(vars.length)J.kontejnery=vars[0].types.map((k,i)=>vars[0].counts[i]>0?kontRow(k,vars[0].counts[i]):null).filter(Boolean);
+  }
   $("#importZak").value="";
   fillAll(); save();
-  st.innerHTML="<span class='ok'>Zakázka načtena — "+prevzato+" údajů, "+J.prace.length+" prací"+
-    (dopocteno?" ("+dopocteno+" přeceněno podle tvého ceníku)":"")+". Doplň klienta a zdroj zakázky, pak ulož.</span>";
+  const v=vypocet();
+  let zprava="<span class='ok'>Zakázka načtena — "+J.prace.length+" prací, cena "+kc(v.celkem)+
+    (dopocteno?" ("+dopocteno+" položek oceněno podle tvého ceníku)":"")+".</span>";
+  const hodinovka=v.hodiny>0?v.zisk/v.hodiny:0;
+  if(hodinovka>0&&hodinovka<(S.nastaveni.minZiskOsHod||0))
+    zprava+="<br><span class='ne'>⚠ Zisk vychází na "+fmt0.format(hodinovka)+" Kč na osobohodinu, tvůj práh je "+
+      fmt0.format(S.nastaveni.minZiskOsHod)+" Kč. Než to pošleš klientovi, zvedni interní přirážku.</span>";
+  if(o._varovani&&o._varovani.length)
+    zprava+="<br><b>Zkontroluj:</b><ul style='margin:4px 0 0;padding-left:18px'>"+
+      o._varovani.map(x=>"<li>"+esc(x)+"</li>").join("")+"</ul>";
+  zprava+="<br>Doplň klienta a zdroj zakázky, projdi výměry, pak ulož.";
+  st.innerHTML=zprava;
   window.scrollTo(0,0);
 });
+
 
 /* ================= DENNÍ ZÁPIS ================= */
 function renderDZ(){
@@ -4411,7 +4848,7 @@ function fakturaHTML(typ){
     rows="<tr><td>Záloha na bourací práce — "+esc(J.nazev||"zakázka")+"</td><td class='r'>"+kc(bezDPH)+"</td></tr>";
   } else {
     J.prace.filter(r=>r.nazev&&(r.mnozstvi||0)>0).forEach(r=>{
-      rows+="<tr><td>"+esc(r.nazev)+" — "+fmt1.format(r.mnozstvi)+" "+esc(r.mj)+"</td><td class='r'>"+kc(r.mnozstvi*r.cena)+"</td></tr>";});
+      rows+="<tr><td>"+esc(r.nazev)+" — "+fmt1.format(r.mnozstvi)+" "+esc(r.mj)+"</td><td class='r'>"+kc(r.mnozstvi*cenaMJ(r))+"</td></tr>";});
     if(v.vynaska)rows+="<tr><td>Vynáška a přesun suti ("+fmt1.format(v.sut.t)+" t)</td><td class='r'>"+kc(v.vynaska)+"</td></tr>";
     if(v.rezerva)rows+="<tr><td>Rezerva na skryté konstrukce</td><td class='r'>"+kc(v.rezerva)+"</td></tr>";
     if(v.vikend)rows+="<tr><td>Příplatek víkend / svátek</td><td class='r'>"+kc(v.vikend)+"</td></tr>";
@@ -4422,7 +4859,8 @@ function fakturaHTML(typ){
     if(v.dopravaP)rows+="<tr><td>Doprava</td><td class='r'>"+kc(v.dopravaP)+"</td></tr>";
     J.ostatni.filter(r=>r.nazev&&(r.prodej||0)>0).forEach(r=>{rows+="<tr><td>"+esc(r.nazev)+"</td><td class='r'>"+kc(r.prodej)+"</td></tr>"});
     J.viceprace.filter(r=>r.stav==="odsouhlaseno"&&r.nazev).forEach(r=>{rows+="<tr><td>Vícepráce: "+esc(r.nazev)+"</td><td class='r'>"+kc(r.cena)+"</td></tr>"});
-    if(v.sleva)rows+="<tr><td><b>Sleva "+J.sleva+" %</b></td><td class='r'><b>−"+kc(v.sleva)+"</b></td></tr>";
+    if(v.sleva)v.slevaSlozky.forEach(s=>{
+      rows+="<tr><td><b>"+esc(s.popis)+" "+s.pct+" %</b></td><td class='r'><b>−"+kc(v.mezisoucet*s.pct/100)+"</b></td></tr>";});
   }
   /* QR platba */
   let qr="";
@@ -4805,12 +5243,31 @@ function klauzule(){
   if(J.dph==="ne")k.push("Dodavatel není plátcem DPH.");
   return k;
 }
+/* Platební podmínky pod nabídku. Když klient ještě předem neplatí a chceme mu to
+   nabídnout, ukáže se druhá, levnější cena — je to nejúčinnější způsob, jak si
+   zlepšit cash flow, protože klient dostane hmatatelný důvod zaplatit dopředu. */
+function platebniPodminky(v){
+  const n=S.nastaveni, pct=n.slevaPredemPct||0;
+  if(J.platbaPredem)
+    return "<p><b>Platba: celá částka "+kc(v.celkem)+" před zahájením prací.</b> "+
+      "Cena už zahrnuje slevu "+pct+" % za platbu předem.</p>";
+  let t="<p><b>Záloha: "+kc(v.celkem*n.zaloha/100)+" ("+n.zaloha+" %)</b> před zahájením prací; doplatek se splatností 14 dní od předání.</p>";
+  if(J.nabidnoutPredem!==false&&pct>0){
+    const bylo=J.platbaPredem; J.platbaPredem=true; const s=vypocet(); J.platbaPredem=bylo;
+    t+="<table style='margin-top:10px'><tbody>"+
+      "<tr><td><b>Varianta A</b> — záloha "+n.zaloha+" % a doplatek do 14 dní</td><td class='r'><b>"+kc(v.celkem)+"</b></td></tr>"+
+      "<tr><td><b>Varianta B</b> — celá částka před zahájením prací, <b>sleva "+pct+" %</b></td><td class='r'><b>"+kc(s.celkem)+"</b></td></tr>"+
+      "<tr><td colspan='2' style='font-size:12px'>Při variantě B ušetříte "+kc(v.celkem-s.celkem)+". Stačí dát vědět, kterou variantu volíte — fakturu vystavíme podle toho.</td></tr>"+
+      "</tbody></table>";
+  }
+  return t;
+}
 /* ---------- tisk nabídky ---------- */
 $("#tisk").addEventListener("click",()=>{
   const v=vypocet(); const n=S.nastaveni; const cislo=cisloNabidky();
   let rows="";
   J.prace.filter(r=>r.nazev&&(r.mnozstvi||0)>0).forEach(r=>{
-    rows+="<tr><td>"+esc(r.nazev)+"</td><td class='r'>"+fmt1.format(r.mnozstvi)+" "+esc(r.mj)+"</td><td class='r'>"+kc(r.cena)+"</td><td class='r'>"+kc(r.mnozstvi*r.cena)+"</td></tr>";
+    rows+="<tr><td>"+esc(r.nazev)+"</td><td class='r'>"+fmt1.format(r.mnozstvi)+" "+esc(r.mj)+"</td><td class='r'>"+kc(cenaMJ(r))+"</td><td class='r'>"+kc(r.mnozstvi*cenaMJ(r))+"</td></tr>";
   });
   if(v.vynaska)rows+="<tr><td>Vynáška a přesun suti"+(J.patro?" ("+J.patro+". podlaží"+(v.vyn.vytahOK?" s výtahem":" po schodech")+")":"")+"</td><td class='r'>"+fmt1.format(v.sut.t)+" t</td><td class='r'>"+kc(v.vyn.cenaT)+"</td><td class='r'>"+kc(v.vynaska)+"</td></tr>";
   if(v.rezerva)rows+="<tr><td>Rezerva na skryté konstrukce ("+J.rezerva+" %)</td><td class='r'></td><td class='r'></td><td class='r'>"+kc(v.rezerva)+"</td></tr>";
@@ -4821,8 +5278,10 @@ $("#tisk").addEventListener("click",()=>{
   if(v.sklP)rows+="<tr><td>Skládkovné ("+fmt1.format(v.sut.t)+" t)</td><td class='r'></td><td class='r'></td><td class='r'>"+kc(v.sklP)+"</td></tr>";
   if(v.dopravaP)rows+="<tr><td>Doprava</td><td class='r'></td><td class='r'></td><td class='r'>"+kc(v.dopravaP)+"</td></tr>";
   J.ostatni.filter(r=>r.nazev&&(r.prodej||0)>0).forEach(r=>{rows+="<tr><td>"+esc(r.nazev)+"</td><td class='r'></td><td class='r'></td><td class='r'>"+kc(r.prodej)+"</td></tr>"});
-  if(v.sleva)rows+="<tr><td colspan='3'>Mezisoučet</td><td class='r'>"+kc(v.mezisoucet)+"</td></tr>"+
-    "<tr><td colspan='3'><b>Sleva "+J.sleva+" %</b></td><td class='r'><b>−"+kc(v.sleva)+"</b></td></tr>";
+  if(v.sleva){
+    rows+="<tr><td colspan='3'>Mezisoučet</td><td class='r'>"+kc(v.mezisoucet)+"</td></tr>";
+    v.slevaSlozky.forEach(s=>{rows+="<tr><td colspan='3'><b>"+esc(s.popis)+" "+s.pct+" %</b></td><td class='r'><b>−"+kc(v.mezisoucet*s.pct/100)+"</b></td></tr>"});
+  }
   J.viceprace.filter(r=>r.stav==="odsouhlaseno"&&r.nazev).forEach(r=>{
     rows+="<tr><td>Vícepráce: "+esc(r.nazev)+(r.duvod?" ("+esc(r.duvod)+")":"")+"</td><td class='r'></td><td class='r'></td><td class='r'>"+kc(r.cena)+"</td></tr>"});
   $("#tiskArea").innerHTML=
@@ -4838,7 +5297,7 @@ $("#tisk").addEventListener("click",()=>{
         (J.dph==="rc"?"<tr><td colspan='3'>DPH 21 % — přenesená daňová povinnost (informativně, odvádí odběratel)</td><td class='r'>"+kc(v.dphInfo)+"</td></tr>":"")+
         "<tr><td colspan='3' class='tot'>Cena celkem"+(J.dph==="rc"?"":" vč. DPH")+"</td><td class='r tot'>"+kc(v.celkem)+"</td></tr>")+
     "</tbody></table>"+
-    "<p><b>Záloha: "+kc(v.celkem*n.zaloha/100)+" ("+n.zaloha+" %)</b> před zahájením prací; doplatek se splatností 14 dní od předání.</p>"+
+    platebniPodminky(v)+
     "<div class='kl'>"+klauzule().map(esc).join("<br>")+"</div>";
   window.print();
 });
@@ -4864,13 +5323,24 @@ $("#kopieNabidky").addEventListener("click",()=>{
   if(v.dopravaP)L.push("• Doprava: "+kc(v.dopravaP));
   J.ostatni.filter(r=>r.nazev&&(r.prodej||0)>0).forEach(r=>L.push("• "+r.nazev+": "+kc(r.prodej)));
   L.push("——————————————");
-  if(v.sleva){L.push("Mezisoučet: "+kc(v.mezisoucet));L.push("SLEVA "+J.sleva+" %: −"+kc(v.sleva));}
+  if(v.sleva){L.push("Mezisoučet: "+kc(v.mezisoucet));
+    v.slevaSlozky.forEach(s=>L.push(s.popis.toUpperCase()+" "+s.pct+" %: −"+kc(v.mezisoucet*s.pct/100)));}
   J.viceprace.filter(r=>r.stav==="odsouhlaseno"&&r.nazev).forEach(r=>L.push("• Vícepráce — "+r.nazev+": "+kc(r.cena)));
   L.push("Cena celkem bez DPH: "+kc(v.trzba));
   if(J.dph==="12"||J.dph==="21"){L.push("DPH "+(v.sazba*100)+" %: "+kc(v.dph));L.push("CENA CELKEM vč. DPH: "+kc(v.celkem));}
   else if(J.dph==="rc")L.push("CENA CELKEM: "+kc(v.celkem)+" (DPH 21 % informativně "+kc(v.dphInfo)+" — odvádí odběratel, § 92e)");
   else L.push("CENA CELKEM: "+kc(v.celkem)+" — cena je konečná, nejsme plátci DPH");
-  L.push("Záloha "+n.zaloha+" %: "+kc(v.celkem*n.zaloha/100)+" před zahájením prací.");
+  if(J.platbaPredem)L.push("Platba: celá částka "+kc(v.celkem)+" před zahájením prací (cena už obsahuje slevu "+(n.slevaPredemPct||0)+" % za platbu předem).");
+  else{
+    L.push("Záloha "+n.zaloha+" %: "+kc(v.celkem*n.zaloha/100)+" před zahájením prací, doplatek do 14 dní od předání.");
+    if(J.nabidnoutPredem!==false&&(n.slevaPredemPct||0)>0){
+      const bylo=J.platbaPredem; J.platbaPredem=true; const s=vypocet(); J.platbaPredem=bylo;
+      L.push("");
+      L.push("NEBO — sleva "+n.slevaPredemPct+" % při platbě předem:");
+      L.push("  Varianta A (záloha + doplatek): "+kc(v.celkem));
+      L.push("  Varianta B (vše předem):        "+kc(s.celkem)+"  → ušetříte "+kc(v.celkem-s.celkem));
+    }
+  }
   L.push("");
   klauzule().forEach(k=>L.push(k));
   navigator.clipboard.writeText(L.join("\n")).then(()=>{const b=$("#kopieNabidky");b.textContent="✓ Zkopírováno";setTimeout(()=>b.textContent="📋 Kopírovat nabídku (text)",1500)});
@@ -5332,7 +5802,7 @@ const nMap=[["nFirma","firma",1],["nIco","ico",1],["nDic","dic",1],["nAdresaFirm
   ["nVynKbelik","vynKbelik"],["nVynKbelikM3","vynKbelikM3"],["nVynPatroSek","vynPatroSek"],
   ["nVynVzdalenostSek","vynVzdalenostSek"],["nVynVytahKoef","vynVytahKoef"],["nVynRucniKoef","vynRucniKoef"],
   ["nKontCenaKm","kontCenaKm"],["nKontDnyZdarma","kontDnyZdarma"],["nKontCenaDen","kontCenaDen"],["nKontRezerva","kontRezerva"],
-  ["nDphLimit","dphLimit"]];
+  ["nDphLimit","dphLimit"],["nSlevaPredem","slevaPredemPct"]];
 nMap.forEach(([id,k,txt])=>{$( "#"+id).addEventListener("input",e=>{S.nastaveni[k]=txt?e.target.value:num(e.target.value);recalc();vynUkazka();save();})});
 $("#nPlatceDPH").addEventListener("change",e=>{S.nastaveni.platceDPH=e.target.checked;dphHint();renderPripominky();recalc();save();});
 function fillNastaveni(){nMap.forEach(([id,k])=>{$("#"+id).value=S.nastaveni[k]});$("#nPlatceDPH").checked=!!S.nastaveni.platceDPH;vynUkazka();}
