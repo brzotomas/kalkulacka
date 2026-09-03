@@ -342,14 +342,28 @@ details.gsec li{margin:3px 0}
     <details style="margin-top:8px">
       <summary style="cursor:pointer;font-weight:600;font-size:14px">📸 Nacenit z fotek přes Claude (funguje i z mobilu)</summary>
       <div style="margin-top:8px">
-        <p class="hint" style="margin:0 0 8px">Vygeneruje <b>naceňovací brief</b> — kompletní zadání s tvým ceníkem a pravidly. Vlož ho do Clauda (web nebo appka v mobilu), přidej fotky a míry z prohlídky, a Claude ti vrátí blok <b>DKT1</b>. Ten vložíš do pole výše a máš hotovou kalkulaci.</p>
+        <p class="hint" style="margin:0 0 4px">Vygeneruje <b>kompletní balík</b>, ze kterého se v Claudovi stane náš rozpočtář — zná ceník, sazby, model výpočtu, povinné klauzule i formát, kterým zakázku vrátí zpátky sem.</p>
+        <p class="hint" style="margin:0 0 10px"><b>Uděláš jednou:</b> stáhneš ZIP → v Claudovi založíš projekt → nahraješ soubory. <b>Pak už jen:</b> pošleš fotky a míry → dostaneš blok DKT1 → vložíš ho do pole výše.</p>
         <div class="btns">
-          <button class="b p" id="briefKopie">📋 Zkopírovat brief</button>
-          <button class="b" id="briefStah">💾 Stáhnout jako .txt</button>
-          <button class="b" id="briefKopieU">Úplný ceník (velké)</button>
+          <button class="b p" id="balikZip">📦 Stáhnout celý balík (ZIP)</button>
+          <button class="b" id="balikInstrukce">📋 Zkopírovat instrukce projektu</button>
+          <button class="b" id="balikNahled">👁 Náhled souborů</button>
         </div>
-        <div id="briefStav" class="hint" style="margin-top:6px"></div>
-        <p class="hint" style="margin:8px 0 0">Brief obsahuje ceny, které máš <b>právě teď</b>. Když si zdražíš ceník, vygeneruj si ho znovu. Podrobný návod je v <b>Průvodci</b>.</p>
+        <div id="balikStav" class="hint" style="margin-top:6px"></div>
+        <div id="balikSeznam" style="margin-top:10px;display:none"></div>
+        <p class="hint" style="margin:10px 0 0">Balík obsahuje ceny a sazby, které máš <b>právě teď</b>. Po zdražení ceníku nebo změně sazeb ho vygeneruj znovu. Celý postup je v <b>Průvodci</b>.</p>
+        <details style="margin-top:8px">
+          <summary style="cursor:pointer;font-size:13px;color:var(--muted)">Starší verze — jeden textový brief do zprávy</summary>
+          <div style="margin-top:6px">
+            <p class="hint" style="margin:0 0 6px">Když nechceš zakládat projekt: tohle je všechno v jednom textu, který vložíš rovnou do zprávy. Míň podrobné než balík, ale funguje na jedno vložení.</p>
+            <div class="btns">
+              <button class="b" id="briefKopie">📋 Zkopírovat brief</button>
+              <button class="b" id="briefStah">💾 Stáhnout .txt</button>
+              <button class="b" id="briefKopieU">S úplným ceníkem</button>
+            </div>
+            <div id="briefStav" class="hint" style="margin-top:6px"></div>
+          </div>
+        </details>
       </div>
     </details>
   </div>
@@ -1064,7 +1078,44 @@ details.gsec li{margin:3px 0}
   <details class="gsec"><summary>📸 Nacenit zakázku z fotek přes Claude — i z mobilu na prohlídce</summary><div class="inner">
     <p style="margin:0 0 10px">Tohle je nejrychlejší cesta od prohlídky k nabídce. Na místě naměříš a nafotíš, Claude ti to nacení podle <b>tvého</b> ceníku a tvých pravidel, a výsledek vložíš do kalkulačky. Funguje z telefonu, z počítače, odkudkoliv.</p>
 
-    <div class="vybg">Jednorázová příprava (uděláš jednou, pak už ne)</div>
+    <div class="vybg">Balík pro Claude Projekt — nastavíš jednou, pak už jen posíláš fotky</div>
+    <p style="margin:4px 0 8px">V <b>Kalkulaci</b> nahoře rozbal <b>„📸 Nacenit z fotek přes Claude“</b> a dej <b>Stáhnout celý balík (ZIP)</b>. Je v něm devět souborů, které z Clauda udělají našeho rozpočtáře:</p>
+    <div class="tscroll"><table>
+      <thead><tr><th>Soubor</th><th>Co v něm je</th></tr></thead>
+      <tbody>
+        <tr><td><code>00-ZACNI-TADY.md</code></td><td>návod, jak si projekt založit</td></tr>
+        <tr><td><code>01-ROLE-A-POSTUP.md</code></td><td>kdo Claude je, jakým postupem jde, co vždycky udělá — <b>tenhle patří do instrukcí projektu</b></td></tr>
+        <tr><td><code>02-JAK-POCITAT.md</code></td><td>kompletní model: vynáška podle počtu cest, kontejnery, rezerva, marže, prahy — se všemi našimi sazbami</td></tr>
+        <tr><td><code>03-CO-SE-PTAT.md</code></td><td>co zjistit a změřit na prohlídce, co vyfotit</td></tr>
+        <tr><td><code>04-FORMAT-DKT1.md</code></td><td>přesný formát kódu, kterým se zakázka vrací sem</td></tr>
+        <tr><td><code>05-RIZIKA-A-KLAUZULE.md</code></td><td>statika, azbest, SVJ, odpady, bezpečnost, povinné věty do nabídky</td></tr>
+        <tr><td><code>06-PRIKLADY.md</code></td><td>tři hotové zakázky i s postupem — na nich se dá ověřit, že počítá správně</td></tr>
+        <tr><td><code>07-CENIK-UPLNY.csv</code></td><td>všechny položky ceníku</td></tr>
+        <tr><td><code>08-CENIK-JADRO.csv</code></td><td>zkrácený ceník — jen to, co reálně používáme</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="vybg" style="margin-top:12px">Nastavení projektu (5 minut, jednou)</div>
+    <ol style="margin:4px 0 12px;padding-left:20px">
+      <li>Na <b>claude.ai</b> → <b>Projects</b> → <b>Create project</b>, pojmenuj třeba „Nacenění demolic“.</li>
+      <li>Do <b>Project knowledge</b> nahraj <b>všech devět souborů</b> z rozbaleného ZIPu.</li>
+      <li>Do <b>Project instructions</b> vlož obsah souboru <code>01-ROLE-A-POSTUP.md</code> — v aplikaci je na to tlačítko <b>„Zkopírovat instrukce projektu“</b>.</li>
+      <li>Otestuj to: vezmi zadání prvního příkladu ze souboru 06 a nech ho nacenit. <b>Musí ti vyjít stejná čísla.</b> Když ne, něco se nenahrálo.</li>
+    </ol>
+
+    <div class="vybg">Pak už jen tohle</div>
+    <ol style="margin:4px 0 12px;padding-left:20px">
+      <li>Na prohlídce nafoť a změř (co přesně, je v souboru 03).</li>
+      <li>V projektu založ novou konverzaci, přilož fotky, napiš co se má dělat a míry.</li>
+      <li>Claude se doptá na to, co chybí — odpověz.</li>
+      <li>Dostaneš rozpad ceny, upozornění na rizika a na konci blok <b>DKT1</b>.</li>
+      <li>Blok zkopíruj → sem do <b>„📥 Načíst zakázku z textu“</b> → <b>Načíst</b>.</li>
+      <li>Kalkulačka dopočítá vynášku a kontejnery, ocení položky <b>tvým</b> ceníkem a upozorní, když je zisk pod prahem. Doplň klienta, ulož, tiskni nabídku a faktury.</li>
+    </ol>
+
+    <div class="warn" style="margin:10px 0 0"><b>Balík se musí přegenerovat</b>, když si zdražíš ceník, změníš sazby v Nastavení nebo přidáš položky. Jinak by Claude počítal se starými čísly. Stáhni nový ZIP a v projektu soubory nahraď — verze a datum jsou v hlavičce každého souboru, takže poznáš, co je staré.</div>
+
+    <div class="vybg">Starší postup — jeden text bez projektu</div>
     <ol style="margin:4px 0 12px;padding-left:20px">
       <li>V <b>Kalkulaci</b> nahoře rozbal <b>„📸 Nacenit z fotek přes Claude“</b> a dej <b>Stáhnout jako .txt</b>.</li>
       <li>Soubor si ulož tam, kde na něj dosáhneš z mobilu — Google Disk, Dropbox, pošli si ho mailem sám sobě.</li>
@@ -4024,6 +4075,1093 @@ function zakDoTextu(z){
   return "DK1|"+btoa(unescape(encodeURIComponent(JSON.stringify(o))));
 }
 
+/* ================= minimální ZIP (metoda "uloženo", bez komprese) =================
+   Balík znalostí je pár set kB textu — komprese by nic podstatného neušetřila
+   a nechceme tahat knihovnu. Tohle stačí a je to celé pár desítek řádků. */
+const ZIP = (() => {
+  const tab = (() => {
+    const t = new Uint32Array(256);
+    for (let i = 0; i < 256; i++) {
+      let c = i;
+      for (let j = 0; j < 8; j++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      t[i] = c >>> 0;
+    }
+    return t;
+  })();
+  function crc32(buf) {
+    let c = 0xFFFFFFFF;
+    for (let i = 0; i < buf.length; i++) c = tab[(c ^ buf[i]) & 0xFF] ^ (c >>> 8);
+    return (c ^ 0xFFFFFFFF) >>> 0;
+  }
+  /* DOS čas a datum, jak je chce ZIP hlavička */
+  function dosCas(d) { return ((d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() / 2)) & 0xFFFF; }
+  function dosDatum(d) { return (((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate()) & 0xFFFF; }
+
+  function vytvor(soubory) {
+    const enc = new TextEncoder(), d = new Date();
+    const casti = [], adresar = [];
+    let posun = 0;
+    soubory.forEach(f => {
+      const jmeno = enc.encode(f.nazev), data = enc.encode(f.obsah);
+      const crc = crc32(data), t = dosCas(d), dt = dosDatum(d);
+      const lok = new Uint8Array(30 + jmeno.length);
+      const dv = new DataView(lok.buffer);
+      dv.setUint32(0, 0x04034b50, true);      /* podpis lokální hlavičky */
+      dv.setUint16(4, 20, true);              /* potřebná verze */
+      dv.setUint16(6, 0x0800, true);          /* příznak: názvy v UTF-8 */
+      dv.setUint16(8, 0, true);               /* metoda: uloženo */
+      dv.setUint16(10, t, true); dv.setUint16(12, dt, true);
+      dv.setUint32(14, crc, true);
+      dv.setUint32(18, data.length, true); dv.setUint32(22, data.length, true);
+      dv.setUint16(26, jmeno.length, true); dv.setUint16(28, 0, true);
+      lok.set(jmeno, 30);
+      casti.push(lok, data);
+      adresar.push({ jmeno, crc, dl: data.length, posun, t, dt });
+      posun += lok.length + data.length;
+    });
+    const zacatekAdresare = posun;
+    adresar.forEach(z => {
+      const c = new Uint8Array(46 + z.jmeno.length);
+      const dv = new DataView(c.buffer);
+      dv.setUint32(0, 0x02014b50, true);
+      dv.setUint16(4, 20, true); dv.setUint16(6, 20, true);
+      dv.setUint16(8, 0x0800, true); dv.setUint16(10, 0, true);
+      dv.setUint16(12, z.t, true); dv.setUint16(14, z.dt, true);
+      dv.setUint32(16, z.crc, true);
+      dv.setUint32(20, z.dl, true); dv.setUint32(24, z.dl, true);
+      dv.setUint16(28, z.jmeno.length, true);
+      dv.setUint32(42, z.posun, true);
+      c.set(z.jmeno, 46);
+      casti.push(c); posun += c.length;
+    });
+    const konec = new Uint8Array(22);
+    const dv = new DataView(konec.buffer);
+    dv.setUint32(0, 0x06054b50, true);
+    dv.setUint16(8, adresar.length, true); dv.setUint16(10, adresar.length, true);
+    dv.setUint32(12, posun - zacatekAdresare, true);
+    dv.setUint32(16, zacatekAdresare, true);
+    casti.push(konec);
+    return new Blob(casti, { type: "application/zip" });
+  }
+  return { vytvor, crc32 };
+})();
+
+function stahniBlob(blob, nazev) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = nazev;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+
+/* ================= ZNALOSTNÍ BALÍK PRO CLAUDE PROJEKT =================
+   Vygeneruje sadu souborů, které se nahrají do projektu v Claudovi. Tím se
+   z Clauda stane náš interní rozpočtář: zná ceník, sazby, model výpočtu,
+   povinné klauzule i formát, kterým vrátí zakázku zpátky do kalkulačky.
+
+   Všechno se generuje ze ŽIVÝCH dat — co je v aplikaci nastavené teď, to bude
+   v balíku. Po zdražení ceníku nebo změně sazeb je potřeba balík vygenerovat znovu. */
+
+function balikDatum(){ return new Date().toLocaleDateString("cs-CZ"); }
+function balikVerze(){
+  const n=S.nastaveni;
+  return balikDatum()+" · cenová hladina "+(n.cenikHladina?n.cenikHladina.toFixed(2).replace(".",","):"1,00")+
+    " · "+S.cenik.length+" položek";
+}
+/* jedno číslo → text bez mezer v tisících, ať to model nepřečte špatně */
+const bc = x => String(Math.round((x||0)*10000)/10000);
+
+/* ---------- 00 · rozcestník ---------- */
+function soubor00(){
+  const n=S.nastaveni;
+  return `# ZAČNI TADY — jak si Clauda nastavit jako našeho rozpočtáře
+
+Verze balíku: ${balikVerze()}
+Firma: ${n.firma||"(doplň název v Nastavení)"}
+
+## K čemu to je
+
+Nahraješ tyhle soubory do projektu v Claudovi. Od té chvíle mu můžeš poslat
+fotky z prohlídky, míry a pár vět popisu — a on ti vrátí hotové nacenění
+a k němu blok DKT1, který vložíš do kalkulačky. Kalkulačka z něj udělá
+nabídku, zálohovou i konečnou fakturu, předávací protokol a evidenci odpadů.
+
+Funguje to z telefonu, z počítače, odkudkoliv. Nic se nemusí instalovat.
+
+## Nastavení projektu (uděláš jednou, trvá 5 minut)
+
+1. Otevři claude.ai → **Projects** → **Create project**.
+2. Pojmenuj ho třeba „Nacenění demolic".
+3. Do **Project knowledge** nahraj VŠECHNY soubory z tohohle balíku.
+4. Do pole **Custom instructions** (nebo „Set project instructions") vlož
+   celý obsah souboru **01-ROLE-A-POSTUP.md**. Ten soubor je psaný jako
+   instrukce pro Clauda — je jedno, jestli ho dáš do instrukcí, do znalostí,
+   nebo do obojího, ale v instrukcích funguje nejspolehlivěji.
+5. Hotovo. Otestuj to na příkladu ze souboru 06-PRIKLADY.md — musí ti vyjít stejná čísla.
+
+## Co je v balíku
+
+| Soubor | Co obsahuje |
+|---|---|
+| 00-ZACNI-TADY.md | tenhle návod |
+| 01-ROLE-A-POSTUP.md | kdo Claude je, jak pracuje, co vždycky udělá — **do instrukcí projektu** |
+| 02-JAK-POCITAT.md | kompletní model výpočtu: vynáška, kontejnery, rezerva, marže, prahy |
+| 03-CO-SE-PTAT.md | co se musí zjistit na prohlídce, jinak bude cena špatně |
+| 04-FORMAT-DKT1.md | přesný formát kódu, kterým se zakázka vrací do kalkulačky |
+| 05-RIZIKA-A-KLAUZULE.md | statika, azbest, SVJ, odpady — co musí být v nabídce |
+| 06-PRIKLADY.md | hotové zakázky i s postupem výpočtu, na kterých se to dá ověřit |
+| 07-CENIK-UPLNY.csv | všech ${S.cenik.length} položek ceníku |
+| 08-CENIK-JADRO.csv | zkrácený ceník — to, co reálně používáme |
+
+## Jak to používat každý den
+
+1. Na prohlídce nafoť a **změř** (co přesně, je v souboru 03-CO-SE-PTAT.md).
+2. V projektu napiš novou konverzaci: přilož fotky a napiš, co se má dělat
+   a jaké jsou míry.
+3. Claude se doptá na to, co chybí. Odpověz.
+4. Dostaneš rozpad ceny a na konci blok **DKT1**.
+5. Blok zkopíruj → v kalkulačce **Kalkulace → Načíst zakázku z textu** → vlož → **Načíst**.
+6. Zkontroluj výměry, doplň klienta a zdroj zakázky, ulož, vytiskni nabídku.
+
+## Kdy balík vygenerovat znovu
+
+- Když si zdražíš ceník (tlačítko hromadné změny cen).
+- Když změníš sazby v Nastavení — vynášku, skládkovné, marže, prahy.
+- Když přibudou nové položky do ceníku.
+- Jinak balík klidně vydrží rok.
+
+Kalkulačka: https://brzotomas.github.io/kalkulacka/
+`;
+}
+
+/* ---------- 01 · role a pracovní postup (jde do instrukcí projektu) ---------- */
+function soubor01(){
+  const n=S.nastaveni;
+  return `# Kdo jsi a jak pracuješ
+
+Jsi rozpočtář firmy ${n.firma||"(naše firma)"} — děláme interiérové demolice
+v Zábřehu a okolí. Parta jsou ${n.lide||2} lidi, ${n.hodDen||9} hodin denně.
+Nacenuješ zakázky z fotek, popisu a měr, které ti pošlu z prohlídky.
+
+Chovej se jako člověk, který u nás dělá roky: znáš ceník zpaměti, víš, kde se
+vydělává a kde se prodělává, a víš, co se na stavbě reálně stane. Nejsi
+nadšený asistent — jsi kolega, kterému jde o to, aby firma vydělala a
+nezůstala viset na něčem, co se nedomluvilo dopředu.
+
+## Pravidla, která nikdy neporušíš
+
+1. **Počítáš podle souboru 02-JAK-POCITAT.md.** Ne podle toho, co si myslíš,
+   že se za takovou práci běžně bere. Naše sazby jsou naše sazby.
+2. **Ceny bereš výhradně z ceníku** (07-CENIK-UPLNY.csv nebo 08-CENIK-JADRO.csv). ID položek nikdy nevymýšlíš
+   ani needituješ. Když položka chybí, řekneš to a navrhneš vlastní položku
+   podle pravidla v souboru 02-JAK-POCITAT.md.
+3. **Když ti chybí údaj, který mění cenu, zeptáš se.** Neodhaduješ naslepo.
+   Jedna otázka navíc je vždycky levnější než špatná nabídka.
+4. **Všechno, co sis domyslel, označíš.** Nikdy nevydáváš odhad za změřený fakt.
+5. **Na konci vždycky vrátíš blok DKT1** podle souboru 04-FORMAT-DKT1.md. Přesně v tom formátu,
+   v jednom code bloku, bez komentářů uvnitř bloku.
+6. **Ceny materiálu, které nemáš z ceníku, označíš jako ODHAD K OVĚŘENÍ.**
+   Půjčovné a ocel se liší dodavatel od dodavatele o tisíce.
+
+## Postup, kterým jdeš pokaždé
+
+### Krok 1 — přečti zadání a fotky
+Vypiš si, co se má bourat, v jakém rozsahu a v jakých jednotkách.
+Rozliš, co jsi **viděl nebo dostal změřené** a co sis **musel domyslet**.
+
+### Krok 2 — zeptej se na to, co chybí
+Projdi kontrolní seznam ze souboru 03-CO-SE-PTAT.md. Když chybí něco
+z kategorie „bez tohohle to nejde", **zeptej se a počkej na odpověď**.
+Když chybí něco méně zásadního, zvol rozumný předpoklad a napiš ho.
+
+Zásadní je vždycky: podlaží, výtah a jestli se do něj smí suť, vzdálenost ke
+kontejneru, tloušťky a materiál konstrukcí, stáří domu.
+
+### Krok 3 — vyber položky z ceníku
+Pro každou práci najdi položku, která sedí materiálem, tloušťkou i velikostí.
+Pozor na varianty podle plochy otvoru — menší otvor je dražší za m², protože
+příprava je stejná. Spočítej výměry a ukaž, jak jsi k nim došel.
+
+### Krok 4 — spočítej to podle souboru 02-JAK-POCITAT.md
+Práce → rezerva → vynáška → kontejnery → skládkovné → materiál → doprava.
+Vynášku a kontejnery **počítáš pro sebe, abys věděl výslednou cenu**, ale
+do bloku DKT1 je nedáváš — kalkulačka si je dopočítá sama.
+
+### Krok 5 — zkontroluj se
+Projdi kontroly ze souboru 02-JAK-POCITAT.md, oddíl „Kontrola před odevzdáním". Když něco
+nesedí, vrať se a najdi chybu. Nehádej se s kontrolou — ta má pravdu.
+
+### Krok 6 — napiš odpověď
+V tomhle pořadí:
+
+1. **Co jsem pochopil** — rozsah prací, jednou větou.
+2. **Co jsem si domyslel** — odrážky, každá označená.
+3. **Rozpad ceny** — tabulka: položka, množství, Kč/MJ, celkem.
+4. **Vynáška a odvoz** — kolik suti, kolik cest, kolik kontejnerů a proč.
+5. **Cena celkem** a **kolik na tom vyděláme na osobohodinu**.
+6. **Na co si dát pozor** — rizika, co musí zajistit objednatel, co ověřit.
+7. **Blok DKT1** v code bloku.
+
+### Krok 7 — když je zakázka špatná, řekni to
+Když zisk vyjde pod ${n.minZiskOsHod||450} Kč na osobu a hodinu, **napiš to
+jako první věc**, ne až na konci. Navrhni, o kolik zvednout interní přirážku
+(pole \`prirazka\`), aby to sedělo. Když ani to nepomůže, řekni rovnou, že
+tuhle zakázku nemá cenu brát a proč.
+
+## Tón
+
+Piš česky, věcně, bez omáčky. Žádné „rád vám pomohu". Tykej mi.
+Čísla piš v Kč bez desetinných míst. Když si nejsi jistý, řekni to rovnou —
+mnohem horší než přiznaná nejistota je sebevědomá blbost, na které pak
+prodělám třicet tisíc.
+`;
+}
+
+/* ---------- 02 · kompletní model výpočtu ---------- */
+function soubor02(){
+  const n=S.nastaveni;
+  const dop=(S.dopravci||[]).map(d=>"| "+d.nazev+" | "+bc(d.pausal)+" | "+bc(d.cenaKm)+" | "+
+    bc(d.dnyZdarma)+" | "+bc(d.cenaDen)+" |").join("\n");
+  const kont=(S.kontejnery||[]).map(k=>"| "+k.nazev+" | "+bc(k.objem)+" | "+bc(k.nosnost)+" | "+bc(k.nakup)+" |").join("\n");
+  /* ukázkové body kalibrace vynášky, spočtené právě teď */
+  const uk=[[0,false,10],[1,false,10],[2,false,10],[3,false,10],[3,true,10],[5,false,30]].map(([p,v,d])=>{
+    const a=vynJadro(1,1/1.3,p,v,d,false), b=vynJadro(1,1/0.25,p,v,d,false);
+    return "| "+(p===0?"přízemí":p+". patro"+(v?" s výtahem":" po schodech"))+", "+d+" m | "+
+      Math.round(a.hodiny*(n.vynSazba||0))+" | "+Math.round(a.hodiny*(n.vynSazba||0)*1.3)+" | "+
+      Math.round(b.hodiny*(n.vynSazba||0))+" |";
+  }).join("\n");
+
+  return `# Jak se počítá — kompletní model
+
+Verze: ${balikVerze()}
+Všechna čísla tady jsou naše aktuální nastavení. Nepřepisuj je vlastními odhady.
+
+## 1. Práce
+
+\`\`\`
+cena_práce = Σ (množství × Kč/MJ z ceníku)
+\`\`\`
+
+Ceník má dvě hladiny:
+- **B2C** — koncový zákazník, domácnost. Používej ji, když není řečeno jinak.
+- **B2B** — subdodávka pro stavební firmu. Je o 10 % níž.
+
+Každá položka nese kromě ceny i **suť v t/MJ**, **suť v m³/MJ** a **normohodiny/MJ**.
+Ty tři hodnoty potřebuješ na vynášku, kontejnery a na kontrolu hodinovky.
+
+### Když položka v ceníku není
+Řekni to nahlas a navrhni vlastní položku. Cenu odvoď z **normohodin**:
+
+\`\`\`
+cena = odhad_normohodin × 570 Kč
+\`\`\`
+
+570 Kč za normohodinu je medián našeho ceníku. Napiš, kolik hodin to podle tebe
+zabere a proč. Do DKT1 ji dej řádkem \`vlastni:\` podle souboru 04-FORMAT-DKT1.md.
+
+## 2. Rezerva na skryté konstrukce
+
+\`\`\`
+rezerva = cena_práce × ${bc(n.rezerva)} %
+\`\`\`
+
+Dávej ji **vždycky**. Kryje armaturu ve zdivu, dvojité konstrukce, beton tam,
+kde měla být cihla. Nikdy ji nesnižuj, aby cena vyšla hezčí — přesně na tomhle
+se prodělává.
+
+## 3. Vynáška suti — tohle se plete nejčastěji
+
+**Vynáška NENÍ podle váhy.** Je podle **počtu cest**, a počet cest určuje
+váha **nebo** objem — podle toho, co dojde dřív.
+
+### Parametry
+| Co | Kolik unese | Čas |
+|---|---|---|
+| Kolečko (po rovině) | ${bc(n.vynKolecko)} kg **nebo** ${bc(n.vynKoleckoM3)} m³ | ${bc(n.vynCyklusSek)} s na cyklus |
+| Kbelík (po schodech) | ${bc(n.vynKbelik)} kg **nebo** ${bc(n.vynKbelikM3)} m³ | ${bc(n.vynPatroSek)} s na patro |
+
+- Za každých celých 10 m nad 10 m vzdálenosti: **+${bc(n.vynVzdalenostSek)} s na cestu**.
+- Výtah, do kterého **se smí** suť: svislá doprava se násobí **${bc(n.vynVytahKoef)}×**.
+  Vodorovný přesun kolečkem zůstává celý.
+- Ztížené ruční nošení (úzké schody, bez kolečka): celé × ${bc(n.vynRucniKoef)}.
+- Sazba za vynášku: **${bc(n.vynSazba)} Kč/h**.
+
+### Postup
+\`\`\`
+cesty_kolečkem = max( tuny × 1000 / ${bc(n.vynKolecko)} ,  m³ / ${bc(n.vynKoleckoM3)} )
+sekund_na_cestu = ${bc(n.vynCyklusSek)} + (celých desítek metrů nad 10 m) × ${bc(n.vynVzdalenostSek)}
+hodiny_vodorovně = cesty_kolečkem × sekund_na_cestu / 3600
+
+cesty_kbelíkem = max( tuny × 1000 / ${bc(n.vynKbelik)} ,  m³ / ${bc(n.vynKbelikM3)} )     (jen když je patro > 0)
+hodiny_svisle = cesty_kbelíkem × patra × ${bc(n.vynPatroSek)} × (výtah ? ${bc(n.vynVytahKoef)} : 1) / 3600
+
+vynáška = (hodiny_vodorovně + hodiny_svisle) × (ruční ? ${bc(n.vynRucniKoef)} : 1) × ${bc(n.vynSazba)} Kč
+\`\`\`
+
+### Proč to takhle je
+Umakartové bytové jádro váží 0,8 t, ale má **3,2 m³**. Panely se nedají
+zmáčknout. Podle váhy by stačilo 12 cest, reálně jich uděláš **49**.
+Stejně se chová sádrokarton, izolace, sanita a vana.
+
+Naopak beton a cihly jsou husté — u těch počet cest řídí váha.
+
+**Vždycky spočítej obě čísla a vezmi to větší.** Když to spleteš, prodělá
+firma na každém jádru dva tisíce.
+
+### Kontrolní body (musí ti vycházet zhruba tohle)
+Hutná suť = 1,3 t/m³ (beton, cihly). Lehká objemná = 0,25 t/m³ (jádro, SDK).
+
+| Situace | Hutná Kč/t | Hutná Kč/m³ | Lehká Kč/t |
+|---|---|---|---|
+${uk}
+
+Kontrola proti trhu: **2. patro po schodech musí u hutné suti vyjít kolem
+1 400 Kč/m³** — to je střed toho, za co se odnos suti prodává (1 200–1 600).
+
+## 4. Kontejnery a likvidace
+
+Kontejnery **nedávej do DKT1** — kalkulačka je navrhne sama. Ale spočítej si je,
+abys věděl výslednou cenu, a v rozpadu napiš, s čím jsi počítal.
+
+### Naše kontejnery
+| Kontejner | Objem m³ | Nosnost t | Nákup Kč |
+|---|---|---|---|
+${kont||"| (žádné nejsou nastavené) | | | |"}
+
+### Dopravci
+| Dopravce | Paušál | Kč/km | Dní zdarma | Kč/den navíc |
+|---|---|---|---|---|
+${dop||"| (žádní nejsou nastavení) | | | | |"}
+
+\`\`\`
+cena_dopravce = paušál + km × sazba_km + max(0, dny − dny_zdarma) × cena_den
+\`\`\`
+
+**Nejlevnější dopravce se mění podle vzdálenosti a délky pronájmu** — na krátkou
+vzdálenost vyhrává jeden, na dlouhou jiný. Kalkulačka to porovná sama.
+
+### Rezerva místa
+Do kontejneru počítej **rezervu ${bc(n.kontRezerva)} %** — objem i tonáž.
+Kontejner se nikdy neplní na knop a suť se nedá skládat jako kostky.
+
+\`\`\`
+potřebný_objem = suť_m³ × ${bc(1+(n.kontRezerva||0)/100)}
+potřebná_nosnost = suť_t × ${bc(1+(n.kontRezerva||0)/100)}
+\`\`\`
+
+### Skládkovné
+\`\`\`
+skládkovné_náklad = tuny × ${bc(n.skladkovne)} Kč
+skládkovné_klientovi = náklad × ${bc(1+(n.odvozMarze||0)/100)}
+\`\`\`
+
+Marže na odvozu a likvidaci je **${bc(n.odvozMarze)} %**.
+
+## 5. Materiál
+
+Uveď vždycky **náš nákup** i **cenu klientovi**. Marži si drž kolem 20–30 %.
+
+Ceny, které nemáš z ceníku, **označ jako ODHAD K OVĚŘENÍ**:
+- Půjčovné stěnové diamantové pily: orientačně 2 500–4 500 Kč/den + segmenty.
+  Vždycky napiš, ať si to ověřím v půjčovně.
+- Ocelové překlady: profil určí **až statik**. Do nabídky patří jako samostatná
+  položka s poznámkou „dle statického posudku".
+
+## 6. Doprava party
+
+\`\`\`
+náklad = km × ${bc(n.km)} Kč
+klientovi = max(km × ${bc(n.kmProdej)} Kč, paušál ${bc(n.pausal)} Kč)
+\`\`\`
+
+## 7. Příplatky a slevy
+
+- Víkend/svátek: **+${bc(n.vikendPct)} %** z ceny práce.
+- Expresní termín: **+${bc(n.expresPct)} %** z ceny práce.
+- **Interní přirážka** (\`prirazka\`): zvedne práci i vynášku. Klient ji na
+  faktuře nepozná — promítne se do jednotkových cen. Používej ji, když je
+  zakázka pod prahem zisku, nebo když je něco protivného (špatný přístup,
+  daleko, nabitý termín).
+- **Sleva** (\`sleva\`): viditelná, jde celá z našeho zisku.
+- **Sleva za platbu předem: ${bc(n.slevaPredemPct)} %** — nabízí se klientovi
+  výměnou za peníze dopředu. Do DKT1 ji nedávej, řeší se v kalkulačce.
+
+## 8. DPH
+
+${n.platceDPH
+  ? "Jsme plátci DPH. Bydlení (byt do 120 m², RD do 350 m²) = 12 %, jinak 21 %, subdodávka plátci = přenesená daňová povinnost."
+  : "**NEJSME plátci DPH.** K ceně se nic nepřičítá, cena je konečná. V DKT1 nech `dph: ne` nebo pole vynech.\n\nJe to naše výhoda u domácností — konkurent-plátce musí přidat 12 %. U firem výhoda není, ty si daň odečtou."}
+
+## 9. Kontrola před odevzdáním
+
+Tohle udělej **vždycky**, než odpověď pošleš:
+
+### a) Kč na normohodinu
+Pro každou položku: \`cena_MJ ÷ normohodiny_MJ\`.
+Musí vyjít mezi **400 a 2 200 Kč**. Medián ceníku je kolem **570 Kč**.
+Když ti něco vyjde mimo pásmo, **spletl jsi položku nebo výměru** — najdi to.
+
+### b) Zisk na osobohodinu
+\`\`\`
+zisk = tržba − (nákup materiálu + nákup kontejnerů + skládkovné náklad + doprava náklad)
+hodiny = Σ(množství × normohodiny) × ${bc(n.koefVykon)} + hodiny_vynášky
+zisk_na_osobohodinu = zisk / hodiny
+\`\`\`
+
+Musí být **nad ${bc(n.minZiskOsHod)} Kč**. Když není, napiš to jako první věc
+a navrhni interní přirážku, která to srovná.
+
+Koeficient výkonu party je **${bc(n.koefVykon)}** — normohodiny se jím násobí,
+protože nejsme normovaná parta.
+
+### c) Jednotky
+- m² × tloušťka **není** automaticky m³ — koukni, v čem je položka.
+- ks není bm a bm není m².
+- Otvor 0,9 × 2,0 m = 1,8 m², ale řeže se **jen 3 strany** (spodek je podlaha):
+  0,9 + 2,0 + 2,0 = 4,9 bm.
+
+### d) Zdravý rozum
+Vyjde ti, že dva lidi vybourají byt za půl dne? Nebo že jádro stojí 80 tisíc?
+Vrať se a najdi chybu.
+`;
+}
+
+/* ---------- 03 · co se ptát a co změřit ---------- */
+function soubor03(){
+  const n=S.nastaveni;
+  return `# Co musíš zjistit, než naceníš
+
+Rozdělené podle toho, jak moc to bolí, když to nevíš.
+
+## BEZ TOHOHLE TO NEJDE — ptej se a počkej na odpověď
+
+### Přístup a vynáška
+Tohle dělá u interiérovek klidně třetinu ceny.
+
+- **V jakém podlaží** se pracuje? (0 = přízemí)
+- **Je výtah?** A hlavně: **smí se do něj suť?** SVJ to často zakazuje a je
+  to rozdíl tisíců. Když se nesmí, počítá se to jako po schodech.
+- **Kolik metrů** je od dveří domu k místu, kde bude stát kontejner?
+- Dají se použít kolečka, nebo se všechno nosí v ruce? (úzké schody, zatáčky)
+
+### Konstrukce
+- **Tloušťka** každé zdi nebo příčky, která se bourá. Ne „tak nějak" — v mm.
+- **Materiál**: cihla plná / cihla dutá / beton / **železobeton** / sádrokarton /
+  pórobeton. V paneláku je to skoro vždycky železobeton a to je úplně jiná cena.
+- **Nosná, nebo nenosná?** V paneláku bývá nosná i příčka 120 mm.
+  Když je nosná, potřebuje statický posudek a překlad.
+- **Rozměry** — u zdí délka × výška, u podlah a obkladů plocha v m²,
+  u otvorů šířka × výška.
+
+### Dům
+- **Stáří** — před rokem 1990 hlídej azbest (jádra, podhledy, lepenky, stoupačky).
+- Panelák, nebo cihlový dům?
+- Je to byt, nebo celý dům?
+
+## MĚLO BY SE VĚDĚT — když chybí, zvol předpoklad a napiš ho
+
+- Kolik dveří a zárubní se vybourá?
+- Zůstávají okna a radiátory?
+- Bourá se i podlaha? Jaká — dlažba, plovoucí, koberec, beton?
+- Otloukají se omítky? Na kolika procentech ploch?
+- Je voda a elektřina odpojená? Kdo to zajistí?
+- Kdy se má nastupovat? Je to expres nebo víkend?
+- Máme kde stát s autem a kontejnerem? Potřebuje se zábor?
+
+## HODÍ SE VĚDĚT
+
+- Je klient firma (B2B ceník), nebo domácnost (B2C)?
+- Navazuje na nás někdo? Kdy musíme být pryč?
+- Bydlí se v bytě během prací? (prach, hluk, sousedi)
+- Jak se dostaneme dovnitř — klíče, kdo otevře?
+
+## Jak měřit, ať to sedí
+
+**Tloušťku zdi** změř v otvoru — u dveří nebo okna. Když otvor není, klepni:
+dutý zvuk = příčka, plný a tvrdý = nosná nebo beton. Při pochybnosti to napiš
+jako nejistotu, ať se počítá s horší variantou.
+
+**Plochu příček** ber jako délka × výška. Výška v paneláku je obvykle 2,6 m.
+
+**Otvor** = šířka × výška. Ale řeže se jen po obvodu, a u dveří **jen 3 strany** —
+spodek je podlaha. Řez pro dveře 0,9 × 2,0 m = 0,9 + 2 × 2,0 = **4,9 bm**.
+
+**Vzdálenost ke kontejneru** krokuj. Jeden krok ≈ 0,75 m. Neodhaduj od oka,
+lidi to podceňují o polovinu.
+
+## Co vyfotit
+
+1. Každou konstrukci, která se bude bourat — celek i detail.
+2. Celkový pohled na každou místnost.
+3. **Cestu ven**: chodba, schody, dveře, výtah (i s cedulí, když tam nějaká je).
+4. Místo, kde bude stát kontejner, a příjezd k němu.
+5. Cokoliv podezřelého — vlhko, praskliny, staré izolace, neznámé trubky.
+6. K měřítku přilož něco známého (metr, ruka, cihla), ať jde odhadnout velikost.
+
+## Věty, které na prohlídce zachrání peníze
+
+- „Smí se do výtahu suť?"
+- „Je tahle zeď nosná?"
+- „Kdo zajistí odpojení vody a elektřiny?"
+- „Kdy přesně to musí být hotové?"
+- „Je v domě azbest? Víte o tom něco?"
+- „Kde může stát kontejner? Je na to potřeba povolení?"
+`;
+}
+
+/* ---------- 04 · formát DKT1 ---------- */
+function soubor04(){
+  const n=S.nastaveni;
+  return `# Formát DKT1 — jak vrátit zakázku do kalkulačky
+
+Na konci každého nacenění vrátíš **jeden code blok**, který začíná řádkem \`DKT1\`.
+Já ho zkopíruju a vložím do kalkulačky (Kalkulace → Načíst zakázku z textu),
+a ona z něj udělá hotovou zakázku — nabídku, fakturu, protokol, evidenci odpadů.
+
+## Pravidla
+
+- Jeden údaj na řádek, ve tvaru \`klíč: hodnota\`.
+- **ID položek musí být doslova z ceníku.** Nikdy je neupravuj, nezkracuj,
+  nepřekládej. Když ID neexistuje, kalkulačka položku zahodí a upozorní mě.
+- Desetinná čísla s tečkou i s čárkou — obojí projde.
+- Množství vždycky v MJ té položky (m², bm, ks, m³, kpl).
+- **Vynášku, kontejnery, skládkovné ani dopravu do bloku NEDÁVEJ.**
+  Kalkulačka si je spočítá sama z položek. Kdybys je tam dal, počítaly by se dvakrát.
+- Neznámé klíče se přeskočí a vypíšou jako varování — nevadí, ale nedělej to schválně.
+- Markdown ohraničení (\`\`\`) kolem bloku nevadí, kalkulačka ho ignoruje.
+
+## Všechny klíče
+
+\`\`\`
+DKT1
+nazev: krátký název zakázky
+klient: jméno nebo firma
+adresa: ulice, město
+poznamka: co musí být vyřešené před nástupem
+zdroj: odkud zakázka přišla
+cenik: b2c                (b2c = domácnost, b2b = subdodávka; když vynecháš, bere se b2c)
+dph: ${n.platceDPH?"12":"ne"}                   (${n.platceDPH?"12 / 21 / rc / ne":"nejsme plátci — nech ne"})
+patro: 0                  (0 = přízemí)
+vytah: ano                (ano jen když se do něj SMÍ suť)
+vzdalenost: 15            (metry od dveří domu ke kontejneru)
+rucni: ne                 (ano = ztížené ruční nošení bez koleček)
+km: 12                    (kilometry k dopravci; když nevíš, dej 15)
+dny: 3                    (kolik dní bude kontejner stát; když nevíš, dej 3)
+lide: ${bc(n.lide)}
+rezerva: ${bc(n.rezerva)}
+prirazka: 0               (interní přirážka v %, klient ji nevidí)
+sleva: 0                  (viditelná sleva v %)
+predem: ne                (ano = klient platí celou částku předem)
+prace: ID | množství
+prace: ID | množství
+material: název | náš nákup | cena klientovi
+ostatni: název | náš náklad | účtováno klientovi
+vlastni: název | množství | MJ | cena za MJ | suť t/MJ | suť m³/MJ | normohodiny/MJ
+\`\`\`
+
+Povinné je jenom **aspoň jeden řádek \`prace:\`**. Zbytek doplň, co víš.
+
+## Kdy použít \`vlastni:\`
+
+Jenom když v ceníku fakt nic nesedí. Pak v textu **nad blokem** vysvětli:
+- proč jsi nenašel položku,
+- kolik hodin to podle tebe zabere,
+- jak jsi došel k ceně (normohodiny × 570 Kč).
+
+Suť odhadni taky — bez ní se špatně spočítá vynáška i kontejnery.
+
+## Příklad — jádro v paneláku ve 2. patře
+
+\`\`\`
+DKT1
+nazev: Bytové jádro — Zábřeh, Postřelmovská
+klient: Jana Nováková
+adresa: Postřelmovská 12, Zábřeh
+poznamka: Panelák 1978 — možný azbest v jádru, při nálezu STOP a přecenění.
+cenik: b2c
+dph: ne
+patro: 2
+vytah: ano
+vzdalenost: 20
+km: 8
+dny: 3
+rezerva: ${bc(n.rezerva)}
+prirazka: 0
+sleva: 0
+prace: zakryti | 15
+prace: jadroU | 1
+prace: sanita | 3
+prace: vana | 1
+prace: dlazba | 6
+prace: obklad | 18
+prace: uklid | 1
+material: Fólie, pásky, pytle | 600 | 900
+\`\`\`
+
+## Co se stane po vložení
+
+Kalkulačka:
+1. Ocení položky **mým** ceníkem — i kdybys počítal se starými cenami.
+2. Spočítá vynášku z tonáže i objemu podle podlaží, výtahu a vzdálenosti.
+3. Navrhne kontejnery včetně rezervy místa a vybere nejlevnějšího dopravce.
+4. Přidá rezervu, skládkovné, dopravu.
+5. **Upozorní mě, když zisk spadne pod ${bc(n.minZiskOsHod)} Kč na osobohodinu.**
+6. Vypíše všechna varování — neznámá ID, nulová množství, vlastní položky.
+
+Pak už jen zkontroluju výměry, doplním klienta a tisknu nabídku.
+`;
+}
+
+/* ---------- 05 · rizika, klauzule, legislativa ---------- */
+function soubor05(){
+  const n=S.nastaveni;
+  return `# Rizika a klauzule — co musí být v nabídce
+
+Tohle nejsou formality. Každý bod je něco, na čem se dá prodělat víc, než je
+celá zakázka.
+
+## Nosné konstrukce
+
+**Do nosné zdi, stropu ani průvlaku se nezasahuje bez statického posudku.**
+
+Když zakázka obsahuje otvor v nosné konstrukci, do nabídky vždycky patří:
+
+> Statický posudek zajišťuje objednatel. Bez pravomocného posouzení nezahajujeme
+> práce na nosných konstrukcích. Návrh a dodávka ocelového překladu není součástí
+> ceny bourání — profil určí statik.
+
+A do rozpadu ceny:
+- Ocel jako **samostatná položka materiálu** s poznámkou „dle statického posudku".
+- Položka za osazení překladu vč. podepření (v ceníku je).
+
+**Jak poznat nosnou zeď v paneláku:** skoro všechny příčné stěny jsou nosné,
+i když jsou tenké. Železobetonová příčka 120 mm může být nosná. Když si nejsi
+jistý, počítej s tím, že nosná je.
+
+## Železobeton se neřeže kladivem
+
+Do ŽB se řeže **diamantovou pilou nebo lanem**. Kdo do panelu bouchne bouracím
+kladivem, nadělá praskliny přes celý panel a zaplatí je.
+
+Půjčovné stěnové pily patří do materiálu. Orientačně 2 500–4 500 Kč/den plus
+opotřebení segmentů — **vždycky napiš, ať si to ověřím v půjčovně**, liší se to.
+
+## Azbest
+
+**Dům před rokem 1990 = podezření na azbest.** Kde bývá:
+- umakartová bytová jádra (desky, lepenka za nimi)
+- podhledy a příčky z desek
+- izolace stoupaček a rozvodů
+- lepidla pod podlahami, staré lepenky
+- eternitové krytiny a parapety
+
+Klauzule do nabídky:
+
+> Cena nezahrnuje odstranění materiálů s obsahem azbestu. Při podezření na azbest
+> práce neprodleně přerušíme, provedeme odběr vzorku a rozsah přeceníme.
+> Odstranění azbestu provádí oprávněná osoba dle zákona č. 541/2020 Sb.
+
+**Nikdy azbest nebourej.** Není to o pokutě, je to o plicích.
+
+## SVJ a úřady
+
+- Zásah do nosné konstrukce v bytovém domě → **souhlas SVJ**.
+- Změna vzhledu fasády (balkonové dveře z okna) → **souhlas SVJ**, často
+  i stavební úřad.
+- Suť do výtahu → **jen když to SVJ dovolí**. Zeptej se na to při prohlídce,
+  je to rozdíl tisíců ve vynášce.
+- Zábor veřejného prostranství pro kontejner → povolení od města.
+
+Do nabídky:
+
+> Souhlasy vlastníků, SVJ a případná povolení zajišťuje objednatel.
+
+## Odpady
+
+Suť je odpad a musí se předat oprávněné osobě. Vážní lístky si necháváme —
+jsou přílohou předávacího protokolu.
+
+Nejčastější kódy (vyhl. č. 8/2021 Sb.):
+| Kód | Co to je |
+|---|---|
+| 17 01 01 | beton |
+| 17 01 02 | cihly |
+| 17 01 03 | tašky a keramika |
+| 17 01 07 | směsi betonu, cihel a keramiky bez nebezpečných látek |
+| 17 02 01 | dřevo |
+| 17 02 03 | plasty |
+| 17 04 05 | železo a ocel |
+| 17 06 05* | stavební materiály obsahující azbest (nebezpečný) |
+| 17 08 02 | stavební materiály na bázi sádry |
+| 17 09 04 | směsný stavební a demoliční odpad |
+
+## Co musí zajistit objednatel
+
+Do nabídky i do potvrzení termínu:
+
+> Před zahájením prací objednatel zajistí: odpojení elektřiny, vody a plynu
+> v dotčených částech, vyklizení prostoru, přístup pro pracovníky a možnost
+> umístění kontejneru.
+
+Když to nezajistí, stojíme a účtujeme prostoj.
+
+## Vícepráce
+
+**Nikdy nedělej nic navíc bez písemného odsouhlasení.** Když se při bourání
+narazí na skrytou konstrukci, postup je:
+
+1. Zastavit tuhle část, pokračovat na zbytku.
+2. Vyfotit.
+3. Poslat dodatek s cenou.
+4. Až po odsouhlasení pokračovat.
+
+Kalkulačka na to má sekci Vícepráce a tiskne dodatek k podpisu.
+
+## Platební podmínky
+
+- Záloha **${bc(n.zaloha)} %** před zahájením prací.
+- Doplatek do **${bc(n.fakSplatnost)} dnů** od předání.
+- Nebo celá částka předem se slevou **${bc(n.slevaPredemPct)} %** — lepší
+  cash flow, nefinancujeme kontejnery a materiál z vlastního.
+
+## Bezpečnost
+
+- Práce ve výšce nad 1,5 m — zajištění proti pádu.
+- Prach: respirátor FFP3, ne rouška. U ŽB řezání i chlazení vodou.
+- Hluk: sousedi mají právo na klid, dopředu je upozorni.
+- Nářadí musí mít platnou revizi (ČSN 33 1600 ed. 2) — bez ní pojišťovna
+  nemusí plnit. Kalkulačka revize hlídá a upozorní.
+
+## Věty, které do nabídky patří vždycky
+
+> Cena je platná 14 dní od data vystavení.
+> Cena nezahrnuje práce, které nebylo možné zjistit při prohlídce (skryté
+> konstrukce, armatura ve zdivu, dvojité konstrukce). Takové práce se řeší
+> písemným dodatkem před jejich provedením.
+${n.platceDPH?"":"> Nejsme plátci DPH — uvedená cena je konečná."}
+`;
+}
+
+/* ---------- 06 · vzorové zakázky i s postupem ----------
+   Příklady se počítají ŽIVĚ z aktuálního ceníku a sazeb, takže čísla v balíku
+   vždycky sedí na to, co kalkulačka opravdu spočítá. Slouží zároveň jako
+   zkouška: když Claude na stejném zadání vyjde jinak, něco je špatně. */
+function prikladVypocet(polozky, opt){
+  const n=S.nastaveni;
+  /* Postavíme dočasnou zakázku přesně tak, jak ji postaví import DKT1, a necháme
+     ji spočítat vlastní vypocet(). Jinak by se příklad rozešel s aplikací
+     u čehokoliv, co závisí na dalších polích zakázky (ceny dopravce podle km a dnů). */
+  const zaloha=J;
+  const t=defJob(n);
+  t.patro=opt.patro; t.vytah=opt.vytah; t.vytahNaSut=opt.vytah;
+  t.vzdalenost=opt.vzdalenost; t.kmDopravce=opt.km!==undefined?opt.km:15;
+  t.dnyKontejneru=opt.dny!==undefined?opt.dny:3;
+  t.material=(opt.material||[]).map(m=>({nazev:m[0],nakup:m[1],prodej:m[2]}));
+  const chybi=[];
+  t.prace=polozky.map(([id,mn])=>{
+    const it=S.cenik.find(x=>x.id===id);
+    if(!it){chybi.push(id);return null}
+    return {polozkaId:it.id,nazev:it.nazev,mj:it.mj,kat:it.kat,mnozstvi:mn,
+      cena:it.b2c,sutT:it.sutT,sutM3:it.sutM3,hod:it.hod,hvezd:it.hvezd};
+  }).filter(Boolean);
+  J=t;
+  const sut=sutCelkem(), vars=kontVarianty(sut.m3,sut.t);
+  if(vars.length)t.kontejnery=vars[0].types.map((k,i)=>vars[0].counts[i]>0?kontRow(k,vars[0].counts[i]):null).filter(Boolean);
+  const v=vypocet();
+  J=zaloha;
+
+  const radky=polozky.map(([id,mn,pozn])=>{
+    const it=S.cenik.find(x=>x.id===id);
+    if(!it)return {chyba:id};
+    return {id,nazev:it.nazev,mn,mj:it.mj,cena:it.b2c,celkem:it.b2c*mn,pozn:pozn||"",
+      kcNhod:it.hod>0?it.b2c/it.hod:0};
+  });
+  return {radky,chybi,prace:v.prace,t:v.sut.t,m3:v.sut.m3,vyn:v.vyn,vynKc:v.vynaska,
+    rezerva:v.rezerva,matP:v.matP,matN:v.matN,sklN:v.sklN,sklP:v.sklP,
+    kontP:v.kontP,kontN:v.kontN,kontPopis:(vars.length?vars[0].label:"—"),
+    trzba:v.trzba,naklady:v.naklady,zisk:v.zisk,hodiny:v.hodiny,
+    rez:1+(n.kontRezerva||0)/100,
+    zsHod:v.hodiny>0?v.zisk/v.hodiny:0, dny:v.dny};
+}
+function prikladText(nadpis, zadani, otazky, polozky, opt, dkt, pozor){
+  const n=S.nastaveni;
+  const v=prikladVypocet(polozky, opt);
+  const L=[];
+  L.push("## "+nadpis);
+  L.push("");
+  L.push("**Zadání, jak přišlo:** "+zadani);
+  L.push("");
+  if(otazky.length){
+    L.push("**Na co jsem se doptal:**");
+    otazky.forEach(o=>L.push("- "+o));
+    L.push("");
+  }
+  L.push("**Položky:**");
+  L.push("");
+  L.push("| Položka | ID | Množství | Kč/MJ | Celkem | Kč/normohod. |");
+  L.push("|---|---|---|---|---|---|");
+  v.radky.forEach(r=>{
+    if(r.chyba){L.push("| CHYBĚJÍCÍ ID "+r.chyba+" | | | | | |");return}
+    L.push("| "+r.nazev+(r.pozn?" *("+r.pozn+")*":"")+" | `"+r.id+"` | "+
+      fmt1.format(r.mn)+" "+r.mj+" | "+Math.round(r.cena)+" | "+Math.round(r.celkem)+" | "+
+      (r.kcNhod?Math.round(r.kcNhod):"—")+" |");
+  });
+  L.push("| **Práce celkem** | | | | **"+Math.round(v.prace)+"** | |");
+  L.push("");
+  L.push("Všechny poměry Kč/normohodinu padly do pásma 400–2 200. Sedí.");
+  L.push("");
+  L.push("**Vynáška** — suť "+fmt1.format(v.t)+" t / "+fmt1.format(v.m3)+" m³, "+
+    (opt.patro===0?"přízemí":opt.patro+". patro"+(opt.vytah?" s výtahem":" po schodech"))+
+    ", "+opt.vzdalenost+" m ke kontejneru:");
+  L.push("");
+  L.push("```");
+  L.push("cesty podle váhy:  "+fmt1.format(v.t)+" × 1000 / "+bc(n.vynKolecko)+" = "+v.vyn.cestVaha);
+  L.push("cesty podle objemu: "+fmt1.format(v.m3)+" / "+bc(n.vynKoleckoM3)+" = "+v.vyn.cestObjem);
+  L.push("→ počet cest řídí "+(v.vyn.ridiObjem?"OBJEM":"VÁHA")+", beru "+v.vyn.cestyKolecko+" cest");
+  if(opt.patro>0)L.push("svisle kbelíkem: "+v.vyn.cestyKbelik+" cest × "+opt.patro+" patra"+(opt.vytah?" × "+bc(n.vynVytahKoef)+" (výtah)":""));
+  L.push("celkem "+fmt1.format(v.vyn.hodiny)+" h × "+bc(n.vynSazba)+" Kč = "+Math.round(v.vynKc)+" Kč");
+  L.push("```");
+  L.push("");
+  L.push("**Odvoz** — s rezervou "+bc(n.kontRezerva)+" % je potřeba "+
+    fmt1.format(v.m3*v.rez)+" m³ a "+fmt1.format(v.t*v.rez)+" t → "+v.kontPopis+".");
+  L.push("");
+  L.push("**Rozpad ceny:**");
+  L.push("");
+  L.push("| | Kč |");
+  L.push("|---|---|");
+  L.push("| Práce | "+Math.round(v.prace)+" |");
+  L.push("| Rezerva "+bc(n.rezerva)+" % | "+Math.round(v.rezerva)+" |");
+  L.push("| Vynáška suti | "+Math.round(v.vynKc)+" |");
+  if(v.matP)L.push("| Materiál | "+Math.round(v.matP)+" |");
+  L.push("| Kontejnery | "+Math.round(v.kontP)+" |");
+  L.push("| Likvidace "+fmt1.format(v.t)+" t | "+Math.round(v.sklP)+" |");
+  L.push("| **CENA CELKEM"+(n.platceDPH?" bez DPH":"")+"** | **"+Math.round(v.trzba)+"** |");
+  L.push("");
+  L.push("**Naše ekonomika:** náklady "+Math.round(v.naklady)+" Kč → zisk **"+
+    Math.round(v.zisk)+" Kč**, práce "+fmt1.format(v.hodiny)+" osobohodin = "+
+    fmt1.format(v.dny)+" dne pro "+(n.lide||2)+" lidi → **"+Math.round(v.zsHod)+
+    " Kč na osobohodinu** (práh je "+bc(n.minZiskOsHod)+", "+
+    (v.zsHod>=(n.minZiskOsHod||0)?"jsme nad ním":"POD PRAHEM — zvednout přirážku")+").");
+  L.push("");
+  if(pozor.length){
+    L.push("**Na co upozornit klienta:**");
+    pozor.forEach(p=>L.push("- "+p));
+    L.push("");
+  }
+  L.push("**Blok pro kalkulačku:**");
+  L.push("");
+  L.push("```");
+  L.push(dkt.join("\n"));
+  polozky.forEach(([id,mn])=>L.push("prace: "+id+" | "+mn));
+  (opt.material||[]).forEach(m=>L.push("material: "+m[0]+" | "+m[1]+" | "+m[2]));
+  L.push("```");
+  return L.join("\n");
+}
+
+function soubor06(){
+  const n=S.nastaveni;
+  const L=["# Vzorové zakázky",
+    "",
+    "Verze: "+balikVerze(),
+    "",
+    "Tři hotové zakázky i s postupem. Slouží ke dvěma věcem: ukazují, jak má",
+    "vypadat odpověď, a dají se použít jako **zkouška** — když na stejném zadání",
+    "vyjdeš jinak, hledej chybu u sebe.",
+    ""];
+
+  L.push(prikladText(
+    "Panelák Severák — otvory v nosné stěně + bytové jádro",
+    "„Panelákovej byt v Zábřehu na Severáku, v přízemí. Vyřezat otvor na balkonové dveře a pak nový otvor pro dveře v nosné příčce železobeton tl. 120. Plus vybourání jádra, odnos suti a likvidace.“",
+    ["Dveřní otvor 0,9 × 2,0 m, parapet pod oknem 0,9 × 0,85 m — potvrzeno.",
+     "Stěna železobeton 120 mm → položky pro tl. do 150 mm.",
+     "Přízemí, ke kontejneru 15 m, dopravce 12 km, kontejner na 3 dny.",
+     "Jádro umakartové. Dům z konce 70. let → azbestová klauzule."],
+    [["rez150",7.5,"3 strany dveří 4,9 bm + 3 strany parapetu 2,6 bm"],
+     ["otvor-zb-4m2-150",1.8,"vyjmutí a rozbití bloku dveří"],
+     ["otvor-zb-1m2-150",0.77,"parapet pod oknem"],
+     ["preklad",2.4,"2 profily po 1,2 bm"],
+     ["jadroU",1],["sanita",3],["vana",1],
+     ["zakryti",25],["uklid",1]],
+    {patro:0,vytah:true,vzdalenost:15,km:12,dny:3,
+     material:[["Půjčovné stěnové diamantové pily (2 dny) — ODHAD, ověřit",9000,11500],
+       ["Ocelové překlady 2× dle statického posudku — ODHAD",5200,6800],
+       ["Fólie, pásky, kotouče, pytle",1400,1900]]},
+    ["DKT1","nazev: Panelák Severák — otvory + jádro","adresa: Zábřeh, Severák",
+     "poznamka: Nosná stěna — statický posudek a souhlas SVJ zajišťuje objednatel. Panelák 70. léta, možný azbest v jádru.",
+     "cenik: b2c","dph: "+(n.platceDPH?"12":"ne"),"patro: 0","vytah: ano","vzdalenost: 15",
+     "km: 12","dny: 3","rezerva: "+bc(n.rezerva),"prirazka: 0","sleva: 0"],
+    ["**Statický posudek na oba otvory** zajišťuje objednatel — bez něj neřežeme.",
+     "**Souhlas SVJ** — zásah do nosné konstrukce i změna fasády.",
+     "**Profil oceli určí statik**, cena překladů je odhad.",
+     "**Cena půjčovného pily je odhad** — ověřit v půjčovně.",
+     "**Možný azbest** v jádru — při nálezu STOP a přecenění."]
+  ));
+  L.push(""); L.push("---"); L.push("");
+
+  L.push(prikladText(
+    "Byt 3+1 před rekonstrukcí — 2. patro bez výtahu",
+    "„Byt 3+1, asi 68 m², druhý patro, výtah v domě není. Cihlovej dům. Chceme vybourat příčky mezi kuchyní a obývákem, zbourat jádro, dát pryč dlažbu a obklady v koupelně a kuchyni, sundat dveře i zárubně.“",
+    ["Příčky cihla dutá 115 mm, 14 m² — potvrzeno na místě.",
+     "Jádro zděné (cihlový dům, ne panelák).",
+     "Dlažba 9 m², obklady 22 m².",
+     "5 dveří včetně ocelových zárubní.",
+     "Ke kontejneru 25 m, výtah není → všechno po schodech ze 2. patra."],
+    [["zakryti",30,"ochrana chodby a schodiště"],
+     ["pr100",14],["jadroZ",1],["sanita",3],["vana",1],
+     ["kuchyn",4],["dlazba",9],["obklad",22],
+     ["dvere",5],["zaruben",5],["uklid",1]],
+    {patro:2,vytah:false,vzdalenost:25,km:15,dny:4,
+     material:[["Fólie, pásky, pytle, kotouče",1200,1600]]},
+    ["DKT1","nazev: Byt 3+1 před rekonstrukcí","cenik: b2c","dph: "+(n.platceDPH?"12":"ne"),
+     "patro: 2","vytah: ne","vzdalenost: 25","km: 15","dny: 4",
+     "rezerva: "+bc(n.rezerva),"prirazka: 0","sleva: 0",
+     "poznamka: 2. patro bez výtahu — všechna suť po schodech. Ověřit, že příčky nejsou nosné."],
+    ["**Ověřit, že příčky opravdu nejsou nosné** — v cihlovém domě to jde poznat podle tloušťky, ale při pochybnosti volat statika.",
+     "**Vynáška ze 2. patra bez výtahu je tady největší položka po práci** — klientovi to vysvětlit, ne schovávat.",
+     "Zděné jádro je těžké — hlídat nosnost kontejneru, ne jen objem.",
+     "Sousedi: prach a hluk na schodišti, upozornit dopředu."]
+  ));
+  L.push(""); L.push("---"); L.push("");
+
+  L.push(prikladText(
+    "Malá zakázka — jeden otvor pro dveře v cihlové příčce",
+    "„Potřebuju udělat průchod mezi dvěma pokojema, zeď je cihlová asi 15 cm, přízemí rodinnýho domu.“",
+    ["Otvor 0,9 × 2,0 m = 1,8 m².",
+     "Cihelné zdivo na maltu, tl. 150 mm — nenosné, potvrzeno majitelem i klepnutím.",
+     "Přízemí, ke kontejneru 8 m.",
+     "Překlad ano — i u nenosné příčky se nad otvor dává."],
+    [["zakryti",12,"ochrana obou místností"],
+     ["otvor-cihla-m2",1.8],
+     ["preklad",2.4,"2 profily po 1,2 bm"],
+     ["uklid",1]],
+    {patro:0,vytah:true,vzdalenost:8,km:15,dny:2,
+     material:[["Ocelové překlady 2× — ODHAD, ověřit ve stavebninách",1800,2400],
+       ["Fólie, pásky, pytle",400,600]]},
+    ["DKT1","nazev: Otvor pro dveře v cihlové příčce","cenik: b2c","dph: "+(n.platceDPH?"12":"ne"),
+     "patro: 0","vytah: ano","vzdalenost: 8","km: 15","dny: 2",
+     "rezerva: "+bc(n.rezerva),"prirazka: 0","sleva: 0",
+     "poznamka: Příčka nenosná dle sdělení objednatele. Při nálezu nosné konstrukce práce přerušíme."],
+    ["**Malá zakázka** — režie výjezdu sežere marži. Zvaž paušál a interní přirážku.",
+     "Pokud se při bourání ukáže, že příčka je nosná, **okamžitě zastavit** a volat statika.",
+     "Cena překladu je odhad — ověřit ve stavebninách."]
+  ));
+
+  L.push("");
+  L.push("---");
+  L.push("");
+  L.push("## Jak si ověřit, že počítáš správně");
+  L.push("");
+  L.push("Vezmi zadání z prvního příkladu, spočítej ho podle souboru 02-JAK-POCITAT.md a porovnej");
+  L.push("s čísly nahoře. Musí sedět na pár korun (rozdíly ze zaokrouhlení jsou v pořádku).");
+  L.push("");
+  L.push("Když ti vyjde jinak, nejčastější příčiny bývají:");
+  L.push("");
+  L.push("1. **Vynáška počítaná jen z tonáže** — musíš brát i objem a vzít větší počet cest.");
+  L.push("2. **Špatná varianta položky** — jiná tloušťka nebo jiná velikost otvoru.");
+  L.push("3. **Řez počítaný na 4 strany** místo 3 (spodek dveřního otvoru se neřeže).");
+  L.push("4. **Zapomenutá rezerva** "+bc(n.rezerva)+" % nebo koeficient výkonu "+bc(n.koefVykon)+".");
+  L.push("5. **Kontejner bez rezervy místa** "+bc(n.kontRezerva)+" %.");
+  return L.join("\n");
+}
+
+/* ---------- 07 a 08 · ceníky v CSV ---------- */
+function cenikCSV(polozky, nadpis){
+  const n=S.nastaveni;
+  const esc=s=>{s=String(s==null?"":s); return /[";\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;};
+  const L=[];
+  L.push("# "+nadpis+" — "+balikVerze());
+  L.push("# ID je závazné, používej ho doslova. kc_normohodina je kontrolní sloupec (musí být 400-2200).");
+  L.push("# Oddělovač je stredník. Desetinna tecka.");
+  L.push(["id","kategorie","nazev","mj","cena_b2c","cena_b2b","sut_t_na_mj","sut_m3_na_mj","normohodiny_na_mj","narocnost_hvezd","kc_normohodina"].join(";"));
+  polozky.forEach(i=>{
+    L.push([esc(i.id),esc(i.kat),esc(i.nazev),esc(i.mj),i.b2c,i.b2b,i.sutT,i.sutM3,i.hod,i.hvezd,
+      i.hod>0?Math.round(i.b2c/i.hod):""].join(";"));
+  });
+  return L.join("\n");
+}
+function cenikJadro(){
+  /* vlastní položky + všechno, co jsme reálně někdy použili */
+  const pouzite=new Set();
+  S.zakazky.forEach(z=>(z.prace||[]).forEach(r=>{if(r.polozkaId)pouzite.add(r.polozkaId)}));
+  (S.job&&S.job.prace||[]).forEach(r=>{if(r.polozkaId)pouzite.add(r.polozkaId)});
+  return S.cenik.filter(i=>!/^rts-/.test(i.id)||pouzite.has(i.id));
+}
+
+/* ---------- sestavení balíku ---------- */
+function balikSoubory(){
+  const jadro=cenikJadro();
+  return [
+    {nazev:"00-ZACNI-TADY.md",        obsah:soubor00()},
+    {nazev:"01-ROLE-A-POSTUP.md",     obsah:soubor01()},
+    {nazev:"02-JAK-POCITAT.md",       obsah:soubor02()},
+    {nazev:"03-CO-SE-PTAT.md",        obsah:soubor03()},
+    {nazev:"04-FORMAT-DKT1.md",       obsah:soubor04()},
+    {nazev:"05-RIZIKA-A-KLAUZULE.md", obsah:soubor05()},
+    {nazev:"06-PRIKLADY.md",          obsah:soubor06()},
+    {nazev:"07-CENIK-UPLNY.csv",      obsah:cenikCSV(S.cenik,"Úplný ceník")},
+    {nazev:"08-CENIK-JADRO.csv",      obsah:cenikCSV(jadro,"Zkrácený ceník — co reálně používáme")}
+  ];
+}
+function balikStav(t,zprava){
+  const el=$("#balikStav"); if(!el)return;
+  el.innerHTML="<span class='"+(t==="ok"?"ok":"ne")+"'>"+zprava+"</span>";
+}
+function renderBalikSeznam(){
+  const el=$("#balikSeznam"); if(!el)return;
+  const f=balikSoubory();
+  let celkem=0;
+  el.innerHTML="<div class='tscroll'><table><thead><tr><th>Soubor</th><th>Co obsahuje</th><th class='r'>Velikost</th><th></th></tr></thead><tbody>"+
+    f.map((x,ix)=>{
+      celkem+=x.obsah.length;
+      const popis={
+        "00-ZACNI-TADY.md":"návod, jak si založit projekt v Claudovi",
+        "01-ROLE-A-POSTUP.md":"instrukce projektu — kdo Claude je a jak pracuje",
+        "02-JAK-POCITAT.md":"kompletní model výpočtu se všemi našimi sazbami",
+        "03-CO-SE-PTAT.md":"co zjistit a změřit na prohlídce",
+        "04-FORMAT-DKT1.md":"formát kódu, který se vrací do kalkulačky",
+        "05-RIZIKA-A-KLAUZULE.md":"statika, azbest, SVJ, odpady, bezpečnost",
+        "06-PRIKLADY.md":"tři hotové zakázky i s postupem — na ověření",
+        "07-CENIK-UPLNY.csv":"všech "+S.cenik.length+" položek",
+        "08-CENIK-JADRO.csv":"zkrácený ceník, "+cenikJadro().length+" položek"
+      }[x.nazev]||"";
+      return "<tr><td><code>"+esc(x.nazev)+"</code></td><td class='hint'>"+esc(popis)+"</td>"+
+        "<td class='r num'>"+Math.max(1,Math.round(x.obsah.length/1024))+" kB</td>"+
+        "<td><button class='b sm balikJeden' data-ix='"+ix+"'>Stáhnout</button></td></tr>";
+    }).join("")+
+    "<tr><td colspan='2'><b>Celkem</b></td><td class='r num'><b>"+Math.round(celkem/1024)+" kB</b></td><td></td></tr>"+
+    "</tbody></table></div>";
+}
+function stahniBalikZip(){
+  try{
+    const f=balikSoubory();
+    const blob=ZIP.vytvor(f);
+    stahniBlob(blob,"nacenovaci-balik-"+new Date().toISOString().slice(0,10)+".zip");
+    balikStav("ok","✓ Staženo "+f.length+" souborů ("+Math.round(blob.size/1024)+" kB). Rozbal ZIP a nahraj všechno do projektu v Claudovi — návod je v souboru 00.");
+  }catch(e){
+    balikStav("ne","ZIP se nepovedl ("+e.message+"). Stáhni si soubory jednotlivě tlačítky v tabulce.");
+  }
+}
+function stahniBalikJeden(ix){
+  const f=balikSoubory()[ix]; if(!f)return;
+  const typ=/\.csv$/.test(f.nazev)?"text/csv;charset=utf-8":"text/markdown;charset=utf-8";
+  stahniBlob(new Blob([f.obsah],{type:typ}),f.nazev);
+  balikStav("ok","✓ Staženo "+f.nazev+".");
+}
+function zkopirujInstrukce(){
+  const t=soubor01();
+  const ta=document.createElement("textarea");
+  ta.value=t; ta.style.position="fixed"; ta.style.opacity="0";
+  document.body.appendChild(ta); ta.select();
+  let ok=false;
+  try{ok=document.execCommand("copy")}catch(e){}
+  document.body.removeChild(ta);
+  if(ok)balikStav("ok","✓ Instrukce projektu zkopírované ("+Math.round(t.length/1024)+" kB). Vlož je v Claudovi do „Project instructions“.");
+  else if(navigator.clipboard)navigator.clipboard.writeText(t).then(
+    ()=>balikStav("ok","✓ Instrukce projektu zkopírované."),
+    ()=>balikStav("ne","Nepovedlo se zkopírovat — stáhni si soubor 01 z tabulky."));
+  else balikStav("ne","Prohlížeč nepustil kopírování — stáhni si soubor 01 z tabulky.");
+}
+
 /* ================= NACEŇOVACÍ BRIEF PRO CLAUDE =================
    Vygeneruje jedno velké zadání, které se vloží do Clauda (web/mobil) spolu
    s fotkami a mírami z prohlídky. Claude vrátí blok DKT1, ten se sem vloží
@@ -4270,6 +5408,16 @@ $("#exportZakBtn").addEventListener("click",()=>{
   try{ok=document.execCommand("copy")}catch(e){}
   if(navigator.clipboard&&!ok)navigator.clipboard.writeText(kod).catch(()=>{});
   $("#importZakStav").innerHTML="<span class='ok'>Kód zakázky ("+kod.length+" znaků) je v poli výše"+(ok?" a ve schránce":"")+". Pošli ho parťákovi třeba přes WhatsApp.</span>";
+});
+$("#balikZip").addEventListener("click",stahniBalikZip);
+$("#balikInstrukce").addEventListener("click",zkopirujInstrukce);
+$("#balikNahled").addEventListener("click",()=>{
+  const el=$("#balikSeznam");
+  if(el.style.display==="none"){renderBalikSeznam();el.style.display="";$("#balikNahled").textContent="👁 Skrýt náhled";}
+  else{el.style.display="none";$("#balikNahled").textContent="👁 Náhled souborů";}
+});
+$("#balikSeznam").addEventListener("click",e=>{
+  const b=e.target.closest(".balikJeden"); if(b)stahniBalikJeden(+b.dataset.ix);
 });
 $("#briefKopie").addEventListener("click",()=>zkopirujBrief(false));
 $("#briefKopieU").addEventListener("click",()=>zkopirujBrief(true));
