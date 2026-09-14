@@ -292,6 +292,26 @@ details.gsec li{margin:3px 0}
 .fa-editor .chyby{background:var(--bad-bg);border:1px solid var(--bad);color:var(--bad);border-radius:8px;padding:8px 10px;font-size:13px;margin-top:10px}
 .fa-editor .chyby ul{margin:4px 0 0;padding-left:18px}
 .fa-editor .zamceno{background:var(--surface2);border-radius:8px;padding:9px 11px;font-size:13px;color:var(--muted);margin-bottom:10px}
+.fa-editor .zamceno.storno{background:var(--warn-bg);color:var(--warn-ink);border:1px solid var(--warn-line)}
+.fa-editor .pol-hl span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.fa-editor .pol-ro{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.fa-editor .pol-ro b{white-space:nowrap;font-variant-numeric:tabular-nums}
+.fa-editor select{border:1px solid var(--line);border-radius:7px;padding:7px 9px;background:var(--ground);color:var(--ink);width:100%}
+.fa-souhrn{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:10px;padding:9px 12px;border-radius:9px;background:var(--ink);color:var(--surface)}
+.fa-souhrn span{font-size:12px;text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.fa-souhrn b{font-size:18px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.fa-spl{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+.fa-hist{list-style:none;margin:0;padding:0;font-size:13.5px}
+.fa-hist li{display:flex;gap:10px;padding:5px 0;border-bottom:1px solid var(--line)}
+.fa-hist li:last-child{border-bottom:0}
+.fa-hist li span{color:var(--muted);min-width:122px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.fa-odeslat{background:var(--surface2);border-radius:10px;padding:10px 12px;margin-top:10px;display:grid;gap:8px}
+.fa-odeslat textarea,.fa-editor textarea{width:100%;box-sizing:border-box;font:inherit;font-size:13.5px}
+.fa-ikony{display:block;font-size:11px;color:var(--muted);font-weight:600;margin-top:2px;white-space:nowrap}
+#faTab b.minus{color:var(--bad)}
+.pill.info{background:var(--chip);color:var(--ink)}
+.bank-stav{margin:8px 0 0;font-size:13px}
+.bank-stav .ok{color:var(--good);font-weight:700}.bank-stav .ne{color:var(--bad);font-weight:700}
 .fa-nahled-obal{overflow:auto;background:#8C877D;padding:18px;display:flex;justify-content:center}
 .fa-nahled{transform-origin:top center}
 .fa-nahled .fa{box-shadow:0 6px 28px rgba(0,0,0,.35)}
@@ -819,11 +839,12 @@ details.gsec li{margin:3px 0}
     <div class="fa-filtr">
       <select id="faRok"></select>
       <select id="faStavFiltr">
-        <option value="">Všechny stavy</option>
+        <option value="">Všechny doklady</option>
         <option value="neuhrazene">Neuhrazené</option>
         <option value="posplatnosti">Po splatnosti</option>
         <option value="zaplacena">Zaplacené</option>
-        <option value="stornovana">Stornované</option>
+        <option value="zal">Zálohové faktury</option>
+        <option value="storno">Storna a dobropisy</option>
       </select>
       <input id="faHledat" type="search" placeholder="hledat odběratele, číslo, zakázku…">
       <button class="b prim" id="faNova">+ Nová faktura</button>
@@ -832,7 +853,17 @@ details.gsec li{margin:3px 0}
       <thead><tr><th>Číslo</th><th>Odběratel</th><th>Vystaveno</th><th>Splatnost</th><th class="r">Částka</th><th>Stav</th><th></th></tr></thead>
       <tbody></tbody>
     </table></div>
-    <p class="hint" id="faPrazdno" style="display:none">Zatím žádná vystavená faktura. Fakturu vystavíš u zakázky v Kalkulaci (tlačítka Zálohová / Konečná faktura), nebo tady tlačítkem <b>Nová faktura</b>.</p>
+    <p class="hint" id="faPrazdno" style="display:none">Zatím žádná vystavená faktura. Fakturu vystavíš u zakázky v Kalkulaci nebo ve Vyklízení (tlačítka Zálohová / Konečná faktura), nebo tady tlačítkem <b>Nová faktura</b>.</p>
+  </div>
+
+  <div class="card">
+    <h2>Párování plateb z banky</h2>
+    <p class="hint" style="margin:0 0 10px">V internetovém bankovnictví exportuj pohyby na účtu jako <b>CSV</b> a nahraj je sem. Aplikace najde příchozí platby podle <b>variabilního symbolu a částky</b> a nabídne označit faktury jako zaplacené. Bez tvého potvrzení nic nezmění a výpis nikam neodesílá.</p>
+    <div class="fa-filtr">
+      <button class="b prim" id="parovaniVyber" type="button">📄 Nahrát výpis (CSV)</button>
+      <input type="file" id="parovaniSoubor" accept=".csv,.txt,text/csv,text/plain" hidden>
+    </div>
+    <div id="parovaniVysledek"></div>
   </div>
 
   <div class="card">
@@ -860,7 +891,7 @@ details.gsec li{margin:3px 0}
 
   <div class="card">
     <h2>Pro účetní</h2>
-    <p class="hint" style="margin:0 0 10px">Jednou měsíčně stáhni balík a pošli ho účetní. Obsahuje knihu vydaných faktur, seznam výdajů, všechny faktury jako dokumenty k tisku a fotky účtenek.</p>
+    <p class="hint" style="margin:0 0 10px">Jednou měsíčně stáhni balík a pošli ho účetní. Obsahuje knihu vydaných faktur, seznam výdajů, všechny faktury jako PDF a fotky účtenek.</p>
     <div class="fa-filtr">
       <select id="ucObdobi"></select>
       <button class="b prim" id="ucExport">📦 Stáhnout podklady (ZIP)</button>
@@ -880,8 +911,9 @@ details.gsec li{margin:3px 0}
     <div class="fa-modal-hl">
       <b id="faModalTitul">Faktura</b>
       <div class="btnrow" style="margin:0">
-        <button class="b" id="faMTisk">🖨 Tisk / PDF</button>
-        <button class="b" id="faMZavrit">Zavřít</button>
+        <button class="b" id="faMPdf" type="button">⬇ PDF</button>
+        <button class="b" id="faMTisk" type="button">🖨 Tisk</button>
+        <button class="b" id="faMZavrit" type="button">Zavřít</button>
       </div>
     </div>
     <div class="fa-modal-telo">
@@ -1014,9 +1046,11 @@ details.gsec li{margin:3px 0}
       <label class="f">Telefon<input id="nTelefon" placeholder="608 901 388" inputmode="tel"></label>
       <label class="f">E-mail<input id="nEmail" placeholder="zakazky@demolicemorava.cz" inputmode="email"></label>
       <label class="f">Web<input id="nWeb" placeholder="demolicemorava.cz"></label>
-      <label class="f">Číslo bankovního účtu<input id="nBankUcet" placeholder="123456789/0800"><span class="hint">tiskne se na faktury</span></label>
-      <label class="f">IBAN (pro QR platbu)<input id="nIban" placeholder="CZ6508000000000123456789"><span class="hint">bez mezer — z něj se generuje QR kód</span></label>
+      <label class="f">Číslo bankovního účtu<input id="nBankUcet" placeholder="3001822667/5500"><span class="hint">tiskne se na faktury</span></label>
+      <label class="f">IBAN (pro QR platbu)<input id="nIban" placeholder="CZ58 5500 0000 0030 0182 2667"><span class="hint">dopočítá se z čísla účtu; z něj se generuje QR kód</span></label>
+      <label class="f">SWIFT / BIC<input id="nSwift" placeholder="RZBCCZPP"><span class="hint">pro platby ze zahraničí, přidá se i do QR</span></label>
     </div>
+    <p class="bank-stav" id="nBankStav"></p>
     <div class="logobox" style="margin-top:12px">
       <div id="logoNahled" class="logonahled"></div>
       <div>
@@ -1296,8 +1330,23 @@ details.gsec li{margin:3px 0}
       <li>V <b>Kalkulaci</b> (nebo ve <b>Vyklízení</b>) ulož zakázku a dej <b>Zálohová faktura</b> nebo <b>Konečná faktura</b>. Bez zakázky jde vystavit i samostatná faktura tlačítkem <b>+ Nová faktura</b>.</li>
       <li>Otevře se editor: vlevo údaje, vpravo živý náhled přesně tak, jak se vytiskne. U firem vyplň IČO a dej <b>Doplnit z ARES</b>.</li>
       <li>Dokud faktura není vystavená, je to <b>koncept</b> — můžeš měnit cokoliv. Když něco povinného chybí, tlačítko Vystavit je zamčené a přesně napíše co.</li>
-      <li><b>Vystavit a uložit</b> přidělí číslo (faktury <code>20260001</code>, zálohové <code>ZF20260001</code>) a fakturu zamkne. Pak <b>Tisk / PDF</b> → v dialogu tisku zvol <b>Uložit jako PDF</b> a pošli klientovi.</li>
+      <li><b>Vystavit a uložit</b> přidělí číslo (faktury <code>20260001</code>, zálohové <code>ZF20260001</code>) a fakturu zamkne.</li>
+      <li>Hned se nabídne <b>✉ Poslat klientovi</b> s předvyplněným e-mailem. Na telefonu se otevře sdílení s <b>PDF v příloze</b>, na počítači se PDF stáhne a otevře se e-mail. Odeslání se zapíše do historie faktury. Samotné PDF stáhneš kdykoliv tlačítkem <b>⬇ PDF</b>.</li>
     </ol>
+
+    <div class="vybg">QR platba</div>
+    <ul style="margin:4px 0 12px;padding-left:20px">
+      <li>Je na <b>každé faktuře placené převodem</b> — účet, IBAN, SWIFT, částka, variabilní symbol, splatnost i zpráva pro příjemce se klientovi v bance předvyplní.</li>
+      <li>Kód je podle standardu České bankovní asociace (QR Platba) s vyšší úrovní opravy chyb, takže se načte i z pomačkaného papíru. Každý kód byl ověřený nezávislou čtečkou.</li>
+      <li>V <b>Nastavení → Firma na dokladech</b> aplikace kontroluje číslo účtu i IBAN. Když by QR nešel vytvořit, fakturu nevystaví — nikdy neodejde faktura bez funkční platby.</li>
+      <li>První vystavenou fakturu si naskenuj sám v aplikaci Raiffeisenbank a zkontroluj předvyplněné údaje.</li>
+    </ul>
+
+    <div class="vybg">Platby, upomínky</div>
+    <ul style="margin:4px 0 12px;padding-left:20px">
+      <li><b>Párování plateb</b>: v internetovém bankovnictví stáhni pohyby jako CSV a nahraj je v kartě Párování plateb. Faktury, u kterých sedí variabilní symbol i částka, se nabídnou k označení jako zaplacené.</li>
+      <li>Faktura po splatnosti je v seznamu červeně s počtem dní. Tlačítko <b>🔔</b> připraví upomínku — první je přátelská připomínka, druhá žádá úhradu do 7 dnů, třetí upozorní na zákonný úrok z prodlení. Všechny se evidují v historii.</li>
+    </ul>
 
     <div class="vybg">Záloha a doplatek</div>
     <ul style="margin:4px 0 12px;padding-left:20px">
@@ -1307,7 +1356,13 @@ details.gsec li{margin:3px 0}
     </ul>
 
     <div class="vybg">Když je ve faktuře chyba</div>
-    <p style="margin:4px 0 12px">Vystavená faktura se už nemění — tak to vyžaduje účetnictví. Otevři ji, dej <b>Stornovat</b> s důvodem a pak <b>Kopie jako nový koncept</b>, oprav a vystav znovu. Stornovaná faktura zůstane v knize a její číslo se nikdy nepoužije znovu.</p>
+    <ul style="margin:4px 0 12px;padding-left:20px">
+      <li>Vystavená faktura se už nemění — tak to vyžaduje účetnictví. Oprava se dělá <b>samostatným dokladem se zápornými položkami</b>, stejně jako ve Fakturoidu nebo iDokladu.</li>
+      <li><b>Stornovat celou</b> — vznikne storno faktura s vlastním číslem a odkazem na původní. Pak dej <b>Kopie jako nový koncept</b>, oprav a vystav znovu.</li>
+      <li><b>Dobropis na část</b> — když se jen snižuje cena (reklamace, dohodnutá sleva). Zadáš o kolik a důvod.</li>
+      <li>Když klient už zaplatil, doklad ukáže částku <b>k vrácení</b>; po vrácení peněz dej ✓ Peníze vráceny. Nezaplacená faktura se jen započte. Storno konečné faktury nechá zálohu uhrazenou — odečte se v opravené faktuře.</li>
+      <li>Výnosy, daně i obrat pro DPH počítají původní fakturu a storno dohromady, takže vychází správná částka.</li>
+    </ul>
 
     <div class="vybg">Výdaje a účtenky</div>
     <ul style="margin:4px 0 12px;padding-left:20px">
@@ -1326,7 +1381,7 @@ details.gsec li{margin:3px 0}
     </ul>
 
     <div class="vybg">Pro účetní</div>
-    <p style="margin:4px 0 0">Jednou měsíčně vyber období a dej <b>Stáhnout podklady (ZIP)</b>. Uvnitř je kniha vydaných faktur a seznam výdajů v CSV (otevře se v Excelu i s diakritikou), každá faktura jako dokument k tisku a fotky účtenek pojmenované podle data a dodavatele. Pošli to účetní — podvojné účetnictví a přiznání sestavuje ona, čísla v aplikaci jsou <b>orientační odhad pro plánování peněz</b>.</p>
+    <p style="margin:4px 0 0">Jednou měsíčně vyber období a dej <b>Stáhnout podklady (ZIP)</b>. Uvnitř je kniha vydaných faktur a seznam výdajů v CSV (otevře se v Excelu i s diakritikou), každá faktura jako PDF a fotky účtenek pojmenované podle data a dodavatele. Pošli to účetní — podvojné účetnictví a přiznání sestavuje ona, čísla v aplikaci jsou <b>orientační odhad pro plánování peněz</b>.</p>
   </div></details>
 
   <details class="gsec"><summary>🔄 Synchronizace — stejná data na telefonu, počítači i u parťáka</summary><div class="inner">
@@ -2631,7 +2686,7 @@ function defNastaveni(){return {firma:"", lide:2, hodDen:9, sazbaNajaty:250, odv
   vynKbelik:40, vynKbelikM3:0.040, vynPatroSek:35, vynVzdalenostSek:25,
   vynVytahKoef:0.25, vynRucniKoef:1.35, koefVykon:1.0,
   kontCenaKm:32, kontDnyZdarma:3, kontCenaDen:180, kontRezerva:18,
-  ico:"", dic:"", adresaFirmy:"", bankUcet:"", iban:"", znacka:"", spisZn:"", jednatel:"", telefon:"", email:"", web:"", posledniDanPovinnost:0, platceDPH:false, dphLimit:2000000, slevaPredemPct:5, fakSplatnost:14, fakRok:0, fakPoradi:0, minZiskOsHod:450, minTrzbaB2C:0, minTrzbaB2B:0, minCenaB2C:8000, vikendPct:25, expresPct:15, nabRok:0, nabPoradi:0};}
+  ico:"", dic:"", adresaFirmy:"", bankUcet:"", iban:"", swift:"", znacka:"", spisZn:"", jednatel:"", telefon:"", email:"", web:"", posledniDanPovinnost:0, platceDPH:false, dphLimit:2000000, slevaPredemPct:5, fakSplatnost:14, fakRok:0, fakPoradi:0, minZiskOsHod:450, minTrzbaB2C:0, minTrzbaB2B:0, minCenaB2C:8000, vikendPct:25, expresPct:15, nabRok:0, nabPoradi:0};}
 /* režim DPH nové zakázky vychází z toho, jestli je firma plátcem — neplátce neúčtuje nic */
 function vychoziDph(n){return n&&n.platceDPH?"12":"ne";}
 function defJob(n){return {id:null, nazev:"", klient:"", adresa:"", poznamka:"", zdroj:"", odberatelId:"", cenik:"b2c", dph:vychoziDph(n),
@@ -3061,6 +3116,15 @@ function migrate(){
     doplnFirmuZVypisu(S.nastaveni);
     if(S.nastaveni.posledniDanPovinnost===undefined)S.nastaveni.posledniDanPovinnost=0;
     S.fakturyV13=true;
+  }
+  /* v15: bankovní spojení firmy, u faktur forma úhrady a evidence odeslání a upomínek */
+  if(!S.fakturyV15){
+    const n=S.nastaveni;
+    if(n.iban&&!ibanPlatny(n.iban))n.iban="";
+    doplnFirmuZVypisu(n);
+    (S.faktury||[]).forEach(f=>{ if(!f.zpusobUhrady)f.zpusobUhrady="prevod"; if(!Array.isArray(f.odeslano))f.odeslano=[]; if(!Array.isArray(f.upominky))f.upominky=[];
+      if(f.odberatel&&f.odberatel.email===undefined)f.odberatel.email=""; if(f.dodavatel&&f.dodavatel.swift===undefined)f.dodavatel.swift=""; });
+    S.fakturyV15=true;
   }
   /* v12: interní přirážka, důvod slevy a platba předem */
   if(!S.slevaV12){
@@ -6161,130 +6225,223 @@ function renderRust(){
     nej?"Sem dávej čas i peníze. Zbytek utlum.":"Zatím žádná hotová zakázka se zdrojem.",null);
 }
 
-/* ================= QR PLATBA (SPAYD) =================
-   Vlastní generátor QR — externí knihovny blokuje CSP.
-   Rozsah: verze 1–5, úroveň korekce L, jeden blok, maska 0. Stačí na SPAYD do 106 znaků. */
-const QR=(()=>{
-  /* Galoisovo pole GF(256), generující polynom 0x11d */
-  const EXP=new Array(512),LOG=new Array(256);
-  (()=>{let x=1;for(let i=0;i<255;i++){EXP[i]=x;LOG[x]=i;x<<=1;if(x&0x100)x^=0x11d;}
-    for(let i=255;i<512;i++)EXP[i]=EXP[i-255];})();
-  const mul=(a,b)=>(a===0||b===0)?0:EXP[LOG[a]+LOG[b]];
-  /* generující polynom pro n opravných bajtů */
-  function genPoly(n){let g=[1];for(let i=0;i<n;i++){const ng=new Array(g.length+1).fill(0);
-    for(let j=0;j<g.length;j++){ng[j]^=mul(g[j],1);ng[j+1]^=mul(g[j],EXP[i]);}g=ng;}return g;}
-  function rs(data,n){
-    const g=genPoly(n),res=new Array(n).fill(0);
-    for(const d of data){const f=d^res[0];res.shift();res.push(0);
-      for(let i=0;i<n;i++)res[i]^=mul(g[i+1],f);}
-    return res;
+/* ================= QR KÓD — generátor podle ISO/IEC 18004 =================
+   Úroveň opravy chyb M (15 %), jak ji pro tištěné platby vyžaduje standard ČBA
+   „QR Platba“. Bajtový režim, verze 1–10 (až 213 bajtů — platba s IBANem, BIC,
+   částkou, VS, splatností a zprávou má kolem 110), dělení dat do bloků s prokládáním,
+   automatický výběr nejlepší z osmi masek podle penalizačních pravidel normy.
+   Každý kód se ověřuje nezávislou čtečkou v testu (qr-test.html). */
+const QR = (() => {
+  const EXP = new Uint8Array(512), LOG = new Uint8Array(256);
+  { let x = 1; for (let i = 0; i < 255; i++) { EXP[i] = x; LOG[x] = i; x <<= 1; if (x & 0x100) x ^= 0x11d; }
+    for (let i = 255; i < 512; i++) EXP[i] = EXP[i - 255]; }
+  const mul = (a, b) => (a && b) ? EXP[LOG[a] + LOG[b]] : 0;
+  function generator(n){
+    let g = [1];
+    for (let i = 0; i < n; i++) {
+      const ng = new Array(g.length + 1).fill(0);
+      for (let j = 0; j < g.length; j++) { ng[j] ^= g[j]; ng[j + 1] ^= mul(g[j], EXP[i]); }
+      g = ng;
+    }
+    return g;
   }
-  /* verze: [datových bajtů, opravných bajtů] pro úroveň L */
-  const VER=[null,[19,7],[34,10],[55,15],[80,20],[108,26]];
-  const ALIGN=[0,0,18,22,26,30];
-  function formatBits(){ /* úroveň L (01) + maska 0 (000) = 01000, BCH(15,5), XOR 0x5412 */
-    let d=0b01000<<10, v=d;
-    for(let i=4;i>=0;i--)if(v&(1<<(i+10)))v^=0b10100110111<<i;
-    return ((d|v)^0x5412);
+  function zbytek(data, n){
+    const g = generator(n), r = new Array(n).fill(0);
+    for (const d of data) {
+      const f = d ^ r[0]; r.shift(); r.push(0);
+      for (let i = 0; i < n; i++) r[i] ^= mul(g[i + 1], f);
+    }
+    return r;
   }
-  function encode(text){
-    const bytes=[];
-    for(const ch of unescape(encodeURIComponent(text)))bytes.push(ch.charCodeAt(0));
-    let ver=0;
-    for(let v=1;v<=5;v++)if(bytes.length+2<=VER[v][0]){ver=v;break;}
-    if(!ver)throw new Error("QR: text je moc dlouhý ("+bytes.length+" B, max 106)");
-    const[nData,nEc]=VER[ver];
-    /* bitový tok: režim 0100, délka 8 bitů, data, ukončovač, zarovnání */
-    const bits=[];
-    const push=(val,len)=>{for(let i=len-1;i>=0;i--)bits.push((val>>i)&1)};
-    push(0b0100,4); push(bytes.length,8);
-    bytes.forEach(b=>push(b,8));
-    push(0,Math.min(4,nData*8-bits.length));
-    while(bits.length%8)bits.push(0);
-    const dw=[];
-    for(let i=0;i<bits.length;i+=8){let b=0;for(let j=0;j<8;j++)b=(b<<1)|bits[i+j];dw.push(b);}
-    const PAD=[0xEC,0x11];let p=0;
-    while(dw.length<nData)dw.push(PAD[p++%2]);
-    const ec=rs(dw,nEc);
-    const all=dw.concat(ec);
-    /* matice */
-    const size=17+4*ver;
-    const m=Array.from({length:size},()=>new Array(size).fill(null));
-    const set=(r,c,v)=>{if(r>=0&&r<size&&c>=0&&c<size)m[r][c]=v};
-    /* hledáčky + oddělovače */
-    const finder=(r0,c0)=>{
-      for(let r=-1;r<=7;r++)for(let c=-1;c<=7;c++){
-        const rr=r0+r,cc=c0+c;
-        if(rr<0||rr>=size||cc<0||cc>=size)continue;
-        const inR=r>=0&&r<=6,inC=c>=0&&c<=6;
-        let v=0;
-        if(inR&&inC){
-          const d=Math.max(Math.abs(r-3),Math.abs(c-3));
-          v=(d===1)?0:1;
-        }
-        set(rr,cc,v);
+  /* úroveň M: [opravných bajtů na blok, [[počet bloků, datových bajtů v bloku], …]] */
+  const BLOKY = [null,
+    [10, [[1, 16]]], [16, [[1, 28]]], [26, [[1, 44]]], [18, [[2, 32]]], [24, [[2, 43]]],
+    [16, [[4, 27]]], [18, [[4, 31]]], [22, [[2, 38], [2, 39]]], [22, [[3, 36], [2, 37]]], [26, [[4, 43], [1, 44]]]];
+  const ZAROVNANI = [null, [], [6, 18], [6, 22], [6, 26], [6, 30], [6, 34], [6, 22, 38], [6, 24, 42], [6, 26, 46], [6, 28, 50]];
+  const MASKY = [
+    (r, c) => (r + c) % 2 === 0, (r) => r % 2 === 0, (r, c) => c % 3 === 0, (r, c) => (r + c) % 3 === 0,
+    (r, c) => (Math.floor(r / 2) + Math.floor(c / 3)) % 2 === 0, (r, c) => (r * c) % 2 + (r * c) % 3 === 0,
+    (r, c) => ((r * c) % 2 + (r * c) % 3) % 2 === 0, (r, c) => ((r + c) % 2 + (r * c) % 3) % 2 === 0];
+
+  function bajty(text){ return Array.from(new TextEncoder().encode(String(text))); }
+  function kapacita(v){ return BLOKY[v][1].reduce((a, [n, d]) => a + n * d, 0); }
+
+  function kodovaSlova(b, v){
+    const delkaBitu = v < 10 ? 8 : 16, data = kapacita(v);
+    const bity = [];
+    const pis = (hod, n) => { for (let i = n - 1; i >= 0; i--) bity.push((hod >>> i) & 1); };
+    pis(0b0100, 4); pis(b.length, delkaBitu); b.forEach(x => pis(x, 8));
+    pis(0, Math.min(4, data * 8 - bity.length));
+    while (bity.length % 8) bity.push(0);
+    const slova = [];
+    for (let i = 0; i < bity.length; i += 8) { let x = 0; for (let j = 0; j < 8; j++) x = (x << 1) | bity[i + j]; slova.push(x); }
+    for (let p = 0; slova.length < data; p++) slova.push(p % 2 ? 0x11 : 0xEC);
+    /* rozdělit do bloků, ke každému opravné bajty, pak proložit */
+    const [ec, skupiny] = BLOKY[v], bloky = [];
+    let pos = 0;
+    for (const [n, d] of skupiny) for (let i = 0; i < n; i++) { const blok = slova.slice(pos, pos + d); pos += d; bloky.push({d:blok, e:zbytek(blok, ec)}); }
+    const vystup = [], maxD = Math.max(...bloky.map(x => x.d.length));
+    for (let i = 0; i < maxD; i++) for (const x of bloky) if (i < x.d.length) vystup.push(x.d[i]);
+    for (let i = 0; i < ec; i++) for (const x of bloky) vystup.push(x.e[i]);
+    return {vystup, bloky};
+  }
+
+  function formatBity(maska){               /* úroveň M = 00 */
+    const data = (0b00 << 3) | maska;
+    let r = data; for (let i = 0; i < 10; i++) r = (r << 1) ^ ((r >>> 9) * 0x537);
+    return ((data << 10) | r) ^ 0x5412;
+  }
+  function verzeBity(v){
+    let r = v; for (let i = 0; i < 12; i++) r = (r << 1) ^ ((r >>> 11) * 0x1F25);
+    return (v << 12) | r;
+  }
+
+  function matice(text){
+    const b = bajty(text);
+    let v = 0;
+    for (let i = 1; i <= 10; i++) { const hlav = 4 + (i < 10 ? 8 : 16); if (hlav + b.length * 8 <= kapacita(i) * 8) { v = i; break; } }
+    if (!v) throw new Error("QR: text je moc dlouhý (" + b.length + " bajtů, maximum 213)");
+    const n = 17 + 4 * v;
+    const m = Array.from({length:n}, () => new Array(n).fill(false));
+    const fn = Array.from({length:n}, () => new Array(n).fill(false));
+    const nastav = (r, c, tmavy) => { m[r][c] = !!tmavy; fn[r][c] = true; };
+    for (let i = 0; i < n; i++) { nastav(6, i, i % 2 === 0); nastav(i, 6, i % 2 === 0); }
+    const hledac = (r0, c0) => {
+      for (let dr = -4; dr <= 4; dr++) for (let dc = -4; dc <= 4; dc++) {
+        const r = r0 + dr, c = c0 + dc; if (r < 0 || r >= n || c < 0 || c >= n) continue;
+        const d = Math.max(Math.abs(dr), Math.abs(dc));
+        nastav(r, c, d !== 2 && d !== 4);
       }
     };
-    finder(0,0); finder(0,size-7); finder(size-7,0);
-    /* časovací vzory */
-    for(let i=8;i<size-8;i++){if(m[6][i]===null)set(6,i,i%2===0?1:0); if(m[i][6]===null)set(i,6,i%2===0?1:0);}
-    /* zarovnávací vzor (verze 2+) */
-    if(ver>=2){const a=ALIGN[ver];
-      for(let r=-2;r<=2;r++)for(let c=-2;c<=2;c++){
-        const d=Math.max(Math.abs(r),Math.abs(c));
-        set(a+r,a+c,d===1?0:1);
-      }}
-    /* rezervovat formátové info + tmavý modul */
-    const fmtCells=[];
-    for(let i=0;i<=8;i++){if(i!==6){fmtCells.push([8,i]);fmtCells.push([i,8]);}}
-    fmtCells.push([8,7]);
-    for(let i=0;i<8;i++){fmtCells.push([8,size-1-i]);fmtCells.push([size-1-i,8]);}
-    fmtCells.forEach(([r,c])=>{if(m[r][c]===null)m[r][c]=0;});
-    set(size-8,8,1);
-    /* data cikcak zprava */
-    let bi=0;const bitAt=i=>(i<all.length*8)?((all[i>>3]>>(7-(i&7)))&1):0;
-    for(let col=size-1;col>0;col-=2){
-      if(col===6)col--;
-      for(let i=0;i<size;i++){
-        for(const c of [col,col-1]){
-          const r=((size-1-col)&1)===0?size-1-i:i;
-          if(m[r][c]!==null)continue;
-          let v=bitAt(bi++);
-          if(((r+c)%2)===0)v^=1;   /* maska 0 */
-          m[r][c]=v;
-        }
+    hledac(3, 3); hledac(3, n - 4); hledac(n - 4, 3);
+    const zp = ZAROVNANI[v];
+    for (let i = 0; i < zp.length; i++) for (let j = 0; j < zp.length; j++) {
+      if ((i === 0 && j === 0) || (i === 0 && j === zp.length - 1) || (i === zp.length - 1 && j === 0)) continue;
+      for (let dr = -2; dr <= 2; dr++) for (let dc = -2; dc <= 2; dc++) nastav(zp[i] + dr, zp[j] + dc, Math.max(Math.abs(dr), Math.abs(dc)) !== 1);
+    }
+    /* rezervace formátu a verze (hodnoty se dopíšou až po výběru masky) */
+    const kresliFormat = maska => {
+      const f = formatBity(maska), bit = i => (f >>> i) & 1;
+      for (let i = 0; i <= 5; i++) nastav(i, 8, bit(i));
+      nastav(7, 8, bit(6)); nastav(8, 8, bit(7)); nastav(8, 7, bit(8));
+      for (let i = 9; i < 15; i++) nastav(8, 14 - i, bit(i));
+      for (let i = 0; i < 8; i++) nastav(8, n - 1 - i, bit(i));
+      for (let i = 8; i < 15; i++) nastav(n - 15 + i, 8, bit(i));
+      nastav(n - 8, 8, 1);
+    };
+    kresliFormat(0);
+    if (v >= 7) {
+      const vb = verzeBity(v);
+      for (let i = 0; i < 18; i++) { const t = (vb >>> i) & 1, a = n - 11 + (i % 3), c = Math.floor(i / 3); nastav(c, a, t); nastav(a, c, t); }
+    }
+    /* data cik-cak zdola zprava, po dvou sloupcích, sloupec 6 se přeskakuje */
+    const {vystup} = kodovaSlova(b, v);
+    let bi = 0;
+    for (let prava = n - 1; prava >= 1; prava -= 2) {
+      if (prava === 6) prava = 5;
+      for (let k = 0; k < n; k++) for (let j = 0; j < 2; j++) {
+        const c = prava - j, nahoru = ((prava + 1) & 2) === 0, r = nahoru ? n - 1 - k : k;
+        if (!fn[r][c] && bi < vystup.length * 8) { m[r][c] = ((vystup[bi >>> 3] >>> (7 - (bi & 7))) & 1) === 1; bi++; }
       }
     }
-    /* formátové info — dvě kopie dle ISO 18004 */
-    const f=formatBits();
-    const fb=i=>(f>>i)&1;
-    /* kopie 1 kolem levého horního hledáčku */
-    for(let i=0;i<=5;i++)m[8][i]=fb(i);
-    m[8][7]=fb(6); m[8][8]=fb(7); m[7][8]=fb(8);
-    for(let i=9;i<=14;i++)m[14-i][8]=fb(i);
-    /* kopie 2 — svisle vpravo dole a vodorovně vpravo nahoře */
-    for(let i=0;i<=7;i++)m[size-1-i][8]=fb(i);
-    for(let i=8;i<=14;i++)m[8][size-15+i]=fb(i);
-    return {size,m};
+    /* vybrat masku s nejnižší penalizací */
+    let nejlepsi = null, nejmin = Infinity, nejM = 0;
+    for (let k = 0; k < 8; k++) {
+      const kopie = m.map(rad => rad.slice());
+      for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (!fn[r][c] && MASKY[k](r, c)) kopie[r][c] = !kopie[r][c];
+      const zal = m.map(rad => rad.slice());
+      for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) m[r][c] = kopie[r][c];
+      kresliFormat(k);
+      const p = penalizace(m);
+      if (p < nejmin) { nejmin = p; nejlepsi = m.map(rad => rad.slice()); nejM = k; }
+      for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) m[r][c] = zal[r][c];
+    }
+    return {m:nejlepsi, verze:v, maska:nejM, velikost:n, bajtu:b.length};
   }
-  function svg(text,px){
-    const{size,m}=encode(text);
-    const q=4,tot=size+q*2,s=(px||160)/tot;
-    let r='<svg xmlns="http://www.w3.org/2000/svg" width="'+(px||160)+'" height="'+(px||160)+
-      '" viewBox="0 0 '+tot+' '+tot+'" shape-rendering="crispEdges">'+
-      '<rect width="'+tot+'" height="'+tot+'" fill="#fff"/>';
-    for(let y=0;y<size;y++)for(let x=0;x<size;x++)if(m[y][x])
-      r+='<rect x="'+(x+q)+'" y="'+(y+q)+'" width="1" height="1" fill="#000"/>';
-    return r+'</svg>';
+
+  function penalizace(m){
+    const n = m.length; let p = 0;
+    const radky = (get) => {
+      for (let i = 0; i < n; i++) {
+        let beh = 1;
+        for (let j = 1; j <= n; j++) {
+          if (j < n && get(i, j) === get(i, j - 1)) beh++;
+          else { if (beh >= 5) p += 3 + (beh - 5); beh = 1; }
+        }
+        for (let j = 0; j + 10 < n; j++) {
+          const s = Array.from({length:11}, (_, k) => get(i, j + k) ? 1 : 0).join("");
+          if (s === "10111010000" || s === "00001011101") p += 40;
+        }
+      }
+    };
+    radky((i, j) => m[i][j]); radky((i, j) => m[j][i]);
+    for (let r = 0; r + 1 < n; r++) for (let c = 0; c + 1 < n; c++) {
+      const x = m[r][c]; if (x === m[r][c + 1] && x === m[r + 1][c] && x === m[r + 1][c + 1]) p += 3;
+    }
+    let tmave = 0; for (const rad of m) for (const x of rad) if (x) tmave++;
+    p += Math.floor(Math.abs(tmave * 100 / (n * n) - 50) / 5) * 10;
+    return p;
   }
-  return {encode,svg};
+
+  /* SVG: celé řady tmavých modulů jako jedna cesta, tichá zóna 4 moduly */
+  function svg(text, px){
+    const {m, velikost} = matice(text), q = 4, s = velikost + 2 * q;
+    let d = "";
+    for (let r = 0; r < velikost; r++) {
+      let c = 0;
+      while (c < velikost) {
+        if (!m[r][c]) { c++; continue; }
+        let k = c; while (k < velikost && m[r][k]) k++;
+        d += "M" + (c + q) + " " + (r + q) + "h" + (k - c) + "v1h-" + (k - c) + "z";
+        c = k;
+      }
+    }
+    return "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 " + s + " " + s + "'" + (px ? " width='" + px + "' height='" + px + "'" : "") +
+      " shape-rendering='crispEdges'><rect width='" + s + "' height='" + s + "' fill='#fff'/><path d='" + d + "' fill='#000'/></svg>";
+  }
+  /* pro testy: ověření, že každý blok je platné kódové slovo Reed-Solomona (syndromy nulové) */
+  function kontrolaRS(text){
+    const b = bajty(text); let v = 0;
+    for (let i = 1; i <= 10; i++) { const hlav = 4 + (i < 10 ? 8 : 16); if (hlav + b.length * 8 <= kapacita(i) * 8) { v = i; break; } }
+    const {bloky} = kodovaSlova(b, v), ec = BLOKY[v][0];
+    return bloky.every(({d, e}) => {
+      const slovo = d.concat(e);
+      for (let i = 0; i < ec; i++) { let s = 0; for (const x of slovo) s = mul(s, EXP[i]) ^ x; if (s !== 0) return false; }
+      return true;
+    });
+  }
+  return {matice, svg, kontrolaRS, formatBity, verzeBity};
 })();
-function spayd(iban,castka,vs,zprava){
-  const p=["SPD*1.0","ACC:"+String(iban||"").replace(/\s/g,"").toUpperCase(),
-    "AM:"+Number(castka).toFixed(2),"CC:CZK"];
-  if(vs)p.push("X-VS:"+String(vs).replace(/\D/g,"").slice(0,10));
-  if(zprava)p.push("MSG:"+String(zprava).toUpperCase().replace(/[^A-Z0-9 .-]/g,"").slice(0,35));
-  return p.join("*");
+
+/* ================= QR PLATBA — řetězec SPAYD podle standardu ČBA ================= */
+function ibanPlatny(iban){
+  const s = String(iban || "").replace(/\s/g, "").toUpperCase();
+  if (!/^CZ\d{22}$/.test(s)) return false;
+  const cisla = (s.slice(4) + s.slice(0, 4)).replace(/[A-Z]/g, ch => String(ch.charCodeAt(0) - 55));
+  let z = 0; for (const ch of cisla) z = (z * 10 + (+ch)) % 97;
+  return z === 1;
+}
+function bicPlatny(bic){ return /^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$/.test(String(bic || "").replace(/\s/g, "").toUpperCase()); }
+function spaydText(s){
+  return String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase()
+    .replace(/[^0-9A-Z $%+\-./:]/g, " ").replace(/\s+/g, " ").trim();
+}
+/* platba = {iban, bic, castka, vs, zprava, splatnost (RRRR-MM-DD), prijemce}
+   Starý tvar volání spayd(iban, castka, vs, zprava) zůstává kvůli zpětné kompatibilitě. */
+function spayd(a, castka, vs, zprava){
+  const p = (a && typeof a === "object") ? a : {iban:a, castka, vs, zprava};
+  const iban = String(p.iban || "").replace(/\s/g, "").toUpperCase();
+  if (!ibanPlatny(iban)) throw new Error("QR platba: neplatný IBAN");
+  const castkaOk = Math.round((+p.castka || 0) * 100) / 100;
+  if (!(castkaOk > 0) || castkaOk > 9999999.99) throw new Error("QR platba: neplatná částka");
+  const bic = String(p.bic || "").replace(/\s/g, "").toUpperCase();
+  const casti = ["SPD*1.0", "ACC:" + iban + (bicPlatny(bic) ? "+" + bic : ""), "AM:" + castkaOk.toFixed(2), "CC:CZK"];
+  if (p.splatnost && /^\d{4}-\d{2}-\d{2}$/.test(p.splatnost)) casti.push("DT:" + p.splatnost.replace(/-/g, ""));
+  const vsCisla = String(p.vs || "").replace(/\D/g, "").replace(/^0+(?=\d)/, "").slice(-10);
+  if (vsCisla) casti.push("X-VS:" + vsCisla);
+  const rn = spaydText(p.prijemce).slice(0, 35); if (rn) casti.push("RN:" + rn);
+  const msg = spaydText(p.zprava).slice(0, 60); if (msg) casti.push("MSG:" + msg);
+  return casti.join("*");
 }
 
 /* faktury: tlačítka u zakázky otevřou editor (modul Faktury a daně) */
@@ -7062,8 +7219,8 @@ function obratDPH(){
   const limit=S.nastaveni.dphLimit>0?S.nastaveni.dphLimit:2000000;
   const rok=new Date().getFullYear();
   let obrat=0, poctu=0;
-  const fakRok=(S.faktury||[]).filter(f=>f.typ!=="zal"&&f.stav!=="stornovana"&&String(f.duzp||f.vystaveno).startsWith(String(rok)));
-  if(fakRok.length){ fakRok.forEach(f=>{obrat+=f.celkem||0;poctu++;}); obrat=Math.round(obrat);
+  const fakRok=(S.faktury||[]).filter(f=>faDoVynosu(f)&&String(f.duzp||f.vystaveno).startsWith(String(rok)));
+  if(fakRok.length){ fakRok.forEach(f=>{obrat+=f.celkem||0;if(f.typ!=="storno")poctu++;}); obrat=Math.round(obrat);
     return {obrat,limit,rok,poctu,zbyva:Math.max(0,limit-obrat),pct:limit>0?obrat/limit:0}; }
   S.zakazky.filter(z=>z.status==="hotovo").forEach(z=>{
     const d=z.terminDo||z.ulozeno; if(!d||new Date(d).getFullYear()!==rok)return;
@@ -7148,7 +7305,7 @@ const nMap=[["nFirma","firma",1],["nIco","ico",1],["nDic","dic",1],["nAdresaFirm
   ["nVynVzdalenostSek","vynVzdalenostSek"],["nVynVytahKoef","vynVytahKoef"],["nVynRucniKoef","vynRucniKoef"],
   ["nKontCenaKm","kontCenaKm"],["nKontDnyZdarma","kontDnyZdarma"],["nKontCenaDen","kontCenaDen"],["nKontRezerva","kontRezerva"],
   ["nDphLimit","dphLimit"],["nSlevaPredem","slevaPredemPct"],
-  ["nZnacka","znacka",1],["nSpisZn","spisZn",1],["nJednatel","jednatel",1],["nTelefon","telefon",1],["nEmail","email",1],["nWeb","web",1]];
+  ["nZnacka","znacka",1],["nSpisZn","spisZn",1],["nJednatel","jednatel",1],["nTelefon","telefon",1],["nEmail","email",1],["nWeb","web",1],["nSwift","swift",1]];
 nMap.forEach(([id,k,txt])=>{$( "#"+id).addEventListener("input",e=>{S.nastaveni[k]=txt?e.target.value:num(e.target.value);recalc();vynUkazka();save();})});
 $("#nPlatceDPH").addEventListener("change",e=>{S.nastaveni.platceDPH=e.target.checked;dphHint();renderPripominky();recalc();save();});
 function fillNastaveni(){nMap.forEach(([id,k])=>{$("#"+id).value=S.nastaveni[k]});$("#nPlatceDPH").checked=!!S.nastaveni.platceDPH;vynUkazka();}
@@ -7458,25 +7615,62 @@ function doplnFirmuZVypisu(n){
     jednatel: "Tomáš Brzobohatý",
     telefon: "608 901 388",
     email: "zakazky@demolicemorava.cz",
-    web: "demolicemorava.cz"
+    web: "demolicemorava.cz",
+    bankUcet: "3001822667/5500",
+    iban: "CZ5855000000003001822667",
+    swift: "RZBCCZPP"
   };
   Object.keys(vypis).forEach(k => { if(!n[k] || !String(n[k]).trim()) n[k] = vypis[k]; });
 }
 
+/* Číslo účtu v českém tvaru (předčíslí-číslo/banka) → IBAN. Vrací "" když účet neprojde kontrolou modulo 11. */
+function ceskyUcetNaIban(ucet){
+  const m = String(ucet || "").replace(/\s/g, "").match(/^(?:(\d{1,6})-)?(\d{2,10})\/(\d{4})$/);
+  if (!m) return "";
+  const vahy = [6, 3, 7, 9, 10, 5, 8, 4, 2, 1];
+  const pre = (m[1] || "").padStart(6, "0"), cis = m[2].padStart(10, "0");
+  const mod11 = (s, v) => [...s].reduce((a, ch, i) => a + (+ch) * v[i], 0) % 11;
+  if (mod11(pre, vahy.slice(4)) || mod11(cis, vahy)) return "";
+  const bban = m[3] + pre + cis;
+  let z = 0; for (const ch of bban + "123500") z = (z * 10 + (+ch)) % 97;
+  return "CZ" + String(98 - z).padStart(2, "0") + bban;
+}
+function renderBankStav(){
+  const el = $("#nBankStav"); if (!el) return;
+  const n = S.nastaveni, iban = String(n.iban || "").replace(/\s/g, "").toUpperCase(), swift = String(n.swift || "").replace(/\s/g, "").toUpperCase();
+  const zUctu = ceskyUcetNaIban(n.bankUcet);
+  const r = [];
+  if (n.bankUcet) r.push(zUctu ? "<span class='ok'>✓ číslo účtu prošlo kontrolou</span>" : "<span class='ne'>✗ číslo účtu neprošlo bankovní kontrolou — zkontroluj ho</span>");
+  if (iban) r.push(!ibanPlatny(iban) ? "<span class='ne'>✗ IBAN není platný</span>" :
+    zUctu && zUctu !== iban ? "<span class='ne'>✗ IBAN nepatří k číslu účtu (správně " + zUctu.replace(/(.{4})/g, "$1 ").trim() + ")</span>" : "<span class='ok'>✓ IBAN platný — QR platba bude fungovat</span>");
+  else r.push("<span class='ne'>bez IBANu nebude na fakturách QR platba</span>");
+  if (swift) r.push(bicPlatny(swift) ? "<span class='ok'>✓ SWIFT</span>" : "<span class='ne'>✗ SWIFT má špatný tvar</span>");
+  el.innerHTML = r.join(" &nbsp;·&nbsp; ");
+}
+$("#nBankUcet").addEventListener("input", e => {
+  const iban = ceskyUcetNaIban(e.target.value), puv = String(S.nastaveni.iban || "").replace(/\s/g, "");
+  /* IBAN doplnit sám, když je prázdný nebo patřil k předchozímu číslu účtu */
+  if (iban && (!puv || !ibanPlatny(puv) || S.nastaveni.ibanAuto)) { S.nastaveni.iban = iban; S.nastaveni.ibanAuto = true; $("#nIban").value = iban; save(); }
+  renderBankStav();
+});
+$("#nIban").addEventListener("input", () => { S.nastaveni.ibanAuto = false; renderBankStav(); });
+$("#nSwift").addEventListener("input", renderBankStav);
+
 /* ================= FAKTURY — datový model =================
    Vystavená faktura je SNÍMEK: jakmile se vystaví, už se nemění, když se později
-   upraví zakázka nebo ceník. Tisk i export vždycky vychází ze snímku.
-   Číselné řady: faktury RRRRNNNN (20260001), zálohové faktury ZF + RRRRNNNN.
-   Stornovaná faktura v řadě zůstává — číslo se nikdy nepoužije znovu. */
+   upraví zakázka nebo ceník. Tisk, PDF i export vždycky vychází ze snímku.
+   Číselné řady: faktury, storna a dobropisy RRRRNNNN (20260001), zálohové faktury ZF + RRRRNNNN.
+   Chyba ve vystavené faktuře se u neplátce opravuje samostatným dokladem se zápornými
+   položkami (storno celé faktury nebo dobropis části) — původní faktura zůstává v knize. */
 
 const FA_STAVY = {vystavena:"Vystavená", zaplacena:"Zaplacená", stornovana:"Stornovaná"};
-const FA_TYPY  = {kon:"Faktura", zal:"Zálohová faktura", vlastni:"Faktura"};
+const FA_TYPY  = {kon:"Faktura", zal:"Zálohová faktura", vlastni:"Faktura", storno:"Storno / dobropis"};
 
 function faRada(typ){ return typ === "zal" ? "ZF" : ""; }
 function dalsiCisloFaktury(typ, rok){
   rok = rok || new Date().getFullYear();
   const prefix = faRada(typ) + rok;
-  let max = (typ !== "zal" && S.nastaveni.fakRok === rok) ? (S.nastaveni.fakPoradi || 0) : 0;   /* čísla vydaná starou verzí */
+  let max = (faRada(typ) === "" && S.nastaveni.fakRok === rok) ? (S.nastaveni.fakPoradi || 0) : 0;   /* čísla vydaná starou verzí */
   (S.faktury || []).forEach(f => {
     if (faRada(f.typ) !== faRada(typ)) return;
     if (!String(f.cislo).startsWith(prefix)) return;
@@ -7491,11 +7685,27 @@ const faPlusDni = (iso, dni) => { const d = new Date(iso + "T12:00:00"); d.setDa
 const faDatum = iso => iso ? new Date(iso + "T12:00:00").toLocaleDateString("cs-CZ") : "—";
 const faZaokr = x => Math.round((x || 0) * 100) / 100;
 
+/* co se počítá do výnosů: faktury a jejich storna/dobropisy; zálohové faktury ani jejich storna ne.
+   Stornovaná faktura se počítá dál, protože její storno doklad ji záporně vyrovná na nulu —
+   výjimkou jsou stará storna ze starší verze aplikace, která žádný storno doklad nemají. */
+function faDoVynosu(f){
+  if (f.typ === "zal") return false;
+  if (f.typ === "storno") return !(f.odkaz && f.odkaz.typ === "zal");
+  return !(f.stav === "stornovana" && !(f.storno && f.storno.dokladId));
+}
+/* kolik z faktury ještě zbývá zaplatit — dobropis vystavený před zaplacením snižuje dluh klienta */
+function faZbyva(f){
+  const dobropisy = (f.dobropisy || []).filter(x => !x.poZaplaceni).reduce((a, x) => a + (x.castka || 0), 0);
+  return Math.max(0, faZaokr((f.kUhrade || 0) - dobropisy));
+}
+function faCekaNaPlatbu(f){ return f.stav === "vystavena" && f.typ !== "storno" && faZbyva(f) > 0; }
+
 function faDodavatel(){
   const n = S.nastaveni;
   return {firma:n.firma||"", znacka:n.znacka||"", ico:n.ico||"", dic:n.dic||"", adresa:n.adresaFirmy||"",
     spisZn:n.spisZn||"", jednatel:n.jednatel||"", telefon:n.telefon||"", email:n.email||"", web:n.web||"",
-    bankUcet:n.bankUcet||"", iban:(n.iban||"").replace(/\s/g,""), platceDPH:!!n.platceDPH};
+    bankUcet:n.bankUcet||"", iban:(n.iban||"").replace(/\s/g,"").toUpperCase(), swift:(n.swift||"").replace(/\s/g,"").toUpperCase(),
+    platceDPH:!!n.platceDPH};
 }
 function faOdberatelZeZakazky(z){
   const k = (S.klienti || []).find(x => x.id === z.klientId);
@@ -7503,34 +7713,61 @@ function faOdberatelZeZakazky(z){
     ico:(k && k.ico) || "", dic:(k && k.dic) || "", email:(k && k.email) || "", telefon:(k && k.tel) || ""};
 }
 
-/* Co chybí, aby šla faktura legálně vystavit. Vrací seznam chyb (prázdný = OK). */
+/* Co chybí, aby šla faktura legálně a bezchybně vystavit. Prázdný seznam = OK. */
 function faKontrola(f){
-  const ch = [], d = f.dodavatel, o = f.odberatel;
+  const ch = [], d = f.dodavatel, o = f.odberatel, storno = f.typ === "storno";
   if (d.platceDPH) ch.push("faktura plátce DPH zatím není podporovaná — chybí rozpis daně podle sazeb; doplníme, až budete plátci");
   if (!d.firma) ch.push("obchodní firma dodavatele (Nastavení → Firma na dokladech)");
   if (!/^\d{8}$/.test(d.ico)) ch.push("platné IČO dodavatele (8 číslic)");
   if (!d.adresa) ch.push("sídlo dodavatele");
   if (/s\.\s*r\.\s*o|spol\.|a\.\s*s\./i.test(d.firma) && !d.spisZn) ch.push("zápis v obchodním rejstříku (spisová značka)");
-  if (!d.bankUcet && !d.iban) ch.push("číslo bankovního účtu");
+  if (faZpusob(f) === "prevod") {
+    if (!d.bankUcet && !d.iban) ch.push("číslo bankovního účtu (Nastavení → Firma na dokladech)");
+    if (d.iban && !ibanPlatny(d.iban)) ch.push("IBAN v nastavení není platný — kontrolní součet nesedí");
+    if (d.swift && !bicPlatny(d.swift)) ch.push("SWIFT/BIC v nastavení má špatný tvar");
+    if (!storno && f.kUhrade > 0 && !d.iban) ch.push("IBAN — bez něj nejde vytvořit QR platbu");
+    if (!storno && f.kUhrade > 0 && d.iban && ibanPlatny(d.iban)) { try { faQrText(f); } catch (e) { ch.push("QR platba: " + e.message); } }
+  }
   if (!o.jmeno) ch.push("jméno nebo firma odběratele");
   if (o.ico && !/^\d{8}$/.test(o.ico)) ch.push("IČO odběratele musí mít 8 číslic");
-  if (!f.polozky.length) ch.push("aspoň jedna položka");
-  if (!(f.kUhrade > 0) && f.typ !== "kon") ch.push("částka k úhradě musí být kladná");
+  if (o.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(o.email)) ch.push("e-mail odběratele má špatný tvar");
+  if (!f.polozky.length || !f.polozky.some(p => p.celkem)) ch.push("aspoň jedna položka s částkou");
+  if (f.polozky.some(p => p.celkem && !String(p.popis || "").trim())) ch.push("popis u každé položky");
+  if (f.splatnost && f.vystaveno && f.splatnost < f.vystaveno) ch.push("splatnost nemůže být dřív než datum vystavení");
+  if (storno) {
+    if (!f.odkaz) ch.push("odkaz na původní fakturu");
+    if (!(f.celkem < 0)) ch.push("storno i dobropis musí mít zápornou částku");
+    if (!String(f.duvodStorna || "").trim()) ch.push("důvod storna nebo dobropisu (tiskne se na doklad)");
+    const orig = f.odkaz && (S.faktury || []).find(x => x.id === f.odkaz.id);
+    const uzDobropisy = orig ? (orig.dobropisy || []).reduce((a, x) => a + (x.castka || 0), 0) : 0;
+    if (orig && -f.celkem > orig.celkem - uzDobropisy + 0.5) ch.push("dobropisy nemůžou být vyšší než původní faktura (zbývá " + faKc(orig.celkem - uzDobropisy) + ")");
+    if (orig && orig.stav === "stornovana") ch.push("původní faktura už je stornovaná");
+    if (orig && !f.castecne && uzDobropisy) ch.push("k faktuře už je vystavený dobropis — zbytek oprav dalším dobropisem, ne celým stornem");
+    if (orig && orig.typ === "zal") {
+      const odecteno = (S.faktury || []).find(x => x.odpocetZalohy && x.odpocetZalohy.cislo === orig.cislo && x.stav !== "stornovana");
+      if (odecteno) ch.push("záloha je odečtená ve faktuře " + odecteno.cislo + " — nejdřív stornuj tu");
+    }
+  } else if (f.typ === "kon" || f.typ === "vlastni") {
+    if (f.celkem < 0) ch.push("faktura nemůže mít zápornou cenu — použij storno nebo dobropis");
+    if (f.typ === "vlastni" && !(f.celkem > 0)) ch.push("částka faktury musí být kladná");
+  } else if (!(f.kUhrade > 0)) ch.push("částka k úhradě musí být kladná");
   return ch;
 }
+
+const faNovaMetadata = () => ({zpusobUhrady:"prevod", odeslano:[], upominky:[], zaplaceno:"", storno:null,
+  vytvoril:S.nastaveni.jednatel || "", vytvoreno:new Date().toISOString()});
 
 /* Sestaví koncept faktury ze zakázky. Nic neukládá — to udělá až faVystavit(). */
 function faKonceptZeZakazky(z, typ){
   const puvodniJ = J; J = z;                /* vypocet() pracuje s globální J */
   let v; try { v = vypocet(); } finally { J = puvodniJ; }
   const n = S.nastaveni, dnes = faDnes();
-  const f = {id:uid(), typ, cislo:"", stav:"koncept", vystaveno:dnes,
+  const f = Object.assign({id:uid(), typ, cislo:"", stav:"koncept", vystaveno:dnes,
     duzp: typ === "zal" ? "" : (z.terminDo || dnes),
     splatnost: faPlusDni(dnes, n.fakSplatnost || 14),
     dodavatel:faDodavatel(), odberatel:faOdberatelZeZakazky(z),
-    polozky:[], slevy:[], mezisoucet:0, odpocetZalohy:null, celkem:0, kUhrade:0,
-    zakazkaId:z.id || "", zakazkaNazev:z.nazev || "", mistoPlneni:z.adresa || "",
-    poznamka:"", zaplaceno:"", storno:null, vytvoril:n.jednatel || "", vytvoreno:new Date().toISOString()};
+    polozky:[], slevy:[], mezisoucet:0, zaokrouhleni:0, odpocetZalohy:null, celkem:0, kUhrade:0,
+    zakazkaId:z.id || "", zakazkaNazev:z.nazev || "", mistoPlneni:z.adresa || "", poznamka:""}, faNovaMetadata());
 
   if (typ === "zal") {
     const castka = (z.zalohaCastka || 0) > 0 ? z.zalohaCastka : Math.round(v.celkem * (n.zaloha || 0) / 100);
@@ -7539,8 +7776,7 @@ function faKonceptZeZakazky(z, typ){
     f.splatnost = z.zalohaSplatnost || f.splatnost;
     return f;
   }
-  /* Každý řádek na papíře přesně násobí: množství × jednotková cena = celkem, na haléře.
-     Proto se nejdřív zaokrouhlí jednotková cena a množství, a teprve z nich se spočítá řádek. */
+  /* Každý řádek na papíře přesně násobí: množství × jednotková cena = celkem, na haléře. */
   const P = (popis, mnozstvi, mj, cenaMJ) => {
     const m = faZaokr(mnozstvi), c = faZaokr(cenaMJ), celkem = faZaokr(m * c);
     if (celkem) f.polozky.push({popis, mnozstvi:m, mj, cenaMJ:c, celkem});
@@ -7550,7 +7786,6 @@ function faKonceptZeZakazky(z, typ){
     const puvodniJ2 = J; J = z; const c = cenaMJ(r); J = puvodniJ2;   /* interní přirážka v jednotkové ceně */
     P(r.nazev, r.mnozstvi, r.mj, c);
   });
-  /* vypočtené položky jako komplet s tonáží v popisu — cena za tunu na haléře by na papíře nenásobila */
   if (v.vynaska) P("Vynáška a přesun suti (" + t + ")", 1, "kpl", v.vynaska);
   if (v.rezerva) P("Rezerva na skryté konstrukce", 1, "kpl", v.rezerva);
   if (v.vikend)  P("Příplatek za práci o víkendu / svátku", 1, "kpl", v.vikend);
@@ -7576,31 +7811,52 @@ function faKonceptZeZakazky(z, typ){
   return f;
 }
 
-/* Prázdná faktura bez zakázky (třeba drobná práce nebo prodej materiálu). */
+/* Prázdná faktura bez zakázky (drobná práce, prodej materiálu). */
 function faKonceptPrazdny(){
   const n = S.nastaveni, dnes = faDnes();
-  return {id:uid(), typ:"vlastni", cislo:"", stav:"koncept", vystaveno:dnes, duzp:dnes,
+  return Object.assign({id:uid(), typ:"vlastni", cislo:"", stav:"koncept", vystaveno:dnes, duzp:dnes,
     splatnost:faPlusDni(dnes, n.fakSplatnost || 14), dodavatel:faDodavatel(),
     odberatel:{jmeno:"", adresa:"", ico:"", dic:"", email:"", telefon:""},
-    polozky:[{popis:"", mnozstvi:1, mj:"kpl", cenaMJ:0, celkem:0}], slevy:[], mezisoucet:0,
-    odpocetZalohy:null, celkem:0, kUhrade:0, zakazkaId:"", zakazkaNazev:"", mistoPlneni:"",
-    poznamka:"", zaplaceno:"", storno:null, vytvoril:n.jednatel || "", vytvoreno:new Date().toISOString()};
+    polozky:[{popis:"", mnozstvi:1, mj:"kpl", cenaMJ:0, celkem:0}], slevy:[], mezisoucet:0, zaokrouhleni:0,
+    odpocetZalohy:null, celkem:0, kUhrade:0, zakazkaId:"", zakazkaNazev:"", mistoPlneni:"", poznamka:""}, faNovaMetadata());
 }
+
+/* Storno celé faktury nebo dobropis její části — nový doklad se zápornými položkami. */
+function faStornoKoncept(orig, castecne){
+  const n = S.nastaveni, dnes = faDnes();
+  const f = Object.assign({id:uid(), typ:"storno", castecne:!!castecne, cislo:"", stav:"koncept", vystaveno:dnes, duzp:dnes,
+    splatnost:faPlusDni(dnes, n.fakSplatnost || 14), dodavatel:faDodavatel(),
+    odberatel:JSON.parse(JSON.stringify(orig.odberatel)),
+    polozky:castecne
+      ? [{popis:"Oprava ceny k faktuře č. " + orig.cislo, mnozstvi:-1, mj:"kpl", cenaMJ:0, celkem:0}]
+      : orig.polozky.map(p => ({popis:p.popis, mnozstvi:-Math.abs(p.mnozstvi || 1), mj:p.mj, cenaMJ:Math.abs(p.cenaMJ), celkem:-Math.abs(p.celkem)})),
+    slevy:castecne ? [] : JSON.parse(JSON.stringify(orig.slevy || [])), mezisoucet:0, zaokrouhleni:0, odpocetZalohy:null, celkem:0, kUhrade:0,
+    zakazkaId:orig.zakazkaId || "", zakazkaNazev:orig.zakazkaNazev || "", mistoPlneni:orig.mistoPlneni || "",
+    odkaz:{id:orig.id, cislo:orig.cislo, vystaveno:orig.vystaveno, typ:orig.typ, zaplacena:orig.stav === "zaplacena",
+      celkem:faZaokr(orig.celkem - (orig.dobropisy || []).reduce((a, x) => a + (x.castka || 0), 0))},   /* cena po dřívějších dobropisech */
+    pevnyCelkem:castecne ? null : -orig.celkem,   /* celé storno musí přesně vyrovnat původní cenu, i s jejím zaokrouhlením */
+    zalohaPonechana:!castecne && orig.odpocetZalohy ? {cislo:orig.odpocetZalohy.cislo, castka:orig.odpocetZalohy.castka} : null,
+    duvodStorna:"", poznamka:""}, faNovaMetadata(), {zpusobUhrady:orig.zpusobUhrady || "prevod"});
+  faPrepocet(f);
+  return f;
+}
+
 function faPrepocet(f){
   f.polozky.forEach(p => { p.mnozstvi = faZaokr(p.mnozstvi || 0); p.cenaMJ = faZaokr(p.cenaMJ || 0); p.celkem = faZaokr(p.mnozstvi * p.cenaMJ); });
   f.mezisoucet = faZaokr(f.polozky.reduce((a, p) => a + p.celkem, 0));
   f.slevy.forEach(s => { s.castka = faZaokr(f.mezisoucet * (s.pct || 0) / 100); });
   const poSleve = faZaokr(f.mezisoucet - f.slevy.reduce((a, s) => a + s.castka, 0));
-  f.celkem = Math.round(poSleve);
+  f.celkem = f.pevnyCelkem != null ? f.pevnyCelkem : poSleve < 0 ? -Math.round(-poSleve) : Math.round(poSleve);
   f.zaokrouhleni = faZaokr(f.celkem - poSleve);
-  f.kUhrade = Math.max(0, f.celkem - (f.odpocetZalohy ? f.odpocetZalohy.castka : 0));
+  /* storno konečné faktury: záloha zůstává uhrazená (odečte se v opravené faktuře), vrací se jen doplatek */
+  f.kUhrade = f.typ === "storno" ? faZaokr(f.celkem + (f.zalohaPonechana ? f.zalohaPonechana.castka : 0))
+    : Math.max(0, f.celkem - (f.odpocetZalohy ? f.odpocetZalohy.castka : 0));
 }
 
-/* ================= FAKTURY — tiskový vzhled =================
-   Jeden list A4 v barvách značky. Stejné HTML se použije pro náhled na obrazovce,
-   pro tisk / uložení do PDF i pro kopii v exportu pro účetní.
-   Rozvržení je zhuštěné tak, aby běžná faktura s ~15 řádky, slevou a odpočtem zálohy
-   zůstala na jedné straně. Delší faktura se zlomí mezi řádky a hlavička tabulky se zopakuje. */
+/* ================= FAKTURY — náhled a tisk (HTML) =================
+   Stejné texty jako PDF (faPoznamkyText, faSouctyRadky, faQrText z modulu PDF).
+   Rozvržení je zhuštěné tak, aby běžná faktura s ~15 řádky zůstala na jedné A4;
+   delší se zlomí mezi řádky a hlavička tabulky se zopakuje. */
 const FA_CSS = `
 .fa{--o:#E8541C;--k:#1A1815;--c:#F4F1EA;--l:#E4DFD4;--m:#6B665C;
   width:210mm;min-height:297mm;box-sizing:border-box;padding:10mm 13mm 9mm;margin:0 auto;background:#fff;color:var(--k);
@@ -7613,7 +7869,7 @@ const FA_CSS = `
 .fa .fa-titul{text-align:right}
 .fa .fa-titul .fa-typ{font-size:19pt;font-weight:900;letter-spacing:.02em;line-height:1;text-transform:uppercase}
 .fa .fa-titul .fa-cislo{font-size:10.5pt;font-weight:600;margin-top:1.2mm;font-variant-numeric:tabular-nums}
-.fa .fa-titul .fa-pod{font-size:7.3pt;color:var(--m);margin-top:.8mm;max-width:62mm;margin-left:auto}
+.fa .fa-titul .fa-pod{font-size:7.3pt;color:var(--m);margin-top:.8mm;max-width:70mm;margin-left:auto}
 .fa .fa-pruh{height:2mm;margin:4.5mm 0 5mm;background:repeating-linear-gradient(-45deg,var(--o) 0 2mm,var(--k) 2mm 4mm)}
 .fa .fa-strany{display:grid;grid-template-columns:1fr 1fr;gap:5mm;break-inside:avoid}
 .fa .fa-strana{padding:3.2mm 4mm;border-radius:2mm;border:.3mm solid var(--l)}
@@ -7630,19 +7886,19 @@ const FA_CSS = `
 .fa table.fa-pol{width:100%;border-collapse:collapse;margin-top:4.5mm}
 .fa table.fa-pol thead{display:table-header-group}
 .fa table.fa-pol tr{break-inside:avoid}
-.fa table.fa-pol th{font-size:6.6pt;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:var(--k);font-weight:700;
-  padding:1.8mm 2.2mm;text-align:left;border:0}
+.fa table.fa-pol th{font-size:6.6pt;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:var(--k);font-weight:700;padding:1.8mm 2.2mm;text-align:left;border:0}
 .fa table.fa-pol th.r,.fa table.fa-pol td.r{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 .fa table.fa-pol td{padding:1.45mm 2.2mm;border:0;border-bottom:.25mm solid var(--l);vertical-align:top;font-size:8.8pt}
 .fa table.fa-pol tr:nth-child(even) td{background:#FBFAF7}
 .fa table.fa-pol td.mj{color:var(--m)}
-.fa .fa-spod{display:grid;grid-template-columns:1fr 72mm;gap:7mm;margin-top:4mm;align-items:start;break-inside:avoid}
+.fa .fa-spod{display:grid;grid-template-columns:minmax(0,1fr) 68mm;gap:5mm;margin-top:4mm;align-items:start;break-inside:avoid}
 .fa .fa-plat{display:flex;gap:3.5mm;align-items:flex-start}
-.fa .fa-plat .fa-qr{border:.3mm solid var(--l);border-radius:1.5mm;padding:1.2mm;background:#fff;flex-shrink:0}
-.fa .fa-plat .fa-qr svg{width:26mm;height:26mm;display:block}
-.fa .fa-plat .fa-qrt{font-size:6.2pt;color:var(--m);text-align:center;margin-top:.6mm;letter-spacing:.04em}
-.fa .fa-plat table{border-collapse:collapse;font-size:8.5pt}
-.fa .fa-plat td{padding:.5mm 2.5mm .5mm 0;border:0;vertical-align:top}
+.fa .fa-qrp{border:.35mm solid #000;padding:1.3mm 1.3mm 0;background:#fff;flex-shrink:0;text-align:center}
+.fa .fa-qrp svg{width:31mm;height:31mm;display:block}
+.fa .fa-qrp div{font-size:7pt;font-weight:800;line-height:1;padding:1.1mm 0 1.2mm}
+.fa .fa-qrchyba{border:.35mm solid #B3352B;color:#B3352B;font-size:7.5pt;padding:2mm;max-width:40mm}
+.fa .fa-plat table{border-collapse:collapse;font-size:8pt}
+.fa .fa-plat td{padding:.5mm 2mm .5mm 0;border:0;vertical-align:top}
 .fa .fa-plat td:first-child{color:var(--m);white-space:nowrap}
 .fa .fa-plat td b{font-variant-numeric:tabular-nums;white-space:nowrap}
 .fa .fa-soucty{width:100%;border-collapse:collapse}
@@ -7650,70 +7906,57 @@ const FA_CSS = `
 .fa .fa-soucty td.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .fa .fa-soucty tr.sl td{color:var(--o);font-weight:600}
 .fa .fa-soucty tr.cel td{border-top:.3mm solid var(--l);padding-top:1.8mm;font-weight:700}
-.fa .fa-kuhrade{margin-top:2mm;background:var(--k);color:#fff;border-radius:2mm;padding:3mm 3.6mm;display:flex;justify-content:space-between;align-items:baseline;gap:3mm}
-.fa .fa-kuhrade span{font-size:7.2pt;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:#E9E4D9;white-space:nowrap}
-.fa .fa-kuhrade b{font-size:16pt;font-weight:900;font-variant-numeric:tabular-nums;color:#fff;white-space:nowrap}
+.fa .fa-kuhrade{margin-top:2mm;background:var(--k);color:#fff;border-radius:2mm;padding:3mm 3.6mm;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:1mm 3mm}
+.fa .fa-kuhrade span{font-size:7.2pt;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:#E9E4D9;white-space:nowrap}
+.fa .fa-kuhrade b{font-size:16pt;font-weight:900;font-variant-numeric:tabular-nums;color:#fff;white-space:nowrap;margin-left:auto}
 .fa .fa-kuhrade b i{font-style:normal;color:var(--o)}
 .fa .fa-pozn{margin-top:3.5mm;font-size:8pt;line-height:1.45;color:#3B3832}
 .fa .fa-pozn p{margin:0 0 1mm}
-.fa .fa-dph{display:inline-block;border:.35mm solid var(--o);color:var(--o);font-weight:800;font-size:7pt;letter-spacing:.12em;
-  text-transform:uppercase;padding:.8mm 2.2mm;border-radius:1mm;margin-bottom:1.6mm}
-.fa .fa-pata{margin-top:auto;padding-top:3.5mm;border-top:.3mm solid var(--l);display:flex;justify-content:space-between;gap:6mm;
-  font-size:7.4pt;color:var(--m);align-items:flex-end;break-inside:avoid}
-.fa .fa-spod+.fa-pata{margin-top:max(auto,5mm)}
+.fa .fa-dph{display:inline-block;border:.35mm solid var(--o);color:var(--o);font-weight:800;font-size:7pt;letter-spacing:.12em;text-transform:uppercase;padding:.8mm 2.2mm;border-radius:1mm;margin-bottom:1.6mm}
+.fa .fa-pata{margin-top:auto;padding-top:3.5mm;border-top:.3mm solid var(--l);display:flex;justify-content:space-between;gap:6mm;font-size:7.4pt;color:var(--m);align-items:flex-end;break-inside:avoid}
 .fa .fa-pata b{color:var(--k)}
 .fa .fa-kostky{display:flex;gap:1.6mm;align-items:center}
 .fa .fa-kostky i{display:block;background:var(--k)}
 .fa .fa-kostky i.o{background:var(--o)}
-.fa .fa-razitko{position:absolute;top:56mm;right:18mm;transform:rotate(-12deg);border:1.2mm solid;border-radius:3mm;
-  padding:2.5mm 6mm;font-size:22pt;font-weight:900;letter-spacing:.12em;text-transform:uppercase;opacity:.82}
+.fa .fa-razitko{display:table;margin:6mm auto 0;transform:rotate(-12deg);border:1.2mm solid;border-radius:3mm;padding:2.5mm 6mm;font-size:22pt;font-weight:900;letter-spacing:.12em;text-transform:uppercase;opacity:.82}
 .fa .fa-razitko.zap{color:#1E7F4F;border-color:#1E7F4F}
 .fa .fa-razitko.sto{color:#B3352B;border-color:#B3352B}
 .fa .fa-razitko small{display:block;font-size:7.5pt;letter-spacing:.06em;text-align:center;font-weight:700}
 `;
 
 function faKostky(){
-  /* motiv rozbitých kostek z loga */
   const k = [[3.4,3,-8,0],[2.2,2.2,45,1],[4.2,4,-6,0],[2.6,2.6,0,1],[3.4,3.4,45,0],[1.8,1.4,20,1],[3,2.6,-14,0]];
   return "<div class='fa-kostky'>" + k.map(([w,h,r,o]) =>
     "<i class='" + (o?"o":"") + "' style='width:"+w+"mm;height:"+h+"mm;transform:rotate("+r+"deg)'></i>").join("") + "</div>";
 }
-const faKc = x => new Intl.NumberFormat("cs-CZ",{minimumFractionDigits:2,maximumFractionDigits:2}).format(x||0) + " Kč";
-const faMn = x => new Intl.NumberFormat("cs-CZ",{maximumFractionDigits:3}).format(x||0);
+/* záporná čísla s typografickým minus (−), ne spojovníkem */
+const faKc = x => new Intl.NumberFormat("cs-CZ",{minimumFractionDigits:2,maximumFractionDigits:2}).format(x||0).replace("-", "−") + " Kč";
+const faMn = x => new Intl.NumberFormat("cs-CZ",{maximumFractionDigits:3}).format(x||0).replace("-", "−");
 
 function faHTML(f){
-  const d = f.dodavatel, o = f.odberatel, zal = f.typ === "zal";
-  const typNazev = zal ? "Zálohová faktura" : "Faktura";
-  const podtitul = zal ? "Výzva k úhradě zálohy — nejde o daňový ani účetní doklad"
-    : (d.platceDPH ? "Daňový doklad" : "Faktura — účetní doklad");
+  const d = f.dodavatel, o = f.odberatel, zal = f.typ === "zal", storno = f.typ === "storno";
   const vs = faVS(f.cislo);
   let qr = "";
-  if (d.iban && f.kUhrade > 0 && f.stav !== "stornovana") {
-    try { qr = "<div><div class='fa-qr'>" + QR.svg(spayd(d.iban, f.kUhrade, vs, (zal ? "ZALOHA " : "FAKTURA ") + f.cislo), 120) +
-      "</div><div class='fa-qrt'>QR PLATBA</div></div>"; } catch (e) { qr = ""; }
-  }
+  try {
+    const text = faQrText(f);
+    if (text) qr = "<div class='fa-qrp'>" + QR.svg(text) + "<div>QR Platba</div></div>";
+  } catch (e) { qr = "<div class='fa-qrchyba'>QR platbu nejde vytvořit: " + esc(e.message) + "</div>"; }
   const radky = f.polozky.map(p =>
     "<tr><td>" + esc(p.popis) + "</td><td class='r'>" + (p.mj ? faMn(p.mnozstvi) : "") + "</td><td class='mj'>" + esc(p.mj || "") +
     "</td><td class='r'>" + faKc(p.cenaMJ) + "</td><td class='r'><b>" + faKc(p.celkem) + "</b></td></tr>").join("");
-  const slevy = f.slevy.map(s => "<tr class='sl'><td>" + esc(s.popis) + " " + faMn(s.pct) + " %</td><td class='r'>−" + faKc(s.castka) + "</td></tr>").join("");
-  const zaokr = Math.abs(f.zaokrouhleni || 0) >= 0.01;
-  const razitko = f.stav === "zaplacena" ? "<div class='fa-razitko zap'>Zaplaceno<small>" + faDatum(f.zaplaceno) + "</small></div>"
+  const soucty = faSouctyRadky(f).map(([l, h, druh]) =>
+    "<tr" + (druh ? " class='" + druh + "'" : "") + "><td>" + esc(l) + "</td><td class='r'>" + esc(h) + "</td></tr>").join("");
+  const razitko = f.stav === "zaplacena" && !storno ? "<div class='fa-razitko zap'>Zaplaceno<small>" + faDatum(f.zaplaceno) + "</small></div>"
     : f.stav === "stornovana" ? "<div class='fa-razitko sto'>Stornováno<small>" + faDatum(f.storno && f.storno.datum) + "</small></div>" : "";
-  const nl = String.fromCharCode(10);
-  const pozn = "<div class='fa-pozn'>" +
-      (!d.platceDPH ? "<div class='fa-dph'>Nejsme plátci DPH</div>" : "") +
-      (zal ? "<p>Po připsání zálohy na účet ji odečteme v konečné faktuře.</p>" : "") +
-      (f.zakazkaNazev && !zal ? "<p>Zakázka: <b>" + esc(f.zakazkaNazev) + "</b></p>" : "") +
-      (f.poznamka ? "<p>" + esc(f.poznamka).split(nl).join("<br>") + "</p>" : "") +
-      (f.storno && f.storno.duvod ? "<p><b>Důvod storna:</b> " + esc(f.storno.duvod) + "</p>" : "") +
-      "<p>Při platbě prosím uveďte variabilní symbol <b>" + esc(vs) + "</b>. Děkujeme za spolupráci.</p>" +
-    "</div>";
+  const plat = faPlatebniRadky(f);
+  const stitek = faStitekCastky(f);
+  const druhySloupec = zal ? ["Zakázka", esc(f.zakazkaNazev || "—")] : storno ? ["K faktuře", esc((f.odkaz && f.odkaz.cislo) || "—")] : ["Datum plnění", faDatum(f.duzp)];
 
-  return "<style>" + FA_CSS + "</style><div class='fa'>" + razitko +
+  return "<style>" + FA_CSS + "</style><div class='fa'>" +
     "<div class='fa-top'><div class='fa-logo'><img src='" + logoFirmy() + "' alt='" + esc(d.znacka || d.firma) + "'>" +
       (d.znacka && S.nastaveni.logo ? "<div class='fa-znacka'>" + esc(d.znacka) + "</div>" : "") + "</div>" +
-      "<div class='fa-titul'><div class='fa-typ'>" + typNazev + "</div><div class='fa-cislo'>č. " + esc(f.cislo || "KONCEPT") + "</div>" +
-      "<div class='fa-pod'>" + podtitul + "</div></div></div>" +
+      "<div class='fa-titul'><div class='fa-typ'>" + esc(faTypNazev(f)) + "</div><div class='fa-cislo'>č. " + esc(f.cislo || "KONCEPT") + "</div>" +
+      "<div class='fa-pod'>" + esc(faPodtitul(f)) + "</div></div></div>" +
     "<div class='fa-pruh'></div>" +
     "<div class='fa-strany'>" +
       "<div class='fa-strana'><div class='fa-lbl'>Dodavatel</div><div class='fa-jm'>" + esc(d.firma) + "</div>" +
@@ -7727,29 +7970,18 @@ function faHTML(f){
     "</div>" +
     "<div class='fa-udaje'>" +
       "<div><span>Datum vystavení</span><b>" + faDatum(f.vystaveno) + "</b></div>" +
-      "<div><span>" + (zal ? "Zakázka" : "Datum plnění") + "</span><b>" + (zal ? esc(f.zakazkaNazev || "—") : faDatum(f.duzp)) + "</b></div>" +
+      "<div><span>" + druhySloupec[0] + "</span><b>" + druhySloupec[1] + "</b></div>" +
       "<div><span>Datum splatnosti</span><b>" + faDatum(f.splatnost) + "</b></div>" +
       "<div><span>Variabilní symbol</span><b>" + esc(vs) + "</b></div>" +
     "</div>" +
     "<table class='fa-pol'><thead><tr><th>Popis</th><th class='r'>Množství</th><th>MJ</th><th class='r'>Cena za MJ</th><th class='r'>Celkem</th></tr></thead><tbody>" +
       radky + "</tbody></table>" +
     "<div class='fa-spod'>" +
-      "<div><div class='fa-plat'>" + qr + "<table>" +
-        "<tr><td>Forma úhrady</td><td><b>převodem</b></td></tr>" +
-        (d.bankUcet ? "<tr><td>Číslo účtu</td><td><b>" + esc(d.bankUcet) + "</b></td></tr>" : "") +
-        (d.iban ? "<tr><td>IBAN</td><td><b>" + esc(d.iban.replace(/(.{4})/g, "$1 ").trim()) + "</b></td></tr>" : "") +
-        "<tr><td>Variabilní symbol</td><td><b>" + esc(vs) + "</b></td></tr>" +
-        "<tr><td>Splatnost</td><td><b>" + faDatum(f.splatnost) + "</b></td></tr>" +
-      "</table></div>" + pozn + "</div>" +
-      "<div><table class='fa-soucty'>" +
-        (f.slevy.length || f.odpocetZalohy || zaokr ? "<tr><td>Součet položek</td><td class='r'>" + faKc(f.mezisoucet) + "</td></tr>" : "") +
-        slevy +
-        (zaokr ? "<tr><td>Zaokrouhlení</td><td class='r'>" + (f.zaokrouhleni > 0 ? "+" : "−") + faKc(Math.abs(f.zaokrouhleni)) + "</td></tr>" : "") +
-        (f.odpocetZalohy ? "<tr class='cel'><td>Cena celkem</td><td class='r'>" + faKc(f.celkem) + "</td></tr>" +
-          "<tr><td>Uhrazená záloha " + esc(f.odpocetZalohy.cislo) + "</td><td class='r'>−" + faKc(f.odpocetZalohy.castka) + "</td></tr>" : "") +
-      "</table>" +
-      "<div class='fa-kuhrade'><span>" + (f.stav === "stornovana" ? "Stornováno" : "Celkem k úhradě") + "</span><b>" +
-        faKc(f.kUhrade).replace(" Kč", "") + " <i>Kč</i></b></div></div>" +
+      "<div><div class='fa-plat'>" + qr + "<table>" + plat.map(([l, h]) => "<tr><td>" + l + "</td><td><b>" + esc(h) + "</b></td></tr>").join("") + "</table></div>" +
+        "<div class='fa-pozn'>" + (!d.platceDPH ? "<div class='fa-dph'>Nejsme plátci DPH</div>" : "") +
+          faPoznamkyText(f).map(t => "<p>" + esc(t) + "</p>").join("") + "</div></div>" +
+      "<div><table class='fa-soucty'>" + soucty + "</table>" +
+        "<div class='fa-kuhrade'><span>" + stitek + "</span><b>" + faKc(Math.abs(f.kUhrade)).replace(" Kč", "") + " <i>Kč</i></b></div>" + razitko + "</div>" +
     "</div>" +
     "<div class='fa-pata'><div>Vystavil: <b>" + esc(f.vytvoril || d.jednatel || "") + "</b>" +
       (d.telefon || d.email || d.web ? "<br>" + [d.telefon, d.email, d.web].filter(Boolean).map(esc).join(" &nbsp;·&nbsp; ") : "") + "</div>" +
@@ -7757,14 +7989,379 @@ function faHTML(f){
   "</div>";
 }
 
+/* ================= FAKTURA JAKO SKUTEČNÉ PDF =================
+   Vektorové PDF (jsPDF + font Noto Sans s českou diakritikou), stejný vzhled jako náhled.
+   Knihovna a fonty se stáhnou z CDN jen poprvé a uloží se do IndexedDB — potom PDF
+   funguje i bez internetu. Soubor jde stáhnout nebo rovnou poslat přes sdílení v telefonu. */
+const PDF_ZDROJE = {
+  jspdf:  "https://cdn.jsdelivr.net/npm/jspdf@4.2.1/dist/jspdf.umd.min.js",
+  normal: "https://cdn.jsdelivr.net/gh/notofonts/notofonts.github.io/fonts/NotoSans/hinted/ttf/NotoSans-Regular.ttf",
+  bold:   "https://cdn.jsdelivr.net/gh/notofonts/notofonts.github.io/fonts/NotoSans/hinted/ttf/NotoSans-Bold.ttf",
+  black:  "https://cdn.jsdelivr.net/gh/notofonts/notofonts.github.io/fonts/NotoSans/hinted/ttf/NotoSans-Black.ttf"
+};
+const LOGO_PDF = "data:image/png;base64,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", LOGO_PDF_POMER = 1200 / 398;
+let pdfFonty = null, pdfPriprava = null;
+
+function pdfB64(buf){
+  const b = new Uint8Array(buf); let s = "";
+  for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+async function pdfZdroj(klic, jakoText){
+  const ulozeno = await IDB.get("pdf|" + klic).catch(() => null);
+  if (ulozeno) return ulozeno;
+  const r = await fetch(PDF_ZDROJE[klic]);
+  if (!r.ok) throw new Error("Nepodařilo se stáhnout " + klic + " (HTTP " + r.status + ")");
+  const hodnota = jakoText ? await r.text() : pdfB64(await r.arrayBuffer());
+  await IDB.put("pdf|" + klic, hodnota).catch(() => {});
+  return hodnota;
+}
+function pdfNacti(){
+  if (pdfPriprava) return pdfPriprava;
+  pdfPriprava = (async () => {
+    if (!(window.jspdf && window.jspdf.jsPDF)) {
+      const kod = await pdfZdroj("jspdf", true);
+      await new Promise((res, rej) => {
+        const url = URL.createObjectURL(new Blob([kod], {type:"text/javascript"}));
+        const s = document.createElement("script"); s.src = url;
+        s.onload = () => { URL.revokeObjectURL(url); res(); }; s.onerror = () => rej(new Error("Knihovnu PDF se nepodařilo spustit"));
+        document.head.appendChild(s);
+      });
+    }
+    const [normal, bold, black] = await Promise.all([pdfZdroj("normal"), pdfZdroj("bold"), pdfZdroj("black")]);
+    pdfFonty = {normal, bold, black};
+  })().catch(e => { pdfPriprava = null; throw e; });
+  return pdfPriprava;
+}
+async function pdfLogo(){
+  const vlastni = S.nastaveni.logo;
+  if (vlastni && /^data:image\/(png|jpe?g)/i.test(vlastni)) {
+    const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = vlastni; });
+    return {uri:vlastni, fmt:/png/i.test(vlastni.slice(0, 20)) ? "PNG" : "JPEG", pomer:img.naturalWidth / img.naturalHeight};
+  }
+  return {uri:LOGO_PDF, fmt:"PNG", pomer:LOGO_PDF_POMER};
+}
+
+const PDF_BARVY = {o:[232,84,28], k:[26,24,21], c:[244,241,234], l:[228,223,212], m:[107,102,92], w:[255,255,255],
+  pas:[251,250,247], text:[59,56,50], zap:[30,127,79], sto:[179,53,43], svetla:[233,228,217]};
+
+function faTypNazev(f){
+  if (f.typ === "zal") return "Zálohová faktura";
+  if (f.typ === "storno") return f.castecne ? "Dobropis" : "Storno faktura";
+  return "Faktura";
+}
+function faPodtitul(f){
+  if (f.typ === "zal") return "Výzva k úhradě zálohy — nejde o daňový ani účetní doklad";
+  if (f.typ === "storno") return "Opravný doklad k faktuře č. " + ((f.odkaz && f.odkaz.cislo) || "—");
+  return f.dodavatel.platceDPH ? "Daňový doklad" : "Faktura — účetní doklad";
+}
+function faPdfJmeno(f){
+  const typ = f.typ === "zal" ? "Zalohova-faktura" : f.typ === "storno" ? (f.castecne ? "Dobropis" : "Storno-faktura") : "Faktura";
+  const kdo = spaydText(f.odberatel.jmeno || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 30);
+  return typ + "-" + (f.cislo || "koncept") + (kdo ? "-" + kdo : "") + ".pdf";
+}
+
+async function faPdfDokument(f){
+  await pdfNacti();
+  const logo = await pdfLogo();
+  const {jsPDF} = window.jspdf;
+  const doc = new jsPDF({unit:"mm", format:"a4", compress:true});
+  doc.addFileToVFS("NotoSans-Regular.ttf", pdfFonty.normal); doc.addFont("NotoSans-Regular.ttf", "Noto", "normal");
+  doc.addFileToVFS("NotoSans-Bold.ttf", pdfFonty.bold); doc.addFont("NotoSans-Bold.ttf", "Noto", "bold");
+  doc.addFileToVFS("NotoSans-Black.ttf", pdfFonty.black); doc.addFont("NotoSans-Black.ttf", "NotoBlack", "normal");
+  const B = PDF_BARVY, d = f.dodavatel, o = f.odberatel, L = 13, R = 197, W = R - L, DOLE = 272;
+  const typNazev = faTypNazev(f), vs = faVS(f.cislo);
+  doc.setProperties({title:typNazev + " " + (f.cislo || ""), subject:typNazev + " " + (f.cislo || "") + " — " + (o.jmeno || ""),
+    author:d.firma || "", creator:"Demoliční kalkulačka"});
+
+  const T = (text, x, y, opt = {}) => {
+    const rez = opt.font === "b" ? ["Noto", "bold"] : opt.font === "k" ? ["NotoBlack", "normal"] : ["Noto", "normal"];
+    doc.setFont(rez[0], rez[1]); doc.setFontSize(opt.size || 9); doc.setTextColor(...(opt.color || B.k));
+    const o2 = {baseline:"top"}; if (opt.align) o2.align = opt.align; if (opt.cs) o2.charSpace = opt.cs; if (opt.angle) o2.angle = opt.angle;
+    doc.text(String(text), x, y, o2);
+  };
+  const sirka = (text, size, font) => { doc.setFont(font === "b" ? "Noto" : font === "k" ? "NotoBlack" : "Noto", font === "b" ? "bold" : "normal"); doc.setFontSize(size); return doc.getTextWidth(String(text)); };
+  const rozdel = (text, size, max, font) => { doc.setFont(font === "b" ? "Noto" : "Noto", font === "b" ? "bold" : "normal"); doc.setFontSize(size); return doc.splitTextToSize(String(text || ""), max); };
+  const vyska = pt => pt * 0.3528;
+  const polygon = (body, barva) => {
+    doc.setFillColor(...barva);
+    const rel = []; for (let i = 1; i < body.length; i++) rel.push([body[i][0] - body[i - 1][0], body[i][1] - body[i - 1][1]]);
+    doc.lines(rel, body[0][0], body[0][1], [1, 1], "F", true);
+  };
+  const otoceny = (cx, cy, w, h, uhel, barva, jenObrys) => {
+    const a = uhel * Math.PI / 180, cs = Math.cos(a), sn = Math.sin(a);
+    const b = [[-w / 2, -h / 2], [w / 2, -h / 2], [w / 2, h / 2], [-w / 2, h / 2]].map(([x, y]) => [cx + x * cs - y * sn, cy + x * sn + y * cs]);
+    if (jenObrys) { doc.setDrawColor(...barva); const rel = []; for (let i = 1; i < b.length; i++) rel.push([b[i][0] - b[i - 1][0], b[i][1] - b[i - 1][1]]); doc.lines(rel, b[0][0], b[0][1], [1, 1], "S", true); }
+    else polygon(b, barva);
+  };
+
+  /* ---------- hlavička ---------- */
+  const hlavicka = prvni => {
+    if (prvni) {
+      const lh = 14; doc.addImage(logo.uri, logo.fmt, L, 10, lh * logo.pomer, lh, undefined, "FAST");
+      T(typNazev.toUpperCase(), R, 9.4, {size:19, font:"k", align:"right"});
+      T("č. " + (f.cislo || "KONCEPT"), R, 17.6, {size:10.5, font:"b", align:"right"});
+      T(faPodtitul(f), R, 22.6, {size:7.3, color:B.m, align:"right"});
+      /* výstražný pruh */
+      const py = 29.5, ph = 2;
+      doc.setFillColor(...B.k); doc.rect(L, py, W, ph, "F");
+      for (let s = L - ph; s < R; s += 4) {
+        const k = x => Math.max(L, Math.min(R, x));
+        const body = [[k(s), py + ph], [k(s + 2), py + ph], [k(s + 2 + ph), py], [k(s + ph), py]];
+        if (body[1][0] - body[0][0] > 0.01 || body[2][0] - body[3][0] > 0.01) polygon(body, B.o);
+      }
+      return 36;
+    }
+    T(typNazev + " č. " + (f.cislo || "") + " — pokračování", L, 10, {size:8.5, font:"b"});
+    doc.setDrawColor(...B.l); doc.setLineWidth(0.3); doc.line(L, 15.5, R, 15.5);
+    return 19;
+  };
+  let y = hlavicka(true);
+
+  /* ---------- strany ---------- */
+  const sw = (W - 5) / 2, pad = 3.6;
+  const levy = [], pravy = [];
+  const radkyStrany = (pole, jm, radky, mal) => {
+    pole.push(["lbl"]); rozdel(jm, 11, sw - 2 * pad, "b").forEach(t => pole.push(["jm", t]));
+    radky.filter(Boolean).forEach(t => rozdel(t, 8.8, sw - 2 * pad).forEach(x => pole.push(["tx", x])));
+    if (mal) rozdel(mal, 7.3, sw - 2 * pad).forEach(x => pole.push(["mal", x]));
+  };
+  radkyStrany(levy, d.firma, [d.adresa, "IČO: " + d.ico + (d.dic ? "   ·   DIČ: " + d.dic : "")], d.spisZn ? "Zapsáno v obchodním rejstříku, sp. zn. " + d.spisZn : "");
+  radkyStrany(pravy, o.jmeno || "—", [o.adresa, o.ico ? "IČO: " + o.ico + (o.dic ? "   ·   DIČ: " + o.dic : "") : ""],
+    f.mistoPlneni && f.mistoPlneni !== o.adresa ? "Místo plnění: " + f.mistoPlneni : "");
+  const vyskaStrany = pole => pad + pole.reduce((a, [t]) => a + (t === "lbl" ? 3.8 : t === "jm" ? 4.8 : t === "tx" ? 3.9 : 3.3), 0) + pad - 0.6;
+  const hs = Math.max(vyskaStrany(levy), vyskaStrany(pravy), 22);
+  doc.setDrawColor(...B.l); doc.setLineWidth(0.3); doc.roundedRect(L, y, sw, hs, 2, 2, "S");
+  doc.setFillColor(...B.c); doc.roundedRect(L + sw + 5, y, sw, hs, 2, 2, "F");
+  const kresliStranu = (pole, x, nadpis) => {
+    let yy = y + pad;
+    pole.forEach(([t, text]) => {
+      if (t === "lbl") { T(nadpis, x + pad, yy, {size:6.6, font:"b", color:B.o, cs:0.9}); yy += 3.8; }
+      else if (t === "jm") { T(text, x + pad, yy, {size:11, font:"b"}); yy += 4.8; }
+      else if (t === "tx") { T(text, x + pad, yy, {size:8.8}); yy += 3.9; }
+      else { T(text, x + pad, yy + 0.4, {size:7.3, color:B.m}); yy += 3.3; }
+    });
+  };
+  kresliStranu(levy, L, "DODAVATEL"); kresliStranu(pravy, L + sw + 5, f.typ === "storno" ? "ODBĚRATEL" : "ODBĚRATEL");
+  y += hs + 4;
+
+  /* ---------- údaje ---------- */
+  const udaje = [["DATUM VYSTAVENÍ", faDatum(f.vystaveno)],
+    f.typ === "zal" ? ["ZAKÁZKA", f.zakazkaNazev || "—"] : f.typ === "storno" ? ["K FAKTUŘE", (f.odkaz && f.odkaz.cislo) || "—"] : ["DATUM PLNĚNÍ", faDatum(f.duzp)],
+    ["DATUM SPLATNOSTI", faDatum(f.splatnost)], ["VARIABILNÍ SYMBOL", vs]];
+  doc.setDrawColor(...B.l); doc.setLineWidth(0.3); doc.line(L, y, R, y); doc.line(L, y + 10.5, R, y + 10.5);
+  const us = W / 4;
+  udaje.forEach(([l, h], i) => {
+    const x = L + i * us + (i ? 3 : 0);
+    if (i) doc.line(L + i * us, y, L + i * us, y + 10.5);
+    T(l, x, y + 2, {size:6.6, font:"b", color:B.m, cs:0.35});
+    T(rozdel(h, 9.6, us - 5, "b")[0], x, y + 5.4, {size:9.6, font:"b"});
+  });
+  y += 14.5;
+
+  /* ---------- položky ---------- */
+  const sl = [{w:84, a:"left", h:"POPIS"}, {w:20, a:"right", h:"MNOŽSTVÍ"}, {w:12, a:"left", h:"MJ"}, {w:32, a:"right", h:"CENA ZA MJ"}, {w:36, a:"right", h:"CELKEM"}];
+  const hlavaTabulky = () => {
+    doc.setFillColor(...B.k); doc.rect(L, y, W, 6.4, "F");
+    let x = L; sl.forEach(s => { T(s.h, s.a === "right" ? x + s.w - 2.2 : x + 2.2, y + 2.05, {size:6.6, font:"b", color:B.w, align:s.a, cs:s.a === "left" ? 0.3 : 0}); x += s.w; });
+    y += 6.4;
+  };
+  hlavaTabulky();
+  f.polozky.forEach((p, ix) => {
+    const radky = rozdel(p.popis, 8.8, sl[0].w - 4.4);
+    const h = Math.max(1, radky.length) * 3.7 + 2.9;
+    if (y + h > DOLE) { doc.addPage(); y = hlavicka(false); hlavaTabulky(); }
+    if (ix % 2 === 1) { doc.setFillColor(...B.pas); doc.rect(L, y, W, h, "F"); }
+    let x = L;
+    radky.forEach((t, i) => T(t, x + 2.2, y + 1.45 + i * 3.7, {size:8.8}));
+    x += sl[0].w;
+    T(p.mj ? faMn(p.mnozstvi) : "", x + sl[1].w - 2.2, y + 1.45, {size:8.8, align:"right"}); x += sl[1].w;
+    T(p.mj || "", x + 2.2, y + 1.45, {size:8.8, color:B.m}); x += sl[2].w;
+    T(faKc(p.cenaMJ), x + sl[3].w - 2.2, y + 1.45, {size:8.8, align:"right"}); x += sl[3].w;
+    T(faKc(p.celkem), x + sl[4].w - 2.2, y + 1.45, {size:8.8, font:"b", align:"right"});
+    doc.setDrawColor(...B.l); doc.setLineWidth(0.25); doc.line(L, y + h, R, y + h);
+    y += h;
+  });
+  y += 4;
+
+  /* ---------- spodní blok: platba + poznámky vlevo, součty vpravo ---------- */
+  const qrPlatba = faQrText(f);
+  const lw = 106, rx = R - 68, bw = R - rx;
+  const platRadky = faPlatebniRadky(f);
+  const pozn = faPoznamkyText(f);
+  const poznRadky = []; pozn.forEach(t => rozdel(t, 8, lw, "n").forEach(x => poznRadky.push(x)));
+  const levaVyska = Math.max(qrPlatba ? 39 : 0, platRadky.length * 4.1) + 4 + (!d.platceDPH ? 6 : 0) + poznRadky.length * 3.45;
+  const soucty = faSouctyRadky(f);
+  const pravaVyska = soucty.length * 5.2 + 20;
+  if (y + Math.max(levaVyska, pravaVyska) > DOLE) { doc.addPage(); y = hlavicka(false); }
+  const y0 = y;
+  let px = L;
+  if (qrPlatba) {
+    try {
+      const {m} = QR.matice(qrPlatba), n = m.length, rozm = 31, mod = rozm / (n + 8);   /* 31 mm s tichou zónou, samotný kód ~27 mm (ČBA: min. 25 mm) */
+      doc.setFillColor(...B.w); doc.rect(L + 1.4, y + 1.4, rozm, rozm, "F");
+      doc.setFillColor(0, 0, 0);
+      for (let r = 0; r < n; r++) { let c = 0; while (c < n) { if (!m[r][c]) { c++; continue; } let k = c; while (k < n && m[r][k]) k++;
+        doc.rect(L + 1.4 + (c + 4) * mod, y + 1.4 + (r + 4) * mod, (k - c) * mod + 0.005, mod + 0.005, "F"); c = k; } }
+      doc.setDrawColor(0, 0, 0); doc.setLineWidth(0.35); doc.rect(L, y, rozm + 2.8, rozm + 6.2, "S");
+      T("QR Platba", L + (rozm + 2.8) / 2, y + rozm + 2.3, {size:7, font:"b", align:"center"});
+      px = L + rozm + 2.8 + 4;
+    } catch (e) { T("QR platbu nejde vytvořit: " + e.message, L, y, {size:7.5, color:B.sto}); px = L; }
+  }
+  let yy = y + 0.4;
+  platRadky.forEach(([l, h]) => { T(l, px, yy, {size:8, color:B.m}); T(h, px + 25, yy, {size:8, font:"b"}); yy += 4.1; });
+  yy = Math.max(qrPlatba ? y + 39 : y, yy) + 3;
+  if (!d.platceDPH) {
+    const t = "NEJSME PLÁTCI DPH", tw = sirka(t, 7, "b") + t.length * 0.25;
+    doc.setDrawColor(...B.o); doc.setLineWidth(0.35); doc.roundedRect(L, yy, tw + 4.4, 4.6, 1, 1, "S");
+    T(t, L + 2.2, yy + 1.05, {size:7, font:"b", color:B.o, cs:0.25}); yy += 6.4;
+  }
+  poznRadky.forEach(t => { T(t, L, yy, {size:8, color:B.text}); yy += 3.45; });
+
+  let yr = y0;
+  soucty.forEach(([l, h, druh]) => {
+    if (druh === "cel") { doc.setDrawColor(...B.l); doc.setLineWidth(0.3); doc.line(rx, yr + 0.3, R, yr + 0.3); yr += 1.2; }
+    const barva = druh === "sl" ? B.o : B.k, font = druh === "cel" ? "b" : druh === "sl" ? "b" : "n";
+    T(l, rx, yr + 0.8, {size:9, color:barva, font}); T(h, R, yr + 0.8, {size:9, color:barva, font, align:"right"});
+    yr += 5.2;
+  });
+  yr += 1.2;
+  /* štítek a částka vedle sebe, a když se nevejdou (dlouhý štítek, milionová částka), pod sebou */
+  const stitek = faStitekCastky(f).toUpperCase(), stitekCs = 0.25;
+  const castka = faKc(Math.abs(f.kUhrade)).replace(" Kč", "");
+  const kcW = sirka("Kč", 16, "k"), castkaW = sirka(castka, 16, "k") + 1.4 + kcW;
+  const stitekW = sirka(stitek, 7.2, "b") + stitek.length * stitekCs;
+  const vedle = 3.6 + stitekW + 4 + castkaW + 3.6 <= bw;
+  const boxH = vedle ? 12.4 : 17.4, castkaY = vedle ? yr + 2.6 : yr + 7.4;
+  doc.setFillColor(...B.k); doc.roundedRect(rx, yr, bw, boxH, 2, 2, "F");
+  T(stitek, rx + 3.6, vedle ? yr + 4.6 : yr + 3, {size:7.2, font:"b", color:B.svetla, cs:stitekCs});
+  T("Kč", R - 3.6, castkaY, {size:16, font:"k", color:B.o, align:"right"});
+  T(castka, R - 3.6 - kcW - 1.4, castkaY, {size:16, font:"k", color:B.w, align:"right"});
+
+  /* razítko */
+  /* pod rámečkem s částkou, ať nic nezakrývá; opravné doklady razítko nemají */
+  if ((f.stav === "zaplacena" && f.typ !== "storno") || f.stav === "stornovana") {
+    const zap = f.stav === "zaplacena", barva = zap ? B.zap : B.sto;
+    const cx = rx + bw / 2, cy = Math.min(yr + boxH + 14, 262);
+    doc.setLineWidth(1.1); otoceny(cx, cy, 58, 17, -12, barva, true);
+    const napis = zap ? "ZAPLACENO" : "STORNOVÁNO", datum = faDatum(zap ? f.zaplaceno : (f.storno && f.storno.datum));
+    T(napis, cx - 25 * Math.cos(12 * Math.PI / 180) + 1, cy + 0.2 + 25 * Math.sin(12 * Math.PI / 180) - 5.5, {size:20, font:"k", color:barva, angle:12});
+    T(datum, cx - 8, cy + 6.2, {size:7.5, font:"b", color:barva, angle:12});
+  }
+
+  /* patička na každé straně */
+  const stran = doc.getNumberOfPages();
+  for (let s = 1; s <= stran; s++) {
+    doc.setPage(s);
+    doc.setDrawColor(...B.l); doc.setLineWidth(0.3); doc.line(L, 280.5, R, 280.5);
+    T("Vystavil: ", L, 282.6, {size:7.4, color:B.m});
+    T(f.vytvoril || d.jednatel || "", L + sirka("Vystavil: ", 7.4, "n"), 282.6, {size:7.4, font:"b"});
+    const kontakty = [d.telefon, d.email, d.web].filter(Boolean).join("   ·   ");
+    if (kontakty) T(kontakty, L, 286, {size:7.4, color:B.m});
+    if (stran > 1) T("strana " + s + " / " + stran, 105, 286, {size:7, color:B.m, align:"center"});
+    [[3.4, 3, -8, 0], [2.2, 2.2, 45, 1], [4.2, 4, -6, 0], [2.6, 2.6, 0, 1], [3.4, 3.4, 45, 0], [1.8, 1.4, 20, 1], [3, 2.6, -14, 0]]
+      .reduceRight((x, [w, h, u, o]) => { otoceny(x - w / 2, 285.4, w, h, u, o ? B.o : B.k); return x - w - 1.6; }, R);
+  }
+  return doc;
+}
+
+/* texty sdílené HTML náhledem i PDF */
+function faPlatebniRadky(f){
+  const d = f.dodavatel;
+  if (f.typ === "storno") {                 /* opravný doklad: náš účet by klienta mátl, píše se, jak se vyrovná */
+    const r = [["K faktuře č.", (f.odkaz && f.odkaz.cislo) || "—"]];
+    if (f.zapocet || (f.odkaz && !f.odkaz.zaplacena)) r.push(["Vyrovnání", "zápočtem, nic se neplatí"]);
+    else { r.push(["Vyrovnání", "vrácením na účet klienta"]); r.push(["Vrátíme do", faDatum(f.splatnost)]); }
+    return r;
+  }
+  if (!(f.kUhrade > 0) && f.odpocetZalohy) return [["Úhrada", "uhrazeno zálohou " + f.odpocetZalohy.cislo]];
+  const r = [["Forma úhrady", faZpusobText(f)]];
+  if (faZpusob(f) === "prevod") {
+    if (d.bankUcet) r.push(["Číslo účtu", d.bankUcet]);
+    if (d.iban) r.push(["IBAN", d.iban.replace(/(.{4})/g, "$1 ").trim()]);
+    if (d.swift) r.push(["SWIFT", d.swift]);
+    r.push(["Variabilní symbol", faVS(f.cislo)]);
+  }
+  r.push(["Splatnost", faDatum(f.splatnost)]);
+  return r;
+}
+function faZpusob(f){ return f.zpusobUhrady || "prevod"; }
+function faZpusobText(f){ return {prevod:"převodem", hotove:"v hotovosti", karta:"platební kartou"}[faZpusob(f)] || "převodem"; }
+function faQrText(f){
+  const d = f.dodavatel;
+  if (faZpusob(f) !== "prevod" || !(f.kUhrade > 0) || f.stav === "stornovana" || f.typ === "storno" || !d.iban) return "";
+  return spayd({iban:d.iban, bic:d.swift, castka:f.kUhrade, vs:faVS(f.cislo), splatnost:f.splatnost,
+    zprava:(f.typ === "zal" ? "Zaloha " : "Faktura ") + f.cislo, prijemce:d.firma});
+}
+function faPoznamkyText(f){
+  const t = [];
+  if (f.typ === "zal") t.push("Po připsání zálohy na účet ji odečteme v konečné faktuře.");
+  if (f.typ === "storno") t.push((f.castecne ? "Dobropis" : "Storno") + " k faktuře č. " + ((f.odkaz && f.odkaz.cislo) || "") + " ze dne " + faDatum(f.odkaz && f.odkaz.vystaveno) + ".");
+  if (f.zakazkaNazev && f.typ !== "zal") t.push("Zakázka: " + f.zakazkaNazev);
+  if (f.poznamka) String(f.poznamka).split(String.fromCharCode(10)).forEach(x => x.trim() && t.push(x));
+  if (f.typ === "storno" && f.duvodStorna) t.push("Důvod: " + f.duvodStorna);
+  if (f.typ === "storno" && f.kUhrade < 0) t.push(f.zapocet ? "Původní faktura nebyla uhrazena — částka se započítává a nic se nevrací."
+    : "Částku " + faKc(-f.kUhrade) + " vrátíme na účet, ze kterého byla platba odeslána.");
+  if (f.storno && f.storno.duvod) t.push("Stornováno dokladem č. " + (f.storno.cislo || "—") + ": " + f.storno.duvod);
+  if (faZpusob(f) === "prevod" && f.kUhrade > 0 && f.typ !== "storno" && f.stav !== "stornovana" && f.stav !== "zaplacena") t.push("Při platbě prosím uveďte variabilní symbol " + faVS(f.cislo) + ". Děkujeme za spolupráci.");
+  if (faZpusob(f) === "hotove" && f.stav === "zaplacena") t.push("Uhrazeno v hotovosti dne " + faDatum(f.zaplaceno) + ".");
+  return t;
+}
+function faSouctyRadky(f){
+  const r = [], zaokr = Math.abs(f.zaokrouhleni || 0) >= 0.01;
+  const odecti = x => (x >= 0 ? "−" : "+") + faKc(Math.abs(x));
+  if (f.slevy.length || f.odpocetZalohy || f.zalohaPonechana || zaokr) r.push(["Součet položek", faKc(f.mezisoucet)]);
+  f.slevy.forEach(s => r.push([s.popis + " " + faMn(s.pct) + " %", odecti(s.castka), "sl"]));
+  if (zaokr) r.push(["Zaokrouhlení", (f.zaokrouhleni > 0 ? "+" : "−") + faKc(Math.abs(f.zaokrouhleni))]);
+  if (f.odpocetZalohy) { r.push(["Cena celkem", faKc(f.celkem), "cel"]); r.push(["Uhrazená záloha " + f.odpocetZalohy.cislo, "−" + faKc(f.odpocetZalohy.castka)]); }
+  if (f.zalohaPonechana) { r.push(["Opravná částka celkem", faKc(f.celkem), "cel"]); r.push(["Záloha " + f.zalohaPonechana.cislo + " zůstává uhrazená", "+" + faKc(f.zalohaPonechana.castka)]); }
+  if (f.typ === "storno" && f.castecne && f.odkaz && f.odkaz.celkem != null) {
+    r.push(["Cena podle faktury č. " + f.odkaz.cislo, faKc(f.odkaz.celkem)]);
+    r.push(["Snížení tímto dobropisem", faKc(f.celkem), "sl"]);
+    r.push(["Cena po opravě", faKc(faZaokr(f.odkaz.celkem + f.celkem)), "cel"]);
+  }
+  return r;
+}
+function faStitekCastky(f){
+  if (f.stav === "stornovana") return "Stornováno";
+  if (f.typ === "storno") return (f.zapocet || (f.odkaz && !f.odkaz.zaplacena)) ? "Snížení pohledávky" : "K vrácení klientovi";
+  return "Celkem k úhradě";
+}
+
+async function faPdfStahnout(f){
+  const doc = await faPdfDokument(f);
+  stahniBlob(doc.output("blob"), faPdfJmeno(f));
+}
+/* sdílení z telefonu (WhatsApp, Gmail…) se souborem PDF v příloze; na počítači stáhne PDF a otevře e-mail */
+async function faPdfOdeslat(f, text, predmet){
+  const doc = await faPdfDokument(f), blob = doc.output("blob"), jmeno = faPdfJmeno(f);
+  const soubor = new File([blob], jmeno, {type:"application/pdf"});
+  if (navigator.canShare && navigator.canShare({files:[soubor]})) {
+    try { await navigator.share({files:[soubor], title:predmet, text}); return "sdileni"; }
+    catch (e) { if (e && e.name === "AbortError") return "zruseno"; }
+  }
+  stahniBlob(blob, jmeno);
+  const komu = f.odberatel.email || "";
+  setTimeout(() => { location.href = "mailto:" + encodeURIComponent(komu) + "?subject=" + encodeURIComponent(predmet) +
+    "&body=" + encodeURIComponent(text + String.fromCharCode(10, 10) + "(Faktura je v příloze — soubor " + jmeno + ".)"); }, 400);
+  return "email";
+}
+
 /* ================= FAKTURY — seznam, editor, akce ================= */
 let faOtevrena = null;          /* faktura rozpracovaná v editoru (koncept nebo vystavená) */
 
-function faPoSplatnosti(f){ return f.stav === "vystavena" && f.splatnost && f.splatnost < faDnes(); }
+function faPoSplatnosti(f){ return faCekaNaPlatbu(f) && f.splatnost && f.splatnost < faDnes(); }
+function faDniPo(f){ return Math.max(0, Math.round((new Date(faDnes()) - new Date(f.splatnost)) / 864e5)); }
 function faStavPill(f){
+  if (f.typ === "storno") {
+    if (f.stav === "zaplacena") return "<span class='pill info'>" + (f.zapocet ? "Započteno" : "Vráceno " + faDatum(f.zaplaceno)) + "</span>";
+    return "<span class='pill ceka'>Vrátit klientovi</span>";
+  }
   if (f.stav === "stornovana") return "<span class='pill sto'>Stornováno</span>";
   if (f.stav === "zaplacena") return "<span class='pill ok'>Zaplaceno " + faDatum(f.zaplaceno) + "</span>";
-  if (faPoSplatnosti(f)) return "<span class='pill po'>Po splatnosti</span>";
+  if (f.stav === "vystavena" && !faCekaNaPlatbu(f)) return "<span class='pill ok'>" + (f.kUhrade > 0 ? "Vyrovnáno dobropisem" : "Uhrazeno zálohou") + "</span>";
+  if (faPoSplatnosti(f)) return "<span class='pill po'>" + faDniPo(f) + " dní po splatnosti</span>" +
+    ((f.upominky || []).length ? "<small class='fa-ikony'>" + f.upominky.length + ". upomínka " + faDatum(f.upominky[f.upominky.length - 1].datum.slice(0, 10)) + "</small>" : "");
   return "<span class='pill ceka'>Čeká na platbu</span>";
 }
 function faRoky(){
@@ -7785,59 +8382,86 @@ function renderFaktury(){
   const rok = $("#faRok").value, stav = $("#faStavFiltr").value;
   const q = bezDiakritiky($("#faHledat").value || "").toLowerCase();
   const list = (S.faktury || []).filter(f => String(f.vystaveno).startsWith(rok)).filter(f => {
-    if (stav === "neuhrazene") return f.stav === "vystavena";
+    if (stav === "neuhrazene") return faCekaNaPlatbu(f) || (f.typ === "storno" && f.stav === "vystavena");
     if (stav === "posplatnosti") return faPoSplatnosti(f);
-    if (stav) return f.stav === stav;
+    if (stav === "storno") return f.typ === "storno" || f.stav === "stornovana";
+    if (stav === "zal") return f.typ === "zal";
+    if (stav) return f.stav === stav && f.typ !== "storno";
     return true;
-  }).filter(f => !q || bezDiakritiky([f.cislo, f.odberatel.jmeno, f.zakazkaNazev].join(" ")).toLowerCase().includes(q))
+  }).filter(f => !q || bezDiakritiky([f.cislo, f.odberatel.jmeno, f.zakazkaNazev, f.odkaz && f.odkaz.cislo].join(" ")).toLowerCase().includes(q))
     .sort((a, b) => (b.vystaveno + b.cislo).localeCompare(a.vystaveno + a.cislo));
 
   const tb = $("#faTab tbody"); tb.innerHTML = "";
   list.forEach(f => {
     const tr = document.createElement("tr"); tr.className = "klik"; tr.dataset.id = f.id;
-    tr.innerHTML = "<td class='fa-cis'>" + esc(f.cislo) + "<small>" + FA_TYPY[f.typ] + "</small></td>" +
+    const odeslano = (f.odeslano || []).length;
+    const castka = f.typ === "storno" ? "<b class='minus'>" + kc(f.kUhrade) + "</b>"
+      : "<b>" + kc(f.kUhrade) + "</b>" + (faZbyva(f) !== f.kUhrade && f.stav === "vystavena" ? "<small class='fa-ikony'>zbývá " + kc(faZbyva(f)) + "</small>" : "");
+    tr.innerHTML = "<td class='fa-cis'>" + esc(f.cislo) + "<small>" + faTypNazev(f) + (f.odkaz ? " k " + esc(f.odkaz.cislo) : "") + "</small></td>" +
       "<td class='odb'>" + esc(f.odberatel.jmeno || "—") + (f.zakazkaNazev ? "<br><span class='hint'>" + esc(f.zakazkaNazev) + "</span>" : "") + "</td>" +
       "<td>" + faDatum(f.vystaveno) + "</td><td>" + faDatum(f.splatnost) + "</td>" +
-      "<td class='r'><b>" + kc(f.kUhrade) + "</b></td><td>" + faStavPill(f) + "</td>" +
+      "<td class='r'>" + castka + "</td><td>" + faStavPill(f) +
+        "<small class='fa-ikony'>" + (odeslano ? "✉ odesláno " + faDatum(f.odeslano[odeslano - 1].datum.slice(0, 10)) : "neodesláno") + "</small></td>" +
       "<td><div class='fa-akce'>" +
-        (f.stav === "vystavena" ? "<button class='mini act faZap' data-id='" + f.id + "' title='Označit jako zaplacenou'>✓ Zaplaceno</button>" : "") +
-        "<button class='mini act faTisk' data-id='" + f.id + "' title='Tisk / PDF'>🖨</button>" +
+        (faCekaNaPlatbu(f) ? "<button class='mini act faZap' data-id='" + f.id + "' title='Označit jako zaplacenou'>✓ Zaplaceno</button>" : "") +
+        (f.typ === "storno" && f.stav === "vystavena" ? "<button class='mini act faZap' data-id='" + f.id + "' title='Peníze jsme klientovi vrátili'>✓ Vráceno</button>" : "") +
+        (faPoSplatnosti(f) ? "<button class='mini act faUpom' data-id='" + f.id + "' title='Poslat upomínku'>🔔</button>" : "") +
+        "<button class='mini act faPdf' data-id='" + f.id + "' title='Stáhnout PDF'>PDF</button>" +
       "</div></td>";
     tb.appendChild(tr);
   });
   $("#faPrazdno").style.display = list.length ? "none" : "block";
 
-  const vse = (S.faktury || []).filter(f => String(f.vystaveno).startsWith(rok) && f.stav !== "stornovana");
-  const kon = vse.filter(f => f.typ !== "zal");
-  const neuhr = vse.filter(f => f.stav === "vystavena");
+  const vse = (S.faktury || []).filter(f => String(f.vystaveno).startsWith(rok));
+  const vyn = vse.filter(faDoVynosu);
+  const neuhr = (S.faktury || []).filter(faCekaNaPlatbu);
   const po = neuhr.filter(faPoSplatnosti);
   const kpi = (l, v, cls) => "<div class='stat'><div class='v" + (cls ? " " + cls : "") + "'>" + v + "</div><div class='l'>" + l + "</div></div>";
   $("#faKpi").innerHTML =
-    kpi("Vyfakturováno " + rok + " (" + kon.length + ")", kc(kon.reduce((a, f) => a + f.celkem, 0))) +
-    kpi("Přijato na účet", kc(vse.filter(f => f.stav === "zaplacena").reduce((a, f) => a + f.kUhrade, 0)), "plus") +
-    kpi("Čeká na zaplacení (" + neuhr.length + ")", kc(neuhr.reduce((a, f) => a + f.kUhrade, 0)), neuhr.length ? "" : "plus") +
-    kpi("Po splatnosti (" + po.length + ")", kc(po.reduce((a, f) => a + f.kUhrade, 0)), po.length ? "minus" : "plus");
+    kpi("Vyfakturováno " + rok + " (" + vyn.filter(f => f.typ !== "storno").length + ")", kc(vyn.reduce((a, f) => a + f.celkem, 0))) +
+    kpi("Přijato na účet " + rok, kc((S.faktury || []).filter(f => f.stav === "zaplacena" && !f.zapocet && String(f.zaplaceno).startsWith(rok)).reduce((a, f) => a + f.kUhrade, 0)), "plus") +
+    kpi("Čeká na zaplacení (" + neuhr.length + ")", kc(neuhr.reduce((a, f) => a + faZbyva(f), 0)), neuhr.length ? "" : "plus") +
+    kpi("Po splatnosti (" + po.length + ")", kc(po.reduce((a, f) => a + faZbyva(f), 0)), po.length ? "minus" : "plus");
   const b = $("#faBadge"); b.textContent = (S.faktury || []).length + " celkem";
 }
 ["#faRok", "#faStavFiltr"].forEach(s => $(s).addEventListener("change", renderFaktury));
 $("#faHledat").addEventListener("input", renderFaktury);
 
-$("#faTab").addEventListener("click", e => {
-  const zap = e.target.closest(".faZap"), tisk = e.target.closest(".faTisk");
+$("#faTab").addEventListener("click", async e => {
+  const zap = e.target.closest(".faZap"), pdf = e.target.closest(".faPdf"), upom = e.target.closest(".faUpom");
+  const najdi = el => (S.faktury || []).find(f => f.id === el.dataset.id);
   if (zap) { e.stopPropagation(); faOznacZaplaceno(zap.dataset.id); return; }
-  if (tisk) { e.stopPropagation(); faTiskni((S.faktury || []).find(f => f.id === tisk.dataset.id)); return; }
+  if (pdf) { e.stopPropagation(); await faPdfTlacitko(pdf, najdi(pdf)); return; }
+  if (upom) { e.stopPropagation(); const f = najdi(upom); if (f) { faOtevri(JSON.parse(JSON.stringify(f))); faOdeslatPanel("upominka"); } return; }
   const tr = e.target.closest("tr.klik"); if (!tr) return;
   const f = (S.faktury || []).find(x => x.id === tr.dataset.id);
   if (f) faOtevri(JSON.parse(JSON.stringify(f)));
 });
 $("#faNova").addEventListener("click", () => faOtevri(faKonceptPrazdny()));
 
+/* PDF s indikací práce — první generování stahuje knihovnu a písmo (jednou, pak je v zařízení) */
+async function faPdfTlacitko(btn, f){
+  if (!f) return;
+  const puvodni = btn.textContent; btn.disabled = true; btn.textContent = pdfFonty ? "…" : "připravuji PDF…";
+  try { await faPdfStahnout(f); }
+  catch (err) { alert("PDF se nepodařilo vytvořit: " + err.message + "\n\nPoprvé je potřeba internet (stáhne se písmo s českou diakritikou). Náhradně můžeš použít Tisk → Uložit jako PDF."); }
+  finally { btn.disabled = false; btn.textContent = puvodni; }
+}
+
+function faCtiDatum(s){
+  const t = String(s || "").trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(t)) return t;
+  const m = t.match(/^(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})$/);
+  return m ? m[3] + "-" + m[2].padStart(2, "0") + "-" + m[1].padStart(2, "0") : "";
+}
 function faOznacZaplaceno(id, datum){
   const f = (S.faktury || []).find(x => x.id === id); if (!f || f.stav !== "vystavena") return;
-  const d = datum || prompt("Datum připsání platby na účet (RRRR-MM-DD):", faDnes());
-  if (!d) return;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) { alert("Datum zadej ve tvaru RRRR-MM-DD, třeba " + faDnes() + "."); return; }
+  const vstup = datum || prompt(f.typ === "storno" ? "Kdy jsme peníze klientovi vrátili? (např. " + faDatum(faDnes()) + ")" : "Datum připsání platby na účet (např. " + faDatum(faDnes()) + "):", faDatum(faDnes()));
+  if (!vstup) return;
+  const d = faCtiDatum(vstup);
+  if (!d) { alert("Datum zadej ve tvaru " + faDatum(faDnes()) + "."); return; }
   f.stav = "zaplacena"; f.zaplaceno = d; f.upraveno = new Date().toISOString();
+  if (f.typ === "storno") { faZmena(f); renderFaktury(); if (faOtevrena && faOtevrena.id === id) faOtevri(JSON.parse(JSON.stringify(f))); return; }
   /* propsat do platby u zakázky, ať sedí přehled pohledávek */
   const z = S.zakazky.find(x => x.id === f.zakazkaId) || (S.vyklizeni || []).find(x => x.id === f.zakazkaId);
   if (z) { if (f.typ === "zal") z.zalohaZaplaceno = d; else z.doplatekZaplaceno = d; if (J && J.id === z.id) { if (f.typ === "zal") J.zalohaZaplaceno = d; else J.doplatekZaplaceno = d; } }
@@ -7857,18 +8481,19 @@ function faZavri(){
 }
 $("#faMZavrit").addEventListener("click", () => {
   if (faOtevrena && faOtevrena.stav === "koncept" && faOtevrena.polozky.some(p => p.celkem) &&
-      !confirm("Koncept faktury se neuloží. Zavřít?")) return;
+      !confirm("Koncept se neuloží. Zavřít?")) return;
   faZavri();
 });
 $("#faModal").addEventListener("click", e => { if (e.target.id === "faModal") $("#faMZavrit").click(); });
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#faModal").hidden) $("#faMZavrit").click(); });
 $("#faMTisk").addEventListener("click", () => faOtevrena && faTiskni(faOtevrena));
+$("#faMPdf").addEventListener("click", e => faOtevrena && faPdfTlacitko(e.currentTarget, faOtevrena));
 
 function faTiskni(f){
   if (!f) return;
   $("#tiskArea").innerHTML = faHTML(f);
   const puvodni = document.title;
-  document.title = (f.typ === "zal" ? "Zalohova-faktura-" : "Faktura-") + (f.cislo || "koncept");  /* jméno PDF při uložení */
+  document.title = faPdfJmeno(f).replace(/\.pdf$/, "");       /* jméno souboru při Uložit jako PDF */
   setTimeout(() => { window.print(); document.title = puvodni; }, 60);
 }
 
@@ -7887,68 +8512,110 @@ window.addEventListener("resize", () => { if (!$("#faModal").hidden) faRenderNah
 /* ---------- editor: formulář vlevo, živý náhled vpravo ---------- */
 function faRenderEditor(){
   const f = faOtevrena, el = $("#faEditor"); if (!f || !el) return;
-  const zamceno = f.stav !== "koncept";
+  const zamceno = f.stav !== "koncept", storno = f.typ === "storno";
+  const ul = (S.faktury || []).find(x => x.id === f.id) || f;       /* uložená verze — stav, historie */
   const dis = zamceno ? " disabled" : "";
-  const inp = (pole, hod, typ, ph) => "<input data-fa='" + pole + "' type='" + (typ || "text") + "' value='" + esc(hod == null ? "" : hod) + "'" + (ph ? " placeholder='" + esc(ph) + "'" : "") + dis + ">";
-  $("#faModalTitul").textContent = (f.cislo ? FA_TYPY[f.typ] + " č. " + f.cislo : "Nová " + FA_TYPY[f.typ].toLowerCase() + " (koncept)");
+  const inp = (pole, hod, typ, ph, extra) => "<input data-fa='" + pole + "' type='" + (typ || "text") + "' value='" + esc(hod == null ? "" : hod) + "'" +
+    (ph ? " placeholder='" + esc(ph) + "'" : "") + (extra || "") + dis + ">";
+  $("#faModalTitul").textContent = f.cislo ? faTypNazev(f) + " č. " + f.cislo : "Nový doklad — " + faTypNazev(f).toLowerCase() + " (koncept)";
 
   let h = "";
   if (zamceno) {
-    h += "<div class='zamceno'>Faktura je <b>" + FA_STAVY[f.stav].toLowerCase() + "</b> — obsah už nejde měnit. " +
-      "Když je v ní chyba, stornuj ji a vystav novou. Tak to vyžaduje účetnictví a tvoje účetní to ocení.</div>";
+    h += "<div class='zamceno'>" + (storno ? "Opravný doklad je vystavený" : faTypNazev(f) + " je vystavená") + " a zamčená — obsah už nejde měnit" +
+      (storno ? "." : ". Chybu opravíš <b>stornem</b> nebo <b>dobropisem</b> dole — tak to vyžaduje účetnictví.") + "</div>";
+    h += "<h3>Akce</h3><div class='btnrow' style='margin-top:0'>" +
+      "<button class='b prim' id='faAkOdeslat' type='button'>✉ Poslat klientovi</button>" +
+      (faPoSplatnosti(ul) ? "<button class='b' id='faAkUpominka' type='button'>🔔 " + ((ul.upominky || []).length + 1) + ". upomínka</button>" : "") +
+      (faCekaNaPlatbu(ul) ? "<button class='b' id='faAkZap' type='button'>✓ Zaplaceno</button>" : "") +
+      (storno && ul.stav === "vystavena" ? "<button class='b' id='faAkZap' type='button'>✓ Peníze vráceny</button>" : "") +
+      (ul.stav === "zaplacena" && !ul.zapocet ? "<button class='b' id='faAkNezap' type='button'>Vrátit na " + (storno ? "nevrácené" : "nezaplacenou") + "</button>" : "") +
+      "</div><div id='faOdeslatBox'></div>";
+    const hist = [[ul.vytvoreno || ul.vystaveno + "T00:00:00", "Vystaveno" + (ul.vytvoril ? " (" + ul.vytvoril + ")" : "")]].concat(faHistorie(ul));
+    h += "<h3>Historie</h3><ul class='fa-hist'>" + hist.map(([d, t]) =>
+      "<li><span>" + faDatum(String(d).slice(0, 10)) + (String(d).length > 11 && !/T12:00:0/.test(d) && !/T00:00:00/.test(d) ? " " + new Date(d).toLocaleTimeString("cs-CZ", {hour:"2-digit", minute:"2-digit"}) : "") + "</span>" + esc(t) + "</li>").join("") + "</ul>";
+    if (!storno && ul.stav !== "stornovana") {
+      h += "<h3>Oprava vystavené faktury</h3><p class='hint' style='margin:0 0 6px'><b>Storno</b> zruší celou fakturu samostatným dokladem se zápornými položkami. " +
+        "<b>Dobropis</b> sníží cenu jen o část (reklamace, sleva po dohodě). Obojí dostane vlastní číslo a odkaz na tuhle fakturu.</p>" +
+        "<div class='btnrow' style='margin-top:0'><button class='b' id='faAkStorno' type='button'>Stornovat celou</button>" +
+        "<button class='b' id='faAkDobropis' type='button'>Dobropis na část</button>" +
+        "<button class='b' id='faAkKopie' type='button'>Kopie jako nový koncept</button></div>";
+    }
+    h += "<h3>Odběratel</h3><p style='margin:0;font-size:14px'><b>" + esc(f.odberatel.jmeno) + "</b><br>" + esc(f.odberatel.adresa || "") +
+      (f.odberatel.ico ? "<br>IČO " + esc(f.odberatel.ico) : "") + (f.odberatel.email ? "<br>" + esc(f.odberatel.email) : "") + "</p>";
+    el.innerHTML = h;
+    return;
   }
+
+  if (storno) {
+    h += "<div class='zamceno storno'><b>" + faTypNazev(f) + " k faktuře č. " + esc(f.odkaz.cislo) + "</b> ze dne " + faDatum(f.odkaz.vystaveno) + ". " +
+      (f.castecne ? "Zadej, o kolik se cena snižuje — množství je záporné." : "Položky jsou přesnou zápornou kopií původní faktury.") + " " +
+      (f.odkaz.zaplacena ? "Faktura už je zaplacená, takže doklad ukáže částku <b>k vrácení</b>." : "Faktura ještě není zaplacená — částka se jen započte, nic se nevrací.") + "</div>" +
+      "<label class='f'>Důvod storna / dobropisu<textarea data-fa='duvodStorna' rows='2' placeholder='např. chybně uvedená adresa odběratele'>" + esc(f.duvodStorna || "") + "</textarea></label>";
+  }
+
   const klienti = (S.klienti || []);
   h += "<h3>Odběratel</h3>";
-  if (!zamceno && klienti.length) {
+  if (!storno && klienti.length) {
     h += "<label class='f'>Vybrat z adresáře<select id='faKlient'><option value=''>— vyplnit ručně —</option>" +
       klienti.map(k => "<option value='" + esc(k.id) + "'>" + esc(k.jmeno) + "</option>").join("") + "</select></label>";
   }
+  const zamOdb = storno ? " disabled" : "";
   h += "<div class='grid' style='margin-top:6px'>" +
-    "<label class='f'>Jméno nebo firma" + inp("odberatel.jmeno", f.odberatel.jmeno) + "</label>" +
-    "<label class='f'>Adresa" + inp("odberatel.adresa", f.odberatel.adresa, "text", "ulice, PSČ obec") + "</label>" +
-    "<div class='grid g2'><label class='f'>IČO" + inp("odberatel.ico", f.odberatel.ico, "text", "jen u firem") + "</label>" +
-    "<label class='f'>DIČ" + inp("odberatel.dic", f.odberatel.dic) + "</label></div>" +
-    (!zamceno ? "<button class='b' id='faAres' type='button'>Doplnit firmu podle IČO z ARES</button>" : "") +
+    "<label class='f'>Jméno nebo firma" + inp("odberatel.jmeno", f.odberatel.jmeno, "text", "", zamOdb) + "</label>" +
+    "<label class='f'>Adresa" + inp("odberatel.adresa", f.odberatel.adresa, "text", "ulice, PSČ obec", zamOdb) + "</label>" +
+    "<div class='grid g2'><label class='f'>IČO" + inp("odberatel.ico", f.odberatel.ico, "text", "jen u firem", zamOdb + " inputmode='numeric'") + "</label>" +
+    "<label class='f'>DIČ" + inp("odberatel.dic", f.odberatel.dic, "text", "", zamOdb) + "</label></div>" +
+    "<label class='f'>E-mail pro zaslání faktury" + inp("odberatel.email", f.odberatel.email, "email", "klient@email.cz", " inputmode='email'") + "<span class='hint'>netiskne se, použije se při odeslání</span></label>" +
+    (!storno ? "<button class='b' id='faAres' type='button'>Doplnit firmu podle IČO z ARES</button>" : "") +
     "</div>";
 
   h += "<h3>Údaje</h3><div class='grid g2'>" +
     "<label class='f'>Datum vystavení" + inp("vystaveno", f.vystaveno, "date") + "</label>" +
-    (f.typ !== "zal" ? "<label class='f'>Datum plnění" + inp("duzp", f.duzp, "date") + "</label>" : "<span></span>") +
-    "<label class='f'>Splatnost" + inp("splatnost", f.splatnost, "date") + "</label>" +
-    "<label class='f'>Místo plnění" + inp("mistoPlneni", f.mistoPlneni) + "</label>" +
+    (f.typ !== "zal" && !storno ? "<label class='f'>Datum plnění" + inp("duzp", f.duzp, "date") + "</label>" : "<span></span>") +
+    "<label class='f'>Splatnost" + inp("splatnost", f.splatnost, "date") +
+      "<span class='fa-spl'>" + [7, 14, 30].map(d => "<button type='button' class='mini' data-spl='" + d + "'>" + d + " dní</button>").join("") + "</span></label>" +
+    "<label class='f'>Forma úhrady<select data-fa='zpusobUhrady'>" +
+      [["prevod", "převodem (s QR platbou)"], ["hotove", "v hotovosti"], ["karta", "platební kartou"]].map(([v, t]) =>
+        "<option value='" + v + "'" + (faZpusob(f) === v ? " selected" : "") + ">" + t + "</option>").join("") + "</select></label>" +
+    (!storno ? "<label class='f' style='grid-column:1/-1'>Místo plnění" + inp("mistoPlneni", f.mistoPlneni) + "</label>" : "") +
     "</div>";
 
   h += "<h3>Položky</h3>";
+  const polZam = storno && !f.castecne;
+  if (!polZam) h += "<div class='pol pol-hl'><span>Popis</span><span>Množ.</span><span>MJ</span><span>Cena/MJ</span><span></span></div>";
   f.polozky.forEach((p, ix) => {
+    if (polZam) { h += "<div class='pol-ro'><span>" + esc(p.popis) + "</span><b>" + faKc(p.celkem) + "</b></div>"; return; }
     h += "<div class='pol'>" +
-      "<input data-pol='" + ix + "' data-k='popis' value='" + esc(p.popis) + "' placeholder='popis práce'" + dis + ">" +
-      "<input data-pol='" + ix + "' data-k='mnozstvi' type='number' step='any' value='" + p.mnozstvi + "'" + dis + ">" +
-      "<input data-pol='" + ix + "' data-k='mj' value='" + esc(p.mj) + "' placeholder='MJ'" + dis + ">" +
-      "<input data-pol='" + ix + "' data-k='cenaMJ' type='number' step='any' value='" + p.cenaMJ + "'" + dis + ">" +
-      (!zamceno ? "<button class='mini faPolDel' data-ix='" + ix + "' title='Odebrat'>✕</button>" : "<span></span>") +
+      "<input data-pol='" + ix + "' data-k='popis' value='" + esc(p.popis) + "' placeholder='popis práce'>" +
+      "<input data-pol='" + ix + "' data-k='mnozstvi' type='number' step='any' inputmode='decimal' value='" + p.mnozstvi + "'>" +
+      "<input data-pol='" + ix + "' data-k='mj' value='" + esc(p.mj) + "' placeholder='MJ'>" +
+      "<input data-pol='" + ix + "' data-k='cenaMJ' type='number' step='any' inputmode='decimal' value='" + p.cenaMJ + "'>" +
+      "<button class='mini faPolDel' data-ix='" + ix + "' title='Odebrat' type='button'>✕</button>" +
       "</div>";
   });
-  if (!zamceno) h += "<div class='btnrow' style='margin-top:4px'><button class='b' id='faPolAdd' type='button'>+ Položka</button></div>";
+  if (!polZam) h += "<div class='btnrow' style='margin-top:4px'><button class='b' id='faPolAdd' type='button'>+ Položka</button></div>";
   if (f.slevy.length) h += "<p class='hint' style='margin:8px 0 0'>Slevy ze zakázky: " + f.slevy.map(s => esc(s.popis) + " " + s.pct + " %").join(", ") + "</p>";
+  h += "<div class='fa-souhrn'><span>" + esc(faStitekCastky(f)) + "</span><b>" + faKc(Math.abs(f.kUhrade)) + "</b></div>";
 
-  h += "<h3>Poznámka na faktuře</h3><label class='f'><textarea data-fa='poznamka' rows='3'" + dis + ">" + esc(f.poznamka || "") + "</textarea></label>";
+  h += "<h3>Poznámka na faktuře</h3><label class='f'><textarea data-fa='poznamka' rows='3'>" + esc(f.poznamka || "") + "</textarea></label>";
 
   const chyby = faKontrola(f);
-  if (!zamceno) {
-    if (chyby.length) h += "<div class='chyby'><b>Než půjde vystavit, doplň:</b><ul>" + chyby.map(c => "<li>" + esc(c) + "</li>").join("") + "</ul></div>";
-    h += "<div class='btnrow'><button class='b prim' id='faVystavit'" + (chyby.length ? " disabled" : "") + ">Vystavit a uložit</button></div>" +
-      "<p class='hint' style='margin:6px 0 0'>Po vystavení dostane faktura trvalé číslo a uloží se do knihy faktur" +
-      (typeof syncZapnuto === "function" && syncZapnuto() ? " na všech zařízeních" : "") + ".</p>";
-  } else {
-    h += "<h3>Akce</h3><div class='btnrow' style='margin-top:0'>";
-    if (f.stav === "vystavena") h += "<button class='b prim' id='faAkZap'>✓ Označit jako zaplacenou</button>";
-    if (f.stav === "zaplacena") h += "<button class='b' id='faAkNezap'>Vrátit na nezaplacenou</button>";
-    if (f.stav !== "stornovana") h += "<button class='b' id='faAkStorno'>Stornovat</button>";
-    h += "<button class='b' id='faAkKopie'>Kopie jako nový koncept</button></div>";
-  }
+  if (chyby.length) h += "<div class='chyby'><b>Než půjde vystavit, doplň:</b><ul>" + chyby.map(c => "<li>" + esc(c) + "</li>").join("") + "</ul></div>";
+  h += "<div class='btnrow'><button class='b prim' id='faVystavit' type='button'" + (chyby.length ? " disabled" : "") + ">" +
+    (storno ? "Vystavit " + faTypNazev(f).toLowerCase() : "Vystavit a uložit") + "</button></div>" +
+    "<p class='hint' style='margin:6px 0 0'>Po vystavení dostane doklad trvalé číslo a uloží se do knihy faktur" +
+    (typeof syncZapnuto === "function" && syncZapnuto() ? " na všech zařízeních" : "") + ". Pak ho jedním tlačítkem pošleš klientovi jako PDF.</p>";
   el.innerHTML = h;
 }
 
+function faObnovKontrolu(){
+  const f = faOtevrena; if (!f) return;
+  const chyby = faKontrola(f), btn = $("#faVystavit"), box = $("#faEditor .chyby"), sh = $("#faEditor .fa-souhrn");
+  if (sh) sh.innerHTML = "<span>" + esc(faStitekCastky(f)) + "</span><b>" + faKc(Math.abs(f.kUhrade)) + "</b>";
+  if (btn) btn.disabled = !!chyby.length;
+  if (chyby.length && !box) faRenderEditorZachovatFokus();
+  else if (box) { if (!chyby.length) box.remove(); else box.innerHTML = "<b>Než půjde vystavit, doplň:</b><ul>" + chyby.map(c => "<li>" + esc(c) + "</li>").join("") + "</ul>"; }
+}
 /* změny ve formuláři — bez překreslení formuláře, ať neutíká kurzor */
 $("#faEditor").addEventListener("input", e => {
   const f = faOtevrena; if (!f || f.stav !== "koncept") return;
@@ -7956,60 +8623,101 @@ $("#faEditor").addEventListener("input", e => {
   if (t.dataset.fa) {
     const [a, b] = t.dataset.fa.split(".");
     if (b) f[a][b] = t.value; else f[a] = t.value;
+    if (a === "vystaveno" && f.typ === "storno") f.duzp = t.value;
   } else if (t.dataset.pol !== undefined) {
     const p = f.polozky[+t.dataset.pol]; if (!p) return;
-    p[t.dataset.k] = (t.dataset.k === "mnozstvi" || t.dataset.k === "cenaMJ") ? num(t.value) : t.value;
+    let hod = (t.dataset.k === "mnozstvi" || t.dataset.k === "cenaMJ") ? num(t.value) : t.value;
+    if (f.typ === "storno" && t.dataset.k === "mnozstvi") hod = -Math.abs(hod);      /* dobropis snižuje — množství vždy záporné */
+    if (f.typ === "storno" && t.dataset.k === "cenaMJ") hod = Math.abs(hod);
+    p[t.dataset.k] = hod;
   } else return;
-  faPrepocet(f); faRenderNahled();
-  /* tlačítko Vystavit a seznam chyb aktualizovat bez přestavby polí */
-  const chyby = faKontrola(f), btn = $("#faVystavit"), box = $("#faEditor .chyby");
-  if (btn) btn.disabled = !!chyby.length;
-  if (chyby.length && !box) faRenderEditorZachovatFokus();
-  else if (box) { if (!chyby.length) box.remove(); else box.innerHTML = "<b>Než půjde vystavit, doplň:</b><ul>" + chyby.map(c => "<li>" + esc(c) + "</li>").join("") + "</ul>"; }
+  faPrepocet(f); faRenderNahled(); faObnovKontrolu();
 });
 function faRenderEditorZachovatFokus(){
-  const a = document.activeElement, sel = a && (a.dataset.fa ? "[data-fa='" + a.dataset.fa + "']" :
+  const a = document.activeElement, sel = a && a.dataset && (a.dataset.fa ? "[data-fa='" + a.dataset.fa + "']" :
     a.dataset.pol !== undefined ? "[data-pol='" + a.dataset.pol + "'][data-k='" + a.dataset.k + "']" : null);
   const pos = a && a.selectionStart;
   faRenderEditor();
   if (sel) { const n = $("#faEditor " + sel); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) {} } }
 }
 $("#faEditor").addEventListener("change", e => {
-  if (e.target.id !== "faKlient" || !faOtevrena) return;
+  if (!faOtevrena) return;
+  if (e.target.dataset && (e.target.dataset.fa === "zpusobUhrady" || e.target.dataset.k === "mnozstvi")) { faRenderEditorZachovatFokus(); faRenderNahled(); return; }
+  if (e.target.id !== "faKlient") return;
   const k = (S.klienti || []).find(x => x.id === e.target.value); if (!k) return;
   Object.assign(faOtevrena.odberatel, {jmeno:k.jmeno || "", adresa:k.adresa || "", ico:k.ico || "", dic:k.dic || "", email:k.email || "", telefon:k.tel || ""});
   faRenderEditor(); faRenderNahled();
 });
 $("#faEditor").addEventListener("click", async e => {
   const f = faOtevrena; if (!f) return;
-  const id = e.target.id;
+  const id = e.target.id, ul = (S.faktury || []).find(x => x.id === f.id);
   if (e.target.classList.contains("faPolDel")) { f.polozky.splice(+e.target.dataset.ix, 1); faPrepocet(f); faRenderEditor(); faRenderNahled(); return; }
-  if (id === "faPolAdd") { f.polozky.push({popis:"", mnozstvi:1, mj:"kpl", cenaMJ:0, celkem:0}); faRenderEditor(); faRenderNahled(); return; }
+  if (e.target.dataset.spl && f.stav === "koncept") { f.splatnost = faPlusDni(f.vystaveno || faDnes(), +e.target.dataset.spl); faRenderEditor(); faRenderNahled(); return; }
+  if (id === "faPolAdd") { f.polozky.push({popis:"", mnozstvi:f.typ === "storno" ? -1 : 1, mj:"kpl", cenaMJ:0, celkem:0}); faRenderEditor(); faRenderNahled(); return; }
   if (id === "faAres") { await faAres(); return; }
   if (id === "faVystavit") { await faVystavit(); return; }
+  if (id === "faAkOdeslat") { faOdeslatPanel("odeslani"); return; }
+  if (id === "faAkUpominka") { faOdeslatPanel("upominka"); return; }
+  if (id === "faOdZrusit") { $("#faOdeslatBox").innerHTML = ""; return; }
+  if (id === "faOdKopirovat") {
+    const text = $("#faOdText").value;
+    try { await navigator.clipboard.writeText(text); e.target.textContent = "✓ Zkopírováno"; } catch (x) { $("#faOdText").select(); document.execCommand("copy"); e.target.textContent = "✓ Zkopírováno"; }
+    return;
+  }
+  if (id === "faOdPoslat") {
+    if (!ul) return;
+    const email = $("#faOdKomu").value.trim();
+    if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { alert("E-mail klienta má špatný tvar."); return; }
+    if (email !== (ul.odberatel.email || "")) { ul.odberatel.email = email; faOtevrena.odberatel.email = email; }
+    const btn = e.target; btn.disabled = true; btn.textContent = pdfFonty ? "vytvářím PDF…" : "připravuji PDF (poprvé chvíli trvá)…";
+    try {
+      const kanal = await faOdeslatSeZaznamem(ul.id, btn.dataset.druh, $("#faOdText").value, $("#faOdPredmet").value);
+      if (kanal === "zruseno") { btn.disabled = false; btn.textContent = "📎 Poslat s PDF"; return; }
+      renderFaktury(); faOtevri(JSON.parse(JSON.stringify(ul)));
+      const box = $("#faOdeslatBox");
+      if (box) box.innerHTML = "<p class='hint ok' style='margin:8px 0'>✓ " + (kanal === "sdileni" ? "Předáno ke sdílení a zapsáno do historie." :
+        "PDF je stažené a otevřel se e-mail s textem — přilož soubor " + esc(faPdfJmeno(ul)) + " a odešli. Odeslání je zapsané v historii.") + "</p>";
+    } catch (err) {
+      btn.disabled = false; btn.textContent = "📎 Poslat s PDF";
+      alert("Odeslání se nepovedlo: " + err.message);
+    }
+    return;
+  }
   if (id === "faAkZap") { faOznacZaplaceno(f.id); return; }
   if (id === "faAkNezap") {
-    const ul = (S.faktury || []).find(x => x.id === f.id); if (!ul) return;
-    if (!confirm("Vrátit fakturu " + ul.cislo + " na nezaplacenou?")) return;
-    ul.stav = "vystavena"; ul.zaplaceno = ""; ul.upraveno = new Date().toISOString();
+    if (!ul) return;
+    if (!confirm("Vrátit doklad " + ul.cislo + " do stavu " + (ul.typ === "storno" ? "„k vrácení“" : "„nezaplaceno“") + "?")) return;
+    ul.stav = "vystavena"; ul.zaplaceno = ""; ul.sparovano = false; ul.upraveno = new Date().toISOString();
     faZmena(ul); renderFaktury(); faOtevri(JSON.parse(JSON.stringify(ul))); return;
   }
-  if (id === "faAkStorno") {
-    const ul = (S.faktury || []).find(x => x.id === f.id); if (!ul) return;
-    const duvod = prompt("Stornovat fakturu " + ul.cislo + "?\n\nČíslo zůstane v řadě obsazené a faktura se v knize označí jako stornovaná.\nNapiš důvod storna:", "");
-    if (duvod === null) return;
-    if (!duvod.trim()) { alert("Důvod storna je potřeba — účetní ho bude chtít vědět."); return; }
-    ul.stav = "stornovana"; ul.storno = {datum:faDnes(), duvod:duvod.trim()}; ul.upraveno = new Date().toISOString();
-    faZmena(ul); renderFaktury(); faOtevri(JSON.parse(JSON.stringify(ul))); return;
+  if (id === "faAkStorno" || id === "faAkDobropis") {
+    if (!ul) return;
+    faOtevri(faStornoKoncept(ul, id === "faAkDobropis")); return;
   }
   if (id === "faAkKopie") {
     const k = JSON.parse(JSON.stringify(f));
-    Object.assign(k, {id:uid(), cislo:"", stav:"koncept", vystaveno:faDnes(), splatnost:faPlusDni(faDnes(), S.nastaveni.fakSplatnost || 14),
-      zaplaceno:"", storno:null, dodavatel:faDodavatel(), vytvoreno:new Date().toISOString()});
+    Object.assign(k, faNovaMetadata(), {id:uid(), cislo:"", stav:"koncept", vystaveno:faDnes(), splatnost:faPlusDni(faDnes(), S.nastaveni.fakSplatnost || 14),
+      zpusobUhrady:f.zpusobUhrady || "prevod", dodavatel:faDodavatel(), sparovano:false, dobropisy:[], zapocet:false});
     if (k.typ !== "zal") k.duzp = faDnes();
     faOtevri(k);
   }
 });
+
+/* panel pro odeslání faktury nebo upomínky — text jde před odesláním upravit */
+function faOdeslatPanel(druh){
+  const box = $("#faOdeslatBox"), f = faOtevrena; if (!box || !f) return;
+  const ul = (S.faktury || []).find(x => x.id === f.id); if (!ul) return;
+  const poradi = (ul.upominky || []).length + 1;
+  const t = druh === "upominka" ? faTextUpominky(ul, poradi) : faTextOdeslani(ul);
+  box.innerHTML = "<div class='fa-odeslat'><b>" + (druh === "upominka" ? poradi + ". upomínka" : "Poslat " + faTypNazev(ul).toLowerCase() + " klientovi") + "</b>" +
+    "<label class='f'>E-mail klienta<input id='faOdKomu' type='email' inputmode='email' value='" + esc(ul.odberatel.email || "") + "' placeholder='klient@email.cz'></label>" +
+    "<label class='f'>Předmět<input id='faOdPredmet' value='" + esc(t.predmet) + "'></label>" +
+    "<label class='f'>Text zprávy<textarea id='faOdText' rows='10'>" + esc(t.text) + "</textarea></label>" +
+    "<div class='btnrow'><button class='b prim' id='faOdPoslat' type='button' data-druh='" + druh + "'>📎 Poslat s PDF</button>" +
+    "<button class='b' id='faOdKopirovat' type='button'>Kopírovat text</button><button class='b' id='faOdZrusit' type='button'>Zrušit</button></div>" +
+    "<p class='hint' style='margin:6px 0 0'>Na telefonu se otevře sdílení (Gmail, Outlook, WhatsApp…) s PDF v příloze. Na počítači se PDF stáhne a otevře se e-mail s připraveným textem — soubor jen přetáhneš do přílohy. Odeslání se zapíše do historie.</p></div>";
+  box.scrollIntoView({block:"nearest", behavior:"smooth"});
+}
 
 /* ARES — veřejný registr ekonomických subjektů, doplní název a sídlo podle IČO */
 async function faAres(){
@@ -8031,14 +8739,31 @@ async function faAres(){
   }
 }
 
+/* storno / dobropis po vystavení: označit původní fakturu a vyřešit peníze */
+function faPoStornu(f){
+  const orig = (S.faktury || []).find(x => x.id === f.odkaz.id);
+  const zaplacena = !!(orig && orig.stav === "zaplacena");
+  f.odkaz.zaplacena = zaplacena;
+  if (orig) {
+    if (!f.castecne) orig.storno = {datum:f.vystaveno, duvod:f.duvodStorna, cislo:f.cislo, dokladId:f.id, poZaplaceni:zaplacena};
+    else orig.dobropisy = (orig.dobropisy || []).concat({id:f.id, cislo:f.cislo, datum:f.vystaveno, castka:-f.celkem, poZaplaceni:zaplacena});
+    if (!f.castecne) orig.stav = "stornovana";
+    orig.upraveno = new Date().toISOString();
+    faZmena(orig);
+  }
+  /* nezaplacená faktura: nic se nevrací, doklad je rovnou vyrovnaný zápočtem */
+  if (!zaplacena) { f.stav = "zaplacena"; f.zaplaceno = f.vystaveno; f.zapocet = true; }
+  faZmena(f);
+}
+
 /* ---------- vystavení: trvalé číslo, uložení, propojení se zakázkou ---------- */
 async function faVystavit(){
   const f = faOtevrena; if (!f || f.stav !== "koncept") return;
-  const chyby = faKontrola(f);
-  if (chyby.length) { alert("Faktura ještě nejde vystavit:\n• " + chyby.join("\n• ")); return; }
-  const btn = $("#faVystavit"); if (btn) { btn.disabled = true; btn.textContent = "vystavuji…"; }
   faPrepocet(f);
   f.dodavatel = faDodavatel();
+  const chyby = faKontrola(f);
+  if (chyby.length) { alert("Doklad ještě nejde vystavit:\n• " + chyby.join("\n• ")); faRenderEditor(); return; }
+  const btn = $("#faVystavit"); if (btn) { btn.disabled = true; btn.textContent = "vystavuji…"; }
   f.stav = "vystavena";
   f.upraveno = new Date().toISOString();
   try {
@@ -8048,7 +8773,12 @@ async function faVystavit(){
   } catch (err) {
     f.stav = "koncept"; f.cislo = "";
     if (btn) { btn.disabled = false; btn.textContent = "Vystavit a uložit"; }
-    alert("Fakturu se nepodařilo vystavit: " + err.message);
+    alert("Doklad se nepodařilo vystavit: " + err.message);
+    return;
+  }
+  if (f.typ === "storno") {
+    faPoStornu(f); save(); renderFaktury();
+    faOtevri(JSON.parse(JSON.stringify(S.faktury.find(x => x.id === f.id) || f)));
     return;
   }
   /* propojit se zakázkou — částky a splatnost pro přehled pohledávek */
@@ -8060,6 +8790,7 @@ async function faVystavit(){
   if (typeof VK !== "undefined" && VK && VK.id && VK.id === f.zakazkaId) { VK.cisloFakZal = VK.cisloFakZal || (f.typ === "zal" ? f.cislo : ""); if (f.typ !== "zal") VK.cisloFakKon = f.cislo; if ($("#tab-vyklizeni").classList.contains("on")) renderVkSeznam(); }
   save(); renderFaktury();
   faOtevri(JSON.parse(JSON.stringify(S.faktury.find(x => x.id === f.id) || f)));
+  faOdeslatPanel("odeslani");          /* další krok je poslat fakturu klientovi */
 }
 
 /* ---------- tlačítka u zakázky v kalkulaci ---------- */
@@ -8084,6 +8815,186 @@ function faZeZakazky(typ){
   }
   faOtevri(faKonceptZeZakazky(z, typ));
 }
+
+/* ================= FAKTURY — odeslání, upomínky, párování plateb ================= */
+
+/* ---------- texty e-mailů ---------- */
+function faTextOdeslani(f){
+  const d = f.dodavatel, nl = String.fromCharCode(10);
+  const castka = faKc(f.typ === "storno" ? Math.abs(f.kUhrade) : faZbyva(f)), vs = faVS(f.cislo);
+  const podpis = [d.jednatel, d.znacka || d.firma, d.telefon].filter(Boolean).join(nl);
+  let telo;
+  if (f.typ === "zal") telo = "v příloze posílám zálohovou fakturu č. " + f.cislo + (f.zakazkaNazev ? " k zakázce " + f.zakazkaNazev : "") +
+    " na " + castka + " se splatností " + faDatum(f.splatnost) + ". Po připsání zálohy potvrdíme termín nástupu.";
+  else if (f.typ === "storno") telo = "v příloze posílám " + (f.castecne ? "dobropis" : "storno fakturu") + " č. " + f.cislo + " k faktuře č. " + ((f.odkaz && f.odkaz.cislo) || "") + "." +
+    (f.odkaz && f.odkaz.zaplacena ? " Částku " + castka + " vám vrátíme na účet, ze kterého jste platili." : "");
+  else telo = "v příloze posílám fakturu č. " + f.cislo + (f.zakazkaNazev ? " za zakázku " + f.zakazkaNazev : "") +
+    (f.kUhrade > 0 ? " na " + castka + " se splatností " + faDatum(f.splatnost) + "." : ". Faktura je uhrazená zálohou, nic dalšího neplatíte.");
+  const platba = faZpusob(f) === "prevod" && f.kUhrade > 0 && f.typ !== "storno"
+    ? nl + nl + "Platbu prosím pošlete na účet " + (d.bankUcet || d.iban) + " s variabilním symbolem " + vs +
+      ". Nejrychlejší je načíst QR kód z faktury v bankovní aplikaci — údaje se vyplní samy." : "";
+  return {predmet:faTypNazev(f) + " č. " + f.cislo + " — " + (d.znacka || d.firma),
+    text:"Dobrý den," + nl + nl + telo + platba + nl + nl + "Děkuji a přeji hezký den" + nl + podpis};
+}
+function faTextUpominky(f, poradi){
+  const d = f.dodavatel, nl = String.fromCharCode(10), dni = Math.max(1, Math.round((new Date(faDnes()) - new Date(f.splatnost)) / 864e5));
+  const castka = faKc(faZbyva(f)), vs = faVS(f.cislo);
+  const podpis = [d.jednatel, d.znacka || d.firma, d.telefon].filter(Boolean).join(nl);
+  const platba = "Účet: " + (d.bankUcet || d.iban) + nl + "Variabilní symbol: " + vs + nl + "Částka: " + castka;
+  let telo, predmet;
+  if (poradi <= 1) {
+    predmet = "Připomínka splatnosti faktury č. " + f.cislo;
+    telo = "dovoluji si připomenout fakturu č. " + f.cislo + " na " + castka + ", která byla splatná " + faDatum(f.splatnost) +
+      ". Pravděpodobně jen zapadla — pokud jste už platili, děkuji a tuto zprávu prosím ignorujte." + nl + nl + platba;
+  } else if (poradi === 2) {
+    predmet = "2. upomínka — faktura č. " + f.cislo;
+    telo = "faktura č. " + f.cislo + " na " + castka + " je " + dni + " dní po splatnosti a platbu zatím neevidujeme. " +
+      "Prosím o úhradu do 7 dnů. Kdyby byl s platbou jakýkoliv problém, ozvěte se a domluvíme se." + nl + nl + platba;
+  } else {
+    predmet = "Poslední upomínka — faktura č. " + f.cislo;
+    telo = "přes předchozí upomínky zůstává faktura č. " + f.cislo + " na " + castka + " nezaplacená už " + dni + " dní. " +
+      "Prosím o úhradu nejpozději do 7 dnů. Po této lhůtě budeme nuceni uplatnit zákonný úrok z prodlení podle nařízení vlády " +
+      "č. 351/2013 Sb. a pohledávku předat k dalšímu vymáhání." + nl + nl + platba;
+  }
+  return {predmet:predmet + " — " + (d.znacka || d.firma), text:"Dobrý den," + nl + nl + telo + nl + nl + "Faktura je znovu v příloze." + nl + nl + "Děkuji" + nl + podpis};
+}
+
+/* ---------- odeslání s PDF a evidence ---------- */
+async function faOdeslatSeZaznamem(id, druh, text, predmet){
+  const f = (S.faktury || []).find(x => x.id === id); if (!f) throw new Error("Faktura nenalezena");
+  const kanal = await faPdfOdeslat(f, text, predmet);
+  if (kanal === "zruseno") return kanal;
+  const zaznam = {datum:new Date().toISOString(), kanal, komu:f.odberatel.email || ""};
+  if (druh === "upominka") { f.upominky = f.upominky || []; zaznam.poradi = f.upominky.length + 1; f.upominky.push(zaznam); }
+  else { f.odeslano = f.odeslano || []; f.odeslano.push(zaznam); }
+  f.upraveno = new Date().toISOString();
+  faZmena(f);
+  return kanal;
+}
+function faHistorie(f){
+  const t = [];
+  (f.odeslano || []).forEach(z => t.push([z.datum, "Odesláno klientovi" + (z.kanal === "sdileni" ? " (sdílení z telefonu)" : z.kanal === "email" ? " (e-mailem" + (z.komu ? " na " + z.komu : "") + ")" : "")]));
+  (f.upominky || []).forEach(z => t.push([z.datum, z.poradi + ". upomínka odeslána"]));
+  if (f.zaplaceno && f.stav !== "koncept") t.push([f.zaplaceno + "T12:00:00", f.typ === "storno" ? (f.zapocet ? "Vyrovnáno zápočtem proti nezaplacené faktuře" : "Vráceno klientovi") : "Zaplaceno" + (f.sparovano ? " (spárováno z výpisu)" : "")]);
+  if (f.storno && f.storno.cislo) t.push([f.storno.datum + "T12:00:01", "Stornováno dokladem č. " + f.storno.cislo + (f.storno.duvod ? " — " + f.storno.duvod : "")]);
+  (f.dobropisy || []).forEach(x => t.push([x.datum ? x.datum + "T12:00:02" : f.vystaveno, "Dobropis č. " + x.cislo + " na " + faKc(x.castka)]));
+  return t.sort((a, b) => String(a[0]).localeCompare(String(b[0])));
+}
+
+/* ---------- párování plateb z výpisu (CSV z internetového bankovnictví) ---------- */
+function csvRozparsuj(text){
+  const radek1 = text.split(/\r?\n/).find(r => r.trim()) || "";
+  const odd = [";", ",", "\t"].map(o => [o, radek1.split(o).length]).sort((a, b) => b[1] - a[1])[0][0];
+  const radky = []; let pole = [], hod = "", uvoz = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (uvoz) { if (ch === '"') { if (text[i + 1] === '"') { hod += '"'; i++; } else uvoz = false; } else hod += ch; continue; }
+    if (ch === '"') { uvoz = true; continue; }
+    if (ch === odd) { pole.push(hod); hod = ""; continue; }
+    if (ch === "\n" || ch === "\r") { if (ch === "\r" && text[i + 1] === "\n") i++; pole.push(hod); if (pole.some(x => x.trim())) radky.push(pole); pole = []; hod = ""; continue; }
+    hod += ch;
+  }
+  pole.push(hod); if (pole.some(x => x.trim())) radky.push(pole);
+  return radky;
+}
+function csvCastka(s){
+  let t = String(s || "").replace(/[\s ]/g, "").replace(/CZK|Kč/gi, "");
+  if (/,\d{1,2}$/.test(t)) t = t.replace(/\./g, "").replace(",", "."); else t = t.replace(/,/g, "");
+  const n = parseFloat(t); return isFinite(n) ? n : NaN;
+}
+function csvDatum(s){
+  const t = String(s || "").trim();
+  let m = t.match(/^(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})/); if (m) return m[3] + "-" + m[2].padStart(2, "0") + "-" + m[1].padStart(2, "0");
+  m = t.match(/^(\d{4})-(\d{2})-(\d{2})/); if (m) return m[0];
+  return "";
+}
+function vypisNajdiSloupce(radky){
+  const norm = s => bezDiakritiky(String(s || "")).toLowerCase().trim();
+  for (let i = 0; i < Math.min(radky.length, 30); i++) {
+    const h = radky[i].map(norm);
+    const vs = h.findIndex(x => /variabiln|^vs$|^v\.s\.?$/.test(x));
+    if (vs < 0) continue;
+    const poradi = (vzory) => { for (const v of vzory) { const ix = h.findIndex(x => v.test(x)); if (ix >= 0) return ix; } return -1; };
+    const castka = poradi([/zauctovan.*castk/, /^castka$/, /castka v mene uctu/, /^castka/, /objem/, /amount/]);
+    const datum = poradi([/datum zauctovani/, /datum provedeni/, /datum pripsani/, /^datum$/, /^datum/, /date/]);
+    const zprava = poradi([/zprava pro prijemce/, /^zprava/, /poznamka/, /popis/]);
+    const nazev = poradi([/nazev protiuctu/, /nazev uctu/, /protistrana/, /^nazev/]);
+    if (castka >= 0) return {hlavicka:i, vs, castka, datum, zprava, nazev};
+  }
+  return null;
+}
+async function vypisNacti(soubor){
+  const buf = await soubor.arrayBuffer();
+  let text = new TextDecoder("utf-8").decode(buf);
+  if (text.includes("�")) text = new TextDecoder("windows-1250").decode(buf);
+  const radky = csvRozparsuj(text.replace(/^﻿/, ""));
+  const s = vypisNajdiSloupce(radky);
+  if (!s) throw new Error("Ve výpisu jsem nenašel sloupec s variabilním symbolem a částkou. Exportuj pohyby jako CSV i se symboly.");
+  const platby = [];
+  for (let i = s.hlavicka + 1; i < radky.length; i++) {
+    const r = radky[i], castka = csvCastka(r[s.castka]);
+    if (!(castka > 0)) continue;                         /* jen příchozí platby */
+    platby.push({vs:String(r[s.vs] || "").replace(/\D/g, "").replace(/^0+(?=\d)/, ""), castka,
+      datum:s.datum >= 0 ? csvDatum(r[s.datum]) : "", zprava:s.zprava >= 0 ? String(r[s.zprava] || "").trim() : "",
+      nazev:s.nazev >= 0 ? String(r[s.nazev] || "").trim() : ""});
+  }
+  return platby;
+}
+function vypisSparuj(platby){
+  const otevrene = (S.faktury || []).filter(faCekaNaPlatbu);
+  const vysledek = [], pouzite = new Set();
+  otevrene.forEach(f => {
+    const vs = faVS(f.cislo).replace(/^0+(?=\d)/, "");
+    const kandidati = platby.map((p, ix) => ({p, ix})).filter(({p, ix}) => !pouzite.has(ix) && p.vs === vs);
+    if (!kandidati.length) return;
+    const dluh = faZbyva(f);                /* po dobropisu klient platí méně než původní částku */
+    const presna = kandidati.find(({p}) => Math.abs(p.castka - dluh) <= 1);
+    const volba = presna || kandidati[0];
+    pouzite.add(volba.ix);
+    vysledek.push({f, p:volba.p, shoda:!!presna, dluh, rozdil:faZaokr(volba.p.castka - dluh)});
+  });
+  const nesparovane = platby.filter((p, ix) => !pouzite.has(ix));
+  return {vysledek, nesparovane};
+}
+let vypisStav = null;
+function renderParovani(){
+  const el = $("#parovaniVysledek"); if (!el) return;
+  if (!vypisStav) { el.innerHTML = ""; return; }
+  const {vysledek, nesparovane, soubor, pocet} = vypisStav;
+  let h = "<p class='hint' style='margin:8px 0'>Soubor <b>" + esc(soubor) + "</b>: " + pocet + " příchozích plateb, k nezaplaceným fakturám sedí " + vysledek.length + ".</p>";
+  if (vysledek.length) {
+    h += "<div class='tscroll'><table><thead><tr><th></th><th>Faktura</th><th>Odběratel</th><th class='r'>Fakturováno</th><th class='r'>Přišlo</th><th>Datum</th><th>Stav</th></tr></thead><tbody>" +
+      vysledek.map((x, i) => "<tr><td><input type='checkbox' class='parChk' data-i='" + i + "'" + (x.shoda ? " checked" : "") + "></td>" +
+        "<td class='fa-cis'>" + esc(x.f.cislo) + "</td><td class='odb'>" + esc(x.f.odberatel.jmeno) + "</td>" +
+        "<td class='r'>" + kc(x.dluh) + "</td><td class='r'>" + kc(x.p.castka) + "</td><td>" + faDatum(x.p.datum) + "</td>" +
+        "<td>" + (x.shoda ? "<span class='pill ok'>sedí VS i částka</span>" : "<span class='pill ceka'>jiná částka (" + (x.rozdil > 0 ? "+" : "") + kc(x.rozdil) + ")</span>") + "</td></tr>").join("") +
+      "</tbody></table></div><div class='btnrow'><button class='b prim' id='parPotvrdit' type='button'>Označit vybrané jako zaplacené</button></div>";
+  }
+  if (nesparovane.length) h += "<details style='margin-top:8px'><summary class='hint' style='cursor:pointer'>Příchozí platby bez faktury (" + nesparovane.length + ")</summary>" +
+    "<div class='tscroll'><table><thead><tr><th>Datum</th><th>VS</th><th class='r'>Částka</th><th>Od</th><th>Zpráva</th></tr></thead><tbody>" +
+    nesparovane.slice(0, 200).map(p => "<tr><td>" + faDatum(p.datum) + "</td><td>" + esc(p.vs || "—") + "</td><td class='r'>" + kc(p.castka) + "</td><td>" + esc(p.nazev) + "</td><td class='hint'>" + esc(p.zprava) + "</td></tr>").join("") +
+    "</tbody></table></div></details>";
+  el.innerHTML = h;
+}
+$("#parovaniSoubor").addEventListener("change", async e => {
+  const soubor = e.target.files[0]; e.target.value = ""; if (!soubor) return;
+  const el = $("#parovaniVysledek");
+  try {
+    const platby = await vypisNacti(soubor);
+    const {vysledek, nesparovane} = vypisSparuj(platby);
+    vypisStav = {vysledek, nesparovane, soubor:soubor.name, pocet:platby.length};
+    renderParovani();
+  } catch (err) { vypisStav = null; el.innerHTML = "<p class='hint ne' style='margin:8px 0'>" + esc(err.message) + "</p>"; }
+});
+$("#parovaniVyber").addEventListener("click", () => $("#parovaniSoubor").click());
+$("#parovaniVysledek").addEventListener("click", e => {
+  if (e.target.id !== "parPotvrdit" || !vypisStav) return;
+  const vybrane = [...document.querySelectorAll("#parovaniVysledek .parChk:checked")].map(ch => vypisStav.vysledek[+ch.dataset.i]);
+  if (!vybrane.length) return;
+  vybrane.forEach(({f, p}) => { f.sparovano = true; faOznacZaplaceno(f.id, p.datum || faDnes()); });
+  $("#parovaniVysledek").innerHTML = "<p class='hint ok' style='margin:8px 0'>✓ Označeno jako zaplacené: " + vybrane.map(x => x.f.cislo).join(", ") + ".</p>";
+  vypisStav = null; renderFaktury(); renderDane();
+});
 
 /* ================= VÝDAJE A DOKLADY ================= */
 /* Kategorie s orientačním nákladovým účtem — účetní si je zaúčtuje po svém,
@@ -8230,13 +9141,14 @@ const DPPO_SAZBA = 0.21, SRAZKOVA_DAN = 0.15;
 function daneRok(rok){
   rok = String(rok);
   const mesice = Array.from({length:12}, (_, i) => ({m:i + 1, vynosy:0, naklady:0, uznatelne:0, prijato:0}));
+  /* storno a dobropis jsou záporné doklady — s původní fakturou se sečtou na správnou částku */
   (S.faktury || []).forEach(f => {
-    if (f.stav === "stornovana" || f.typ === "zal") return;
+    if (!faDoVynosu(f)) return;
     const d = String(f.duzp || f.vystaveno);
     if (d.startsWith(rok)) mesice[+d.slice(5, 7) - 1].vynosy += f.celkem || 0;
   });
   (S.faktury || []).forEach(f => {
-    if (f.stav === "zaplacena" && String(f.zaplaceno).startsWith(rok)) mesice[+f.zaplaceno.slice(5, 7) - 1].prijato += f.kUhrade || 0;
+    if (f.stav === "zaplacena" && !f.zapocet && String(f.zaplaceno).startsWith(rok)) mesice[+f.zaplaceno.slice(5, 7) - 1].prijato += f.kUhrade || 0;
   });
   (S.vydaje || []).forEach(v => {
     const d = String(v.datum || ""); if (!d.startsWith(rok)) return;
@@ -8363,13 +9275,15 @@ const csvCislo = x => (Math.round((x || 0) * 100) / 100).toFixed(2).replace(".",
 function csv(radky){ return "﻿" + radky.map(r => r.map(csvPole).join(";")).join("\r\n") + "\r\n"; }
 
 function ucFakturyCSV(list){
-  return csv([["Číslo","Typ","Stav","Datum vystavení","Datum plnění","Splatnost","Zaplaceno dne","Odběratel","IČO odběratele","DIČ odběratele",
-      "Adresa odběratele","Součet položek","Slevy","Cena celkem","Odečtená záloha","K úhradě","Variabilní symbol","Zakázka","Důvod storna"]]
-    .concat(list.map(f => [f.cislo, FA_TYPY[f.typ], FA_STAVY[f.stav] || f.stav, f.vystaveno, f.duzp || "", f.splatnost, f.zaplaceno || "",
+  return csv([["Číslo","Typ","Stav","Datum vystavení","Datum plnění","Splatnost","Zaplaceno / vráceno dne","Forma úhrady","Odběratel","IČO odběratele","DIČ odběratele",
+      "Adresa odběratele","Součet položek","Slevy","Cena celkem","Odečtená záloha","K úhradě","Variabilní symbol","Zakázka","Opravuje doklad","Opraveno dokladem","Důvod storna / dobropisu","Do výnosů"]]
+    .concat(list.map(f => [f.cislo, faTypNazev(f), f.typ === "storno" ? (f.stav === "zaplacena" ? (f.zapocet ? "Započteno" : "Vráceno") : "K vrácení") : (FA_STAVY[f.stav] || f.stav),
+      f.vystaveno, f.duzp || "", f.splatnost, f.zaplaceno || "", faZpusobText(f),
       f.odberatel.jmeno, f.odberatel.ico, f.odberatel.dic, f.odberatel.adresa,
       csvCislo(f.mezisoucet), csvCislo((f.slevy || []).reduce((a, s) => a + s.castka, 0)), csvCislo(f.celkem),
       csvCislo(f.odpocetZalohy ? f.odpocetZalohy.castka : 0), csvCislo(f.kUhrade), faVS(f.cislo), f.zakazkaNazev || "",
-      f.storno ? f.storno.duvod : ""])));
+      f.odkaz ? f.odkaz.cislo : "", [f.storno && f.storno.cislo].concat((f.dobropisy || []).map(x => x.cislo)).filter(Boolean).join(", "),
+      f.duvodStorna || (f.storno ? f.storno.duvod : ""), faDoVynosu(f) ? "ano" : "ne"])));
 }
 function ucVydajeCSV(list){
   return csv([["Datum","Dodavatel","Popis","Číslo dokladu","Kategorie","Nákladový účet (orientačně)","Daňově uznatelný","Částka","Zakázka","Fotka dokladu"]]
@@ -8400,9 +9314,18 @@ $("#ucExport").addEventListener("click", async () => {
     const nazevObd = obd.length === 4 ? obd : obd;
     soubory.push({nazev:"faktury-vydane-" + nazevObd + ".csv", data:enc.encode(ucFakturyCSV(fakt))});
     soubory.push({nazev:"vydaje-" + nazevObd + ".csv", data:enc.encode(ucVydajeCSV(vyd))});
-    fakt.forEach(f => soubory.push({nazev:"faktury/" + (f.typ === "zal" ? "ZF-" : "FA-") + f.cislo + ".html",
-      data:enc.encode("<!doctype html><html lang='cs'><head><meta charset='utf-8'><title>" + esc(FA_TYPY[f.typ] + " " + f.cislo) +
-        "</title><style>body{margin:0;background:#8C877D}@media print{body{background:#fff}@page{size:A4;margin:0}}</style></head><body>" + faHTML(f) + "</body></html>")}));
+    /* faktury jako PDF; když se PDF nepovede (poprvé bez internetu), přibalí se dokument k tisku */
+    let jakoHtml = 0;
+    for (let i = 0; i < fakt.length; i++) {
+      const f = fakt[i]; btn.textContent = "PDF faktur " + (i + 1) + "/" + fakt.length + "…";
+      try { const doc = await faPdfDokument(f); soubory.push({nazev:"faktury/" + faPdfJmeno(f), data:new Uint8Array(doc.output("arraybuffer"))}); }
+      catch (err) {
+        jakoHtml++;
+        soubory.push({nazev:"faktury/" + faPdfJmeno(f).replace(/\.pdf$/, ".html"),
+          data:enc.encode("<!doctype html><html lang='cs'><head><meta charset='utf-8'><title>" + esc(faTypNazev(f) + " " + f.cislo) +
+            "</title><style>body{margin:0;background:#8C877D}@media print{body{background:#fff}@page{size:A4;margin:0}}</style></head><body>" + faHTML(f) + "</body></html>")});
+      }
+    }
     let chybiFoto = 0;
     for (let i = 0; i < vyd.length; i++) {
       const v = vyd[i]; if (!v.foto) continue;
@@ -8414,13 +9337,15 @@ $("#ucExport").addEventListener("click", async () => {
     const d = daneRok(obd.slice(0, 4));
     const souhrn = "PODKLADY PRO ÚČETNÍ — " + (S.nastaveni.firma || "") + ", IČO " + (S.nastaveni.ico || "") + "\r\n" +
       "Období: " + (obd.length === 4 ? "rok " + obd : obd) + "\r\nVygenerováno: " + new Date().toLocaleString("cs-CZ") + "\r\n\r\n" +
-      "Vydané faktury: " + fakt.length + " (z toho stornované " + fakt.filter(f => f.stav === "stornovana").length + ")\r\n" +
-      "Součet faktur (bez zálohových a stornovaných): " + kc(fakt.filter(f => f.typ !== "zal" && f.stav !== "stornovana").reduce((a, f) => a + f.celkem, 0)) + "\r\n" +
+      "Vydané doklady: " + fakt.length + " (z toho storna a dobropisy " + fakt.filter(f => f.typ === "storno").length + ", zálohové faktury " + fakt.filter(f => f.typ === "zal").length + ")\r\n" +
+      "Výnosy z faktur po započtení storen a dobropisů (bez zálohových): " + kc(fakt.filter(faDoVynosu).reduce((a, f) => a + f.celkem, 0)) + "\r\n" +
+      (jakoHtml ? "POZOR: " + jakoHtml + " faktur je jako HTML místo PDF (PDF se nepodařilo vytvořit — zkus export znovu s internetem).\r\n" : "") +
       "Výdaje: " + vyd.length + " dokladů, celkem " + kc(vyd.reduce((a, v) => a + (v.castka || 0), 0)) + "\r\n" +
       (chybiFoto ? "POZOR: " + chybiFoto + " fotek dokladů se nepodařilo přibalit (jsou na jiném zařízení).\r\n" : "") +
       "\r\nOrientační výsledek roku " + obd.slice(0, 4) + " z aplikace: výnosy " + kc(d.vynosy) + ", náklady " + kc(d.naklady) +
       ", základ daně " + kc(d.zaklad) + ", daň 21 % " + kc(d.dan) + ".\r\n" +
-      "Firma není plátcem DPH. Zálohové faktury nejsou daňové doklady; záloha je odečtena v konečné faktuře.\r\n";
+      "Firma není plátcem DPH. Zálohové faktury nejsou daňové doklady; záloha je odečtena v konečné faktuře.\r\n" +
+      "Opravy se dělají samostatným dokladem se zápornými položkami ve stejné číselné řadě (storno celé faktury, dobropis části), s odkazem na původní fakturu.\r\n";
     soubory.unshift({nazev:"PRECTI-ME.txt", data:enc.encode("﻿" + souhrn)});
     const blob = ZIP.vytvor(soubory.map(s => ({nazev:s.nazev, bajty:s.data})));
     stahniBlob(blob, "ucetni-podklady-" + nazevObd + ".zip");
@@ -9435,12 +10360,12 @@ function vykNabidkaHTML(v, r){
 function faKonceptZVyklizeni(v, typ){
   const r = vykSpocitat(vykVstup(v)), q = r.quote, n = S.nastaveni, dnes = faDnes();
   const k = (S.klienti || []).find(x => x.id === v.klientId);
-  const f = {id:uid(), typ, cislo:"", stav:"koncept", vystaveno:dnes, duzp:typ === "zal" ? "" : (v.terminOd || dnes),
+  const f = Object.assign(faNovaMetadata(), {id:uid(), typ, cislo:"", stav:"koncept", vystaveno:dnes, duzp:typ === "zal" ? "" : (v.terminOd || dnes),
     splatnost:faPlusDni(dnes, n.fakSplatnost || 14), dodavatel:faDodavatel(),
     odberatel:{jmeno:(k && k.jmeno) || v.klient || "", adresa:(k && k.adresa) || v.adresa || "", ico:(k && k.ico) || "", dic:(k && k.dic) || "", email:(k && k.email) || "", telefon:(k && k.tel) || ""},
     polozky:[], slevy:[], mezisoucet:0, zaokrouhleni:0, odpocetZalohy:null, celkem:0, kUhrade:0,
     zakazkaId:v.id, zakazkaNazev:v.nazev || "", mistoPlneni:v.adresa || "", poznamka:"", zaplaceno:"", storno:null,
-    vytvoril:n.jednatel || "", vytvoreno:new Date().toISOString()};
+    vytvoril:n.jednatel || "", vytvoreno:new Date().toISOString()});
   if (typ === "zal") {
     f.polozky.push({popis:(v.predem ? "Platba předem" : "Záloha") + " — " + (v.service === "complete" ? "vyklizení s odvozem" : "vynáška vybavení") + (v.nazev ? ", " + v.nazev : ""), mnozstvi:1, mj:"", cenaMJ:q.deposit, celkem:q.deposit});
     f.mezisoucet = f.celkem = f.kUhrade = Math.round(q.deposit);
@@ -9481,7 +10406,7 @@ function faZVyklizeni(typ){
 }
 
 /* ---------- init ---------- */
-function fillAll(){fillHdr();fillNastaveni();renderPrace();renderKont();renderMat();renderOst();renderVP();renderFotky();renderDZ();renderOdp();renderDopravci();renderNKont();renderCenik();renderRychle();renderSablonyZak();renderSablony();renderRecenze();renderMilniky();renderInvestice();zakCount();syncVybava();renderPrehled();renderLogoNahled();renderSyncStav();recalc();}
+function fillAll(){fillHdr();fillNastaveni();renderPrace();renderKont();renderMat();renderOst();renderVP();renderFotky();renderDZ();renderOdp();renderDopravci();renderNKont();renderCenik();renderRychle();renderSablonyZak();renderSablony();renderRecenze();renderMilniky();renderInvestice();zakCount();syncVybava();renderPrehled();renderLogoNahled();renderBankStav();renderSyncStav();recalc();}
 fillAll();
 if(syncZapnuto()){syncPrevzitOtisky();syncNaplanuj(600);}
 </script>
