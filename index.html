@@ -322,8 +322,17 @@ details.gsec li{margin:3px 0}
 .fa-odeslat-stav .ok{color:var(--good);font-weight:700}.fa-odeslat-stav .ne{color:var(--bad);font-weight:700}
 .fa-odeslat-tl{display:flex;flex-wrap:wrap;gap:6px}
 .fa-odeslat-tl .b{min-height:40px}
-.fa-smazat{margin-top:16px;border-top:1px solid var(--line);padding-top:10px;font-size:13.5px}
-.fa-smazat summary{cursor:pointer;color:var(--muted);font-weight:600}
+.fa-smaz{color:var(--bad)}
+.faSmaz{opacity:.75}.faSmaz:hover{opacity:1;color:var(--bad);border-color:var(--bad)}
+.fa-dlg{position:fixed;inset:0;z-index:200;background:rgba(20,18,15,.55);display:flex;align-items:center;justify-content:center;padding:16px}
+.fa-dlg-in{background:var(--surface);color:var(--ink);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.35);padding:18px 18px 12px;width:100%;max-width:420px}
+.fa-dlg-in h3{margin:0 0 8px;font-size:18px}
+.fa-dlg-in p{margin:0 0 8px;font-size:14.5px;line-height:1.45}
+.fa-dlg-in p.ne{color:var(--bad);font-weight:600}
+.fa-dlg-in .btnrow{justify-content:flex-end}
+.fa-dlg-ano{background:var(--bad);border-color:var(--bad);color:#fff;font-weight:700}
+.fa-dlg-ano:disabled{opacity:.45}
+.fa-toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:210;background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:999px;font-weight:700;font-size:14px;box-shadow:0 6px 20px rgba(0,0,0,.3)}
 .fa-ceka{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
 .fa-ceka:last-child{border-bottom:0}
 .fa-ceka.pozde b{color:var(--bad)}
@@ -8570,6 +8579,7 @@ function renderFaktury(){
         (f.typ === "storno" && f.stav === "vystavena" ? "<button class='mini act faZap' data-id='" + f.id + "' title='Peníze jsme klientovi vrátili'>✓ Vráceno</button>" : "") +
         (faPoSplatnosti(f) ? "<button class='mini act faUpom' data-id='" + f.id + "' title='Poslat upomínku'>🔔</button>" : "") +
         "<button class='mini act faPdf' data-id='" + f.id + "' title='Stáhnout PDF'>PDF</button>" +
+        "<button class='mini faSmaz' data-id='" + f.id + "' title='Smazat doklad' aria-label='Smazat doklad " + esc(f.cislo) + "'>🗑</button>" +
       "</div></td>";
     tb.appendChild(tr);
   });
@@ -8626,22 +8636,23 @@ function renderFaCeka(){
     else faOtevri(faKonceptZeZakazky(x.z, "kon"));
   };
 }
-$("#faSmazatVse").addEventListener("click", () => {
+$("#faSmazatVse").addEventListener("click", async () => {
   const st = $("#faSmazatStav"), n = (S.faktury || []).length;
   if (!n) { st.textContent = "Žádné doklady ke smazání."; return; }
-  const v = prompt("Smazat " + (n === 1 ? "1 doklad" : n < 5 ? "všechny " + n + " doklady" : "všech " + n + " dokladů") + " (faktury, zálohové faktury, storna, dobropisy) na všech zařízeních?\nNejde to vrátit. Pro potvrzení napiš SMAZAT:", "");
-  if (v === null) return;
-  if (v.trim().toUpperCase() !== "SMAZAT") { st.textContent = "Nic se nesmazalo — potvrzovací slovo nesouhlasí."; return; }
+  const ok = await faPotvrdit({titul:"Smazat všechny doklady?", slovo:"SMAZAT", tlacitko:"🗑 Smazat " + faDokladu(n),
+    html:"<p>Smaže se <b>" + faDokladu(n) + "</b> — faktury, zálohové faktury, storna i dobropisy, na všech zařízeních. Zakázky zůstanou.</p><p class='hint'>Nejde to vrátit.</p>"});
+  if (!ok) return;
   (S.faktury || []).slice().forEach(f => faOdstranit(f));
   S.faktury = [];
   save(); renderFaktury(); if (typeof renderDane === "function") renderDane();
-  st.innerHTML = "<span class='ok'>✓ Smazáno: " + n + " " + (n === 1 ? "doklad" : n < 5 ? "doklady" : "dokladů") + ". Další doklad dostane nejnižší volné číslo.</span>";
+  st.innerHTML = "<span class='ok'>✓ Smazáno: " + faDokladu(n) + ". Další doklad dostane nejnižší volné číslo.</span>";
 });
 ["#faRok", "#faStavFiltr"].forEach(s => $(s).addEventListener("change", renderFaktury));
 $("#faHledat").addEventListener("input", renderFaktury);
 
 $("#faTab").addEventListener("click", async e => {
-  const zap = e.target.closest(".faZap"), pdf = e.target.closest(".faPdf"), upom = e.target.closest(".faUpom");
+  const zap = e.target.closest(".faZap"), pdf = e.target.closest(".faPdf"), upom = e.target.closest(".faUpom"), smaz = e.target.closest(".faSmaz");
+  if (smaz) { e.stopPropagation(); await faSmazatDoklad(smaz.dataset.id); return; }
   const najdi = el => (S.faktury || []).find(f => f.id === el.dataset.id);
   if (zap) { e.stopPropagation(); faOznacZaplaceno(zap.dataset.id); return; }
   if (pdf) { e.stopPropagation(); await faPdfTlacitko(pdf, najdi(pdf)); return; }
@@ -8785,6 +8796,7 @@ function faRenderEditor(){
       (storno && ul.stav === "vystavena" ? "<button class='b' id='faAkZap' type='button'>✓ Peníze vráceny</button>" : "") +
       (ul.stav === "zaplacena" && !ul.zapocet ? "<button class='b' id='faAkNezap' type='button'>Vrátit na " + (storno ? "nevrácené" : "nezaplacenou") + "</button>" : "") +
       (ul.typ === "zal" && ul.stav !== "stornovana" ? "<button class='b' id='faAkKonecna' type='button'>🧾 Konečná faktura s odečtem zálohy</button>" : "") +
+      "<button class='b fa-smaz' id='faAkSmazat' type='button'>🗑 Smazat</button>" +
       "</div><div id='faOdeslatBox'></div>";
     /* vystavená faktura bez odečtu zálohy, ke které záloha existuje */
     if ((ul.typ === "kon" || ul.typ === "vlastni") && ul.stav !== "stornovana" && !faOdpocty(ul).length) {
@@ -8804,9 +8816,6 @@ function faRenderEditor(){
     }
     h += "<h3>Odběratel</h3><p style='margin:0;font-size:14px'><b>" + esc(f.odberatel.jmeno) + "</b><br>" + esc(f.odberatel.adresa || "") +
       (f.odberatel.ico ? "<br>IČO " + esc(f.odberatel.ico) : "") + (f.odberatel.email ? "<br>" + esc(f.odberatel.email) : "") + "</p>";
-    h += "<details class='fa-smazat'><summary>🗑 Smazat doklad (zkušební data)</summary>" +
-      "<p class='hint' style='margin:6px 0'>V ostrém provozu se vystavené doklady nemažou — opravují se stornem nebo dobropisem a archivují se. Mazání je tu na zkoušení: doklad zmizí ze všech zařízení a jeho číslo se uvolní.</p>" +
-      "<button class='b' id='faAkSmazat' type='button'>Smazat " + esc(faTypNazev(ul).toLowerCase()) + " č. " + esc(ul.cislo) + "</button></details>";
     el.innerHTML = h;
     return;
   }
@@ -8967,7 +8976,7 @@ $("#faEditor").addEventListener("click", async e => {
   }
   if (id === "faAkKonecna") { if (ul) faOtevri(faKonecnaZeZalohy(ul)); return; }
   if (id === "faAkKopie") { faOtevri(faKopieKoncept(f)); return; }
-  if (id === "faAkSmazat") { if (ul && faSmazatDoklad(ul.id)) faZavri(); return; }
+  if (id === "faAkSmazat") { if (ul && await faSmazatDoklad(ul.id)) faZavri(); return; }
   if (id === "faOdSdilet" || id === "faOdMail" || id === "faOdGmail" || id === "faOdPdf" || id === "faOdKopirovat" || id === "faOdOdeslano" || id === "faOdZrusit") { faOdeslatAkce(id, cil); return; }
 });
 
@@ -9112,20 +9121,57 @@ function faOdstranit(f){
   S.faktury = (S.faktury || []).filter(x => x.id !== f.id);
   if (typeof syncSmazat === "function") syncSmazat("faktura", f.id);
 }
-function faSmazatDoklad(id){
+/* doklad a všechno, co na něm visí: jeho storna a dobropisy, u zálohy i faktury, ve kterých je odečtená */
+function faSadaKeSmazani(f){
+  const sada = new Map();
+  const pridej = x => {
+    if (!x || sada.has(x.id)) return;
+    sada.set(x.id, x);
+    (S.faktury || []).filter(y => y.typ === "storno" && y.odkaz && y.odkaz.id === x.id).forEach(pridej);
+    if (x.typ === "zal") (S.faktury || []).filter(y => y.id !== x.id && faOdpocty(y).some(o => o.id === x.id || (o.cislo && o.cislo === x.cislo))).forEach(pridej);
+  };
+  pridej(f);
+  return [...sada.values()];
+}
+const faDokladu = n => n + " " + (n === 1 ? "doklad" : n < 5 ? "doklady" : "dokladů");
+async function faSmazatDoklad(id){
   const f = (S.faktury || []).find(x => x.id === id); if (!f) return false;
-  const navazne = (S.faktury || []).filter(x => x.typ === "storno" && x.odkaz && x.odkaz.id === f.id);
-  const odecteno = f.typ === "zal" ? (S.faktury || []).filter(x => x.id !== f.id && faOdpocty(x).some(o => o.id === f.id || (o.cislo && o.cislo === f.cislo))) : [];
-  if (odecteno.length) { alert("Záloha " + f.cislo + " je odečtená ve faktuře " + odecteno.map(x => x.cislo).join(", ") + " — nejdřív smaž tu."); return false; }
-  const v = prompt("Smazat " + faTypNazev(f).toLowerCase() + " č. " + f.cislo + "?" +
-    (navazne.length ? "\nSmažou se i navazující doklady: " + navazne.map(x => x.cislo).join(", ") + "." : "") +
-    ((f.odeslano || []).length || f.stav === "zaplacena" ? "\nPozor: doklad už byl odeslán nebo zaplacen." : "") +
-    "\n\nPro potvrzení napiš číslo dokladu:", "");
-  if (v === null) return false;
-  if (v.trim() !== String(f.cislo)) { alert("Číslo nesouhlasí — nic se nesmazalo."); return false; }
-  faOdstranit(f); navazne.forEach(faOdstranit);
+  const vse = faSadaKeSmazani(f), dalsi = vse.slice(1);
+  const ok = await faPotvrdit({titul:"Smazat " + faTypAkuzativ(f) + " č. " + f.cislo + "?",
+    html:"<p><b>" + esc(f.odberatel.jmeno || "—") + "</b> · " + faKc(Math.abs(f.kUhrade)) + " · vystaveno " + faDatum(f.vystaveno) + "</p>" +
+      (dalsi.length ? "<p><b>Smaže se s ním i:</b> " + dalsi.map(x => esc(faTypNazev(x).toLowerCase() + " " + x.cislo)).join(", ") + "</p>" : "") +
+      ((f.odeslano || []).length || f.stav === "zaplacena" ? "<p class='ne'>Doklad už byl odeslaný klientovi nebo zaplacený.</p>" : "") +
+      "<p class='hint'>Zmizí ze všech zařízení a číslo se uvolní pro další doklad. Nejde to vrátit.</p>",
+    tlacitko:"🗑 Smazat" + (dalsi.length ? " " + faDokladu(vse.length) : "")});
+  if (!ok) return false;
+  /* navazující doklady první — smazání storna vrátí původní faktuře její stav */
+  vse.slice().reverse().forEach(x => { if ((S.faktury || []).some(y => y.id === x.id)) faOdstranit(x); });
   save(); renderFaktury(); if (typeof renderDane === "function") renderDane();
+  faOznameni("✓ Smazáno: " + faDokladu(vse.length));
   return true;
+}
+/* potvrzovací okno přímo v aplikaci — systémové prompt/confirm telefon nebo prohlížeč umí potlačit */
+function faPotvrdit(o){
+  return new Promise(res => {
+    const el = document.createElement("div"); el.className = "fa-dlg";
+    el.innerHTML = "<div class='fa-dlg-in' role='dialog' aria-modal='true'><h3>" + esc(o.titul) + "</h3>" + (o.html || "") +
+      (o.slovo ? "<label class='f'>Pro potvrzení napiš " + esc(o.slovo) + "<input class='fa-dlg-slovo' autocomplete='off' autocapitalize='characters'></label>" : "") +
+      "<div class='btnrow'><button class='b fa-dlg-ne' type='button'>Zrušit</button><button class='b fa-dlg-ano' type='button'" + (o.slovo ? " disabled" : "") + ">" + esc(o.tlacitko || "Potvrdit") + "</button></div></div>";
+    document.body.appendChild(el);
+    const klav = e => { if (e.key === "Escape") { e.stopPropagation(); konec(false); } };
+    const konec = v => { el.remove(); document.removeEventListener("keydown", klav, true); res(v); };
+    document.addEventListener("keydown", klav, true);
+    el.addEventListener("click", e => {
+      if (e.target === el || e.target.closest(".fa-dlg-ne")) { konec(false); return; }
+      const ano = e.target.closest(".fa-dlg-ano"); if (ano && !ano.disabled) konec(true);
+    });
+    const inp = el.querySelector(".fa-dlg-slovo"), ano = el.querySelector(".fa-dlg-ano");
+    if (inp) { inp.addEventListener("input", () => { ano.disabled = inp.value.trim().toUpperCase() !== o.slovo; }); inp.focus(); } else ano.focus();
+  });
+}
+function faOznameni(text){
+  const el = document.createElement("div"); el.className = "fa-toast"; el.textContent = text;
+  document.body.appendChild(el); setTimeout(() => el.remove(), 2600);
 }
 
 /* ARES — veřejný registr ekonomických subjektů, doplní název a sídlo podle IČO */
