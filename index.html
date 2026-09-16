@@ -454,6 +454,15 @@ details.gsec li{margin:3px 0}
 .vk-zpravy select{border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--ground);color:var(--ink);max-width:100%}
 .vk-prnazev{display:flex;gap:4px;align-items:center}
 .vk-bazos{text-decoration:none;font-size:16px}
+.vk3-plocha{display:grid;grid-template-columns:minmax(130px,190px) 1fr;gap:8px 16px;align-items:end;margin-top:10px}
+@media (max-width:560px){.vk3-plocha{grid-template-columns:1fr}}
+.vk-ekon-fakta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.vk-ekon-fakta>div{background:var(--surface2);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column}
+.vk-ekon-fakta span{font-size:12px;color:var(--muted)}.vk-ekon-fakta b{font-size:20px;font-weight:900;font-variant-numeric:tabular-nums}
+.vk-ekon-tab{width:100%}.vk-ekon-tab td,.vk-ekon-tab th{font-size:13.5px;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.vk-ekon-tab td.r,.vk-ekon-tab th.r{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.vk-ekon-tab tr.sum td{font-weight:800}.vk-ekon-tab tr.akt td{background:var(--surface2)}
+.vk-ekon-zaver{margin:0;padding-left:20px;font-size:14px;line-height:1.5}.vk-ekon-zaver li{margin-bottom:6px}
 
 @media (prefers-reduced-motion: no-preference){
   nav button,button.b{transition:background .12s,filter .12s,border-color .12s}
@@ -904,6 +913,11 @@ details.gsec li{margin:3px 0}
     </table></div>
     <p class="hint" id="vkSeznamPrazdno" style="display:none">Zatím žádná uložená zakázka vyklízení.</p>
   </div>
+
+  <details class="gsec" id="vkEkonDet">
+    <summary>💼 Ekonomika firmy — auto, zaměstnanci, daně a páky na marži</summary>
+    <div class="inner" id="vkEkon"></div>
+  </details>
 
   <details class="gsec">
     <summary>Sazby, normy a katalog věcí</summary>
@@ -1517,7 +1531,7 @@ details.gsec li{margin:3px 0}
     <div class="vybg">1. Na místě za 30 vteřin</div>
     <ul style="margin:4px 0 12px;padding-left:20px">
       <li>Vyber <b>co děláme</b>: <b>vyklízení s odvozem</b>, <b>jen vynášku</b> (věci do kontejneru nebo před dům, odvoz si zajistí klient) nebo <b>pár kusů</b> (sedačka, pračka, skříň).</li>
-      <li>Klepni <b>prostor</b> a <b>jak je plno</b> — cena je hned pod tím a na telefonu i v liště dole. U pár kusů místo toho přidáš věci do soupisu.</li>
+      <li>Klepni <b>prostor</b>, doplň <b>plochu v m²</b> (prázdné = typická velikost; dům 300 m² má 2,5× víc věcí než 120 m²), přidej <b>sklep, půdu nebo garáž</b> a klepni <b>jak je plno</b> — cena je hned pod tím a na telefonu i v liště dole. U pár kusů místo toho přidáš věci do soupisu.</li>
       <li>Vedle ceny vidíš výdělek na člověkohodinu a <b>„nejníž“</b> — pod tuhle cenu při smlouvání nechoď, drží 400 Kč na člověkohodinu.</li>
       <li>Práce o víkendu nebo svátku (+25 %) a expres do 48 h (+20 %) zaškrtneš jedním klepnutím. Piano, trezor nebo litinovou vanu v soupisu kalkulačka ocení příplatkem za těžké břemeno podle pater a donášky.</li>
       <li><b>📋 Text pro klienta</b> zkopíruje hotovou odpověď s rozpětím ceny (−10 % / +30 %).</li>
@@ -1541,6 +1555,14 @@ details.gsec li{margin:3px 0}
       <li><b>Jen vynáška:</b> 450 Kč na člověka a hodinu (trh 350–450), cesta posádky, minimum 1 800 Kč. Bez likvidace.</li>
       <li><b>Pár kusů:</b> ze soupisu a pravidla výdělku, minimum 1 500 Kč (trh: pračka nebo lednice 1 200–1 949 Kč, sedačka 1 890–3 679 Kč). Většinu ceny tvoří cesta — nabízej hlavně v okolí jiné zakázky.</li>
       <li>Příplatky a těžká břemena se přičítají nad pravidlo výdělku. <b>Hodinově</b> jde přepnout u zakázky — vyúčtování ze zapsaného času.</li>
+      <li><b>Likvidaci zvlášť podle vážních lístků</b> (zaškrtnutí u zakázky): cena za práci a odvoz + skutečná likvidace s přirážkou 15 %, jako to dělá Vektos nebo Formánek. Hodí se u nejasného rozsahu a těžkého odpadu — riziko váhy nese klient.</li>
+      <li>Výdělek na člověkohodinu je <b>už po autě</b> (nafta, servis, odpis, pojištění — 10 Kč/km), likvidaci, pytlích a režii. Po daních s.r.o. z něj zbude asi 67 %.</li>
+    </ul>
+    <div class="vybg">💼 Ekonomika firmy (dole v záložce)</div>
+    <ul style="margin:4px 0 12px;padding-left:20px">
+      <li>Kolik zbude na majitele po mzdách, fixních nákladech a daních, co udělá zaměstnanec (odvody 33,8 %) nebo brigádník na DPP, a kdy přijde povinnost DPH (2 mil. Kč tržby).</li>
+      <li><b>Páky na marži</b> spočítané na otevřené zakázce: ověřit cenu objemného odpadu u Separexu, třídění, odprodej, rychlejší práce, cena, likvidace podle lístků, třetí člověk.</li>
+      <li><b>Auto:</b> z nafty, spotřeby, servisu, ceny auta a pojištění spočítá skutečný náklad na km a jedním tlačítkem ho přenese do sazeb.</li>
     </ul>
     <div class="vybg">Zakázka, den zakázky, předání</div>
     <ul style="margin:4px 0 12px;padding-left:20px">
@@ -3266,6 +3288,12 @@ function migrate(){
       S.vykKatalog.forEach(it=>{ if(it.bremeno==null){ const x=d.find(y=>y.id===it.id); it.bremeno=x?x.bremeno:0; if(x&&x.bremeno){ it.zvlast=x.zvlast; it.pozn=x.pozn; } } });
     }
     S.vyklizeniV18=true;
+  }
+  /* v19: nafta 47,8 Kč/l (auto 10 Kč/km), objemný odpad Separex 2 490 + poplatek 1 600 + převoz 570; ekonomika firmy */
+  if(!S.vyklizeniV19){
+    if(S.vykSazby){ if(S.vykSazby.vuzKm===8)S.vykSazby.vuzKm=10; if(S.vykSazby.o_objemny===4500)S.vykSazby.o_objemny=4660; }
+    if(!S.vykEkon)S.vykEkon=vykEkonVychozi();
+    S.vyklizeniV19=true;
   }
   /* v13: faktury jako trvalé záznamy, rozšířené výdaje, údaje firmy z výpisu z rejstříku */
   if(!S.fakturyV13){
@@ -9951,7 +9979,7 @@ async function syncToken(){
 function syncOdhlasit(){ SY.access = ""; SY.refresh = ""; SY.vyprsi = 0; SY.stav = "vypnuto"; syncUloz(); renderSync(); }
 
 /* ---------- převod stavu aplikace na záznamy ---------- */
-const SYNC_STAV_KLICE = ["nastaveni","cenik","kontejnery","dopravci","klienti","odberatele","naradi","sablony","milniky","investice","vybava","cenikHistorie","vykSazby","vykKatalog"];
+const SYNC_STAV_KLICE = ["nastaveni","cenik","kontejnery","dopravci","klienti","odberatele","naradi","sablony","milniky","investice","vybava","cenikHistorie","vykSazby","vykKatalog","vykEkon"];
 function syncStavData(){ const o = {}; SYNC_STAV_KLICE.forEach(k => { if (S[k] !== undefined) o[k] = S[k]; }); return o; }
 function syncDoFronty(druh, id, data, cislo, smazano){
   SY.fronta = SY.fronta.filter(z => !(z.druh === druh && z.id === id));
@@ -10264,13 +10292,13 @@ function renderFakturyTab(){ renderFaktury(); renderVydaje(); renderDane(); rend
 
 /* proud odpadu: [id, název, výchozí Kč/t bez DPH, zdroj ceny] */
 function vykProudy(){ return [
-  ["objemny", "Objemný odpad — nábytek, matrace", 4500, "Průzkum: objemný odpad 3 200–4 500 Kč/t vč. poplatku; Separex neověřen → horní hranice"],
-  ["smes", "Směsný odpad — drobnosti v pytlích", 3180, "Separex, směsný komunální pro firmy, výslovně vč. poplatku (1. 4. 2026)"],
+  ["objemny", "Objemný odpad — nábytek, matrace", 4660, "Separex Zábřeh, ceník 1. 4. 2026: 2 490 Kč/t, u objemného není „vč. poplatku“ → + zákonný poplatek 1 600 + převoz na skládku 570 Kč/t. Ověř telefonem 583 550 326"],
+  ["smes", "Směsný odpad — drobnosti v pytlích", 3180, "Separex Zábřeh, směsný komunální 20 03 01 pro firmy, výslovně vč. poplatku (ceník 1. 4. 2026)"],
   ["drevo", "Dřevo bez příměsí — masiv, prkna", 2600, "SAKO Brno, dřevo bez příměsí (1. 1. 2026)"],
   ["nespal", "Nespalitelné — keramika, zrcadla, kámen", 4500, "SAKO Brno, nespalitelný odpad (1. 1. 2026)"],
   ["sklo", "Sklo", 1000, "SAKO Brno, sklo (1. 1. 2026)"],
   ["papir", "Papír a knihy", 1000, "SAKO Brno, papír (1. 1. 2026)"],
-  ["textil", "Textil a oblečení", 3180, "Bez ceníku textilu — počítá se jako směsný; charitativní odběr neověřen"],
+  ["textil", "Textil a oblečení", 3180, "Počítá se jako směsný v pytlích. Samotný textil stojí u Separexu 9 414 Kč/t — nositelné oblečení do sbírky Diakonie Broumov nebo SWAP Zábřeh"],
   ["sut", "Stavební suť", 700, "Separex, stavební suti 17 01 07 (1. 4. 2026)"],
   ["elektro", "Elektrospotřebiče — zpětný odběr", 0, "Zpětný odběr ELEKTROWIN / ASEKOL zdarma i pro podnikatele"],
   ["zpetny", "Pneumatiky, baterie — zpětný odběr", 0, "Zpětný odběr zdarma (GREEN LOGISTICS, ECOBAT)"],
@@ -10334,7 +10362,9 @@ function vykVychoziKatalog(){ return [
 ].map(r => ({id:r[0], nazev:r[1], sk:r[2], mj:r[3], m3:r[4], kg:r[5], min:r[6], nosu:r[7], osob:r[8], proud:r[9], kov:r[10], prodej:r[11], vzdy:r[12], zvlast:r[13], pozn:r[14], bremeno:r[15] || 0})); }
 
 /* rychlý odhad: naložený objem v m³ podle dispozice a zaplnění [prázdnější, běžně zařízené, plné, přeplněné]
-   Výchozí odhad; ověřeno jen proti tržním příkladům (běžný byt 15–18 tis. Kč, menší byt 12 tis., pokoj 6,5 tis.). */
+   při typické ploše (4. hodnota, m²). Zadaná plocha objem úměrně přepočte — dům 300 m² není dům 120 m².
+   Výchozí odhad; ověřeno jen proti tržním příkladům (běžný byt 15–18 tis. Kč, menší byt 12 tis., pokoj 6,5 tis.).
+   Na m² vychází u bytů a domů zhruba 0,13 / 0,27 / 0,40 / 0,58 m³ podle zaplnění. */
 function vykDispozice(){ return [
   ["1kk","Garsonka, 1+kk",[3,7,11,16],25],
   ["11","1+1, 2+kk",[5,10,15,22],40],
@@ -10343,11 +10373,14 @@ function vykDispozice(){ return [
   ["41","4+1 a větší",[11,23,34,48],90],
   ["dum","Rodinný dům",[16,35,52,75],120],
   ["chata","Chata, chalupa",[8,16,24,34],50],
-  ["sklep","Sklep, kóje",[1,2,4,6],0],
-  ["puda","Půda",[2,5,10,16],0],
-  ["garaz","Garáž",[2,5,8,12],0],
+  ["sklep","Sklep, kóje",[1,2,4,6],6],
+  ["puda","Půda",[2,5,10,16],40],
+  ["garaz","Garáž",[2,5,8,12],18],
   ["kancelar","Kancelář, provozovna (místnost)",[2,4,6,9],20]
 ]; }
+/* k bytu nebo domu navíc — počítá se v typické velikosti, stejným zaplněním, s hmotností a tržní sazbou sklepů */
+function vykDoplnky(){ return [["sklep","Sklep"],["puda","Půda"],["garaz","Garáž"]]; }
+function vykSkladovy(id){ return ["sklep", "puda", "garaz"].includes(id); }
 /* druh služby: [id, název, popis] */
 function vykSluzby(){ return [
   ["odvoz","Vyklízení s odvozem","vyneseme, odvezeme, zlikvidujeme"],
@@ -10407,23 +10440,27 @@ function vykRozsah(z, s, katalog){
       else if (it.zvlast) zvlast.push(it.nazev);
       if (it.prodej) prodejne.push({nazev:it.nazev, pocet:n, pozn:it.pozn || ""});
     });
-    if (z.uklid && !polozky.some(p => p.id === "uklid")) { const d = vykNajdi(vykDispozice(), z.prostor); if (d && d[3]) minuty += d[3] * s.minUklidM2; }
-    return {zdroj:"soupis", V, kg, proudy, minuty, noseni, kovKg, zvlast, prodejne, bremena};
+    if (z.uklid && !polozky.some(p => p.id === "uklid")) { const d = vykNajdi(vykDispozice(), z.prostor); minuty += (+z.plocha > 0 ? +z.plocha : d ? d[3] : 0) * s.minUklidM2; }
+    return {zdroj:"soupis", V, kg, proudy, minuty, noseni, kovKg, zvlast, prodejne, bremena, Vsklad:0, plocha:+z.plocha || 0};
   }
   if (vykSluzbaId(z) === "kusy") return null;
   const d = vykNajdi(vykDispozice(), z.prostor), pl = vykPlnosti().findIndex(x => x[0] === z.plnost);
   if (!d || pl < 0) return null;
-  V = d[2][pl] * (s.koefObjem || 1);
-  kg = V * [s.kgPrazdne, s.kgBezne, s.kgPlne, s.kgPreplnene][pl];
-  if (["sklep", "puda", "garaz"].includes(z.prostor)) kg = V * s.kgSklep;
+  /* objem podle plochy: typický objem dispozice × zadaná plocha / typická plocha; k tomu sklep, půda, garáž */
+  const plocha = +z.plocha > 0 ? +z.plocha : d[3], skladovy = vykSkladovy(z.prostor), k = s.koefObjem || 1;
+  const Vhlavni = d[2][pl] * (d[3] > 0 ? plocha / d[3] : 1) * k;
+  const doplnky = skladovy || !Array.isArray(z.doplnky) ? [] : z.doplnky.filter((id, i, a) => vykSkladovy(id) && a.indexOf(id) === i);
+  const Vdopl = doplnky.reduce((a, id) => { const x = vykNajdi(vykDispozice(), id); return a + (x ? x[2][pl] * k : 0); }, 0);
+  V = Vhlavni + Vdopl;
+  kg = Vhlavni * (skladovy ? s.kgSklep : [s.kgPrazdne, s.kgBezne, s.kgPlne, s.kgPreplnene][pl]) + Vdopl * s.kgSklep;
   /* složení odpadu u rychlého odhadu: podíly hmotnosti (výchozí odhad, přepíše soupis věcí) */
   const podil = {objemny:0.55, smes:0.25, elektro:0.08, kov:0.05, textil:0.05, nespal:0.02};
   Object.keys(podil).forEach(k => pridej(k, kg * podil[k]));
   kovKg = kg * podil.kov;
   minuty = V * ((z.rozebirat ? s.minRozebiraniM3 : 0) + s.minBaleniM3);
   noseni = V * s.noseniM3;
-  if (d[3] && z.uklid) minuty += d[3] * s.minUklidM2;
-  return {zdroj:"rychly", V, kg, proudy, minuty, noseni, kovKg, zvlast, prodejne, bremena:0};
+  if (z.uklid) minuty += plocha * s.minUklidM2;
+  return {zdroj:"rychly", V, kg, proudy, minuty, noseni, kovKg, zvlast, prodejne, bremena:0, Vsklad:skladovy ? V : Vdopl, plocha, doplnky};
 }
 
 /* čas: člověkohodiny na místě podle přístupu, cesta a vykládka */
@@ -10506,17 +10543,23 @@ function vykSpocitej(z, s, katalog, platce){
   const r = vykRozsah(z, s, katalog), c = vykCas(z, s, r), n = vykNakladyZakazky(z, s, r, c, platce), pr = vykOdprodej(z, s), pp = vykPriplatky(z, s, r);
   const stav = c.stav;
   const hod = vykHodinoveOdhad(z, s, c, n, platce, provize, r);
+  /* likvidace zvlášť podle vážních lístků (jako Vektos nebo Formánek): cena za práci a odvoz + skutečná likvidace s přirážkou */
+  const likvZvlast = !!z.likvidaceZvlast && sluzba !== "vynaska";
+  const odpadKlient = likvZvlast ? vykNahoru2(n.odpad * (1 + s.prirazka), 10) : 0;
   /* 1) trh */
   const sazbaTrh = sluzba === "odvoz" && stav[4] ? s[stav[4]] : 0;
-  const trh = sluzba === "odvoz" ? r.V * sazbaTrh : sluzba === "vynaska" ? hod.zakladNet : 0;
+  /* sklep, půda a garáž navíc k bytu mají vlastní tržní sazbu */
+  const trhPlny = sluzba === "odvoz" ? (sazbaTrh ? (r.V - r.Vsklad) * sazbaTrh + r.Vsklad * (vykSkladovy(z.prostor) ? sazbaTrh : s.trhSklep) : 0) : sluzba === "vynaska" ? hod.zakladNet : 0;
+  /* tržní cena na klíč obsahuje likvidaci — když se likvidace účtuje zvlášť, cena za práci je trh bez nákladu na likvidaci */
+  const trh = likvZvlast ? Math.max(0, trhPlny - n.odpad) : trhPlny;
   const minimum = sluzba === "vynaska" ? s.minVynaska : sluzba === "kusy" ? s.minKusy : s.minZakazka;
   /* 2) cena pro výdělek (před slevou; protiúčet se odečítá až z hotové ceny) */
   const cilHod = s.cenaMinHod * stav[3];
-  const proVydelek = (n.celkem - n.kovy + cilHod * c.os) / (1 - provize);
+  const proVydelek = (n.celkem - (likvZvlast ? n.odpad : 0) - n.kovy + cilHod * c.os) / (1 - provize);
   const cenaZaklad = vykNahoru2(Math.max(trh, proVydelek, minimum), 100);
   const rozhodlo = cenaZaklad === vykNahoru2(minimum, 100) && minimum >= Math.max(trh, proVydelek) ? "minimum" : trh >= proVydelek ? "trh" : "vydelek";
   const priplatekKc = vykNahoru2(cenaZaklad * pp.pct, 100), bremenoKc = vykNahoru2(pp.bremenoKc, 100);
-  const cena0 = cenaZaklad + priplatekKc + bremenoKc;
+  const cena0 = cenaZaklad + priplatekKc + bremenoKc + odpadKlient;
   const pu = pr.protiucet;
   const poProtiuctu = Math.max(0, cena0 - pu);
   const slevaKc = vykR2(poProtiuctu * sleva);
@@ -10540,9 +10583,10 @@ function vykSpocitej(z, s, katalog, platce){
   if (!stav[4] && sluzba === "odvoz") varovani.push("Kontaminovaný prostor: cena je z času a výdělku × " + String(stav[3]).replace(".", ",") + " (poměr sazeb ztíženého prostředí vyklidto.cz); ochranné pomůcky a úklid domluv předem.");
   if (pu > 0 && (z.prodej || []).some(p => p.protiucet && p.jistota !== "jista")) varovani.push("Protiúčet obsahuje věci s nejistou prodejností — riziko nese firma.");
   if (sluzba !== "vynaska" && c.jizdy >= 3) varovani.push(c.jizdy + " jízd dodávkou — porovnej s kontejnerem (Separex: přistavení a odvoz 1 085 Kč do 4 km, 1 930 Kč 8–12 km, odpad zvlášť).");
+  if (likvZvlast) varovani.push("Likvidace podle vážních lístků: v ceně je odhad " + Math.round(odpadKlient) + " Kč (náklad + " + Math.round(s.prirazka * 100) + " % za zajištění), klient zaplatí podle skutečnosti.");
   if (+z.km > 60) varovani.push("Vzdálená zakázka — ověř, jestli se nevyplatí likvidace u zařízení v místě.");
   return {ok:true, sluzba, rozsah:r, cas:c, naklady:n, odprodej:pr, priplatky:pp, stav, sazbaTrh, trh:vykR2(trh), minimum, proVydelek:vykR2(proVydelek), cilHod,
-    cenaZaklad, priplatekKc, bremenoKc, cena0, rozhodlo,
+    cenaZaklad, priplatekKc, bremenoKc, likvZvlast, odpadKlient, cena0, rozhodlo,
     protiucet:pu, poProtiuctu, slevaKc, net, dph, gross, provizeKc, vydelek, naH,
     vydelekSProdejem, naHsProdejem:c.os + pr.casH > 0 ? vydelekSProdejem / (c.os + pr.casH) : 0,
     nejnizsi:{tvrde:nejniz(s.tvrdeMinHod, false), tvrdeSProdejem:nejniz(s.tvrdeMinHod, true), min:nejniz(s.cenaMinHod, false)},
@@ -10622,9 +10666,12 @@ function vykVyuctuj(z, s, katalog, platce, nyni){
     if (pp && pp.pct > 0 && pol.length && pol[0].mj === "h") pol.push({popis:"Příplatek " + [z.vikend ? "víkend nebo svátek" : "", z.expres ? "expres" : ""].filter(Boolean).join(" a ") + " " + Math.round(pp.pct * 100) + " %", mnozstvi:1, mj:"kpl", cenaMJ:vykR2(pol[0].mnozstvi * pol[0].cenaMJ * pp.pct)});
     if (pp && pp.bremena) pol.push({popis:"Těžká břemena (piano, trezor, litinová vana)", mnozstvi:pp.bremena, mj:"ks", cenaMJ:pp.bremenoNaKs});
   } else {
-    const cena = z.dohoda && z.dohoda.cena0 ? z.dohoda.cena0 : (odhad.ok ? odhad.cena0 : 0);
-    const popis = sluzba === "vynaska" ? "Vynáška věcí dle nabídky" : sluzba === "kusy" ? "Odvoz a likvidace věcí dle nabídky" : "Vyklizení na klíč dle nabídky";
-    pol.push({popis:popis + (z.cisloNab ? " č. " + z.cisloNab : "") + (sluzba === "vynaska" ? " — rozebrání a vynesení" : " — práce, odvoz a likvidace"), mnozstvi:1, mj:"kpl", cenaMJ:cena});
+    const likvZvlast = !!z.likvidaceZvlast && sluzba !== "vynaska";
+    const odhadOdpad = z.dohoda && z.dohoda.odpadKlient != null ? z.dohoda.odpadKlient : (odhad.ok ? odhad.odpadKlient : 0);
+    const cena = (z.dohoda && z.dohoda.cena0 ? z.dohoda.cena0 : (odhad.ok ? odhad.cena0 : 0)) - (likvZvlast ? odhadOdpad : 0);
+    const popis = sluzba === "vynaska" ? "Vynáška věcí dle nabídky" : sluzba === "kusy" ? (likvZvlast ? "Odvoz věcí dle nabídky" : "Odvoz a likvidace věcí dle nabídky") : (likvZvlast ? "Vyklizení dle nabídky" : "Vyklizení na klíč dle nabídky");
+    pol.push({popis:popis + (z.cisloNab ? " č. " + z.cisloNab : "") + (sluzba === "vynaska" ? " — rozebrání a vynesení" : likvZvlast ? " — práce a odvoz" : " — práce, odvoz a likvidace"), mnozstvi:1, mj:"kpl", cenaMJ:cena});
+    if (likvZvlast) pol.push({popis:"Likvidace odpadu " + (listky.length ? "podle vážních lístků" : "(odhad dle nabídky)"), mnozstvi:1, mj:"kpl", cenaMJ:listky.length ? vykR2(odpadKc * (1 + s.prirazka)) : odhadOdpad});
     const V = z.dohoda && z.dohoda.V ? z.dohoda.V : (odhad.ok ? odhad.rozsah.V : 0);
     if (+k.m3 > V && k.douctovat && V > 0) {
       const sazba = vykNahoru2(cena / V, 10);
@@ -10679,7 +10726,8 @@ function vykZTextu(text, katalog){
     else if (k === "plnost") { const p = vykPlnosti().find(x => x[0] === bez(h)); if (p) z.plnost = p[0]; else varovani.push("neznámé zaplnění „" + h + "“"); }
     else if (k === "stav") { const p = vykStavy().find(x => x[0] === bez(h)); if (p) z.stav = p[0]; else varovani.push("neznámý stav „" + h + "“"); }
     else if (k === "vytah") z.vytah = /velk/i.test(h) ? "velky" : /mal/i.test(h) ? "maly" : ano(h) ? "velky" : "ne";
-    else if (["patro","vzdalenost","km","lide","kovy"].includes(k)) z[k === "kovy" ? "kovyKg" : k] = cislo(h);
+    else if (["patro","vzdalenost","km","lide","kovy","plocha"].includes(k)) z[k === "kovy" ? "kovyKg" : k] = cislo(h);
+    else if (k === "doplnky") z.doplnky = bez(h).split(/[\s,;+]+/).filter(x => vykSkladovy(x));
     else if (["rozebirat","uklid","vikend","expres"].includes(k)) z[k] = ano(h);
     else if (k === "polozka") {
       const it = katalog.find(x => x.id === c[0]);
@@ -10711,6 +10759,8 @@ function vykDoTextu(z, katalog){
   L.push("sluzba: " + vykSluzbaId(z));
   if (z.prostor) L.push("prostor: " + z.prostor);
   if (z.plnost) L.push("plnost: " + z.plnost);
+  if (+z.plocha > 0) L.push("plocha: " + z.plocha);
+  if (Array.isArray(z.doplnky) && z.doplnky.length) L.push("doplnky: " + z.doplnky.join(", "));
   L.push("stav: " + (z.stav || "bezne"), "patro: " + (+z.patro || 0), "vytah: " + (z.vytah || "ne"), "vzdalenost: " + (+z.vzdalenost || 0), "km: " + (+z.km || 0),
     "lide: " + (+z.lide || 2), "rozebirat: " + ano(z.rozebirat), "uklid: " + ano(z.uklid), "vikend: " + ano(z.vikend), "expres: " + ano(z.expres));
   if (+z.kovyKg > 0) L.push("kovy: " + z.kovyKg);
@@ -10723,13 +10773,44 @@ function vykDoTextu(z, katalog){
   return L.join("\n");
 }
 
+/* ================= VYKLÍZENÍ — ekonomika firmy (čisté funkce) =================
+   Výdělek na člověkohodinu ze zakázek je už po nákladech na auto, likvidaci, materiál a režii zakázky.
+   Tady se z něj dopočítá, co zbude firmě a majitelům: mzdy zaměstnanců s odvody, fixní náklady,
+   daň z příjmů s.r.o. a srážková daň z dividendy. Zdroje: odvody zaměstnavatele 33,8 % (2026),
+   DPPO 21 %, dividenda 15 %, DPP bez odvodů do 11 999 Kč/měsíc, nafta 47,79 Kč/l (9. 9. 2026). */
+
+function vykEkonVychozi(){
+  return {vydelekH:0, hodinNaCloveka:100, majitelu:2, zamestnancu:0, hrubaMzda:32000, odvody:33.8, fixMesic:12000, dppo:21, dividenda:15,
+    spotreba:11, nafta:47.8, servisKm:2.5, cenaAuta:450000, zustatek:80000, kmZivot:180000, pojisteniRok:28000, zakazekRok:100};
+}
+/* auto: proměnný náklad na km a fixní náklad na zakázku */
+function vykEkonAuto(e){
+  const palivo = e.spotreba / 100 * e.nafta, odpis = e.kmZivot > 0 ? Math.max(0, e.cenaAuta - e.zustatek) / e.kmZivot : 0;
+  return {palivo:vykR2(palivo), servis:vykR2(+e.servisKm || 0), odpis:vykR2(odpis), naKm:vykR2(palivo + (+e.servisKm || 0) + odpis),
+    naZakazku:e.zakazekRok > 0 ? Math.round(e.pojisteniRok / e.zakazekRok) : 0};
+}
+/* měsíc firmy při daném vytížení; osHodinNaZakazku = kolik člověkohodin má průměrná zakázka */
+function vykEkonMesic(e, s, vydelekH, trzbaH, osHodinNaZakazku, zamestnancu){
+  const zam = zamestnancu != null ? zamestnancu : +e.zamestnancu || 0, lidi = (+e.majitelu || 0) + zam;
+  const osH = lidi * e.hodinNaCloveka, prispevek = osH * vydelekH;
+  const zakazek = osHodinNaZakazku > 0 ? osH / osHodinNaZakazku : 0;
+  const fixNekryte = Math.max(0, e.fixMesic - zakazek * (s.rezie || 0));
+  const nakladZam = e.hrubaMzda * (1 + e.odvody / 100), mzdy = zam * nakladZam;
+  const zisk = prispevek - mzdy - fixNekryte, dan = Math.max(0, zisk) * e.dppo / 100, cisty = zisk - dan;
+  const vyplata = Math.max(0, cisty) * (1 - e.dividenda / 100);
+  const naZamHod = e.hodinNaCloveka > 0 ? nakladZam / e.hodinNaCloveka : 0;
+  return {lidi, zam, osH, prispevek, zakazek, fixNekryte, nakladZam, mzdy, zisk, dan, cisty, vyplata,
+    naMajitele:e.majitelu > 0 ? vyplata / e.majitelu : vyplata, naZamHod, firmaNaZamHod:vydelekH - naZamHod,
+    obratRok:osH * trzbaH * 12, poDaniH:vydelekH * (1 - e.dppo / 100) * (1 - e.dividenda / 100)};
+}
+
 /* ================= VYKLÍZENÍ A VYNÁŠKA — sekce v3 =================
    Postaveno jako demoliční kalkulačka: rychlý odhad na místě (dispozice × zaplnění),
    nacenění z fotek přes Claude (balík + blok VYK1), soupis věcí z katalogu s normami,
    odprodej a výkup, pevná cena (nebo hodinově) hlídaná pravidlem o výdělku na člověkohodinu,
    nabídka, výkaz a faktury. Výpočet: vyk-model.js, katalog: vyk-katalog.js. */
 const VYK_DATA = {"verze":"Vyklizeni_Morava_cenik_kalkulacka.xlsx · ceníky zkontrolovány 9. 9. 2026 · doplněno z průzkumu 15. 9. 2026","odpady":[{"id":"W01","zdroj":16,"nazev":"Separex - objemný, firmy","kod":"20 03 07","bez_dph":2490,"s_dph":3012.9,"sluzba_t":2490,"poplatek_t":0,"pouziti":"Nepoužít automaticky","pozn":"Samostatné poplatky 1 600 Kč/t a 570 Kč/t mají nejasnou návaznost. Celkovou sazbu potvrdit.","automaticky":false},{"id":"W02","zdroj":16,"nazev":"Separex - směsný komunální, firmy","kod":"20 03 01","bez_dph":3180,"s_dph":3847.8,"sluzba_t":3180,"poplatek_t":0,"pouziti":"Po potvrzení příjmu","pozn":"Výslovně včetně poplatku; nelze tím přeznačit objemný odpad.","automaticky":true},{"id":"W03","zdroj":16,"nazev":"Separex - stavební dřevo","kod":"17 02 01","bez_dph":685,"s_dph":828.85,"sluzba_t":685,"poplatek_t":0,"pouziti":"Po potvrzení příjmu","pozn":"Jen skutečný stavební odpad tohoto kódu. Nábytek neklasifikovat podle nejnižší ceny.","automaticky":true},{"id":"W04","zdroj":16,"nazev":"Separex - dřevo, obce a občané","kod":"20 01 38","bez_dph":400,"s_dph":484,"sluzba_t":400,"poplatek_t":0,"pouziti":"Nepoužít automaticky","pozn":"V řádku nejsou firmy; pro firemní výpočet nepoužít.","automaticky":false},{"id":"W05","zdroj":16,"nazev":"Separex - stavební suti","kod":"17 01 07","bez_dph":700,"s_dph":847,"sluzba_t":700,"poplatek_t":0,"pouziti":"Po potvrzení příjmu","pozn":"Suť z demolic se vede odděleně od nábytku.","automaticky":true},{"id":"W06","zdroj":19,"nazev":"SAKO - spalitelný odpad","kod":"dle příjmu","bez_dph":3200,"s_dph":3872,"sluzba_t":3200,"poplatek_t":0,"pouziti":"Po potvrzení příjmu","pozn":"Cena včetně DPH vypočtena z publikované sazby bez DPH.","automaticky":true},{"id":"W07","zdroj":19,"nazev":"SAKO - nespalitelný odpad","kod":"dle příjmu","bez_dph":4500,"s_dph":5445,"sluzba_t":4500,"poplatek_t":0,"pouziti":"Po potvrzení příjmu","pozn":"Cena včetně DPH vypočtena z publikované sazby bez DPH.","automaticky":true},{"id":"W08","zdroj":19,"nazev":"SAKO - dřevo bez příměsí","kod":"dle příjmu","bez_dph":2600,"s_dph":3146,"sluzba_t":2600,"poplatek_t":0,"pouziti":"Po potvrzení příjmu","pozn":"Včetně DPH dopočet; skutečné zařazení potvrzuje zařízení.","automaticky":true},{"id":"W09","zdroj":20,"nazev":"EKOLTES - objemný, firmy","kod":"20 03 07","bez_dph":5500,"s_dph":6655,"sluzba_t":5500,"poplatek_t":0,"pouziti":"Po potvrzení příjmu","pozn":"Zdroj uvádí 5,50 Kč/kg bez DPH; přepočet na tunu a DPH.","automaticky":true},{"id":"W10","zdroj":20,"nazev":"EKOLTES - směsný komunální, firmy","kod":"20 03 01","bez_dph":5500,"s_dph":6655,"sluzba_t":5500,"poplatek_t":0,"pouziti":"Po potvrzení příjmu","pozn":"Zdroj uvádí 5,50 Kč/kg bez DPH; od 1. 9. 2026.","automaticky":true},{"id":"W11","zdroj":20,"nazev":"EKOLTES - dřevo, firmy","kod":"20 01 38","bez_dph":2700,"s_dph":3267,"sluzba_t":2700,"poplatek_t":0,"pouziti":"Po potvrzení příjmu","pozn":"Zdroj uvádí 2,70 Kč/kg bez DPH.","automaticky":true},{"id":"W12","zdroj":22,"nazev":"TS Zlín - sběrný dvůr, objemný","kod":"20 03 07","bez_dph":5600,"s_dph":6780,"sluzba_t":5600,"poplatek_t":0,"pouziti":"Po potvrzení příjmu","pozn":"Zdroj 5,60 / 6,78 Kč/kg. Publikovaná sazba včetně DPH je zaokrouhlená na kg.","automaticky":true},{"id":"W13","zdroj":22,"nazev":"TS Zlín - sběrný dvůr, dřevo","kod":"20 01 38","bez_dph":5100,"s_dph":6170,"sluzba_t":5100,"poplatek_t":0,"pouziti":"Po potvrzení příjmu","pozn":"Zdroj 5,10 / 6,17 Kč/kg. Publikovaná sazba včetně DPH je zaokrouhlená na kg.","automaticky":true},{"id":"W14","zdroj":23,"nazev":"TS Zlín - multifunkční plocha, objemný","kod":"20 03 07","bez_dph":3490,"s_dph":4222.9,"sluzba_t":3490,"poplatek_t":0,"pouziti":"Po potvrzení příjmu","pozn":"","automaticky":true},{"id":"W15","zdroj":23,"nazev":"TS Zlín - multifunkční plocha, dřevo","kod":"20 01 38","bez_dph":2735,"s_dph":3309.35,"sluzba_t":2735,"poplatek_t":0,"pouziti":"Po potvrzení příjmu","pozn":"","automaticky":true},{"id":"W16","zdroj":24,"nazev":"TS Zlín - skládka, objemný","kod":"20 03 07","bez_dph":3490,"s_dph":3886.9,"sluzba_t":1890,"poplatek_t":1600,"pouziti":"Po potvrzení příjmu","pozn":"Celková částka bez odpočitatelné DPH = 1 890 + 1 600. DPH pouze na službě dle publikované tabulky.","automaticky":true},{"id":"W17","zdroj":19,"nazev":"SAKO - kovy","kod":"dle příjmu","bez_dph":0,"s_dph":0,"sluzba_t":0,"poplatek_t":0,"pouziti":"Po potvrzení příjmu","pozn":"Zdarma; lepší je výkup v kovošrotu","automaticky":true},{"id":"W18","zdroj":19,"nazev":"SAKO - papír","kod":"dle příjmu","bez_dph":1000,"s_dph":1210,"sluzba_t":1000,"poplatek_t":0,"pouziti":"Po potvrzení příjmu","pozn":"Třídění snižuje drahý objemný odpad","automaticky":true},{"id":"W19","zdroj":19,"nazev":"SAKO - plast","kod":"dle příjmu","bez_dph":1000,"s_dph":1210,"sluzba_t":1000,"poplatek_t":0,"pouziti":"Po potvrzení příjmu","pozn":"","automaticky":true},{"id":"W20","zdroj":19,"nazev":"SAKO - stavební suť čistá","kod":"dle příjmu","bez_dph":1300,"s_dph":1573,"sluzba_t":1300,"poplatek_t":0,"pouziti":"Po potvrzení příjmu","pozn":"","automaticky":true},{"id":"W21","zdroj":19,"nazev":"SAKO - stavební suť s příměsí","kod":"dle příjmu","bez_dph":4400,"s_dph":5324,"sluzba_t":4400,"poplatek_t":0,"pouziti":"Po potvrzení příjmu","pozn":"","automaticky":true},{"id":"W22","zdroj":19,"nazev":"SAKO - sádrokarton","kod":"dle příjmu","bez_dph":6100,"s_dph":7381,"sluzba_t":6100,"poplatek_t":0,"pouziti":"Po potvrzení příjmu","pozn":"","automaticky":true},{"id":"W23","zdroj":19,"nazev":"Elektro - zpětný odběr (ELEKTROWIN, ASEKOL)","kod":"zpětný odběr","bez_dph":0,"s_dph":0,"sluzba_t":0,"poplatek_t":0,"pouziti":"Po potvrzení příjmu","pozn":"Zdarma i pro podnikatele; pneu přes GREEN LOGISTICS","automaticky":true}],"trh":[{"id":"M001","zdroj":1,"firma":"Dopareal","kat":"komplet","polozka":"Byty, domy, suché prostory","od":1019,"do":1119,"jednotka":"m3","dph":"neuvedeno","druh":"sazba","zahrnuto":"Práce, doprava, likvidace","omezeni":"Skutečně naložený objem; podmínky přístupu cenu mění.","ucinnost":"Neuvedena"},{"id":"M002","zdroj":1,"firma":"Dopareal","kat":"komplet","polozka":"Sklepy, půdy, venkovní prostory","od":1115,"do":1490,"jednotka":"m3","dph":"neuvedeno","druh":"sazba","zahrnuto":"Práce, doprava, likvidace","omezeni":"Zdroj spojuje běžné a kontaminované odpady; nejde o sazbu pro každý sklep.","ucinnost":"Neuvedena"},{"id":"M003","zdroj":1,"firma":"Dopareal","kat":"kus","polozka":"Pračka / lednice / skříň","od":1379,"do":1949,"jednotka":"zakazka","dph":"neuvedeno","druh":"od_do","zahrnuto":"Vystěhování, odvoz, likvidace; práce a doprava zahrnuty","omezeni":"","ucinnost":"Neuvedena"},{"id":"M004","zdroj":1,"firma":"Dopareal","kat":"kus","polozka":"Sedací souprava / obývací stěna","od":2299,"do":3679,"jednotka":"zakazka","dph":"neuvedeno","druh":"od_do","zahrnuto":"Vystěhování, odvoz, likvidace","omezeni":"","ucinnost":"Neuvedena"},{"id":"M005","zdroj":1,"firma":"Dopareal","kat":"komplet","polozka":"Plné vozidlo 12 m3","od":12499,"do":null,"jednotka":"vozidlo","dph":"neuvedeno","druh":"od","zahrnuto":"Práce, doprava, likvidace, obaly","omezeni":"Max. nosnost 1,3 t; plná hmotnost se účtuje jako plné auto.","ucinnost":"Neuvedena"},{"id":"M006","zdroj":1,"firma":"Dopareal","kat":"komplet","polozka":"Plné vozidlo 18 m3","od":18699,"do":null,"jednotka":"vozidlo","dph":"neuvedeno","druh":"od","zahrnuto":"Práce, doprava, likvidace, obaly","omezeni":"Max. nosnost 1,3 t; hmotnost může vyčerpat kapacitu dříve než objem.","ucinnost":"Neuvedena"},{"id":"M007","zdroj":2,"firma":"Vyklízení Global","kat":"komplet","polozka":"Byty, domy, suché prostory","od":790,"do":990,"jednotka":"m3","dph":"neuvedeno","druh":"sazba","zahrnuto":"Práce, doprava, likvidace","omezeni":"","ucinnost":"Neuvedena"},{"id":"M008","zdroj":2,"firma":"Vyklízení Global","kat":"komplet","polozka":"Sklepy, půdy, venkovní prostory","od":990,"do":1290,"jednotka":"m3","dph":"neuvedeno","druh":"sazba","zahrnuto":"Práce, doprava, likvidace","omezeni":"V sekci i kontaminované prostory; neplatí univerzálně.","ucinnost":"Neuvedena"},{"id":"M009","zdroj":2,"firma":"Vyklízení Global","kat":"kus","polozka":"Pračka / lednice / skříň","od":1200,"do":1700,"jednotka":"zakazka","dph":"neuvedeno","druh":"od_do","zahrnuto":"Vystěhování, odvoz, likvidace","omezeni":"","ucinnost":"Neuvedena"},{"id":"M010","zdroj":2,"firma":"Vyklízení Global","kat":"kus","polozka":"Sedací souprava / obývací stěna","od":1890,"do":2790,"jednotka":"zakazka","dph":"neuvedeno","druh":"od_do","zahrnuto":"Vystěhování, odvoz, likvidace","omezeni":"","ucinnost":"Neuvedena"},{"id":"M011","zdroj":2,"firma":"Vyklízení Global","kat":"komplet","polozka":"Plné vozidlo 12 m3","od":9530,"do":null,"jednotka":"vozidlo","dph":"neuvedeno","druh":"sazba","zahrnuto":"Práce, doprava, likvidace, obaly","omezeni":"","ucinnost":"Neuvedena"},{"id":"M012","zdroj":3,"firma":"Vyklízení bytů Ostrava","kat":"komplet","polozka":"Plné vozidlo 12 m3","od":9480,"do":null,"jednotka":"vozidlo","dph":"neuvedeno","druh":"od","zahrnuto":"Práce, doprava, likvidace, obaly","omezeni":"Web s kontaktem Global, odlišná cena od zdroje 2.","ucinnost":"Neuvedena"},{"id":"M013","zdroj":3,"firma":"Vyklízení bytů Ostrava","kat":"komplet","polozka":"Plné vozidlo 14 m3","od":10990,"do":null,"jednotka":"vozidlo","dph":"neuvedeno","druh":"od","zahrnuto":"Práce, doprava, likvidace, obaly","omezeni":"","ucinnost":"Neuvedena"},{"id":"M014","zdroj":4,"firma":"Petr Matušek / Vyklízíme Zlín","kat":"posadka","polozka":"Auto a 2 pracovníci","od":950,"do":null,"jednotka":"hod","dph":"neplatce","druh":"sazba","zahrnuto":"Auto, dva pracovníci, km po Zlíně","omezeni":"Cena příjmu odpadu není výslovně zahrnuta.","ucinnost":"Neuvedena"},{"id":"M015","zdroj":4,"firma":"Petr Matušek / Vyklízíme Zlín","kat":"pracovnik","polozka":"Další pracovník","od":350,"do":null,"jednotka":"osobohod","dph":"neplatce","druh":"sazba","zahrnuto":"Práce další osoby","omezeni":"","ucinnost":"Neuvedena"},{"id":"M016","zdroj":4,"firma":"Petr Matušek / Vyklízíme Zlín","kat":"doprava","polozka":"Kilometry mimo Zlín","od":19,"do":null,"jednotka":"km","dph":"neplatce","druh":"sazba","zahrnuto":"","omezeni":"","ucinnost":"Neuvedena"},{"id":"M017","zdroj":4,"firma":"Petr Matušek / Vyklízíme Zlín","kat":"minimum","polozka":"Minimální zakázka","od":1000,"do":null,"jednotka":"zakazka","dph":"neplatce","druh":"minimum","zahrnuto":"","omezeni":"","ucinnost":"Neuvedena"},{"id":"M018","zdroj":5,"firma":"Stěhování Čechmánek","kat":"posadka","polozka":"Vůz 21-24 m3 a 2 pracovníci","od":1100,"do":null,"jednotka":"hod","dph":"bez_DPH","druh":"sazba","zahrnuto":"Sestava z ceníku stěhování","omezeni":"Likvidace není zahrnuta.","ucinnost":"Neuvedena"},{"id":"M019","zdroj":5,"firma":"Stěhování Čechmánek","kat":"pracovnik","polozka":"Stěhování v objektu","od":400,"do":null,"jednotka":"osobohod","dph":"bez_DPH","druh":"sazba","zahrnuto":"Práce v objektu","omezeni":"Dovoz a odvoz pracovníků 19 Kč/km.","ucinnost":"Neuvedena"},{"id":"M020","zdroj":5,"firma":"Stěhování Čechmánek","kat":"doprava","polozka":"Přepravní čas pracovníka mimo Zlín","od":250,"do":null,"jednotka":"osobohod","dph":"bez_DPH","druh":"sazba","zahrnuto":"","omezeni":"","ucinnost":"Neuvedena"},{"id":"M021","zdroj":5,"firma":"Stěhování Čechmánek","kat":"minimum","polozka":"Minimální zakázka","od":1300,"do":null,"jednotka":"zakazka","dph":"bez_DPH","druh":"minimum","zahrnuto":"","omezeni":"","ucinnost":"Neuvedena"},{"id":"M022","zdroj":6,"firma":"KAREL BOČÁNEK s.r.o.","kat":"posadka","polozka":"Auto a 2 pracovníci","od":1500,"do":null,"jednotka":"hod","dph":"neuvedeno","druh":"sazba","zahrnuto":"Auto, dvě osoby, doprava po Olomouci","omezeni":"Firma je plátce; režim zveřejněné ceny neupřesněn.","ucinnost":"Neuvedena"},{"id":"M023","zdroj":6,"firma":"KAREL BOČÁNEK s.r.o.","kat":"doprava","polozka":"Doprava mimo Olomouc","od":20,"do":null,"jednotka":"km","dph":"neuvedeno","druh":"sazba","zahrnuto":"","omezeni":"","ucinnost":"Neuvedena"},{"id":"M024","zdroj":7,"firma":"Stěhujeme Hned","kat":"pracovnik","polozka":"Stěhovák","od":350,"do":null,"jednotka":"osobohod","dph":"bez_DPH","druh":"sazba","zahrnuto":"","omezeni":"","ucinnost":"Neuvedena"},{"id":"M025","zdroj":7,"firma":"Stěhujeme Hned","kat":"vozidlo","polozka":"Fiat Ducato 18 m3","od":300,"do":null,"jednotka":"hod","dph":"bez_DPH","druh":"sazba","zahrnuto":"","omezeni":"Bez osob; km a přistavení zvlášť.","ucinnost":"Neuvedena"},{"id":"M026","zdroj":7,"firma":"Stěhujeme Hned","kat":"vozidlo","polozka":"Renault Master 24 m3","od":350,"do":null,"jednotka":"hod","dph":"bez_DPH","druh":"sazba","zahrnuto":"","omezeni":"","ucinnost":"Neuvedena"},{"id":"M027","zdroj":7,"firma":"Stěhujeme Hned","kat":"doprava","polozka":"Fiat Ducato / Renault Master","od":24,"do":null,"jednotka":"km","dph":"bez_DPH","druh":"sazba","zahrnuto":"","omezeni":"","ucinnost":"Neuvedena"},{"id":"M028","zdroj":7,"firma":"Stěhujeme Hned","kat":"pristaveni","polozka":"Vůz s posádkou","od":1000,"do":null,"jednotka":"zakazka","dph":"bez_DPH","druh":"sazba","zahrnuto":"","omezeni":"","ucinnost":"Neuvedena"},{"id":"M029","zdroj":7,"firma":"Stěhujeme Hned","kat":"bremeno","polozka":"Předmět 100-199 kg","od":1600,"do":null,"jednotka":"kus","dph":"bez_DPH","druh":"sazba","zahrnuto":"Základní sazba za těžký předmět","omezeni":"Dalších 250 Kč za patro bez výtahu nebo 20 m donášky; běžná doprava samostatně.","ucinnost":"Neuvedena"},{"id":"M030","zdroj":7,"firma":"Stěhujeme Hned","kat":"bremeno","polozka":"Příplatek 100-199 kg","od":250,"do":null,"jednotka":"patro_nebo_20m","dph":"bez_DPH","druh":"sazba","zahrnuto":"","omezeni":"","ucinnost":"Neuvedena"},{"id":"M031","zdroj":8,"firma":"JetStar moving s.r.o.","kat":"posadka","polozka":"Dva pracovníci a vůz do 15 m3","od":1100,"do":null,"jednotka":"hod","dph":"neuvedeno","druh":"sazba","zahrnuto":"Práce a vůz, km po Brně","omezeni":"První celá hodina, dále 15 min; odpad neurčen.","ucinnost":"Neuvedena"},{"id":"M032","zdroj":8,"firma":"JetStar moving s.r.o.","kat":"pracovnik","polozka":"Každý další pracovník","od":390,"do":null,"jednotka":"osobohod","dph":"neuvedeno","druh":"sazba","zahrnuto":"","omezeni":"","ucinnost":"Neuvedena"},{"id":"M033","zdroj":8,"firma":"JetStar moving s.r.o.","kat":"pracovnik","polozka":"Montáž nábytku","od":375,"do":null,"jednotka":"osobohod","dph":"neuvedeno","druh":"sazba","zahrnuto":"","omezeni":"","ucinnost":"Neuvedena"},{"id":"M034","zdroj":8,"firma":"JetStar moving s.r.o.","kat":"minimum","polozka":"Minimální zakázka","od":800,"do":null,"jednotka":"zakazka","dph":"neuvedeno","druh":"minimum","zahrnuto":"","omezeni":"","ucinnost":"Neuvedena"},{"id":"M035","zdroj":9,"firma":"Vyklízení bytů Brno","kat":"pracovnik","polozka":"Pracovník vyklízení","od":250,"do":null,"jednotka":"osobohod","dph":"neuvedeno","druh":"sazba","zahrnuto":"","omezeni":"Doprava a likvidace odděleně.","ucinnost":"Neuvedena"},{"id":"M036","zdroj":9,"firma":"Vyklízení bytů Brno","kat":"odpad_prodej","polozka":"Běžný komunální odpad","od":2.5,"do":null,"jednotka":"kg","dph":"neuvedeno","druh":"sazba","zahrnuto":"Položka likvidace ve firemním prodejním ceníku","omezeni":"Není to ceník koncového zařízení.","ucinnost":"Neuvedena"},{"id":"M037","zdroj":9,"firma":"Vyklízení bytů Brno","kat":"priklad","polozka":"Jeden pokoj","od":6500,"do":null,"jednotka":"zakazka","dph":"neuvedeno","druh":"priklad","zahrnuto":"Včetně likvidace","omezeni":"Uvedené vozidlo 20 m3 není doložené množství odpadu.","ucinnost":"Neuvedena"},{"id":"M038","zdroj":9,"firma":"Vyklízení bytů Brno","kat":"priklad","polozka":"Menší byt","od":12000,"do":null,"jednotka":"zakazka","dph":"neuvedeno","druh":"priklad","zahrnuto":"Včetně likvidace","omezeni":"Vozidlo 23 m3 není objem vyklizeného bytu.","ucinnost":"Neuvedena"},{"id":"M039","zdroj":9,"firma":"Vyklízení bytů Brno","kat":"priklad","polozka":"Rodinný dům","od":20000,"do":null,"jednotka":"zakazka","dph":"neuvedeno","druh":"priklad","zahrnuto":"Včetně likvidace","omezeni":"","ucinnost":"Neuvedena"},{"id":"M040","zdroj":10,"firma":"STĚHOVACÍ SLUŽBY BRNO s.r.o.","kat":"posadka","polozka":"Pracovník a vozidlo","od":450,"do":null,"jednotka":"hod","dph":"neuvedeno","druh":"od","zahrnuto":"","omezeni":"Doprava od 15 Kč/km, likvidace individuálně; nelze vydávat za komplet pro dva lidi.","ucinnost":"Neuvedena"},{"id":"M041","zdroj":10,"firma":"STĚHOVACÍ SLUŽBY BRNO s.r.o.","kat":"doprava","polozka":"Zvýhodněná doprava","od":15,"do":null,"jednotka":"km","dph":"neuvedeno","druh":"od","zahrnuto":"","omezeni":"","ucinnost":"Neuvedena"},{"id":"M042","zdroj":11,"firma":"SB STĚHOVÁNÍ BRNO s.r.o.","kat":"posadka","polozka":"Základní hodinová sazba vyklízení","od":1600,"do":null,"jednotka":"hod","dph":"neuvedeno","druh":"sazba","zahrnuto":"","omezeni":"Počet lidí neuveden; doprava, odpad a materiál navíc.","ucinnost":"Neuvedena"},{"id":"M043","zdroj":12,"firma":"Jakub Matuška","kat":"minimum","polozka":"Vyklízení","od":2590,"do":null,"jednotka":"zakazka","dph":"neuvedeno","druh":"od","zahrnuto":"","omezeni":"Rozsah malé zakázky a likvidace nejsou přesně vymezeny.","ucinnost":"Neuvedena"},{"id":"M044","zdroj":12,"firma":"Jakub Matuška","kat":"kus","polozka":"Pár kusů nábytku","od":1990,"do":null,"jednotka":"zakazka","dph":"neuvedeno","druh":"od","zahrnuto":"","omezeni":"","ucinnost":"Neuvedena"},{"id":"M045","zdroj":12,"firma":"Jakub Matuška","kat":"pracovnik","polozka":"Pomocný stěhovák","od":490,"do":null,"jednotka":"osobohod","dph":"neuvedeno","druh":"od","zahrnuto":"","omezeni":"","ucinnost":"Neuvedena"},{"id":"M046","zdroj":13,"firma":"Stěhospol Brno s.r.o.","kat":"pracovnik","polozka":"Pracovník","od":220,"do":null,"jednotka":"osobohod","dph":"specialni_B2C_B2B","druh":"sazba","zahrnuto":"","omezeni":"Web říká pro neplátce konečná cena, pro plátce +21 %; vyžaduje vysvětlení.","ucinnost":"2026"},{"id":"M047","zdroj":13,"firma":"Stěhospol Brno s.r.o.","kat":"vozidlo","polozka":"Dodávka bez hydraulického čela","od":250,"do":null,"jednotka":"hod","dph":"specialni_B2C_B2B","druh":"sazba","zahrnuto":"","omezeni":"Likvidace odpadu není v sazbě doložena.","ucinnost":"2026"},{"id":"M048","zdroj":13,"firma":"Stěhospol Brno s.r.o.","kat":"doprava","polozka":"Dodávka bez čela mimo Brno","od":12,"do":null,"jednotka":"km","dph":"specialni_B2C_B2B","druh":"sazba","zahrnuto":"","omezeni":"","ucinnost":"2026"},{"id":"M049","zdroj":14,"firma":"K-SLUŽBY / Karel Němeček","kat":"pracovnik","polozka":"Pracovník - ceník 2024","od":400,"do":null,"jednotka":"osobohod","dph":"bez_DPH","druh":"sazba","zahrnuto":"","omezeni":"Historický doplněk; nezařazovat do aktuálního středu cen.","ucinnost":"2024"},{"id":"M050","zdroj":14,"firma":"K-SLUŽBY / Karel Němeček","kat":"minimum","polozka":"Minimální zakázka - ceník 2024","od":1500,"do":null,"jednotka":"zakazka","dph":"bez_DPH","druh":"minimum","zahrnuto":"","omezeni":"","ucinnost":"2024"},{"id":"M051","zdroj":15,"firma":"Vyklizeno.cz","kat":"pracovnik","polozka":"Vyklízecí pracovník","od":450,"do":null,"jednotka":"osobohod","dph":"neuvedeno","druh":"sazba","zahrnuto":"","omezeni":"Doplňkový benchmark mimo hlavní region.","ucinnost":"Neuvedena"},{"id":"M052","zdroj":15,"firma":"Vyklizeno.cz","kat":"pracovnik","polozka":"Bourání a nošení suti","od":500,"do":null,"jednotka":"osobohod","dph":"neuvedeno","druh":"sazba","zahrnuto":"","omezeni":"Nejde o běžné vyklízení nábytku.","ucinnost":"Neuvedena"},{"id":"M053","zdroj":15,"firma":"Vyklizeno.cz","kat":"kontejner","polozka":"Kontejner 10 m3 s likvidací","od":7900,"do":null,"jednotka":"kontejner","dph":"neuvedeno","druh":"sazba","zahrnuto":"Kontejner, likvidace","omezeni":"Praha; pouze při nakládce vlastními pracovníky, práce navíc.","ucinnost":"Neuvedena"},{"id":"M054","zdroj":17,"firma":"EKO servis Zábřeh / Separex","kat":"pracovnik","polozka":"Nakládka a manipulace závozníkem","od":312,"do":null,"jednotka":"osobohod","dph":"bez_DPH","druh":"sazba","zahrnuto":"Pomocník v rámci služeb Separexu","omezeni":"Není univerzální sazba vyklízení bytu.","ucinnost":"2026-04-01"},{"id":"M055","zdroj":17,"firma":"EKO servis Zábřeh / Separex","kat":"pracovnik","polozka":"Nakládka a manipulace řidičem","od":360,"do":null,"jednotka":"osobohod","dph":"bez_DPH","druh":"sazba","zahrnuto":"","omezeni":"","ucinnost":"2026-04-01"},{"id":"M056","zdroj":17,"firma":"EKO servis Zábřeh / Separex","kat":"doprava","polozka":"Ford Transit / VW Crafter","od":20,"do":null,"jednotka":"km","dph":"bez_DPH","druh":"sazba","zahrnuto":"","omezeni":"","ucinnost":"2026-04-01"},{"id":"M057","zdroj":18,"firma":"EKO servis Zábřeh / Separex","kat":"kontejner","polozka":"Jednorázový kontejner MAN/FUSO, 0-4 km","od":1085,"do":null,"jednotka":"kontejner","dph":"bez_DPH","druh":"sazba","zahrnuto":"Přistavení, odvoz, vážení, krátký pronájem","omezeni":"Odpad navíc; pásmo a vhodný objem potvrzuje dopravce.","ucinnost":"2026-04-01"},{"id":"M058","zdroj":18,"firma":"EKO servis Zábřeh / Separex","kat":"kontejner","polozka":"Jednorázový kontejner MAN/FUSO, 8-12 km","od":1930,"do":null,"jednotka":"kontejner","dph":"bez_DPH","druh":"sazba","zahrnuto":"Přistavení, odvoz, vážení, krátký pronájem","omezeni":"Odpad a ruční nakládka nejsou zahrnuty.","ucinnost":"2026-04-01"},{"id":"M059","zdroj":25,"firma":"SAKO Brno","kat":"obcanska_sluzba","polozka":"Odvoz od domu - první m3","od":400,"do":null,"jednotka":"m3","dph":"vcetne_DPH","druh":"sazba","zahrnuto":"Naložení připraveného odpadu před domem a odvoz","omezeni":"Brněnští občané; ne firmy, max. 3 m3 a další limity.","ucinnost":"Neuvedena"},{"id":"M060","zdroj":25,"firma":"SAKO Brno","kat":"obcanska_sluzba","polozka":"Každý další m3","od":200,"do":null,"jednotka":"m3","dph":"vcetne_DPH","druh":"sazba","zahrnuto":"","omezeni":"Do celkového limitu 3 m3, pouze odvoz od domu.","ucinnost":"Neuvedena"},{"id":"M061","zdroj":30,"firma":"STĚHOVACÍ SLUŽBY BRNO s.r.o.","kat":"priklad","polozka":"Běžný byt včetně likvidace","od":15000,"do":18000,"jednotka":"zakazka","dph":"neuvedeno","druh":"orientacni_rozpeti","zahrnuto":"Vyklízení a likvidace","omezeni":"Běžný byt není definován plochou nebo objemem.","ucinnost":"Neuvedena"},{"id":"M062","zdroj":30,"firma":"STĚHOVACÍ SLUŽBY BRNO s.r.o.","kat":"minimum","polozka":"Minimum vyklízení bytu","od":7500,"do":null,"jednotka":"zakazka","dph":"neuvedeno","druh":"minimum","zahrnuto":"Tři hodiny a likvidace dle stránky","omezeni":"","ucinnost":"Neuvedena"},{"id":"M063","zdroj":31,"firma":"vyklidto.cz","kat":"posadka","polozka":"Avia nebo Iveco a 2 pracovníci","od":1050,"do":null,"jednotka":"hod","dph":"neplatce","druh":"sazba","zahrnuto":"Práce 2 lidí a vozidlo","omezeni":"20 km zdarma, dále 22 Kč/km; vykládka 500 Kč","ucinnost":"Neuvedena"},{"id":"M064","zdroj":31,"firma":"vyklidto.cz","kat":"pracovnik","polozka":"Každý další pracovník","od":330,"do":null,"jednotka":"osobohod","dph":"neplatce","druh":"sazba","zahrnuto":"","omezeni":"","ucinnost":"Neuvedena"},{"id":"M065","zdroj":31,"firma":"vyklidto.cz","kat":"doprava","polozka":"Doprava nad 20 km","od":22,"do":null,"jednotka":"km","dph":"neplatce","druh":"sazba","zahrnuto":"","omezeni":"Prvních 20 km zdarma","ucinnost":"Neuvedena"},{"id":"M066","zdroj":31,"firma":"vyklidto.cz","kat":"vykladka","polozka":"Vykládka odpadu","od":500,"do":null,"jednotka":"jizda","dph":"neplatce","druh":"sazba","zahrnuto":"Kontejner nebo dodávka","omezeni":"","ucinnost":"Neuvedena"},{"id":"M067","zdroj":31,"firma":"vyklidto.cz","kat":"ztizene","polozka":"Holubí exkrementy / seno (2 lidé + vůz)","od":1600,"do":null,"jednotka":"hod","dph":"neplatce","druh":"sazba","zahrnuto":"","omezeni":"Další pracovník +800 Kč/h","ucinnost":"Neuvedena"},{"id":"M068","zdroj":31,"firma":"vyklidto.cz","kat":"ztizene","polozka":"Skelná vata (2 lidé + vůz)","od":1800,"do":null,"jednotka":"hod","dph":"neplatce","druh":"sazba","zahrnuto":"","omezeni":"Další pracovník +900 Kč/h","ucinnost":"Neuvedena"},{"id":"M069","zdroj":31,"firma":"vyklidto.cz","kat":"ztizene","polozka":"Po nepřizpůsobivé osobě (2 lidé + vůz)","od":2500,"do":null,"jednotka":"hod","dph":"neplatce","druh":"sazba","zahrnuto":"","omezeni":"","ucinnost":"Neuvedena"},{"id":"M070","zdroj":31,"firma":"vyklidto.cz","kat":"ztizene","polozka":"Po úmrtí / vraždě (2 lidé + vůz)","od":3000,"do":null,"jednotka":"hod","dph":"neplatce","druh":"sazba","zahrnuto":"","omezeni":"","ucinnost":"Neuvedena"},{"id":"M071","zdroj":31,"firma":"vyklidto.cz","kat":"ztizene","polozka":"Po narkomanech / lidské výkaly (2 lidé + vůz)","od":3600,"do":null,"jednotka":"hod","dph":"neplatce","druh":"sazba","zahrnuto":"","omezeni":"","ucinnost":"Neuvedena"},{"id":"M072","zdroj":32,"firma":"Vyklízení Praha","kat":"posadka","polozka":"Auto 20 m³ a řidič","od":690,"do":null,"jednotka":"hod","dph":"neplatce","druh":"sazba","zahrnuto":"Práce, odvoz, likvidace na sběrném dvoře","omezeni":"Jeden člověk","ucinnost":"Neuvedena"},{"id":"M073","zdroj":32,"firma":"Vyklízení Praha","kat":"posadka","polozka":"Více pracovníků a auto","od":1190,"do":null,"jednotka":"hod","dph":"neplatce","druh":"sazba","zahrnuto":"Práce, odvoz, likvidace na sběrném dvoře","omezeni":"","ucinnost":"Neuvedena"},{"id":"M074","zdroj":33,"firma":"PROFIGROUP","kat":"posadka","polozka":"2 pracovníci a vozidlo","od":1400,"do":null,"jednotka":"hod","dph":"bez_DPH","druh":"sazba","zahrnuto":"","omezeni":"Praha; min. 2 h; další pracovník +200 Kč/h, další vozidlo +400 Kč/h","ucinnost":"Neuvedena"},{"id":"M075","zdroj":33,"firma":"PROFIGROUP","kat":"odpad_prodej","polozka":"Likvidace podle hmotnosti","od":3,"do":null,"jednotka":"kg","dph":"bez_DPH","druh":"sazba","zahrnuto":"","omezeni":"","ucinnost":"Neuvedena"},{"id":"M076","zdroj":34,"firma":"Vektos","kat":"posadka","polozka":"Práce","od":1200,"do":null,"jednotka":"hod","dph":"neuvedeno","druh":"sazba","zahrnuto":"","omezeni":"Praha; doprava a likvidace zvlášť; expres do 12 h +20 %","ucinnost":"Neuvedena"},{"id":"M077","zdroj":34,"firma":"Vektos","kat":"minimum","polozka":"Minimální zakázka","od":2400,"do":null,"jednotka":"zakazka","dph":"neuvedeno","druh":"sazba","zahrnuto":"1,5 h a doprava v Praze","omezeni":"","ucinnost":"Neuvedena"},{"id":"M078","zdroj":34,"firma":"Vektos","kat":"odpad_prodej","polozka":"Likvidace (500 Kč / 100 kg)","od":5,"do":null,"jednotka":"kg","dph":"neuvedeno","druh":"sazba","zahrnuto":"","omezeni":"","ucinnost":"Neuvedena"},{"id":"M079","zdroj":35,"firma":"vyklizenilevne.cz","kat":"komplet","polozka":"Byty","od":799,"do":999,"jednotka":"m3","dph":"neuvedeno","druh":"sazba","zahrnuto":"Na klíč","omezeni":"","ucinnost":"Neuvedena"},{"id":"M080","zdroj":35,"firma":"vyklizenilevne.cz","kat":"komplet","polozka":"Sklepy, půdy","od":999,"do":1299,"jednotka":"m3","dph":"neuvedeno","druh":"sazba","zahrnuto":"Na klíč","omezeni":"","ucinnost":"Neuvedena"},{"id":"M081","zdroj":36,"firma":"vyklizenipraha.com","kat":"komplet","polozka":"Sklepy, půdy, kontaminace","od":1095,"do":1595,"jednotka":"m3","dph":"neuvedeno","druh":"sazba","zahrnuto":"Na klíč vč. ochranných materiálů","omezeni":"","ucinnost":"Neuvedena"},{"id":"M082","zdroj":37,"firma":"vyklizenibyty.cz","kat":"komplet","polozka":"Byty","od":600,"do":null,"jednotka":"m3","dph":"neuvedeno","druh":"sazba","zahrnuto":"Doprava, práce, likvidace","omezeni":"Cena „od“","ucinnost":"Neuvedena"},{"id":"M083","zdroj":37,"firma":"vyklizenibyty.cz","kat":"komplet","polozka":"Po úmrtí","od":900,"do":null,"jednotka":"m3","dph":"neuvedeno","druh":"sazba","zahrnuto":"Doprava, práce, likvidace","omezeni":"Cena „od“","ucinnost":"Neuvedena"},{"id":"M084","zdroj":37,"firma":"vyklizenibyty.cz","kat":"priklad","polozka":"Byt 1+1","od":3200,"do":null,"jednotka":"zakazka","dph":"neuvedeno","druh":"sazba","zahrnuto":"","omezeni":"Cena „od“","ucinnost":"Neuvedena"},{"id":"M085","zdroj":38,"firma":"Roman Vyklízení","kat":"pausal","polozka":"Byt 1+kk","od":2500,"do":null,"jednotka":"zakazka","dph":"neuvedeno","druh":"sazba","zahrnuto":"Odvoz a úklid","omezeni":"Cena „od“; působí i v Šumperku a Mohelnici","ucinnost":"Neuvedena"},{"id":"M086","zdroj":38,"firma":"Roman Vyklízení","kat":"pausal","polozka":"Byt 2+kk","od":4000,"do":null,"jednotka":"zakazka","dph":"neuvedeno","druh":"sazba","zahrnuto":"Odvoz a úklid","omezeni":"Cena „od“","ucinnost":"Neuvedena"},{"id":"M087","zdroj":38,"firma":"Roman Vyklízení","kat":"pausal","polozka":"Byt 3+kk","od":5500,"do":null,"jednotka":"zakazka","dph":"neuvedeno","druh":"sazba","zahrnuto":"Odvoz a úklid","omezeni":"Cena „od“","ucinnost":"Neuvedena"},{"id":"M088","zdroj":38,"firma":"Roman Vyklízení","kat":"pausal","polozka":"Byt 4+1","od":8500,"do":null,"jednotka":"zakazka","dph":"neuvedeno","druh":"sazba","zahrnuto":"Odvoz a úklid","omezeni":"Cena „od“","ucinnost":"Neuvedena"},{"id":"M089","zdroj":38,"firma":"Roman Vyklízení","kat":"pausal","polozka":"Rodinný dům","od":9500,"do":null,"jednotka":"zakazka","dph":"neuvedeno","druh":"sazba","zahrnuto":"Odvoz a úklid","omezeni":"Cena „od“","ucinnost":"Neuvedena"},{"id":"M090","zdroj":38,"firma":"Roman Vyklízení","kat":"pausal","polozka":"Sklep / garáž","od":500,"do":null,"jednotka":"zakazka","dph":"neuvedeno","druh":"sazba","zahrnuto":"Odvoz a úklid","omezeni":"Cena „od“","ucinnost":"Neuvedena"},{"id":"M091","zdroj":38,"firma":"Roman Vyklízení","kat":"pausal","polozka":"Půda","od":1000,"do":null,"jednotka":"zakazka","dph":"neuvedeno","druh":"sazba","zahrnuto":"Odvoz a úklid","omezeni":"Cena „od“","ucinnost":"Neuvedena"}],"zdroje":[{"id":1,"vydavatel":"Dopareal","nazev":"Ceník vyklízení","platnost":"Neuvedena","kontrola":"9. 9. 2026","url":"https://www.dopareal.cz/cenik/","pozn":"Datum účinnosti a režim cen vzhledem k DPH neuvedeny. Celorepubliková nabídka, také Olomouc a Šumperk."},{"id":2,"vydavatel":"Vyklízení Global","nazev":"Ceník vyklízecích služeb","platnost":"Neuvedena","kontrola":"9. 9. 2026","url":"https://www.vyklizeni-global.cz/cenik/","pozn":"Datum a DPH neuvedeny. Tabulka 18 m³ opakuje ceny 13 m³; pro přepočty nepoužita."},{"id":3,"vydavatel":"Vyklízení bytů Ostrava","nazev":"Ceník služeb","platnost":"Neuvedena","kontrola":"9. 9. 2026","url":"https://www.vyklizeni-bytu-ostrava.com/cenik-sluzeb/","pozn":"Kontakt na doméně vyklizeni-global.cz; nepovažovat bez ověření za nezávislý vzorek vůči Global. DPH a datum neuvedeny."},{"id":4,"vydavatel":"Petr Matušek / Vyklízíme Zlín","nazev":"Ceník","platnost":"Neuvedena","kontrola":"9. 9. 2026","url":"https://www.vyklizimezlin.cz/","pozn":"Výslovně neplátce. Datum účinnosti neuvedeno. Poplatek zařízení za odpad není v hodinovce výslovně zahrnut."},{"id":5,"vydavatel":"Stěhování Čechmánek","nazev":"Ceník služeb","platnost":"Neuvedena","kontrola":"9. 9. 2026","url":"https://stehovanizlin.cz/cenik/","pozn":"Ceny bez 21 % DPH. Hodinové sestavy jsou v sekci stěhování; pro vyklízení nutno připočíst jeho specifické náklady."},{"id":6,"vydavatel":"KAREL BOČÁNEK s.r.o.","nazev":"Stěhování Olomouc - ceník","platnost":"Neuvedena","kontrola":"9. 9. 2026","url":"https://www.stehovaniolomouc.cz/","pozn":"Uvádí plátcovství, nikoli zda zveřejněná sazba obsahuje DPH. Datum účinnosti neuvedeno."},{"id":7,"vydavatel":"Stěhujeme Hned","nazev":"Ceník stěhovacích služeb","platnost":"Neuvedena","kontrola":"9. 9. 2026","url":"https://www.stehujemehned.cz/cenik/","pozn":"Ceny bez DPH. Datum účinnosti neuvedeno. Posádka, vozidlo, přistavení a kilometry odděleně."},{"id":8,"vydavatel":"JetStar moving s.r.o.","nazev":"Stěhování a vyklízení po Brně","platnost":"Neuvedena","kontrola":"9. 9. 2026","url":"https://jetstarmoving.cz/","pozn":"DPH a datum účinnosti neuvedeny. Sazbu 1 100 Kč pro dva pracovníky a vůz do 15 m³ potvrzuje i slovní příklad piana."},{"id":9,"vydavatel":"Vyklízení bytů Brno","nazev":"Ceník vyklízení nemovitostí","platnost":"Neuvedena","kontrola":"9. 9. 2026","url":"https://www.vyklizeni-bytu-brno.cz/cenik-vyklizeni-nemovitosti/","pozn":"Stejný telefon 775 667 214 jako SB Stěhování Brno. Příklady zakázek nejsou pevné objemové balíčky. DPH a datum neuvedeny."},{"id":10,"vydavatel":"STĚHOVACÍ SLUŽBY BRNO s.r.o.","nazev":"Ceník vyklízení nemovitostí Brno","platnost":"Neuvedena","kontrola":"9. 9. 2026","url":"https://www.stehovaci-sluzby-brno.cz/cenik-vyklizeni-nemovitosti-brno/","pozn":"Reklamní sazba od 450 Kč/h pro pracovníka a vůz; doprava a likvidace zvlášť. DPH a datum cen neuvedeny."},{"id":11,"vydavatel":"SB STĚHOVÁNÍ BRNO s.r.o.","nazev":"Vyklízení nemovitostí","platnost":"Neuvedena","kontrola":"9. 9. 2026","url":"https://www.sbstehovanibrno.cz/vyklizeni-nemovitosti-brno/","pozn":"Stejný kontakt jako zdroj 9. U 1 600 Kč/h chybí počet pracovníků a režim DPH; neporovnávat přímo se sazbou jednoho člověka."},{"id":12,"vydavatel":"Jakub Matuška","nazev":"Ceník nejčastějších prací","platnost":"Neuvedena","kontrola":"9. 9. 2026","url":"https://www.stehovanimatuska.com/","pozn":"Orlová, Ostrava, Havířov. Sazby od, bez data účinnosti a bez označení DPH."},{"id":13,"vydavatel":"Stěhospol Brno s.r.o.","nazev":"Ceník služeb pro rok 2026","platnost":"2026","kontrola":"9. 9. 2026","url":"https://www.stehospol.cz/inpage/cenik/","pozn":"Výslovně rok 2026. Nestandardní formulace: pro neplátce ceny konečné, plátci mají přičíst 21 %. Zachováno jako tvrzení webu, nikoli daňové pravidlo."},{"id":14,"vydavatel":"K-SLUŽBY / Karel Němeček","nazev":"Ceník služeb 2024","platnost":"2024","kontrola":"9. 9. 2026","url":"https://www.k-sluzby.cz/","pozn":"Stránka dostupná v září 2026, ceník ale výslovně označen 2024. Historický doplněk, nikoli potvrzená sazba 2026."},{"id":15,"vydavatel":"Vyklizeno.cz","nazev":"Ceník vyklízecích prací","platnost":"Neuvedena","kontrola":"9. 9. 2026","url":"https://vyklizeno.cz/ceniky/","pozn":"Doplňkový benchmark mimo hlavní region; uvedené kontejnerové sazby platí pro Prahu. DPH a datum neuvedeny."},{"id":16,"vydavatel":"EKO servis Zábřeh / Separex","nazev":"6. Ceník odpadů O","platnost":"2026-04-01","kontrola":"9. 9. 2026","url":"https://www.separex.cz/admin/uploadFiles/Text/3/6._Ostatni_odpady_2026.pdf","pozn":"Přímo PDF, strana 1. Původce firma/občan/obec se liší po řádcích. U objemného odpadu nejasná vazba na samostatné poplatky pod tabulkou."},{"id":17,"vydavatel":"EKO servis Zábřeh / Separex","nazev":"1. Ceník prací a služeb","platnost":"2026-04-01","kontrola":"9. 9. 2026","url":"https://www.separex.cz/admin/uploadFiles/Text/3/1._Doprava,_sluzby,_najmy_2026.pdf","pozn":"PDF, strana 1. Včetně sloupců bez DPH a s DPH."},{"id":18,"vydavatel":"EKO servis Zábřeh / Separex","nazev":"3. Kontejnerová služba - jednorázová","platnost":"2026-04-01","kontrola":"9. 9. 2026","url":"https://www.separex.cz/admin/uploadFiles/Text/3/3._Doprava_kontejnery_2026.pdf","pozn":"PDF, strana 1. Přistavení, odvoz, vážení a krátký pronájem zahrnuty, odpad se účtuje zvlášť. Výměna a vrácení stejného kontejneru mají vlastní tarify."},{"id":19,"vydavatel":"SAKO Brno","nazev":"Ceník odpadu - sběrný dvůr pro podnikatele","platnost":"2026-01-01","kontrola":"9. 9. 2026","url":"https://www.sbernydvurbrno.cz/cenik","pozn":"Ceny bez DPH. Elektro v systému zpětného odběru zdarma, vystavení dokladu o převzetí výrobku 100 Kč/ks bez DPH."},{"id":20,"vydavatel":"EKOLTES Hranice","nazev":"Ceník sběrného dvora - česká verze","platnost":"2026-09-01","kontrola":"9. 9. 2026","url":"https://ekoltes.cz/odpady/sberny-dvur/cenik/","pozn":"Rozhodný sloupec pro firmy, ceny za kg bez DPH. Novější než anglická mutace."},{"id":21,"vydavatel":"EKOLTES Hranice","nazev":"Ceník sběrného dvora - anglická verze","platnost":"2026-01-01","kontrola":"9. 9. 2026","url":"https://ekoltes.cz/en/odpady/sberny-dvur/cenik/","pozn":"Starší mutace: objemný 3,50 Kč/kg a směsný 2,90 Kč/kg. Pro nové kalkulace nepoužita."},{"id":22,"vydavatel":"Technické služby Zlín","nazev":"Ceník sběrných dvorů","platnost":"2026-04-20","kontrola":"9. 9. 2026","url":"https://www.tszlin.cz/uploads/2026-06-16/Sberne_dvory_cenik_2026.pdf","pozn":"PDF, strana 2: dřevo 5,10 Kč/kg, objemný 5,60 Kč/kg bez DPH. Firmy platí za libovolné množství dle ceníku."},{"id":23,"vydavatel":"Technické služby Zlín","nazev":"Ceník multifunkční plochy","platnost":"2026-04-20","kontrola":"9. 9. 2026","url":"https://www.tszlin.cz/uploads/2026-06-16/Multiplocha_cenik_2026.pdf","pozn":"PDF, strana 1. Jiné zařízení než sběrný dvůr i skládka; nelze přenášet ceny mezi provozy."},{"id":24,"vydavatel":"Technické služby Zlín","nazev":"Ceník skládky Suchý důl","platnost":"2026-04-20","kontrola":"9. 9. 2026","url":"https://www.tszlin.cz/uploads/2026-06-16/Skladka_cenik_2026.pdf","pozn":"PDF, strana 6: objemný odpad 1 890 Kč/t za službu + 1 600 Kč/t poplatek, celkem 3 886,90 Kč/t vč. DPH podle tabulky. Přijetí podléhá podmínkám zařízení."},{"id":25,"vydavatel":"SAKO Brno","nazev":"Odvoz objemného odpadu dodávkou od domu","platnost":"Neuvedena","kontrola":"9. 9. 2026","url":"https://www.sako.cz/odvoz-objemneho-odpadu-dodavkou","pozn":"Pro brněnské občany, nikoli podnikatele; předání před domem. Max. 3 m³, web dále uvádí délku do 3 m a váhu do 25 kg. Odlišná služba od vynášky z bytu."},{"id":26,"vydavatel":"Generální finanční ředitelství","nazev":"Informace ke změnám sazeb DPH od 1. 1. 2024","platnost":"2024-01-01","kontrola":"9. 9. 2026","url":"https://financnisprava.gov.cz/assets/cs/prilohy/d-seznam-dani/Informace_GFR_ke_zmenam_sazeb_DPH_od_1_1_2024.pdf","pozn":"Strany 1-2: základní sazba 21 %; sběr/přeprava, příprava/likvidace komunálního odpadu a domácí úklid přeřazeny do základní sazby. Model neposuzuje soubornou stavební zakázku."},{"id":27,"vydavatel":"Stěhování Žeravík","nazev":"Ceník stěhování, vyklízení","platnost":"Neuvedena","kontrola":"9. 9. 2026","url":"https://www.stehovani-zeravik.cz/cenik","pozn":"Bez číselných sazeb; individuální nabídka. Nezapočítáno mezi číselné benchmarky."},{"id":28,"vydavatel":"Demolice Morava","nazev":"demolice-morava-know-how.md.pdf","platnost":"Neuvedena","kontrola":"9. 9. 2026","url":"Dodaný soubor","pozn":"Dodaný interní soubor, zejména části 1, 7-9, 16 a 19. Kontext firmy, nikoli ověřený externí ceník vyklízení."},{"id":29,"vydavatel":"Demolice Morava","nazev":"Demolice-prompt.txt","platnost":"Neuvedena","kontrola":"9. 9. 2026","url":"Dodaný soubor","pozn":"Dodaný interní soubor. Kontext cenotvorby a nástrojů."},{"id":30,"vydavatel":"STĚHOVACÍ SLUŽBY BRNO s.r.o.","nazev":"Vyklízení bytů Brno","platnost":"Neuvedena","kontrola":"9. 9. 2026","url":"https://www.stehovaci-sluzby-brno.cz/vyklizeni-bytu-brno/","pozn":"Běžný byt 15-18 tis. Kč včetně likvidace; minimum 7 500 Kč / 3 hodiny. Velikost běžného bytu ani režim DPH nejsou určeny."},{"id":31,"vydavatel":"vyklidto.cz","nazev":"Ceník vyklízení","platnost":"Neuvedena","kontrola":"15. 9. 2026","url":"https://vyklidto.cz/cenik","pozn":"Kroměříž, Zlín, Vyškov, Prostějov, Přerov. Neplátce DPH. Nejbližší zveřejněný hodinový ceník moravské firmy."},{"id":32,"vydavatel":"Vyklízení Praha","nazev":"Ceník","platnost":"Neuvedena","kontrola":"15. 9. 2026","url":"https://vyklizeni-praha.cz/cenik","pozn":"Praha a Středočeský kraj, neplátce DPH."},{"id":33,"vydavatel":"PROFIGROUP","nazev":"Ceník","platnost":"Neuvedena","kontrola":"15. 9. 2026","url":"https://profigroup.cz/cenik","pozn":"Praha, ceny + 21 % DPH, minimum 2 hodiny."},{"id":34,"vydavatel":"Vektos","nazev":"Vyklízení","platnost":"Neuvedena","kontrola":"15. 9. 2026","url":"https://vektos.cz","pozn":"Praha; práce, doprava a likvidace zvlášť."},{"id":35,"vydavatel":"vyklizenilevne.cz","nazev":"Ceník","platnost":"Neuvedena","kontrola":"15. 9. 2026","url":"https://vyklizenilevne.cz","pozn":"Pravděpodobně přeprodejce se společným call-centrem — ověřit IČO."},{"id":36,"vydavatel":"vyklizenipraha.com","nazev":"Ceník","platnost":"Neuvedena","kontrola":"15. 9. 2026","url":"https://vyklizenipraha.com","pozn":"Na klíč vč. ochranných materiálů."},{"id":37,"vydavatel":"vyklizenibyty.cz","nazev":"Ceník","platnost":"Neuvedena","kontrola":"15. 9. 2026","url":"https://vyklizenibyty.cz","pozn":"Praha a Středočeský kraj."},{"id":38,"vydavatel":"Roman Vyklízení","nazev":"Ceník","platnost":"Neuvedena","kontrola":"15. 9. 2026","url":"https://romanvyklizeni.cz","pozn":"Sídlo Tovačov, pobočky Šumperk, Mohelnice, Olomouc, Prostějov, Přerov, Brno. Paušály podle dispozice, odvoz + úklid."},{"id":39,"vydavatel":"HULMAN-kovošrot s.r.o.","nazev":"Výkupní ceník","platnost":"Neuvedena","kontrola":"15. 9. 2026","url":"","pozn":"Platný od 7. 9. 2026 10:00; ceny kolísají podle LME, před výkupem ověřit."},{"id":40,"vydavatel":"Zákon 541/2020 Sb., příloha č. 9 / TS Zlín","nazev":"Poplatek za ukládání odpadů na skládku","platnost":"Neuvedena","kontrola":"15. 9. 2026","url":"","pozn":"2026: využitelné a komunální odpady 1 600 Kč/t, zbytkové 600 Kč/t, nebezpečné 2 000 Kč/t. Vývoj 2021 800 → 2024 1 250 → 2026 1 600 → 2029 1 850 Kč/t, od 2030 zákaz skládkování využitelných odpadů."},{"id":41,"vydavatel":"GFŘ","nazev":"Informace ke změnám sazeb DPH od 1. 1. 2024, č. j. 916/24/7100-30116-050822","platnost":"Neuvedena","kontrola":"15. 9. 2026","url":"","pozn":"Vyklízení a úklid v domácnostech v základní sazbě 21 %; PDP jen u stavebních prací CZ-CPA 41–43."}],"kovy":[{"nazev":"Železo těžké upravené","kcKg":4.5,"zdroj":39},{"nazev":"Železo těžké neupravené","kcKg":4,"zdroj":39},{"nazev":"Železo lehký plech","kcKg":3,"zdroj":39},{"nazev":"Litina neupravená","kcKg":4,"zdroj":39},{"nazev":"Litina upravená","kcKg":4.5,"zdroj":39},{"nazev":"Měď drát nový lesklý","kcKg":250,"zdroj":39},{"nazev":"Měď drát / plech starý","kcKg":240,"zdroj":39},{"nazev":"Mosaz","kcKg":125,"zdroj":39},{"nazev":"Hliník (drát, profil, plech)","kcKg":"26–47","zdroj":39},{"nazev":"Elektromotory do 300 kg","kcKg":14,"zdroj":39},{"nazev":"Olověné akumulátory","kcKg":10,"zdroj":39}]};
-function vykVychoziSazby(){ return {"cenaMinHod":450,"tvrdeMinHod":400,"cilHod":550,"trhByt":1070,"trhSklep":1300,"minZakazka":2500,"hPosadka":1200,"hDalsi":450,"hMin":2,"kmSazba":20,"kmZdarma":20,"vykladka":500,"prirazka":0.15,"minRozebiraniM3":18,"minBaleniM3":12,"noseniM3":5,"minUklidM2":1,"cyklusSek":100,"patroSek":40,"vytahSek":45,"vzdalSek":25,"rychlost":40,"vykladkaH":0.5,"hodDen":8,"objemVozu":12,"nosnost":1000,"vuzKm":8,"vuzFix":300,"rezie":400,"materialM3":18.75,"kovyKcKg":4,"zaloha":0.4,"kgPrazdne":70,"kgBezne":80,"kgPlne":100,"kgPreplnene":110,"kgSklep":120,"koefCas":1,"koefObjem":1,"vynaskaOsH":450,"minVynaska":1800,"minKusy":1500,"bremenoKs":1600,"bremenoPatro":250,"vikendPct":25,"expresPct":20,"prodejBazarH":0.5,"prodejVykupH":0.5,"o_objemny":4500,"o_smes":3180,"o_drevo":2600,"o_nespal":4500,"o_sklo":1000,"o_papir":1000,"o_textil":3180,"o_sut":700,"o_elektro":0,"o_zpetny":0,"o_kov":0,"o_nebezp":0}; }
+function vykVychoziSazby(){ return {"cenaMinHod":450,"tvrdeMinHod":400,"cilHod":550,"trhByt":1070,"trhSklep":1300,"minZakazka":2500,"hPosadka":1200,"hDalsi":450,"hMin":2,"kmSazba":20,"kmZdarma":20,"vykladka":500,"prirazka":0.15,"minRozebiraniM3":18,"minBaleniM3":12,"noseniM3":5,"minUklidM2":1,"cyklusSek":100,"patroSek":40,"vytahSek":45,"vzdalSek":25,"rychlost":40,"vykladkaH":0.5,"hodDen":8,"objemVozu":12,"nosnost":1000,"vuzKm":10,"vuzFix":300,"rezie":400,"materialM3":18.75,"kovyKcKg":4,"zaloha":0.4,"kgPrazdne":70,"kgBezne":80,"kgPlne":100,"kgPreplnene":110,"kgSklep":120,"koefCas":1,"koefObjem":1,"vynaskaOsH":450,"minVynaska":1800,"minKusy":1500,"bremenoKs":1600,"bremenoPatro":250,"vikendPct":25,"expresPct":20,"prodejBazarH":0.5,"prodejVykupH":0.5,"o_objemny":4660,"o_smes":3180,"o_drevo":2600,"o_nespal":4500,"o_sklo":1000,"o_papir":1000,"o_textil":3180,"o_sut":700,"o_elektro":0,"o_zpetny":0,"o_kov":0,"o_nebezp":0}; }
 const VYK_STAVY_ZAK = ["nabídka","domluveno","probíhá","hotovo","zamítnuto"];
 const VYK_CAS = [["prace","Práce na místě","▶ Práce"],["cesta","Cesta","🚐 Cesta"],["vykladka","Vykládka u zařízení","⬇ Vykládka"],["pauza","Pauza","☕ Pauza"]];
 const VYK_KANALY = [["kovosrot","Kovošrot"],["bazar","Bazar, inzerát"],["vykup","Výkup nábytku, antik"],["reuse","Re-use, charita"],["jine","Jiné"]];
@@ -10760,7 +10841,9 @@ function vkPopisRozsahu(v){
     const veci = pol.slice(0, 4).map(x => { const it = x.vlastni ? x : kat.find(k => k.id === x.id); return it ? it.nazev.split(/,| — /)[0].toLowerCase() + (+x.pocet > 1 ? " " + faMn(x.pocet) + "×" : "") : ""; }).filter(Boolean);
     return "odvoz: " + (veci.join(", ") || "několik kusů") + (pol.length > 4 ? " a další" : "") + ", " + pristup;
   }
-  return (sl === "vynaska" ? "vynáška — " : "") + (d ? d[1].split(",")[0] : "prostor") + (p && !(v.polozky || []).length ? ", " + p[1].split(" —")[0].toLowerCase() : "") + ", " + pristup;
+  const dopl = (v.doplnky || []).map(id => ({sklep:"sklepem", puda:"půdou", garaz:"garáží"})[id]).filter(Boolean);
+  return (sl === "vynaska" ? "vynáška — " : "") + (d ? d[1].split(",")[0] : "prostor") + (+v.plocha > 0 ? " " + faMn(v.plocha) + " m²" : "") +
+    (p && !(v.polozky || []).length ? ", " + p[1].split(" —")[0].toLowerCase() : "") + (dopl.length ? (dopl[0] === "sklepem" ? ", se " : ", s ") + dopl.join(" a ") : "") + ", " + pristup;
 }
 function vkKopiruj(text, btn, popisek){
   const hotovo = () => { if (btn) { const p = btn.textContent; btn.textContent = "✓ Zkopírováno"; setTimeout(() => { btn.textContent = popisek || p; }, 1600); } };
@@ -10773,8 +10856,8 @@ function vkKopiruj(text, btn, popisek){
 function vykNovy(){
   const s = S.vykSazby || vykVychoziSazby();
   return {id:"", nazev:"", klient:"", klientId:"", adresa:"", zdroj:"", terminOd:"", terminDo:"", status:"nabídka", poznamka:"", rozsahText:"",
-    sluzba:"odvoz", prostor:"21", plnost:"bezne", patro:0, vytah:"ne", vzdalenost:10, km:15, rozebirat:true, uklid:false, stav:"bezne", lide:2, vikend:false, expres:false,
-    uctovani:"pevna", polozky:[], prodej:[], kovyKg:0, jine:0, sleva:0, provize:0, zaloha:s.zaloha != null ? s.zaloha : 0.4, predem:false,
+    sluzba:"odvoz", prostor:"21", plocha:0, doplnky:[], plnost:"bezne", patro:0, vytah:"ne", vzdalenost:10, km:15, rozebirat:true, uklid:false, stav:"bezne", lide:2, vikend:false, expres:false,
+    uctovani:"pevna", likvidaceZvlast:false, polozky:[], prodej:[], kovyKg:0, jine:0, sleva:0, provize:0, zaloha:s.zaloha != null ? s.zaloha : 0.4, predem:false,
     cas:[], skut:{listky:[]}, predano:[], dohoda:null, vykV17:true, vykV18:true, cisloNab:"", cisloFakZal:"", cisloFakKon:"", zalohaZaplaceno:"", doplatekZaplaceno:"",
     duvodProhry:"", cenaViteze:0, recenzeOdeslana:""};
 }
@@ -10851,6 +10934,10 @@ function renderVyklizeni(){
     "<p class='hint' style='margin:4px 0 0'>" + esc((vykSluzby().find(x => x[0] === sl) || [])[2] || "") + "</p>" +
     (sl === "kusy" ? "<p class='hint' style='margin:10px 0 0'>U pár kusů se cena počítá ze soupisu — přidej věci níž (napiš třeba <i>sedačka</i>, <i>pračka</i>).</p>" :
       "<div class='vk3-lbl'>Prostor</div><div class='vk3-chips'>" + vykDispozice().map(d => chip("vkprostor", d[0], d[1], v.prostor === d[0])).join("") + "</div>" +
+      (() => { const d = vykDispozice().find(x => x[0] === v.prostor) || [0, 0, 0, 0];
+        return "<div class='vk3-plocha'><label class='f'>Plocha (m²)<input type='number' inputmode='decimal' min='0' step='5' data-vk='plocha' value='" + (v.plocha > 0 ? v.plocha : "") + "' placeholder='typicky " + d[3] + " m²'>" +
+          "<span class='hint'>" + (v.plocha > 0 ? "objem se přepočte podle plochy" : "prázdné = typická velikost") + "</span></label>" +
+          (!vykSkladovy(v.prostor) ? "<div><div class='vk3-lbl' style='margin-top:0'>K tomu ještě</div><div class='vk3-chips'>" + vykDoplnky().map(x => chip("vkdoplnek", x[0], "+ " + x[1], (v.doplnky || []).includes(x[0]))).join("") + "</div></div>" : "") + "</div>"; })() +
       (soupis ? "" : "<div class='vk3-lbl'>Jak je plno</div><div class='vk3-chips'>" + vykPlnosti().map(p => chip("vkplnost", p[0], p[1], v.plnost === p[0])).join("") + "</div>")) +
     "<div id='vkRychly'></div>" +
     "<div class='grid g3' style='margin-top:10px'>" +
@@ -10869,9 +10956,10 @@ function renderVyklizeni(){
       (soupis || sl === "kusy" ? "" : "<button class='b' type='button' id='vkTypicky'>Rozepsat po věcech →</button>") + "</div></div>";
 
   h += "<details class='card vk3-det' id='vkClaudeDet'><summary><h2 style='display:inline'>📸 Nacenit z fotek přes Claude</h2> <span class='hint'>— soupis a cena z fotek do pár minut</span></summary><div style='margin-top:10px'>" +
-    "<ol class='vk3-kroky'><li><b>Jednou:</b> stáhni balík a v Claudovi založ projekt „Vyklízení — nacenění“. Nahraj do něj všechny soubory a instrukce (návod je v souboru 00).</li>" +
-      "<li><b>Na místě:</b> nafoť všechny místnosti, otevřené skříně, sklep, balkon a schodiště. Pošli fotky do projektu se <b>zprávou k fotkám</b> (tlačítko níž ji připraví).</li>" +
-      "<li><b>Claude vrátí</b> soupis věcí po místnostech, co jde prodat a za kolik, cenu a blok <code>VYK1</code> — vlož ho sem.</li></ol>" +
+    "<ol class='vk3-kroky'><li><b>Jednou:</b> stáhni balík (12 souborů) a v Claudovi založ projekt „Vyklízení — nacenění“: obsah souboru 01 do instrukcí, ostatní do znalostí, zapni vyhledávání na webu. Návod je v souboru 00.</li>" +
+      "<li><b>Na místě rychle:</b> 2–4 fotky a napiš <b>RYCHLE</b> + dispozici, m², patro a km — do 2 minut rozpětí ceny, nejnižší cena a 3 otázky.</li>" +
+      "<li><b>Pevná cena:</b> nafoť všechny místnosti, otevřené skříně, sklep, balkon a štítky spotřebičů, pošli se <b>zprávou k fotkám</b> (tlačítko níž).</li>" +
+      "<li><b>Claude vrátí</b> soupis, ověřené prodejní ceny, plán likvidace, cenu, jak vydělat víc a blok <code>VYK1</code> — vlož ho sem. Další dotazy: <b>PRODEJ</b>, <b>LIKVIDACE</b>, <b>ZPRÁVA</b>, <b>KONTROLA</b>.</li></ol>" +
     "<textarea id='vkImport' rows='3' placeholder='Sem vlož odpověď od Clauda (klidně celou, blok VYK1 se vyzobe sám)'></textarea>" +
     "<div class='btnrow'><button class='b prim' type='button' id='vkImportBtn'>📥 Načíst VYK1</button><button class='b' type='button' id='vkZpravaFotky'>📋 Zpráva k fotkám</button>" +
       "<button class='b' type='button' id='vkBalikZip'>📦 Balík pro Claude (ZIP)</button><button class='b' type='button' id='vkBalikInstr'>📋 Instrukce projektu</button></div>" +
@@ -10890,6 +10978,7 @@ function renderVyklizeni(){
       "<label class='f'>do<input type='date' data-vkt='terminDo' value='" + esc(v.terminDo || "") + "'" + (v.terminOd ? " placeholder='" + esc(v.terminOd) + "'" : "") + "></label></div>" +
     vyber("uctovani", "Jak účtovat", [["pevna", "Pevná cena za rozsah (doporučeno)"], ["hodina", "Hodinově podle výkazu času"]], "pevná cena = jedna částka předem; hodinově = odhad a vyúčtování podle času") +
     vyber("status", "Stav zakázky", VYK_STAVY_ZAK.map(x => [x, x]), "termín a stav se ukážou v Plánu a Přehledu firmy") +
+    (v.uctovani !== "hodina" && vykSluzbaId(v) !== "vynaska" ? "<label class='chk' style='grid-column:1/-1'><input type='checkbox' data-vkb='likvidaceZvlast'" + (v.likvidaceZvlast ? " checked" : "") + "> Likvidaci účtovat zvlášť podle vážních lístků <span class='hint'>— cena za práci a odvoz + skutečná likvidace s přirážkou " + fmt0.format((S.vykSazby.prirazka || 0) * 100) + " %; riziko váhy nese klient</span></label>" : "") +
     (v.status === "zamítnuto" ? vyber("duvodProhry", "Proč jsme ji nedostali", [["", "— vyber —"]].concat(DUVODY_PROHRY.map(x => [x, x]))) +
       cislo("cenaViteze", "Cena, za kterou to vzal jiný", "Kč", "100", "když ji víš — Přehled pak ukáže, o kolik jsme dražší") : "") +
     "</div>" +
@@ -11049,9 +11138,10 @@ function vykPrepocet(){
     const rozhodlo = {trh:r.sluzba === "vynaska" ? "hodinová sazba vynášky " + kc(s.vynaskaOsH) + " na člověka" : "tržní cena " + kc(r.sazbaTrh) + "/m³ (Dopareal " + (r.sazbaTrh === s.trhSklep ? "1 115–1 490" : "1 019–1 119") + " Kč/m³)",
       vydelek:"dorovnáno na výdělek " + kc(r.cilHod) + " na člověkohodinu", minimum:"minimum " + (r.sluzba === "vynaska" ? "vynášky " : r.sluzba === "kusy" ? "kusového odvozu " : "zakázky ") + kc(r.minimum)}[r.rozhodlo];
     h += "<p class='hint' style='margin:8px 16px 4px'>Cenu určila " + rozhodlo + (r.sluzba === "odvoz" ? " · " + kc(r.kcNaM3) + "/m³" : "") + ".</p>" +
-      (r.priplatekKc || r.bremenoKc || r.protiucet ? R("Za práci", kc(r.cenaZaklad)) : "") +
+      (r.priplatekKc || r.bremenoKc || r.protiucet || r.odpadKlient ? R("Za práci" + (r.odpadKlient ? " a odvoz" : ""), kc(r.cenaZaklad)) : "") +
       (r.priplatekKc ? R("Příplatek " + [VK.vikend ? "víkend" : "", VK.expres ? "expres" : ""].filter(Boolean).join(" + ") + " " + fmt0.format(r.priplatky.pct * 100) + " %", "+" + kc(r.priplatekKc), "sub") : "") +
       (r.bremenoKc ? R("Těžká břemena " + r.priplatky.bremena + " ks", "+" + kc(r.bremenoKc), "sub") : "") +
+      (r.odpadKlient ? R("Likvidace podle vážních lístků — odhad", "+" + kc(r.odpadKlient), "sub") : "") +
       (r.protiucet ? R("Protiúčet za převzaté věci", "−" + kc(r.protiucet), "sub") : "") +
       (r.slevaKc ? R((VK.predem ? "Sleva za platbu předem " : "Sleva ") + vykPct(VK.sleva) + " %", "−" + kc(r.slevaKc), "sub") : "") +
       (r.dph ? R("DPH 21 %", kc(r.dph), "sub") : "") +
@@ -11061,7 +11151,8 @@ function vykPrepocet(){
 
   const naH = hodinove ? r.hodinove.naH : r.naH, pas = vkPasmo(naH, s);
   h += "<div class='card'><h2>Výdělek posádky</h2><div class='vk-vydelek " + pas[0] + "'><span class='hint'>Čistý výdělek na člověkohodinu</span><b>" + kc(naH) + " / h</b>" +
-    "<span class='hint'>" + pas[1] + " · minimum " + kc(s.tvrdeMinHod) + " · ideál od " + kc(s.cenaMinHod) + "</span></div>";
+    "<span class='hint'>" + pas[1] + " · minimum " + kc(s.tvrdeMinHod) + " · ideál od " + kc(s.cenaMinHod) + "</span>" +
+    "<span class='hint'>už po autě, likvidaci, pytlích a režii · po daních s.r.o. ≈ " + kc(naH * (1 - (vkEkon().dppo || 21) / 100) * (1 - (vkEkon().dividenda || 15) / 100)) + "/h — víc v Ekonomice firmy dole</span></div>";
   if (!hodinove && VK.sleva > 0 && r.naH + 1e-9 < s.cenaMinHod) {
     const pod = r.naH + 1e-9 < s.tvrdeMinHod, max = pod ? r.maxSleva.tvrde : r.maxSleva.min;
     h += "<div class='warnbox' style='margin:0 16px 10px'>⚠️<span><b>Sleva stáhla výdělek " + (pod ? "pod minimum" : "pod ideál") + ".</b> Nejvýš " + fmt1.format(max) + " %.</span><button class='b' id='vkMaxSleva' type='button' data-pct='" + max + "'>Sleva " + fmt1.format(max) + " %</button></div>";
@@ -11109,6 +11200,7 @@ function vykPrepocet(){
   if (r.varovani.length) h += "<div class='card'><h2>Zkontrolovat</h2><ul style='margin:0;padding:0 16px 12px 34px;font-size:13.5px'>" + r.varovani.map(w => "<li>" + esc(w) + "</li>").join("") + "</ul></div>";
   el.innerHTML = h;
   renderVkVyuctovani();
+  const ekon = $("#vkEkonDet"); if (ekon && ekon.open) renderVkEkon();
   return r;
 }
 
@@ -11206,7 +11298,7 @@ function vkZpravaKFotkam(){
   const v = VK, d = vykDispozice().find(x => x[0] === v.prostor), p = vykPlnosti().find(x => x[0] === v.plnost), st = vykStavy().find(x => x[0] === v.stav);
   const sl = vykSluzby().find(x => x[0] === vykSluzbaId(v));
   return ["Nacenit vyklízení.", "Služba: " + sl[1] + " (" + sl[2] + ")", "Adresa: " + (v.adresa || "…"),
-    vykSluzbaId(v) === "kusy" ? "Věci: …" : "Prostor: " + (d ? d[1] : "…") + ", " + (p ? p[1].toLowerCase() : "…"),
+    vykSluzbaId(v) === "kusy" ? "Věci: …" : "Prostor: " + (d ? d[1] : "…") + ", plocha " + (+v.plocha > 0 ? v.plocha + " m²" : "… m²") + ", " + (p ? p[1].toLowerCase() : "…") + ((v.doplnky || []).length ? ", navíc " + v.doplnky.join(", ") : ""),
     "Patro: " + v.patro + ", výtah: " + ({ne:"není / nejde použít", maly:"malý (jen drobné věci)", velky:"velký (vejde se nábytek)"}[v.vytah]) + ", od vchodu k autu: " + v.vzdalenost + " m",
     "Km od základny (jedna cesta): " + v.km, "Rozebírat nábytek: " + (v.rozebirat ? "ano" : "ne") + ", hrubý úklid: " + (v.uklid ? "ano" : "ne") + (v.vikend ? ", o víkendu" : "") + (v.expres ? ", expres" : ""), "Stav: " + (st ? st[1] : ""),
     "Co zůstává: " + (v.rozsahText || "…"), "Poznámky: …", "", "Fotky přikládám (všechny místnosti, otevřené skříně, sklep, balkon, schodiště). Vrať soupis, co jde prodat, cenu a blok VYK1."].join("\n");
@@ -11298,7 +11390,8 @@ $("#vkForm").addEventListener("change", e => {
 $("#vkForm").addEventListener("click", e => {
   const t = e.target.closest("button"); if (!t) return;
   const id = t.id, s = S.vykSazby;
-  if (t.dataset.vkprostor) { VK.prostor = t.dataset.vkprostor; if (["sklep", "puda", "garaz"].includes(VK.prostor) && VK.stav === "bezne") VK.stav = "prasne"; else if (!["sklep", "puda", "garaz"].includes(VK.prostor) && VK.stav === "prasne") VK.stav = "bezne"; vykUloz(); renderVyklizeni(); return; }
+  if (t.dataset.vkdoplnek) { const id = t.dataset.vkdoplnek; VK.doplnky = (VK.doplnky || []).includes(id) ? VK.doplnky.filter(x => x !== id) : (VK.doplnky || []).concat([id]); vykUloz(); renderVyklizeni(); return; }
+  if (t.dataset.vkprostor) { if (VK.prostor !== t.dataset.vkprostor) VK.plocha = 0; VK.prostor = t.dataset.vkprostor; if (vykSkladovy(VK.prostor)) VK.doplnky = []; if (["sklep", "puda", "garaz"].includes(VK.prostor) && VK.stav === "bezne") VK.stav = "prasne"; else if (!["sklep", "puda", "garaz"].includes(VK.prostor) && VK.stav === "prasne") VK.stav = "bezne"; vykUloz(); renderVyklizeni(); return; }
   if (t.dataset.vkplnost) { VK.plnost = t.dataset.vkplnost; vykUloz(); renderVyklizeni(); return; }
   if (t.dataset.vksluzba) {
     VK.sluzba = t.dataset.vksluzba; vykUloz(); renderVyklizeni();
@@ -11360,7 +11453,7 @@ function vkNactiVYK1(){
   try { o = vykZTextu($("#vkImport").value, vykKat()); } catch (err) { st.innerHTML = "<span class='ne'>" + esc(err.message) + "</span>"; return; }
   if ((VK.nazev || VK.polozky.length) && !VK.id && !confirm("Přepíše se rozpracovaná zakázka. Pokračovat?")) return;
   const nova = vykNovy();
-  ["nazev", "klient", "adresa", "poznamka", "zdroj", "sluzba", "prostor", "plnost", "stav", "vytah", "patro", "vzdalenost", "km", "lide", "kovyKg", "rozebirat", "uklid", "vikend", "expres"].forEach(k => { if (o[k] !== undefined) nova[k] = o[k]; });
+  ["nazev", "klient", "adresa", "poznamka", "zdroj", "sluzba", "prostor", "plocha", "doplnky", "plnost", "stav", "vytah", "patro", "vzdalenost", "km", "lide", "kovyKg", "rozebirat", "uklid", "vikend", "expres"].forEach(k => { if (o[k] !== undefined) nova[k] = o[k]; });
   nova.polozky = o.polozky; nova.prodej = o.prodej;
   if (!nova.nazev) nova.nazev = "Vyklízení " + new Date().toLocaleDateString("cs-CZ");
   VK = S.vykJob = nova; vykUloz(); renderVyklizeni();
@@ -11411,6 +11504,7 @@ $("#vkSeznamTb").addEventListener("click", e => {
   const tr = e.target.closest("tr"); if (!tr) return;
   const v = S.vyklizeni.find(x => x.id === tr.dataset.id); if (!v) return;
   if (e.target.classList.contains("vkOtevrit")) {
+    const det = $("#vkEkonDet"); if (det && det.open) setTimeout(renderVkEkon, 0);
     if (VK && !VK.id && (VK.nazev || VK.polozky.length) && !confirm("Rozpracovaná zakázka není uložená. Otevřít jinou?")) return;
     VK = S.vykJob = JSON.parse(JSON.stringify(v)); vykMigraceZakazky(VK); vykDoplnit(VK); vkHledatText = ""; vykUloz(); renderVyklizeni(); window.scrollTo(0, 0); return;
   }
@@ -11526,224 +11620,297 @@ function renderVkReference(){
 }
 $("#vkRefDet").addEventListener("toggle", e => { if (e.target.open) renderVkReference(); });
 
-/* ---------- balík pro Claude (projekt „Vyklízení — nacenění“) ---------- */
+/* ---------- balík pro Claude (projekt „Vyklízení — nacenění“) ----------
+   12 souborů generovaných z živých dat: instrukce projektu, výpočet s aktuálními sazbami, focení,
+   formát VYK1, odprodej, likvidace, rizika, ekonomika, vzorové zakázky spočítané teď, katalog a trh. */
+const KB = "```";
 function vkBalikVerze(){ return new Date().toLocaleDateString("cs-CZ") + " · kalkulačka " + location.host; }
+const vkT = (x, d) => (Math.round((+x || 0) * Math.pow(10, d || 0)) / Math.pow(10, d || 0)).toLocaleString("cs-CZ");
+
 function vkSoubor00(){
-  return `# Začni tady — nacenění vyklízení přes Claude
+  return `# Začni tady — projekt „Vyklízení — nacenění“ v Claudovi
 
-## Založení projektu (jednou)
-1. Na claude.ai → **Projects** → **Create project** → název „Vyklízení — nacenění“.
-2. Do **Project instructions** vlož celý obsah souboru **01-ROLE-A-POSTUP.md**.
-3. Do **Project knowledge** nahraj všechny ostatní soubory z tohoto balíku.
-4. Když máš možnost, zapni v projektu vyhledávání na webu — Claude pak ověří prodejní ceny věcí.
+Z fotek a pár údajů dostaneš do pár minut: soupis věcí, co se dá prodat a za kolik (ověřené na webu),
+kam co odvézt nejlevněji, kolik to zabere, cenu pro klienta, pod kolik nejít a blok VYK1 do kalkulačky.
 
-## Každá zakázka
-1. Na prohlídce nafoť **všechny místnosti, otevřené skříně a šuplíky, sklep, půdu, balkon, schodiště a cestu k autu** (seznam v souboru 03).
-2. V kalkulačce dej **Vyklízení → Zpráva k fotkám**, doplň a pošli ji do projektu i s fotkami.
-3. Claude se doptá, co chybí, a vrátí soupis, co jde prodat, cenu a blok **VYK1**.
-4. Blok zkopíruj → **Vyklízení → Nacenit z fotek přes Claude → Načíst VYK1**.
-5. Zkontroluj soupis, doplň klienta, ulož a vytiskni nabídku.
+## Založení (jednou, 10 minut)
+1. claude.ai → **Projects** → **Create project** → název „Vyklízení — nacenění“.
+2. **Instructions** (Nastavit instrukce): vlož celý obsah souboru **01-INSTRUKCE-PROJEKTU.md**.
+3. **Project knowledge**: nahraj všechny ostatní soubory z balíku (02 až 11).
+4. V chatu projektu zapni **vyhledávání na webu** (ikona nástrojů) — bez něj Claude neověří prodejní ceny.
+5. Hotovo. Aplikace Claude v telefonu vidí stejný projekt.
+
+## Na místě — rychlá cena (2 minuty)
+Pošli 2–4 fotky a napiš **RYCHLE** + dispozici, plochu, patro, výtah a km. Dostaneš rozpětí ceny,
+objem, dny, nejnižší cenu a 3 otázky, které se vyplatí položit klientovi hned.
+
+## Pevná cena — plné nacenění
+1. Nafoť podle souboru 03 (všechny místnosti, otevřené skříně, sklep, balkon, štítky spotřebičů).
+2. V kalkulačce **Vyklízení → Nacenit z fotek přes Claude → 📋 Zpráva k fotkám** — vyplní údaje zakázky.
+3. Pošli zprávu i fotky do projektu. Claude se doptá, co chybí, a vrátí celé nacenění s blokem **VYK1**.
+4. Blok zkopíruj do **Načíst VYK1**, zkontroluj soupis, doplň klienta a vytiskni nabídku.
+
+## Užitečné dotazy v projektu
+- **PRODEJ** + fotky konkrétních věcí — důkladně ověří hodnotu, značky a kam to prodat.
+- **LIKVIDACE** — plán třídění: co do výkupu, co zdarma, co na skládku a kolik se ušetří.
+- **ZPRÁVA** — text pro klienta s cenou (tykání/vykání podle toho, jak klient psal).
+- **KONTROLA** + tvoje cena od konkurence nebo klienta — řekne, jestli se to vyplatí a kde je riziko.
 
 ## Kdy balík stáhnout znovu
-Po změně sazeb, cen likvidace, norem nebo katalogu věcí. Verze: ${vkBalikVerze()}
+Po změně sazeb, cen likvidace, norem nebo katalogu (Vyklízení → 📦 Balík pro Claude). Verze: ${vkBalikVerze()}
 `;
 }
+
 function vkSoubor01(){
   const n = S.nastaveni, s = S.vykSazby;
-  return `# Kdo jsi a jak pracuješ
+  return `# Instrukce projektu — rozpočtář vyklízení
 
-Jsi rozpočtář vyklízení firmy ${n.firma || "(naše firma)"}${n.znacka ? " (" + n.znacka + ")" : ""}. Vyklízíme byty, domy, sklepy, půdy a garáže
-ze Zábřehu, parta jsou 2 lidi s vlastní dodávkou. Z fotek a popisu uděláš soupis věcí, najdeš, co se dá prodat,
-a spočítáš cenu podle našich pravidel. Jsi kolega, kterému jde o to, aby firma vydělala a nic nezůstalo nedomluvené.
+## Kdo jsi
+Jsi zkušený rozpočtář a obchodník vyklízecí firmy ${n.firma || "(naše firma)"}${n.znacka ? " (" + n.znacka + ")" : ""} ze Zábřehu.
+Parta jsou 2 lidé s vlastní dodávkou, vyklízíme byty, domy, sklepy, půdy a garáže na Šumpersku, Zábřežsku a Olomoucku.
+Tvůj úkol: z fotek a údajů co nejrychleji a nejpřesněji určit **rozsah, čas, náklady, cenu a výdělek** — a najít,
+**kde se dá vydělat víc**: co prodat, co vykoupit, co odvézt zdarma a jak ušetřit na likvidaci.
+Jsi kolega, kterému jde o to, aby firma vydělala a klient dostal férovou, jasnou cenu.
 
 ## Pravidla, která nikdy neporušíš
-1. **Věci bereš z katalogu 07-KATALOG-VECI.csv — ID doslova.** Co v katalogu není, zapíšeš jako \`vlastni:\` s odhadem objemu, váhy a času.
-2. **Počítáš podle 02-JAK-POCITAT.md.** Naše sazby jsou naše sazby, nevymýšlej tržní průměry.
-3. **Když chybí údaj, který mění cenu, zeptáš se:** jestli jde o vyklízení s odvozem, jen vynášku (odvoz zajistí klient) nebo pár kusů,
-   patro, výtah a jestli se do něj vejde nábytek, vzdálenost od vchodu k autu, co zůstává, jestli se vyklízí sklep, půda a balkon,
-   co je v zavřených skříních, stav prostoru, termín (víkend, expres).
-4. **Co nevidíš, nepočítáš jako jisté.** Obsah zavřených skříní odhadni a výslovně označ.
-5. **Prodejní hodnotu odhaduješ jako výkupní cenu** — co reálně dá výkupna nebo za kolik se věc skutečně prodá, ne cenu
-   z nejdražšího inzerátu. Jistotu značíš jista / mozna / nejista. Když můžeš hledat na webu, ověř prodané inzeráty a napiš zdroj.
-6. **Pod ${s.cenaMinHod} Kč čistého výdělku na člověkohodinu nejdeme** (absolutní minimum ${s.tvrdeMinHod}). Když ti to vyjde níž, napiš to jako první.
-7. **Na konci vždy blok VYK1** podle 04-FORMAT-VYK1.md, v jednom code bloku, bez komentářů uvnitř.
+1. **Počítáš podle 02-JAK-POCITAT.md** a našich sazeb. Nevymýšlíš jiné sazby ani „tržní průměr“.
+2. **Věci bereš z 10-KATALOG-VECI.csv s přesným ID.** Co v katalogu není, zapíšeš jako \`vlastni:\` s odhadem m³, kg, minut a nošení.
+3. **Když chybí údaj, který mění cenu, zeptáš se** (seznam v 03). Méně důležité věci doplníš předpokladem a výslovně ho napíšeš.
+4. **Co nevidíš, nepočítáš jako jisté.** Zavřené skříně, sklep bez fotky, půdu — odhadni a označ „odhad bez fotky“.
+5. **Prodejní ceny ověřuješ na webu** (postup v 05) a počítáš s **výkupní nebo reálně dosažitelnou** cenou, ne s nejdražším inzerátem.
+   Každou částku doložíš: kde jsi hledal a co jsi našel. Když web nemáš, napiš „neověřeno“ a jistotu dej nejvýš „mozna“.
+6. **Pod ${s.tvrdeMinHod} Kč čistého výdělku na člověkohodinu nejdeme**, cena se sama dorovná na ${s.cenaMinHod}. Když to nevychází, napiš to jako první.
+7. **Likvidaci plánuješ podle 06** — nejlevnější legální cesta pro každý druh odpadu. Kód odpadu nikdy nevolíš podle ceny.
+8. **Nic si nevymýšlíš.** Neznáš-li cenu, zákon nebo podmínku zařízení, napiš, co ověřit a u koho (telefon je v souborech).
+9. **Na konci plného nacenění vždy blok VYK1** podle 04, v jednom code bloku.
 
-## Postup
-1. **Projdi fotky po místnostech** — vypiš viditelné věci s počty; zvlášť sklep, půda, balkon, garáž.
-2. **Zeptej se** na to, co chybí (03-CO-FOTIT-A-ZJISTIT.md). Méně důležité věci dopočítej rozumným předpokladem a označ ho.
-3. **Soupis** — ID z katalogu a počet v jeho MJ (ks, bm, m³, m², kpl).
-4. **Odprodej a výkup** — podle 05-ODPRODEJ-A-VYKUP.md: co stojí za prodej, výkupní cena, jistota, kam to prodat, jestli nabídnout protiúčet.
-5. **Výpočet** — podle 02: objem, hmotnost, jízdy, člověkohodiny, náklady, tržní cena, cena pro výdělek, cena.
-6. **Odpověď** v tomto pořadí:
-   1. Co vyklízíme (jedna věta).
-   2. Co jsem si domyslel (odrážky).
-   3. Soupis po místnostech (tabulka: věc, počet, m³).
-   4. Objem, hmotnost, jízdy, člověkohodiny a kolik dní.
-   5. Cena pro klienta, kolik vyděláme na člověkohodinu a pod kolik při vyjednávání nejít.
-   6. Co prodat nebo vykoupit a za kolik — a jestli nabídnout protiúčet.
-   7. Rizika a co domluvit (odpojení spotřebičů, nebezpečný odpad, pověření u pozůstalosti, parkování).
-   8. Blok VYK1.
+## Režimy
+### RYCHLE (na místě, klient čeká)
+Odpověz do 12 řádků:
+1. Co vyklízíme a kolik m³ (dispozice × plocha × zaplnění, jedna věta s předpokladem).
+2. **Cena pro klienta: rozpětí** (−10 % / +30 % od výpočtu) a za kolik dní.
+3. **Nejníž** (drží ${s.tvrdeMinHod} Kč/čl.h) — interní, klientovi neříkat.
+4. Co tam na první pohled může mít hodnotu (max 3 věci).
+5. 3 otázky, které cenu nejvíc zpřesní.
+Blok VYK1 dej jen s dispozicí, plochou, plností a přístupem (bez soupisu).
+
+### PLNĚ (výchozí, když nenapíšu RYCHLE)
+Postup níže, odpověď ve struktuře „Formát odpovědi“.
+
+### PRODEJ, LIKVIDACE, ZPRÁVA, KONTROLA
+- **PRODEJ:** jen odprodej podle 05, důkladně, s odkazy na nalezené inzeráty a doporučeným kanálem.
+- **LIKVIDACE:** plán třídění podle 06 — proudy, kg, kam, cena, úspora proti „všechno do objemného“.
+- **ZPRÁVA:** text pro klienta (bez interních čísel, bez nejnižší ceny a výdělku).
+- **KONTROLA:** porovnej zadanou cenu s naším výpočtem a trhem (08, 11) a řekni, jestli ji vzít.
+
+## Postup plného nacenění
+1. **Třídění zadání:** druh služby (s odvozem / jen vynáška / pár kusů), dispozice a **plocha v m²**, zaplnění, sklep/půda/garáž,
+   patro a výtah (vejde se nábytek?), metry k autu, km od Zábřehu, termín (víkend, expres), stav prostoru (kontaminace?).
+2. **Soupis po místnostech** z fotek: věc (ID z katalogu), počet v MJ katalogu, poznámka. Zvlášť sklep, půda, balkon, garáž.
+   Hlídej těžká břemena (piano, trezor, litinová vana) a nebezpečný odpad (barvy, chemie, eternit, azbest).
+3. **Hodnota:** projdi fotky podle kontrolního seznamu v 05 (značky, design, štítky, stáří). U každé věci s možnou hodnotou ověř cenu na webu.
+4. **Plán likvidace** podle 06: kg po proudech, kam, cena, co jde zdarma (kovy, elektro, re-use, charita).
+5. **Výpočet** podle 02: objem, kg, jízdy, člověkohodiny, náklady, tržní cena, cena pro výdělek, příplatky, cena, výdělek, nejnižší cena.
+6. **Páky:** navrhni, co zvedne výdělek právě u téhle zakázky (08): protiúčet, likvidace podle lístků, příplatek, třídění, hodinové účtování.
+7. **Kontrola** (konec 02) a odpověď.
+
+## Formát odpovědi (PLNĚ)
+1. **Shrnutí** — jedna věta: co, kde, kolik m³, kolik dní, cena.
+2. **Předpoklady** — odrážky (co jsem si domyslel, co nevidím).
+3. **Soupis po místnostech** — tabulka: věc | ID | počet | m³ | pozn.
+4. **Objem, hmotnost, jízdy, člověkohodiny, dny.**
+5. **Cena pro klienta** (pevná, případně rozpětí) · **záloha ${Math.round((s.zaloha || 0) * 100)} %** · **výdělek na čl.h** · **nejníž** · hodinově pro srovnání.
+6. **Odprodej a výkup** — tabulka: věc | výkupní cena/ks | jistota | kanál | zdroj ověření | protiúčet ano/ne; součet jistý/možný.
+7. **Likvidace** — tabulka proudů: druh | kód | kg | kam | Kč; úspora tříděním.
+8. **Jak vydělat víc** — 2–4 konkrétní kroky s částkou.
+9. **Rizika a co domluvit** — odpojení spotřebičů, nebezpečný odpad, pověření u pozůstalosti, parkování, zábor.
+10. **Text pro klienta** — krátká zpráva s cenou (bez interních čísel).
+11. **VYK1** — code blok.
 
 ## Tón
-Česky, věcně, tykej mi, bez omáčky. Čísla v Kč bez desetin. Přiznaná nejistota je lepší než sebevědomý odhad, na kterém prodělám.
+Česky, věcně, tykej mi, bez omáčky. Čísla v Kč bez haléřů, tisíce s mezerou. Tabulky místo odstavců, kde to jde.
+Přiznaná nejistota je lepší než sebevědomý odhad, na kterém prodělám.
 `;
 }
+
 function vkSoubor02(){
   const s = S.vykSazby, platce = vykPlatce();
   const ukazka = Object.assign(vykNovy(), {prostor:"21", plnost:"bezne", patro:3, vytah:"ne", vzdalenost:15, km:20, rozebirat:true});
   const r = vykSpocitej(ukazka, s, vykKat(), platce);
-  const t = (x, d) => (Math.round(x * Math.pow(10, d || 0)) / Math.pow(10, d || 0)).toLocaleString("cs-CZ");
+  const t = vkT, e = vkEkon(), auto = vykEkonAuto(e);
   return `# Jak se počítá vyklízení — kompletní model
 
-Verze: ${vkBalikVerze()}. Všechna čísla jsou naše aktuální nastavení. ${platce ? "Jsme plátci DPH (21 %)." : "Nejsme plátci DPH — cena je konečná a DPH zařízení na odpad je náš náklad."}
+Verze: ${vkBalikVerze()}. Všechna čísla jsou naše aktuální nastavení. ${platce ? "Jsme plátci DPH (21 %)." : "Nejsme plátci DPH — cena je konečná a DPH zařízení na odpad, nafty a nákupů je náš náklad."}
 
 ## 1. Rozsah
 **Ze soupisu:** objem = Σ počet × m³, hmotnost = Σ počet × kg, příprava = Σ počet × minuty (když se nerozebírá, nejvýš 5 min na kus;
 kuchyňská linka, vestavěné skříně a obývací stěna se rozebírají vždy), nošení = Σ počet × nošení × lidí na nošení.
 
-**Bez soupisu (rychlý odhad) — naložený objem v m³:**
+**Bez soupisu (rychlý odhad) — naložený objem v m³ při typické ploše:**
 
-| Prostor | Prázdnější | Běžně zařízené | Plné | Přeplněné |
-|---|---:|---:|---:|---:|
-${vykDispozice().map(d => "| " + d[1] + " | " + d[2].map(x => t(x * (s.koefObjem || 1), 1)).join(" | ") + " |").join("\n")}
+| Prostor | Typická plocha | Prázdnější | Běžně zařízené | Plné | Přeplněné |
+|---|---:|---:|---:|---:|---:|
+${vykDispozice().map(d => "| " + d[1] + " | " + d[3] + " m² | " + d[2].map(x => t(x * (s.koefObjem || 1), 1)).join(" | ") + " |").join("\n")}
 
+**Jiná plocha:** objem = objem z tabulky × zadaná plocha / typická plocha. U bytů a domů to je zhruba **0,13 / 0,27 / 0,40 / 0,58 m³ na m²**.
+**Sklep, půda, garáž navíc** k bytu nebo domu: přičti jejich objem z tabulky při stejném zaplnění; hmotnost ${s.kgSklep} kg/m³, tržní sazba sklepů.
 Hmotnost: prázdnější ${s.kgPrazdne}, běžně ${s.kgBezne}, plné ${s.kgPlne}, přeplněné ${s.kgPreplnene} kg/m³; sklep, půda, garáž ${s.kgSklep} kg/m³.
 Příprava: rozebírání ${s.minRozebiraniM3} + balení ${s.minBaleniM3} člověkominut na m³; nošení ${s.noseniM3} na m³.
 Složení odpadu u rychlého odhadu: objemný 55 %, směsný 25 %, elektro 8 %, kovy 5 %, textil 5 %, nespalitelné 2 %.
 
 ## 2. Čas na místě
-\`\`\`
+${KB}
 sekundy na jedno nošení = ${s.cyklusSek} + ${s.vzdalSek} za každých 10 m nad 10 m
                          + patro × ${s.patroSek} (malý výtah polovina; velký výtah jen ${s.vytahSek} s čekání)
 člověkohodiny na místě  = (příprava / 60 + nošení × sekundy / 3600) × násobek stavu × kalibrace ${s.koefCas || 1}
-\`\`\`
+${KB}
 Stav prostoru (násobek času / násobek výdělku): ${vykStavy().map(x => x[1] + " " + String(x[2]).replace(".", ",") + " / " + String(x[3]).replace(".", ",")).join("; ")}.
 Hrubý úklid: ${s.minUklidM2} člověkominuta na m² podlahy.
 
 ## 3. Doprava
-\`\`\`
-jízdy        = max(1, objem / ${s.objemVozu} m³, kg / ${s.nosnost} kg)      — nahoru
+${KB}
+jízdy        = max(1, objem / ${s.objemVozu} m³, kg / ${s.nosnost} kg)      — nahoru (jen vynáška: 1)
 km celkem    = jízdy × 2 × km od základny (nejméně 10)
 cesta        = km celkem / ${s.rychlost} km/h × lidé
-vykládka     = jízdy × ${s.vykladkaH} h × lidé
-\`\`\`
+vykládka     = jízdy × ${s.vykladkaH} h × lidé (jen vynáška: 0)
+${KB}
 
-## 4. Náklady (vlastní práce se NEPOČÍTÁ)
-- vůz ${s.vuzKm} Kč/km + ${s.vuzFix} Kč na zakázku
-- likvidace podle druhu odpadu (Kč/t bez DPH${platce ? "" : ", +21 % DPH jako náklad"}):
+## 4. Náklady zakázky (vlastní práce se NEPOČÍTÁ)
+- **auto ${t(s.vuzKm, 1)} Kč/km + ${t(s.vuzFix)} Kč na zakázku** — nafta ${t(e.nafta, 1)} Kč/l × ${t(e.spotreba, 1)} l/100 km = ${t(auto.palivo, 1)} Kč/km, servis a pneu ${t(auto.servis, 1)}, odpis ${t(auto.odpis, 1)} Kč/km; pojištění a STK rozpočtené na zakázky
+- likvidace podle druhu odpadu (Kč/t bez DPH${platce ? "" : ", +21 % DPH jako náklad"}; kam s čím v 06):
 ${vykProudy().map(p => "  - " + p[1] + ": " + t(s["o_" + p[0]] != null ? s["o_" + p[0]] : p[2]) + " Kč/t — " + p[3]).join("\n")}
-- pytle a fólie ${s.materialM3} Kč/m³, režie ${s.rezie} Kč, provize z ceny, když je dohodnutá
-- výkup kovů ${t(s.kovyKcKg, 1)} Kč/kg jako příjem
+- pytle a fólie ${t(s.materialM3, 2)} Kč/m³, režie ${t(s.rezie)} Kč na zakázku, provize z ceny, když je dohodnutá
+- výkup kovů ${t(s.kovyKcKg, 1)} Kč/kg jako příjem (u vynášky ne)
 
 ## 5. Cena (pevná, za rozsah)
-\`\`\`
-tržní cena        = objem × ${s.trhByt} Kč/m³ (sklep, půda, garáž ${s.trhSklep}; u kontaminace se nepoužije)
+${KB}
+tržní cena        = objem × ${s.trhByt} Kč/m³ (sklep, půda, garáž ${s.trhSklep}; u kontaminace a u likvidace zvlášť se nepoužije)
 cena pro výdělek  = (náklady − výkup kovů + ${s.cenaMinHod} × násobek výdělku × člověkohodiny) / (1 − provize)
-cena              = nahoru na 100 Kč z max(tržní cena, cena pro výdělek, minimum ${s.minZakazka})
+cena za práci     = nahoru na 100 Kč z max(tržní cena, cena pro výdělek, minimum)
+cena              = cena za práci + příplatky + těžká břemena (+ odhad likvidace, když se účtuje zvlášť)
 protiúčet         = odečte se z hotové ceny, pak případná sleva
 výdělek na čl.h   = (cena bez DPH − provize − náklady + výkup kovů + hodnota protiúčtu) / všechny člověkohodiny
-\`\`\`
+${KB}
+Minimum: s odvozem ${t(s.minZakazka)} Kč, jen vynáška ${t(s.minVynaska)} Kč, pár kusů ${t(s.minKusy)} Kč.
 U rychlého odhadu říkej klientovi rozpětí −10 % / +30 %. Po soupisu z fotek je cena pevná za popsaný rozsah.
 
 ## 5a. Druh služby
 - **Vyklízení s odvozem** (\`sluzba: odvoz\`) — vše výše.
-- **Jen vynáška** (\`sluzba: vynaska\`) — rozebereme a vyneseme do kontejneru klienta nebo před dům. Jedna cesta posádky, žádné jízdy s odpadem,
-  žádná likvidace ani výkup kovů. Tržní cena = hodinový odhad vynášky (${s.vynaskaOsH} Kč na člověka a hodinu, nejméně ${s.hMin} h) + doprava; minimum ${s.minVynaska} Kč.
-- **Pár kusů** (\`sluzba: kusy\`) — kusový odvoz (sedačka, pračka, skříň). Počítá se jen ze soupisu, bez tržní ceny za m³; minimum ${s.minKusy} Kč.
+- **Jen vynáška** (\`sluzba: vynaska\`) — rozebereme a vyneseme do kontejneru klienta nebo před dům. Jedna cesta posádky,
+  žádná likvidace ani výkup kovů. Tržní cena = ${t(s.vynaskaOsH)} Kč na člověka a hodinu na místě (nejméně ${s.hMin} h) + doprava.
+- **Pár kusů** (\`sluzba: kusy\`) — kusový odvoz. Jen ze soupisu, bez tržní ceny za m³.
   Trh: Global pračka/lednice/skříň 1 200–1 700, Dopareal 1 379–1 949, sedačka 1 890–3 679, Matuška pár kusů od 1 990 Kč.
 
-## 5b. Příplatky a těžká břemena (přičítají se k ceně nad pravidlo výdělku)
-- víkend nebo svátek +${s.vikendPct} %, expres do 48 h +${s.expresPct} % (z ceny za práci, nahoru na 100 Kč)
-- těžké břemeno (věci s příznakem v katalogu — piano, trezor, litinová vana): ${s.bremenoKs} Kč za kus + ${s.bremenoPatro} Kč za každé patro bez velkého výtahu
+## 5b. Příplatky a těžká břemena (nad pravidlo výdělku)
+- víkend nebo svátek +${t(s.vikendPct)} %, expres do 48 h +${t(s.expresPct)} % (z ceny za práci, nahoru na 100 Kč)
+- těžké břemeno (piano, trezor, litinová vana): ${t(s.bremenoKs)} Kč za kus + ${t(s.bremenoPatro)} Kč za každé patro bez velkého výtahu
   a za každých dalších 20 m donášky nad 20 m (Stěhujeme Hned: 100–199 kg 1 600 Kč + 250 Kč)
 
-## 5c. Nejnižší cena při vyjednávání
-\`\`\`
+## 5c. Likvidace zvlášť podle vážních lístků (volitelně)
+Cena za práci a odvoz se počítá bez likvidace a bez tržní ceny; likvidace = skutečné lístky × ${t(1 + s.prirazka, 2)}.
+V nabídce je odhad likvidace. Takhle účtuje Vektos (500 Kč/100 kg) i Formánek (skládkovné zvlášť). Riziko váhy nese klient.
+
+## 5d. Nejnižší cena při vyjednávání (interní)
+${KB}
 nejníž = nahoru na 100 Kč z (${s.tvrdeMinHod} × člověkohodiny + náklady − výkup kovů − protiúčet) / (1 − provize)
 s jistým odprodejem = (${s.tvrdeMinHod} × (člověkohodiny + čas na prodej) + náklady − výkup kovů − protiúčet − jistý prodej) / (1 − provize)
-čas na prodej: bazar ${s.prodejBazarH} h na kus, výkupna ${s.prodejVykupH} h na položku, kovošrot 0
-\`\`\`
+čas na prodej: bazar ${t(s.prodejBazarH, 1)} h na kus, výkupna ${t(s.prodejVykupH, 1)} h na položku, kovošrot 0
+${KB}
 
-## 6. Hodinově (jen když klient chce)
-Posádka 2 lidé s dodávkou ${s.hPosadka} Kč/h, každý další ${s.hDalsi} Kč/h, nejméně ${s.hMin} h a dál po 15 min; doprava ${s.kmSazba} Kč/km nad ${s.kmZdarma} km;
-vykládka ${s.vykladka} Kč za jízdu; likvidace podle vážních lístků a materiál + ${vykPct(s.prirazka)} %. Když to nedrží výdělek, přidá se „výjezd posádky“.
-Jen vynáška: ${s.vynaskaOsH} Kč na člověka a hodinu, bez vykládky a likvidace. Příplatky a těžká břemena se přidají jako samostatné řádky.
+## 6. Hodinově (jen když klient chce nebo rozsah nejde odhadnout)
+Posádka 2 lidé s dodávkou ${t(s.hPosadka)} Kč/h, každý další ${t(s.hDalsi)} Kč/h, nejméně ${s.hMin} h a dál po 15 min; doprava ${t(s.kmSazba)} Kč/km nad ${s.kmZdarma} km;
+vykládka ${t(s.vykladka)} Kč za jízdu; likvidace podle vážních lístků a materiál + ${vykPct(s.prirazka)} %. Když to nedrží výdělek, přidá se „výjezd posádky“.
+Jen vynáška: ${t(s.vynaskaOsH)} Kč na člověka a hodinu, bez vykládky a likvidace. Příplatky a těžká břemena jako samostatné řádky.
 
 ## 7. Trh pro kontrolu
-Na klíč: Global 790–990, vyklizenilevne 799–999, Dopareal 1 019–1 119 Kč/m³; sklepy a půdy 990–1 490 Kč/m³.
-Posádka s vozem: Zlín 950, vyklidto.cz 1 050, JetStar a Čechmánek 1 100, Vektos 1 200, Bočánek Olomouc 1 500 Kč/h.
-Paušály Roman Vyklízení (i Šumperk): 1+kk od 2 500, 2+kk od 4 000, 3+kk od 5 500, 4+1 od 8 500, RD od 9 500 Kč.
-Příklady: pokoj 6 500, menší byt 12 000, běžný byt s likvidací 15–18 tis. Kč (Brno).
+Na klíč: Global 790–990, vyklizenilevne 799–999, Dopareal 1 019–1 119 Kč/m³ (působí i v Olomouci a Šumperku); sklepy a půdy 990–1 490 Kč/m³.
+Plná dodávka 12 m³: Dopareal od 12 499, Global 9 530 Kč. Praha Vektos: 2+kk 13–22 tis., 3+kk 22–30 tis. Kč (6–10 h práce).
+Posádka s vozem: Zlín 950, vyklidto.cz 1 050, JetStar a Čechmánek 1 100, Vektos 1 200 (3 lidé 1 600), Bočánek Olomouc 1 500 Kč/h.
+Paušály „od“: Roman Vyklízení (i Šumperk) 1+kk 2 500, 2+kk 4 000, 3+kk 5 500, 4+1 8 500, RD 9 500; Formánek 2+1 od 5 500 **bez skládkovného**.
+Příklady: pokoj 6 500, menší byt 12 000, běžný byt s likvidací 15–18 tis., rodinný dům 20 000 Kč (Brno).
 
 ## 8. Příklad — spočítáno teď
-Byt 2+1 běžně zařízený, 3. patro bez výtahu, 15 m k autu, 20 km od základny, rozebírat:
+Byt 2+1 běžně zařízený (55 m²), 3. patro bez výtahu, 15 m k autu, 20 km od základny, rozebírat:
 ${r.ok ? `- objem ${t(r.rozsah.V, 1)} m³, ${t(r.rozsah.kg)} kg, ${r.cas.jizdy} jízdy, ${t(r.cas.os, 1)} člověkohodin (na místě ${t(r.cas.misto, 1)}), ${r.cas.dny} den/dny
-- náklady ${t(r.naklady.celkem)} Kč (vůz ${t(r.naklady.vuz)}, likvidace ${t(r.naklady.odpad)}, materiál ${t(r.naklady.material)}, režie ${t(r.naklady.rezie)}), výkup kovů +${t(r.naklady.kovy)} Kč
-- tržní cena ${t(r.trh)} Kč, cena pro výdělek ${t(r.proVydelek)} Kč → **cena ${t(r.gross)} Kč** (${t(r.kcNaM3)} Kč/m³), výdělek **${t(r.naH)} Kč na člověkohodinu**` : "(nepodařilo se spočítat)"}
+- náklady ${t(r.naklady.celkem)} Kč (auto ${t(r.naklady.vuz)}, likvidace ${t(r.naklady.odpad)}, materiál ${t(r.naklady.material)}, režie ${t(r.naklady.rezie)}), výkup kovů +${t(r.naklady.kovy)} Kč
+- tržní cena ${t(r.trh)} Kč, cena pro výdělek ${t(r.proVydelek)} Kč → **cena ${t(r.gross)} Kč** (${t(r.kcNaM3)} Kč/m³), výdělek **${t(r.naH)} Kč na člověkohodinu**, nejníž ${t(r.nejnizsi.tvrde)} Kč` : "(nepodařilo se spočítat)"}
+Další spočítané příklady jsou v 09.
 
 ## Kontrola před odevzdáním
 - Kč/m³ u běžného bytu vychází zhruba 790–1 500; když ne, hledej chybu v objemu nebo v počtech.
+- Objem odpovídá fotkám: plná dodávka je ${s.objemVozu} m³; 2+1 běžně zařízený bývá 12–18 m³.
 - Výdělek na člověkohodinu ≥ ${s.cenaMinHod}; když ne, napiš to jako první.
-- Piana, trezory, věci nad 100 kg a nebezpečný odpad jsou označené „zvlášť“.
-- Objem odpovídá fotkám: plná dodávka je ${s.objemVozu} m³.
+- Těžká břemena jsou v soupisu jako piano/trezor/vana (ne jako vlastní věc), nebezpečný odpad je „zvlášť“.
+- Odprodej má u každé částky zdroj a jistotu; do ceny se nepočítá nic kromě protiúčtu.
 `;
 }
+
 function vkSoubor03(){
   return `# Co nafotit a zjistit na prohlídce
 
 ## Fotky (bez nich se neceňuje)
-- **Každá místnost** ze dvou rohů, aby byly vidět všechny stěny.
-- **Otevřené skříně, šuplíky, kuchyňské skříňky** — obsah dělá půlku práce.
-- **Sklep, půda, komora, balkon, lodžie, garáž** — často se zapomínají a jsou nejplnější.
-- **Schodiště a výtah** (dveře výtahu i kabina), **cesta od vchodu k autu**.
-- **Těžké a zvláštní věci:** piano, trezor, litinová vana a radiátory, akvária, sbírky.
-- **Věci, které můžou mít hodnotu:** štítky spotřebičů (rok výroby), nábytek 60.–80. let, obrazy, knihy, nářadí.
+- **Každá místnost** ze dvou protilehlých rohů, aby byly vidět všechny stěny a podlaha.
+- **Otevřené skříně, šuplíky, kuchyňské skříňky, komory** — obsah dělá půlku práce i hmotnosti.
+- **Sklep, půda, balkon, lodžie, garáž, kůlna** — často se zapomínají a bývají nejplnější.
+- **Schodiště, výtah** (otevřené dveře a kabina, ať je vidět rozměr), **cesta od vchodu k autu**, kde zastaví dodávka.
+- **Těžké a zvláštní věci:** piano, trezor, litinová vana a radiátory, akvária, pracovní stůl, sbírky.
+- **Věci, které můžou mít hodnotu (detail):** štítek spotřebiče s typem a rokem, značka na kole a nářadí, spodek a záda nábytku
+  (štítek výrobce, razítko „UP Závody“, „TON“, „Jitona“, „Interiér Praha“), podpis na obraze, dno porcelánu a skla (značka),
+  hřbety knih, obal gramodesek, hodinky a hodiny, mince a známky.
+- **Nebezpečné věci:** barvy, chemie, oleje, léky, eternit, azbest (střešní a fasádní desky, izolace kolem kamen).
+
+## Plocha v m²
+Když ji klient neví: z nabídky realitky, z výpisu z katastru, nebo odhadni po místnostech (běžný pokoj 12–18 m², kuchyň 8–12 m²).
+U domu napiš i počet podlaží a zvlášť sklep a půdu.
 
 ## Otázky pro klienta
 **Bez tohohle to nejde:**
+- Co přesně se vyklízí a **co zůstává** (kuchyňská linka, lustry, vestavěné skříně, věci pro rodinu).
 - Patro, výtah — a jestli se do něj vejde nábytek. Kolik schodů je před výtahem.
-- Kde zastaví dodávka a jak daleko je ke vchodu. Je potřeba povolení k parkování?
-- **Co zůstává** (kuchyňská linka, lustry, vestavěné skříně, věci pro rodinu).
-- Vyklízí se i sklep, půda, balkon, garáž?
+- Kde zastaví dodávka a jak daleko je ke vchodu. Je potřeba povolení k parkování nebo zábor?
+- Vyklízí se i sklep, půda, balkon, garáž? Jak velké jsou?
 
 **Důležité:**
 - Kdo odpojí vodu, plyn a elektřinu u spotřebičů (plyn jen oprávněná osoba).
-- Jsou tam barvy, chemie, léky, eternit nebo azbest? (nebezpečný odpad je zvlášť)
-- Jde o pozůstalost nebo exekuci? → potřebujeme písemné pověření oprávněné osoby.
-- Chce klient věci s hodnotou odprodat nebo započíst? Jsou tam dokumenty, cennosti, fotografie, které se musí vytřídit?
-- Termín, do kdy musí být hotovo. Úklid po vyklizení ano/ne.
+- Jsou tam barvy, chemie, léky, eternit nebo azbest?
+- Jde o pozůstalost, exekuci nebo byt po nájemníkovi? → u pozůstalosti a exekuce písemné pověření oprávněné osoby.
+- Chce klient věci s hodnotou prodat sám, nebo je nabídnout nám na protiúčet? Mají se vytřídit dokumenty, fotky, cennosti?
+- Termín: do kdy musí být hotovo, víkend, expres? Úklid po vyklizení?
 
 ## Jak to poslat Claudovi
-Použij tlačítko **Zpráva k fotkám** v kalkulačce — vyplní patro, výtah, vzdálenost, km a co zůstává.
+V kalkulačce **📋 Zpráva k fotkám** — vyplní službu, plochu, patro, výtah, vzdálenost, km a co zůstává. Pak přilož fotky.
 `;
 }
+
 function vkSoubor04(){
-  const s = S.vykSazby;
   return `# Formát VYK1 — jak vrátit zakázku do kalkulačky
 
-Na konci každého nacenění vrátíš **jeden code blok**, který začíná řádkem \`VYK1\`. Vloží se do kalkulačky
+Na konci každého plného nacenění vrátíš **jeden code blok**, který začíná řádkem \`VYK1\`. Vloží se do kalkulačky
 (Vyklízení → Nacenit z fotek přes Claude → Načíst VYK1) a vznikne z něj zakázka se soupisem, prodejem a cenou.
 
 ## Pravidla
 - Jeden údaj na řádek, \`klíč: hodnota\`. Text v závorce na konci řádku se ignoruje.
-- **ID věcí doslova z katalogu 07-KATALOG-VECI.csv.** Neznámé ID se zahodí a kalkulačka upozorní.
+- **ID věcí doslova z katalogu 10-KATALOG-VECI.csv.** Neznámé ID se zahodí a kalkulačka upozorní.
 - Počty v MJ té věci (ks, bm, m³, m², kpl). Desetinná čárka i tečka projde.
 - Ceny, náklady ani dopravu do bloku **nedávej** — kalkulačka je spočítá sama podle stejných pravidel.
+- Výkupní ceny u \`prodej:\` dávej za kus, v Kč, jako reálnou výkupní cenu.
 
 ## Klíče
-\`\`\`
+${KB}
 VYK1
 nazev: krátký název zakázky
 klient: jméno, když ho znáš
 adresa: ulice, obec
 sluzba: odvoz          (odvoz | vynaska | kusy — kusy vždy se soupisem)
 prostor: 21            (1kk | 11 | 21 | 31 | 41 | dum | chata | sklep | puda | garaz | kancelar)
+plocha: 55             (m² hlavního prostoru; vynech, když nevíš)
+doplnky: sklep, puda   (k bytu nebo domu navíc: sklep, puda, garaz)
 plnost: bezne          (prazdne | bezne | plne | preplnene — použije se jen bez soupisu)
 stav: bezne            (bezne | prasne | lehka | silna)
 patro: 3
 vytah: ne              (ne | maly | velky — velky = vejde se nábytek)
 vzdalenost: 15         (metry od vchodu k autu)
-km: 20                 (km od základny, jedna cesta)
+km: 20                 (km od základny v Zábřehu, jedna cesta)
 lide: 2
 rozebirat: ano
 uklid: ne
@@ -11754,16 +11921,17 @@ poznamka: co zůstává, co domluvit
 polozka: ID | počet | poznámka
 vlastni: název | počet | m³ na kus | kg na kus | minuty práce na kus | nošení na kus | druh odpadu
 prodej: název | počet | výkupní cena Kč/ks | jista/mozna/nejista | kam (kovosrot/bazar/vykup/reuse) | protiucet ano/ne
-\`\`\`
+${KB}
 Druhy odpadu pro \`vlastni:\` ${vykProudy().map(p => p[0]).join(", ")}.
 
 ## Příklad
-\`\`\`
+${KB}
 VYK1
 nazev: Vyklizení bytu 2+1 — Zábřeh, Havlíčkova
 klient: Petr Svoboda
 adresa: Havlíčkova 12, Zábřeh
 prostor: 21
+plocha: 58
 stav: bezne
 patro: 3
 vytah: ne
@@ -11787,107 +11955,289 @@ polozka: krabiceKnih | 4
 vlastni: Akvárium se stolkem | 1 | 0,4 | 35 | 15 | 2 | nespal
 prodej: Křeslo 70. léta | 2 | 800 | nejista | vykup | ne
 prodej: Pračka Bosch 2021 | 1 | 2500 | mozna | bazar | ano
-\`\`\`
+${KB}
 `;
 }
+
 function vkSoubor05(){
+  const s = S.vykSazby;
   const kovy = (VYK_DATA.kovy || []).map(k => "| " + k.nazev + " | " + (typeof k.kcKg === "number" ? String(k.kcKg).replace(".", ",") : k.kcKg) + " |").join("\n");
   return `# Odprodej a výkup — kde se na vyklízení vydělává navíc
 
-Průzkum (15. 9. 2026): výkup kovů, nábytku a starožitností a vyklízení protiúčtem jsou v ČR běžný a funkční model.
-Jednotlivý kus může zaplatit celou zakázku. Pořád ale platí: **do ceny ani výdělku se počítá jen to, co je jisté.**
+Firmy, o kterých se říká, že je vyklízení „super kšeft“, vydělávají hlavně na věcech: výkup, protiúčet, bazar, kovy.
+„Zisk z prodeje často pokryje náklady na vyklízení nebo jejich část“ (vyklizenibyty.cz). Tvůj úkol je najít každou korunu —
+ale do ceny zakázky počítat jen to, co je opravdu jisté.
 
-## Co prověřit na každé zakázce
-- **Kovy** — radiátory, vany, regály, nářadí, kola, trubky, kabely (měď!). Do výkupu, ne do odpadu.
-- **Funkční spotřebiče** mladší zhruba 5 let (pračka, lednice, myčka, sušička) — bazar nebo výkup.
-- **Nábytek a design 60.–80. let** — křesla, konferenční stolky, sektorové stěny, lampy. Křeslo H-269 (J. Halabala)
-  se prodává za 58–63 tis. Kč (Czechantik, Modernista, Cvikrdesign; Aukro srpen 2026).
-- **Starožitnosti, obrazy, knihy, sbírky, hodiny, porcelán** — antikvariát, výkup starožitností.
-- **Masivní dřevo, zahradní technika, značkové nářadí.**
+## 1. Kontrolní seznam — na co se na fotkách dívat
+**Nábytek a design (60.–90. léta, ČSSR):**
+- Křesla a pohovky: Jindřich Halabala (H-269 se prodává za 58–63 tis. Kč, Czechantik, Modernista, Cvikrdesign; Aukro srpen 2026),
+  UP Závody Rousínov, TON / Thonet (ohýbané židle a křesla), Jitona, Interiér Praha, Drevopodnik Holešov, Křesla „ušák“ z 50. let.
+- Konferenční stolky, knihovny a komody z masivu nebo dýhy s kovovými nožkami, sektorové stěny „Universal“, lampy a lustry (Napako, Kamenický Šenov).
+- Značky hledej na zádech, pod sedákem, v šuplíku (štítek, razítko, vypálené logo).
 
-## Výkupní ceny kovů — HULMAN-kovošrot, ceník od 7. 9. 2026
+**Spotřebiče a elektronika:**
+- Pračky, lednice, myčky, sušičky — štítek (typ a rok). Prodejné jsou funkční kusy **mladší asi 6–8 let** a známé značky (Bosch, Siemens, AEG, Miele, Samsung, LG, Whirlpool).
+  Na Bazoši nabízejí běžné pračky za 2 500–7 500 Kč, s rokem výroby a funkcí to jde do bazaru; starší než 10 let jen kovošrot nebo zpětný odběr.
+- Retro elektronika: Tesla rádia a gramofony, Hi-Fi, zesilovače, reprobedny, analogové fotoaparáty a objektivy (Flexaret, Meopta, Zenit), gramodesky.
+
+**Dílna, garáž, zahrada:**
+- Značkové nářadí (Makita, Bosch modrá řada, Hilti, DeWalt, Festool, Narex), svářečky, kompresory, pily; ruční nářadí v kufrech.
+- Jízdní kola (značka a rám), elektrokola (i vadná mají hodnotu), sekačky, křovinořezy, motorové pily.
+- Náhradní díly Jawa/ČZ/Babetta, veterány, kanystry, měď a mosaz (kabely, trubky, armatury).
+
+**Sklo, porcelán, sbírky:**
+- Porcelán Thun, Haas & Czjzek, Royal Dux; sklo Moser, Bohemia, sklárny Novy Bor a Kamenický Šenov (60.–70. léta), lisované sklo.
+- Obrazy s podpisem, grafiky, ikony, starožitné hodiny, šperky, mince, známky, pohledy, staré hračky (Merkur, Igráček, Kovap).
+- Knihy: první vydání, bibliofilie, staré atlasy a mapy, komiksy; běžné románové knihy prakticky neprodejné.
+
+**Pozor — nabídnout klientovi, neprodávat bez písemného souhlasu:** dokumenty, fotografie, cennosti, zbraně a militária, léky.
+
+## 2. Jak ověřit cenu (vždy, když máš web)
+1. Hledej přesný název a značku: \`"Bosch WAT28461" bazar\`, \`Halabala křeslo cena\`, \`Tesla 814A prodáno\`.
+2. Weby: **Bazoš** (bazos.cz), **Sbazar** (sbazar.cz), **Aukro** (hlavně ukončené aukce), **Facebook Marketplace**, **Vinted** (oblečení),
+   u designu **Czechantik, Modernista, retro obchody**, u starožitností **aukční síně** (výsledky aukcí).
+3. Zapiš 3–5 srovnatelných nabídek (stav, rok, cena) a **medián**. Staré inzeráty visící měsíce = nadsazená cena.
+4. Přepočet (pravidlo palce, ověřuj): realisticky prodáno v bazaru ≈ **60–70 %** mediánu inzerátů;
+   **výkupna a antik** dají ≈ **25–40 %** mediánu; **kovošrot** podle váhy (tabulka níž).
+5. Odečti náklady prodeje: bazar ${vkT(s.prodejBazarH, 1)} h na kus (focení, inzerát, telefony, předání), dopravu a riziko, že se to neprodá.
+6. Uveď **zdroj** (web a co jsi našel) a **jistotu**:
+   - **jista** — kovy podle váhy, spotřebič s ověřeným rokem a funkcí u známé značky, věc s jasným výkupem;
+   - **mozna** — běžně prodejné věci s více srovnatelnými inzeráty;
+   - **nejista** — retro a starožitnosti bez ověření značky a stavu, nábytek bez designu, čalouněné věci.
+
+## 3. Co se téměř neprodá (nepočítat)
+Obývací stěny a sektory bez designové značky, sedací soupravy a matrace (hygiena), běžné skříně z lamina, staré televize,
+běžné nádobí, běžné knihy a encyklopedie, oblečení po zemřelém (jen charita), koberce bez hodnoty.
+
+## 4. Kam s tím — kanály
+| Kanál | Pro co | Cena proti inzerátům | Čas | Poznámka |
+|---|---|---|---|---|
+| Kovošrot | kovy, radiátory, vany, kabely, motory | podle váhy | 0 (jede s vykládkou) | hotově, hned |
+| Výkup nábytku a antik | design, starožitnosti, sbírky | 25–40 % | ${vkT(s.prodejVykupH, 1)} h/položku | např. Antik Zvole (Brno, Olomouc, Zlín, Prostějov) — odhad a doprava zdarma, hotově, vyklízení protiúčtem |
+| Bazar a inzerce | spotřebiče, kola, nářadí, lepší nábytek | 60–70 % | ${vkT(s.prodejBazarH, 1)} h/kus | nejvyšší cena, ale čas a sklad |
+| Aukro | sběratelské věci, design, retro elektronika | 60–100 % | 0,5–1 h/kus | aukce vytáhne cenu u vzácných kusů |
+| RE-USE Separex Zábřeh | čistý funkční nábytek, nádobí, dekorace, knihy, hračky | zdarma (úspora likvidace) | 0 | Leštinská 36, Po–Pá 6–16, So (duben–listopad) 8–12; **nebere** elektro a čalouněný nábytek |
+| Charita Zábřeh | pračky, lednice, sporáky, skříně, stoly, židle, postele v perfektním stavu | zdarma | e-mail s fotkami předem | nadeje@charitazabreh.cz, 736 509 474; odvoz jejich dodávkou 14 Kč/km, obvykle „stovky korun“ |
+| Diakonie Broumov | nositelné oblečení, lůžkoviny, obuv, domácí textil | zdarma | sbírky v obcích | sbírky ve 2 000 obcích ročně; textil jinak stojí u Separexu 9 414 Kč/t |
+| SWAP Zábřeh | oblečení | zdarma | — | výměna, ne prodej |
+
+## 5. Výkupní ceny kovů — HULMAN-kovošrot, ceník od 7. 9. 2026
 | Materiál | Kč/kg |
 |---|---:|
 ${kovy}
+| Nerez (nemagnetický plech) | 22 |
+| Kabely čisté / mastné | 75 / 15 |
+| Bronz | 150 |
 
-Ceny kolísají s londýnskou burzou kovů (LME) — před větším výkupem ověřit.
+Ceny kolísají s londýnskou burzou kovů (LME) — před větším výkupem ověřit (HULMAN 774 001 228).
+V kalkulaci počítáme ${vkT(s.kovyKcKg, 1)} Kč/kg za běžné železo.
 
-## Kam s tím
-- **Kovošrot** — hotově, hned. Třídit železo / litinu / měď / hliník.
-- **Výkup nábytku a starožitností** — např. Antik Zvole (Brno, Olomouc, Zlín, Prostějov): odhad a doprava zdarma,
-  hotově na místě, vyklízení protiúčtem.
-- **Bazar, inzerát (Bazoš, Aukro, Facebook)** — vyšší cena, ale čas na focení, inzerci a předání.
-- **Re-use a charita** — Separex Zábřeh má RE-USE a SWAP centrum; Diakonie Broumov, Potex, Adra. Podmínky ověřit.
-- **Zpětný odběr zdarma** — elektro (ELEKTROWIN, ASEKOL), pneumatiky (GREEN LOGISTICS), baterie (ECOBAT).
+## 6. Protiúčet
+Hodnotu věcí odečteme z ceny vyklízení — pro klienta silný argument („vyklízení levněji nebo zdarma“).
+Nabízej jen u věcí s jistotou **jista** nebo **mozna**, riziko prodeje nese firma. Seznam převzatých věcí patří do nabídky a do předávacího protokolu.
 
-## Jak odhadovat cenu
-1. **Výkupní cena**, ne inzertní. Když neznáš, ber zhruba to, co by za věc dal výkupce hned na místě.
-2. Jistota: **jista** = kovy podle váhy, spotřebič s ověřeným rokem a funkcí; **mozna** = běžně prodejné věci;
-   **nejista** = retro a starožitnosti bez ověření, nemoderní nábytek.
-3. Když můžeš hledat na webu, podívej se na prodané nebo dlouho visící inzeráty a napiš, z čeho vycházíš.
-4. U bazaru odečti čas: focení a inzerát zhruba 15 minut na kus, předání další výjezd.
-
-## Protiúčet
-Hodnotu věcí odečteme z ceny vyklízení — pro klienta silný argument. Nabízej jen u věcí s jistotou **jista** nebo **mozna**;
-riziko, že se věc neprodá, nese firma.
-
-## Právně
-- Věci patří klientovi. V nabídce je doložka, že **věci určené k vyklizení přechází předáním na dodavatele**,
-  který je může prodat, předat k recyklaci nebo zlikvidovat.
+## 7. Právně
+- Věci patří klientovi. Nabídka obsahuje doložku, že **věci určené k vyklizení přechází předáním na dodavatele**.
 - U **pozůstalostí, exekucí a insolvencí** jen na písemné pověření oprávněné osoby (dědic, notář, exekutor, správce).
-  Doklady, cennosti a fotografie předat klientovi, nic z toho neprodávat.
+- Doklady, cennosti a fotografie předat klientovi a zapsat do předávacího protokolu — nikdy neprodávat.
 `;
 }
+
 function vkSoubor06(){
+  const s = S.vykSazby, platce = vykPlatce();
+  const t = vkT, dph = platce ? 1 : 1.21;
+  return `# Likvidace — kam s čím nejlevněji a legálně
+
+Likvidace je u vyklízení **největší náklad** — u bytu 2+1 obvykle 60–75 % nákladů zakázky. ${platce ? "" : "Jako neplátci platíme k cenám zařízení i 21 % DPH. "}
+Každá tuna, která nejde do objemného odpadu, je čistý zisk. Kód odpadu se ale **nikdy nevolí podle ceny** — musí odpovídat skutečnosti.
+
+## Ceník Separex / EKO servis Zábřeh (Leštinská 36, ceník 1. 4. 2026, bez DPH)
+| Odpad | Kód | Kč/t | Poznámka |
+|---|---|---:|---|
+| Objemný odpad (nábytek, matrace, koberce) | 20 03 07 | 2 490 | u objemného **není** uvedeno „vč. poplatku“; pod tabulkou zákonný poplatek 1 600 + převoz na skládku 570 Kč/t → počítáme **${t(s.o_objemny)} Kč/t, ověřit (583 550 326)** |
+| Směsný komunální (drobnosti v pytlích) | 20 03 01 | 3 180 | **včetně** poplatku — pro firmy |
+| Stavební suť | 17 01 07 | 700 | jen čistá suť |
+| Směsný stavební a demoliční | 17 09 04 | 2 250 | |
+| Dřevo (stavební) | 17 02 01 | 685 | starý nábytek z lamina **není** stavební dřevo |
+| Izolace, lepenka, minerální vata | 17 06 04 | 3 400 | |
+| Polystyren | 15 01 02 / 17 06 04 | 28 220 | drahý — nevozit, lisovat, jen čistý |
+| Azbest (skládka / překladiště) | 17 06 05* | 3 325 / 3 950 | nebezpečný, zvláštní balení a evidence |
+| Textil, oděvy | 20 01 10 / 11 | 9 414 | nositelné do sbírky zdarma |
+| Papír, sklo, kovy (obce, občané) | 20 01 01 / 02 / 40 | 0 | pro firmy ověřit; obaly 15 01 01 a 15 01 07 pro firmy 0 |
+| Kovy | 20 01 40 | 0 | lepší do výkupu (peníze) |
+| Hlášení evidence odpadu (roční) | | 120 Kč | kontrolní vážení 60 Kč |
+
+**Kontejnery Separex** (přistavení, odvoz, vážení, 2 pracovní dny): MAN do 6,5 t 1 085 Kč (0–4 km), 1 365 (4–8), 1 930 (8–12), 2 490 (12–16); odpad zvlášť.
+**Dodávka Separex** 20 Kč/km, závozník 312 Kč/h — pro srovnání s naší prací.
+
+## Jiná zařízení v kraji (pro srovnání)
+SAKO Brno pro podnikatele: spalitelný 3 200, nespalitelný 4 500, dřevo bez příměsí 2 600 Kč/t; EKOLTES Hranice objemný 5 500 Kč/t;
+TS Zlín skládka Suchý důl 1 890 + poplatek 1 600 Kč/t. Zákonný poplatek za skládkování: 2026 1 600, 2029 1 850 Kč/t, od 2030 zákaz skládkování využitelných odpadů.
+
+## Kam s čím — rozhodovací pořadí
+1. **Má hodnotu?** → prodej, výkup, protiúčet (05).
+2. **Je to kov?** → kovošrot (peníze): radiátory, vany, regály, kola, trubky, kabely, rámy postelí. Odmontovat kovové části velkých kusů, když to jde rychle.
+3. **Elektro?** → zpětný odběr **zdarma** (sběrný dvůr, místa ELEKTROWIN a ASEKOL). Lednice a mrazáky celé (freony), nerozebírat.
+4. **Pneumatiky, baterie, zářivky** → zpětný odběr zdarma.
+5. **Funkční čistý nábytek, nádobí, dekorace, knihy** → RE-USE Separex zdarma; spotřebiče a nábytek v perfektním stavu → Charita Zábřeh (domluvit předem).
+6. **Nositelné oblečení a textil** → sbírka Diakonie Broumov / charita; zbytek v pytlích s drobnostmi.
+7. **Papír a karton, sklo** → separace (pro firmy ověřit cenu, obaly zdarma).
+8. **Drobnosti v pytlích** → směsný komunální 20 03 01 (${t(s.o_smes)} Kč/t vč. poplatku).
+9. **Velké kusy nábytku, matrace, koberce** → objemný 20 03 07 (${t(s.o_objemny)} Kč/t).
+10. **Nebezpečné** (barvy, chemie, oleje, azbest) → oprávněná osoba, zvlášť naceněno a zvlášť evidováno.
+
+## Kolik ušetří třídění (1 tuna, ${platce ? "bez DPH" : "včetně DPH, kterou platíme"})
+- kovy do výkupu místo objemného: ${t(s.o_objemny * dph)} + ${t(s.kovyKcKg * 1000)} Kč = **${t(s.o_objemny * dph + s.kovyKcKg * 1000)} Kč**
+- elektro do zpětného odběru: **${t(s.o_objemny * dph)} Kč**
+- nábytek do RE-USE / Charity místo objemného: **${t(s.o_objemny * dph)} Kč** (minus čas na předání)
+- drobnosti v pytlích jako směsný místo objemný: **${t((s.o_objemny - s.o_smes) * dph)} Kč**
+
+## Možnost „likvidace podle vážních lístků“
+Když je nejasné, kolik toho bude, nebo je hodně těžkého odpadu, navrhni **cenu za práci a odvoz + likvidaci podle vážních lístků × ${t(1 + s.prirazka, 2)}**
+(tak to dělají Vektos a Formánek). Riziko váhy nese klient, výdělek na likvidaci je jistý.
+
+## Evidence a pravidla
+- Odpad předáváme jen do oprávněného zařízení a **archivujeme vážní lístky** (kalkulačka je sčítá do ročního souhrnu podle kódů).
+- Původcem je ten, kdo činnost fyzicky provádí, pokud smlouva neurčí jinak; roční hlášení podle vyhl. 273/2021 Sb.
+- Kód odpadu podle skutečnosti — nábytek není stavební dřevo, obsah bytu není stavební odpad.
+- Sběrné dvory obcí jsou zdarma pro **občany** s trvalým pobytem, ne pro firmy. Když klient chce odvézt část sám, je to jeho věc — nepředstírat, že firma je občan.
+`;
+}
+
+function vkSoubor07(){
   return `# Rizika a pravidla vyklízení
 
 ## Odpady
 - Vyklízení je volná živnost; odpad předáváme **jen do oprávněného zařízení** a vedeme evidenci (vyhl. 273/2021 Sb.).
 - Původcem odpadu je ten, kdo činnost fyzicky provádí — pokud smlouva neurčí jinak. V nabídce: původcem je dodavatel.
 - **Zákonný poplatek za skládkování** využitelných a komunálních odpadů: 2026 1 600 Kč/t, 2029 1 850 Kč/t, od 2030 zákaz
-  skládkování využitelných odpadů — likvidace bude dál zdražovat, třídění se vyplatí.
-- **Separex Zábřeh:** u objemného odpadu (2 490 Kč/t) není jasné, jestli se přičítá poplatek 1 600 Kč/t a překládka 570 Kč/t.
-  Dokud to není ověřené telefonem (583 550 326), počítáme opatrně horní hranici.
+  skládkování využitelných odpadů — likvidace bude dál zdražovat, třídění se vyplácí čím dál víc.
 - Starý nábytek není stavební dřevo — kód odpadu se nesmí volit podle nejnižší ceny.
 
 ## Nebezpečné a zvláštní
-- Barvy, oleje, chemikálie, léky, azbest a eternit: **nebezpečný odpad**, předat oprávněné osobě, nacenit zvlášť.
-- Piana, trezory, věci přibližně nad 100 kg a nejasný přístup: individuální nacenění.
+- Barvy, oleje, chemikálie, léky, azbest a eternit: **nebezpečný odpad**, předat oprávněné osobě, nacenit a evidovat zvlášť.
+- Piana, trezory a litinové vany: v ceně příplatek za těžké břemeno podle pater a donášky; ověřit schody, zatáčky a techniku.
 - Kontaminované prostory (holubí trus, výkaly, po úmrtí, jehly): ochranné pomůcky, dezinfekce; sazby ztíženého prostředí
-  jsou na trhu 1,5× až 3,4× běžné sazby (vyklidto.cz).
+  jsou na trhu 1,5× až 3,4× běžné sazby (vyklidto.cz: holubi 1 600, skelná vata 1 800, po úmrtí 3 000, narkomani 3 600 Kč/h).
 
 ## Spotřebiče a instalace
 - Plyn odpojí jen oprávněná osoba. Vodu a elektřinu u linky a spotřebičů odpojí objednatel nebo řemeslník.
 - Radiátory a kotle z rozvodu demontuje topenář — my odvážíme už odpojené.
 
-## Pozůstalosti a exekuce
-- Jen na **písemné pověření** oprávněné osoby. Soupis věcí s hodnotou, doklady a cennosti předat.
+## Pozůstalosti, exekuce, byty po nájemnících
+- Jen na **písemné pověření** oprávněné osoby. Doklady, cennosti a fotografie předat a zapsat do předávacího protokolu.
+- U bytu po nájemníkovi ověřit, že nájem skončil a věci nejsou předmětem sporu.
 
-## DPH
-- Nejsme plátci. Kdybychom byli: vyklízení i úklid domácností v základní sazbě 21 % (informace GFŘ č. j. 916/24/7100-30116-050822);
-  přenesená daňová povinnost se týká jen stavebních prací CZ-CPA 41–43, ne samotného vyklízení.
+## Parkování a zábor
+- Parkování dodávky u vchodu může vyžadovat povolení nebo zábor veřejného prostranství — domluvit předem, náklad do „jiné náklady“.
+
+## DPH a daně
+- ${vykPlatce() ? "Jsme plátci DPH: vyklízení i úklid domácností v základní sazbě 21 %." : "Nejsme plátci DPH. Po překročení obratu 2 mil. Kč za 12 měsíců vzniká povinnost registrace — vyklízení i úklid domácností pak v sazbě 21 %."}
+  Přenesená daňová povinnost se týká jen stavebních prací CZ-CPA 41–43, ne samotného vyklízení.
+- Zisk s.r.o. daní 21 %, výplata majitelům dividendou dalších 15 %.
 
 ## Pojištění
 - Pojištění odpovědnosti za škodu v prostoru zákazníka je doporučené (Vektos uvádí krytí do 5 mil. Kč).
 `;
 }
-function vkCsvPole(x){ const t = x == null ? "" : String(x); return /[";\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; }
-function vkSoubor07(){
-  const sk = Object.fromEntries(vykSkupiny());
-  return "id;nazev;skupina;mj;m3_nalozeno;kg;minuty_pripravy;noseni;lidi_na_noseni;druh_odpadu;kov_kg;prodat;vzdy_rozebrat;zvlast;poznamka\n" +
-    vykKat().map(it => [it.id, it.nazev, sk[it.sk] || it.sk, it.mj, it.m3, it.kg, it.min, it.nosu, it.osob, it.proud, it.kov, it.prodej ? "ano" : "", it.vzdy ? "ano" : "", it.zvlast ? "ano" : "", it.pozn].map(vkCsvPole).join(";")).join("\n") + "\n";
-}
+
 function vkSoubor08(){
+  const s = S.vykSazby, e = vkEkon(), pr = vkPrumerZakazek(), ref = vkReferencniZakazka(), paky = vkPaky(ref);
+  const m = vykEkonMesic(e, s, pr.vydelekH, pr.trzbaH, pr.osNaZakazku), t = vkT;
+  return `# Ekonomika a marže — jak na vyklízení vydělat
+
+Verze: ${vkBalikVerze()}.
+
+## Co znamená „výdělek na člověkohodinu“
+Je to cena bez DPH **po** provizi, autě (nafta, servis, odpis, pojištění), likvidaci, pytlích a režii zakázky, dělená všemi člověkohodinami
+(práce, cesta, vykládka). Není v něm mzda majitelů ani daně. Pravidlo firmy: minimum ${t(s.tvrdeMinHod)}, ideál ${t(s.cenaMinHod)}, výborné od ${t(s.cilHod)} Kč/čl.h.
+Po daních s.r.o. (21 % + 15 % z dividendy) zbude zhruba **${t((1 - e.dppo / 100) * (1 - e.dividenda / 100) * 100)} %**.
+
+## Jak to teď vychází (${pr.zdroj})
+- výdělek ${t(pr.vydelekH)} Kč/čl.h, tržba ${t(pr.trzbaH)} Kč/čl.h, ${t(pr.osNaZakazku, 1)} čl.h na zakázku
+- při ${e.majitelu} majitelích, ${e.zamestnancu} zaměstnancích a ${e.hodinNaCloveka} fakturovatelných hodinách na člověka měsíčně:
+  ${t(m.zakazek, 1)} zakázek, výdělek ${t(m.prispevek)} Kč, zisk před daní ${t(m.zisk)} Kč, **čistě na majitele ${t(m.naMajitele)} Kč měsíčně**
+- zaměstnanec za ${t(e.hrubaMzda)} Kč hrubého stojí ${t(m.nakladZam)} Kč (odvody ${t(e.odvody, 1)} %), tedy ${t(m.naZamHod)} Kč na fakturovatelnou hodinu
+  → firma na něm vydělá ${t(m.firmaNaZamHod)} Kč/h; brigádník na DPP za 200 Kč/h (do 11 999 Kč měsíčně bez odvodů) ${t(pr.vydelekH - 200)} Kč/h
+
+## Páky na marži — spočítáno na: ${ref.popis}
+| Páka | Výdělek navíc na zakázku | Kč/čl.h potom |
+|---|---:|---:|
+${paky.sort((a, b) => b.dNaH - a.dNaH).map(p => "| " + p.nazev + " | " + (p.dVydelek >= 0 ? "+" : "") + t(p.dVydelek) + (Math.abs(p.dOs) >= 0.1 ? " (" + (p.dOs < 0 ? "−" : "+") + t(Math.abs(p.dOs), 1) + " čl.h)" : "") + " | " + t(p.naH) + " (" + (p.dNaH >= 0 ? "+" : "−") + t(Math.abs(p.dNaH)) + ") |").join("\n")}
+
+## Co z toho plyne pro každé nacenění
+1. **Vždy hledej hodnotu** (05) — jistý odprodej nebo protiúčet je nejrychlejší marže a argument pro klienta.
+2. **Vždy plánuj třídění** (06) — kovy, elektro, re-use a charita místo objemného odpadu.
+3. **Nejasný rozsah nebo hodně těžkého odpadu** → navrhni likvidaci podle vážních lístků nebo hodinové účtování.
+4. **Pozůstalosti, expres, víkend, realitky s termínem** → příplatek nebo horní hranice trhu; spěch se platí.
+5. **Malé sklepy a kusové odvozy** jen s minimem, ideálně spojit s jinou zakázkou v okolí — cesta tvoří většinu ceny.
+6. **Třetí člověk** jen na velké vícedenní zakázky; na malých zvyšuje cestovní hodiny.
+7. **Neslevuj pod „nejníž“** — radši ukaž, co by klient ušetřil protiúčtem nebo vlastním odvozem části věcí.
+8. **Stálí odběratelé** (realitky, správci domů, SVJ, obce, notáři) — růst neomezuje marže, ale počet zakázek.
+
+## Kontext trhu (průzkumy 9. a 15. 9. 2026)
+- Morava na klíč 790–1 119 Kč/m³ (Dopareal i v Olomouci a Šumperku), sklepy do 1 490; Praha Vektos 2+kk 13–22 tis. Kč.
+- Hodinově posádka s vozem 950–1 500 Kč/h; Vektos 2 lidé 1 200, 3 lidé 1 600 Kč/h, likvidace 500 Kč/100 kg.
+- V USA se u vyklízení počítá s 20–30 % čisté marže s partou a do 50 % u malých zakázek — díky třídění, darování a výkupu,
+  které snižují poplatky za skládku; práce bývá 40–50 % nákladů zakázky.
+- Nafta 47,79 Kč/l (9. 9. 2026, začátkem roku 32,66) — auto ${t(s.vuzKm, 1)} Kč/km je v kalkulaci aktuální.
+`;
+}
+
+function vkSoubor09(){
+  const s = S.vykSazby, t = vkT, kat = vykKat();
+  const priklady = [
+    ["A — byt 2+1 ze soupisu, pozůstalost", Object.assign(vykNovy(), {nazev:"Byt 2+1 po zemřelém — Zábřeh", prostor:"21", plocha:58, patro:2, vytah:"ne", vzdalenost:15, km:3, rozebirat:true, uklid:true,
+      polozky:VK_TYPICKY_BYT.map(([id, pocet]) => ({id, pocet})), prodej:[{nazev:"Pračka Bosch 2020", pocet:1, cenaKs:2500, jistota:"mozna", kanal:"bazar", protiucet:true}, {nazev:"Křesla TON 70. léta", pocet:2, cenaKs:700, jistota:"nejista", kanal:"vykup", protiucet:false}]})],
+    ["B — rodinný dům 180 m² plný věcí, se sklepem a půdou (rychlý odhad)", Object.assign(vykNovy(), {nazev:"RD 180 m² — Postřelmov", prostor:"dum", plocha:180, plnost:"plne", doplnky:["sklep", "puda"], patro:1, vytah:"ne", vzdalenost:10, km:8, rozebirat:true})],
+    ["C — pár kusů: pračka, pianino a kolo ze 3. patra", Object.assign(vykNovy(), {nazev:"Kusový odvoz — Šumperk", sluzba:"kusy", patro:3, vytah:"ne", vzdalenost:20, km:25,
+      polozky:[{id:"pracka", pocet:1}, {id:"piano", pocet:1}, {id:"kolo", pocet:1}], prodej:[{nazev:"Pianino Petrof", pocet:1, cenaKs:1500, jistota:"nejista", kanal:"vykup", protiucet:false}]})]
+  ];
+  return `# Vzorové zakázky — spočítáno teď kalkulačkou
+
+Verze: ${vkBalikVerze()}. Tvoje výpočty se s těmito čísly musí shodovat (tolerance zaokrouhlení 100 Kč).
+
+` + priklady.map(([nadpis, z]) => {
+    const r = vykSpocitej(z, s, kat, vykPlatce());
+    if (!r.ok) return "## " + nadpis + "\n(nepodařilo se spočítat: " + r.chyby.join(", ") + ")\n";
+    const o = r.odprodej;
+    return `## ${nadpis}
+- služba: ${(vykSluzby().find(x => x[0] === r.sluzba) || [0, ""])[1]}; ${r.rozsah.zdroj === "soupis" ? "soupis " + (z.polozky || []).length + " položek" : "rychlý odhad"}${z.plocha ? ", plocha " + z.plocha + " m²" : ""}
+- objem **${t(r.rozsah.V, 1)} m³**, ${t(r.rozsah.kg)} kg, ${r.sluzba === "vynaska" ? "" : r.cas.jizdy + (r.cas.jizdy === 1 ? " jízda, " : r.cas.jizdy < 5 ? " jízdy, " : " jízd, ")}**${t(r.cas.os, 1)} čl.h** (na místě ${t(r.cas.misto, 1)}), ${r.cas.dny} ${r.cas.dny === 1 ? "den" : r.cas.dny < 5 ? "dny" : "dní"}
+- náklady ${t(r.naklady.celkem)} Kč: auto ${t(r.naklady.vuz)}, likvidace ${t(r.naklady.odpad)}, materiál ${t(r.naklady.material)}, režie ${t(r.naklady.rezie)}; výkup kovů +${t(r.naklady.kovy)}
+- tržní cena ${t(r.trh)}, cena pro výdělek ${t(r.proVydelek)}, minimum ${t(r.minimum)} → cena za práci ${t(r.cenaZaklad)}${r.bremenoKc ? " + těžká břemena " + t(r.bremenoKc) : ""}${r.priplatekKc ? " + příplatky " + t(r.priplatekKc) : ""}${r.protiucet ? " − protiúčet " + t(r.protiucet) : ""}
+- **cena ${t(r.gross)} Kč**${r.rozsah.zdroj === "rychly" ? " (klientovi rozpětí " + t(r.rozpeti.od) + " – " + t(r.rozpeti.do) + ")" : ""}, výdělek **${t(r.naH)} Kč/čl.h**, nejníž ${t(r.nejnizsi.tvrde)} Kč, hodinově by to bylo ${t(r.hodinove.net)} Kč
+- odprodej: jistý ${t(o.jiste)}, možný ${t(o.mozne)}, nejistý ${t(o.nejiste)}, protiúčet ${t(o.protiucet)} Kč
+${r.varovani.length ? "- zkontrolovat: " + r.varovani.join(" ") : ""}
+
+${KB}
+${vykDoTextu(z, kat)}
+${KB}
+`;
+  }).join("\n");
+}
+
+function vkCsvPole(x){ const t = x == null ? "" : String(x); return /[";\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; }
+function vkSoubor10(){
+  const sk = Object.fromEntries(vykSkupiny());
+  return "id;nazev;skupina;mj;m3_nalozeno;kg;minuty_pripravy;noseni;lidi_na_noseni;druh_odpadu;kov_kg;prodat;vzdy_rozebrat;zvlast;tezke_bremeno;poznamka\n" +
+    vykKat().map(it => [it.id, it.nazev, sk[it.sk] || it.sk, it.mj, it.m3, it.kg, it.min, it.nosu, it.osob, it.proud, it.kov, it.prodej ? "ano" : "", it.vzdy ? "ano" : "", it.zvlast ? "ano" : "", it.bremeno ? "ano" : "", it.pozn].map(vkCsvPole).join(";")).join("\n") + "\n";
+}
+function vkSoubor11(){
   const L = ["typ;firma_nebo_zarizeni;polozka;od_kc;do_kc;jednotka;dph;poznamka"];
   VYK_DATA.trh.forEach(t => L.push(["trh", t.firma, t.polozka, t.od, t.do, t.jednotka, t.dph, [t.zahrnuto, t.omezeni].filter(Boolean).join(" · ")].map(vkCsvPole).join(";")));
   VYK_DATA.odpady.forEach(o => L.push(["odpad", o.nazev, o.kod, o.bez_dph, o.s_dph, "Kč/t", "bez DPH / s DPH", o.pouziti + (o.pozn ? " · " + o.pozn : "")].map(vkCsvPole).join(";")));
   (VYK_DATA.kovy || []).forEach(k => L.push(["vykup_kovu", "HULMAN-kovošrot", k.nazev, k.kcKg, "", "Kč/kg", "", "ceník od 7. 9. 2026"].map(vkCsvPole).join(";")));
+  [["Vektos Praha", "Vyklizení 2+kk komplet", 13000, 22000, "zakázka", "6–10 h práce"], ["Vektos Praha", "Vyklizení 3+kk komplet", 22000, 30000, "zakázka", ""], ["Vektos Praha", "2 pracovníci", 1200, "", "h", "3 pracovníci 1 600, 4 pracovníci 2 000 Kč/h"],
+   ["Vektos Praha", "Likvidace", 500, "", "100 kg", "základ 500 Kč pod 100 kg"], ["Stěhování Formánek", "Vyklizení 2+1 od", 5500, "", "zakázka", "bez skládkovného (500–2 000 Kč podle váhy)"], ["Stěhování Formánek", "Jeden kus nábytku od", 990, "", "kus", ""]]
+    .forEach(x => L.push(["trh"].concat(x.slice(0, 5)).concat(["neuvedeno", x[5]]).map(vkCsvPole).join(";")));
   return L.join("\n") + "\n";
 }
 function vykBalikSoubory(){
-  return [{nazev:"00-ZACNI-TADY.md", obsah:vkSoubor00()}, {nazev:"01-ROLE-A-POSTUP.md", obsah:vkSoubor01()}, {nazev:"02-JAK-POCITAT.md", obsah:vkSoubor02()},
+  return [{nazev:"00-ZACNI-TADY.md", obsah:vkSoubor00()}, {nazev:"01-INSTRUKCE-PROJEKTU.md", obsah:vkSoubor01()}, {nazev:"02-JAK-POCITAT.md", obsah:vkSoubor02()},
     {nazev:"03-CO-FOTIT-A-ZJISTIT.md", obsah:vkSoubor03()}, {nazev:"04-FORMAT-VYK1.md", obsah:vkSoubor04()}, {nazev:"05-ODPRODEJ-A-VYKUP.md", obsah:vkSoubor05()},
-    {nazev:"06-RIZIKA-A-PRAVIDLA.md", obsah:vkSoubor06()}, {nazev:"07-KATALOG-VECI.csv", obsah:"﻿" + vkSoubor07()}, {nazev:"08-TRH-ODPADY-VYKUP.csv", obsah:"﻿" + vkSoubor08()}];
+    {nazev:"06-LIKVIDACE-KAM-S-CIM.md", obsah:vkSoubor06()}, {nazev:"07-RIZIKA-A-PRAVIDLA.md", obsah:vkSoubor07()}, {nazev:"08-EKONOMIKA-A-MARZE.md", obsah:vkSoubor08()},
+    {nazev:"09-VZOROVE-ZAKAZKY.md", obsah:vkSoubor09()}, {nazev:"10-KATALOG-VECI.csv", obsah:"﻿" + vkSoubor10()}, {nazev:"11-TRH-ODPADY-VYKUP.csv", obsah:"﻿" + vkSoubor11()}];
 }
 function vkStahniBalik(){
   const st = $("#vkImportStav");
@@ -11934,7 +12284,7 @@ function vykTiskNabidky(){
     n.vykNabPoradi = (n.vykNabPoradi || 0) + 1;
     VK.cisloNab = "V" + y + "-" + String(n.vykNabPoradi).padStart(3, "0");
   }
-  VK.dohoda = {uctovani:VK.uctovani, datum:faDnes(), cena0:r.cena0, V:r.rozsah.V, dojezd:r.hodinove.dojezd, sazba:r.hodinove.sazba};
+  VK.dohoda = {uctovani:VK.uctovani, datum:faDnes(), cena0:r.cena0, odpadKlient:r.odpadKlient, V:r.rozsah.V, dojezd:r.hodinove.dojezd, sazba:r.hodinove.sazba};
   vykUloz(); if (VK.id) vykUlozitZakazku(true);
   $("#tiskArea").innerHTML = vykNabidkaHTML(VK, r);
   const puvodni = document.title; document.title = "Nabidka-" + VK.cisloNab;
@@ -11948,7 +12298,7 @@ function vykNabidkaHTML(v, r){
   const pp = r.priplatky, priplNazev = [v.vikend ? "víkend nebo svátek" : "", v.expres ? "expresní termín" : ""].filter(Boolean).join(" a ");
   const vCene = (sl === "vynaska"
     ? ["Rozebrání a vynesení věcí z popsaného rozsahu" + (v.rozebirat ? " včetně rozebrání nábytku" : ""), "Složení na domluvené místo (kontejner, před dům)", "Pytle, fólie a doprava posádky"]
-    : ["Vynesení a naložení " + (sl === "kusy" ? "uvedených věcí" : "všech věcí z popsaného rozsahu") + (v.rozebirat ? " včetně rozebrání nábytku" : ""), "Odvoz naší dodávkou a ekologická likvidace v oprávněném zařízení",
+    : ["Vynesení a naložení " + (sl === "kusy" ? "uvedených věcí" : "všech věcí z popsaného rozsahu") + (v.rozebirat ? " včetně rozebrání nábytku" : ""), "Odvoz naší dodávkou" + (r.likvZvlast ? " a předání do oprávněného zařízení" : " a ekologická likvidace v oprávněném zařízení"),
       "Třídění: kovy do recyklace, elektrospotřebiče do zpětného odběru", "Pytle, fólie a doprava"]).concat([v.uklid ? "Hrubý úklid po vyklizení" : null, pp.bremena ? "Manipulace s těžkými břemeny (" + pp.bremena + " ks)" : null]).filter(Boolean);
   let cena;
   if (hod) {
@@ -11959,13 +12309,14 @@ function vykNabidkaHTML(v, r){
       (pp.bremena ? radek("Těžká břemena", faKc(pp.bremenoNaKs) + " / ks") : "") +
       "</table><div class='fa-kuhrade'><span>Odhad celkem</span><b>" + faKc(vykPlatce() ? h.gross : h.net).replace(" Kč", "") + " <i>Kč</i></b></div>";
   } else {
-    const rozpis = r.protiucet || r.slevaKc || r.priplatekKc || r.bremenoKc;
-    cena = "<table class='fa-soucty'>" + (rozpis ? radek((sl === "vynaska" ? "Vynáška" : sl === "kusy" ? "Odvoz a likvidace" : "Vyklizení") + " za popsaný rozsah", faKc(r.cenaZaklad)) : "") +
+    const rozpis = r.protiucet || r.slevaKc || r.priplatekKc || r.bremenoKc || r.odpadKlient;
+    cena = "<table class='fa-soucty'>" + (rozpis ? radek((sl === "vynaska" ? "Vynáška" : sl === "kusy" ? (r.likvZvlast ? "Odvoz" : "Odvoz a likvidace") : "Vyklizení") + " za popsaný rozsah" + (r.likvZvlast ? " — práce a odvoz" : ""), faKc(r.cenaZaklad)) : "") +
+      (r.odpadKlient ? radek("Likvidace podle vážních lístků — odhad", faKc(r.odpadKlient)) : "") +
       (r.priplatekKc ? radek("Příplatek " + priplNazev + " " + faMn(Math.round(pp.pct * 100)) + " %", "+" + faKc(r.priplatekKc)) : "") +
       (r.bremenoKc ? radek("Těžká břemena (" + pp.bremena + " ks)", "+" + faKc(r.bremenoKc)) : "") +
       (r.protiucet ? radek("Protiúčet za převzaté věci", "−" + faKc(r.protiucet), "sl") : "") +
       (r.slevaKc ? radek((v.predem ? "Sleva za platbu předem " : "Sleva ") + faMn(vykPct(v.sleva)) + " %", "−" + faKc(r.slevaKc), "sl") : "") +
-      (r.dph ? radek("DPH 21 %", faKc(r.dph)) : "") + "</table><div class='fa-kuhrade'><span>Pevná cena</span><b>" + faKc(r.gross).replace(" Kč", "") + " <i>Kč</i></b></div>" +
+      (r.dph ? radek("DPH 21 %", faKc(r.dph)) : "") + "</table><div class='fa-kuhrade'><span>" + (r.likvZvlast ? "Celkem s odhadem likvidace" : "Pevná cena") + "</span><b>" + faKc(r.gross).replace(" Kč", "") + " <i>Kč</i></b></div>" +
       "<table class='fa-soucty' style='margin-top:2mm'>" + radek(v.predem ? "Platba předem" : "Záloha před zahájením (" + faMn(vykPct(v.zaloha)) + " %)", faKc(r.gross * (v.predem ? 1 : v.zaloha))) + "</table>";
   }
   const podtitul = (sl === "vynaska" ? "Vynáška" : sl === "kusy" ? "Odvoz věcí" : "Vyklízení") + (hod ? " v hodinové sazbě" : " za pevnou cenu");
@@ -11980,7 +12331,7 @@ function vykNabidkaHTML(v, r){
       "<div>" + cena + "</div></div>" +
     "<div class='fa-pozn' style='margin-top:6mm'>" + (!d.platceDPH ? "<div class='fa-dph'>Nejsme plátci DPH — cena je konečná</div>" : "") +
       (hod ? "<p>Účtujeme <b>skutečný čas práce na místě</b> po 15 minutách, nejméně " + faMn(s.hMin) + " hodiny. S vyúčtováním dostanete výkaz času" + (sl !== "vynaska" ? " a vážní lístky" : "") + ".</p>"
-        : "<p>Jde o <b>pevnou cenu za popsaný rozsah</b>. Když se na místě ukáže víc věcí, změnu domluvíme předem — nic nepřidáváme bez vašeho souhlasu.</p>") +
+        : "<p>Jde o <b>pevnou cenu za popsaný rozsah</b>" + (r.likvZvlast ? " (práce a odvoz). <b>Likvidaci účtujeme podle vážních lístků</b> z oprávněného zařízení, navýšenou o " + faMn(Math.round(s.prirazka * 100)) + " % za její zajištění; částka výše je odhad a lístky dostanete s vyúčtováním" : "") + ". Když se na místě ukáže víc věcí, změnu domluvíme předem — nic nepřidáváme bez vašeho souhlasu.</p>") +
       (sl === "vynaska" ? "<p>Odvoz a likvidaci vynesených věcí zajišťuje objednatel (vlastní kontejner nebo odvoz). Místo složení a jeho případný zábor domluvíme předem.</p>"
         : "<p>Věci určené k vyklizení přechází předáním na dodavatele, který je může prodat, předat k recyklaci nebo zlikvidovat. Doklady, cennosti a fotografie, které najdeme, vám předáme a zapíšeme do předávacího protokolu.</p>") +
       "<p>" + (pp.bremena ? "Těžká břemena jsou v ceně podle uvedeného přístupu; jiný přístup nebo potřebu techniky domluvíme předem. " : "Piana, trezory a kusy nad 100 kg naceňujeme zvlášť. ") +
@@ -12107,6 +12458,124 @@ $("#vkLista").addEventListener("click", () => {
   const el = $("#vkVysledek"); if (!el) return;
   window.scrollTo({top:el.getBoundingClientRect().top + window.scrollY - 70, behavior:"smooth"});
 });
+
+/* ---------- ekonomika firmy: co zbude po autě, likvidaci, mzdách a daních; páky na marži ---------- */
+function vkEkon(){
+  if (!S.vykEkon || typeof S.vykEkon !== "object") S.vykEkon = vykEkonVychozi();
+  const d = vykEkonVychozi(); Object.keys(d).forEach(k => { if (typeof S.vykEkon[k] !== "number") S.vykEkon[k] = d[k]; });
+  return S.vykEkon;
+}
+function vkReferencniZakazka(){
+  const r = VK ? vykVypocet(VK) : null;
+  if (r && r.ok && r.cas.os > 0) return {z:VK, r, popis:"otevřená zakázka" + (VK.nazev ? " „" + VK.nazev + "“" : "")};
+  const z = Object.assign(vykNovy(), {prostor:"21", plnost:"bezne", patro:2, vytah:"ne", vzdalenost:15, km:15});
+  return {z, r:vykVypocet(z), popis:"modelový byt 2+1 běžně zařízený, 2. patro bez výtahu, 15 km"};
+}
+/* průměr z uložených zakázek (skutečnost, jinak plán); bez nich referenční zakázka */
+function vkPrumerZakazek(){
+  let os = 0, vyd = 0, trz = 0, n = 0;
+  (S.vyklizeni || []).forEach(v => {
+    const x = v.vysledek; if (!x || v.status === "zamítnuto") return;
+    const skut = x.skutVydelek != null && x.skutOs > 0, o = skut ? x.skutOs : x.os;
+    if (!(o > 0) || x.vydelek == null) return;
+    os += o; vyd += skut ? x.skutVydelek : x.vydelek; trz += (x.skutCena != null ? x.skutCena : x.cena) / (vykPlatce() ? 1.21 : 1); n++;
+  });
+  if (n >= 3) return {n, vydelekH:vyd / os, trzbaH:trz / os, osNaZakazku:os / n, zdroj:"průměr " + n + " uložených zakázek"};
+  const ref = vkReferencniZakazka();
+  return {n, vydelekH:ref.r.naH, trzbaH:ref.r.net / ref.r.cas.os, osNaZakazku:ref.r.cas.os, zdroj:ref.popis + (n ? " (uložené zakázky jsou zatím " + n + ", průměr až od 3)" : "")};
+}
+function vkPaky(ref){
+  const s = S.vykSazby, zakl = ref.r;
+  const spoc = (zmenaZ, zmenaS) => vykSpocitej(Object.assign(JSON.parse(JSON.stringify(ref.z)), zmenaZ || {}), Object.assign({}, s, zmenaS || {}), vykKat(), vykPlatce());
+  const paky = [
+    ["Zjistit u Separexu, že objemný odpad je 2 490 Kč/t včetně poplatku", "Ceník 1. 4. 2026 u objemného neuvádí „vč. poplatku“ a pod tabulkou je poplatek 1 600 + převoz 570 Kč/t. Počítáme opatrně 4 660 Kč/t. Jeden telefonát.", spoc(null, {o_objemny:2490})],
+    ["Třídit: o třetinu méně objemného odpadu", "Kovy do výkupu (HULMAN železo 4–4,50 Kč/kg), elektro do zpětného odběru zdarma, čistý funkční nábytek a nádobí do RE-USE Separexu zdarma, spotřebiče a skříně Charitě Zábřeh.", spoc(null, {o_objemny:(s.o_objemny || 0) * 0.67, o_nespal:(s.o_nespal || 0) * 0.67})],
+    ["Likvidaci účtovat zvlášť podle vážních lístků", "Jako Vektos (500 Kč/100 kg) nebo Formánek (skládkovné zvlášť): cena za práci a odvoz + skutečná likvidace s přirážkou " + fmt0.format(s.prirazka * 100) + " %. Riziko váhy přechází na klienta.", spoc({likvidaceZvlast:true, sluzba:"odvoz"})],
+    ["Jistý odprodej 1 500 Kč na zakázku", "Pračka, lednice, kolo nebo nářadí přes bazar či výkup. Počítá i čas na focení a předání.", null, 1500],
+    ["Práce o 20 % rychleji", "Zapisovat čas a kalibrovat normy, balit do pytlů předem, 1 člověk nahoře a 1 u auta, plná auta. Vektos uvádí u 2+kk až 3+kk 6–10 hodin.", spoc(null, {koefCas:(s.koefCas || 1) * 0.8})],
+    ["Cena za m³ o 10 % výš", "Dopareal bere 1 019–1 119 Kč/m³, sklepy až 1 490, Vektos za 2+kk 13–22 tis. Kč. Hodí se u pozůstalostí, expresů a realitek.", spoc(null, {trhByt:s.trhByt * 1.1, trhSklep:s.trhSklep * 1.1, minZakazka:s.minZakazka * 1.1})],
+    ["Třetí člověk na zakázku", "Zkrátí dny na místě, ale cestu a vykládku platíte za tři. Vyplatí se jen u velkých zakázek s vícedenní prací.", spoc({lide:3})]
+  ];
+  return paky.map(([nazev, proc, r, prodej]) => {
+    if (prodej) {
+      const naH = (zakl.vydelek + prodej) / (zakl.cas.os + s.prodejBazarH);
+      return {nazev, proc, dVydelek:prodej, naH, dNaH:naH - zakl.naH, dOs:s.prodejBazarH, cena:zakl.gross};
+    }
+    return r && r.ok ? {nazev, proc, dVydelek:r.vydelek - zakl.vydelek, naH:r.naH, dNaH:r.naH - zakl.naH, dOs:r.cas.os - zakl.cas.os, cena:r.gross} : null;
+  }).filter(Boolean);
+}
+function renderVkEkon(){
+  const el = $("#vkEkon"); if (!el || !el.closest("details").open) return;
+  const e = vkEkon(), s = S.vykSazby, auto = vykEkonAuto(e), pr = vkPrumerZakazek();
+  const vydH = e.vydelekH > 0 ? e.vydelekH : pr.vydelekH;
+  const m = vykEkonMesic(e, s, vydH, pr.trzbaH, pr.osNaZakazku);
+  const pole = (k, l, j, krok, hint) => "<label class='f'>" + l + (j ? " (" + j + ")" : "") + "<input type='number' inputmode='decimal' min='0' step='" + krok + "' data-vke='" + k + "' value='" + e[k] + "'>" + (hint ? "<span class='hint'>" + hint + "</span>" : "") + "</label>";
+  const R = (l, x, cls) => "<tr" + (cls ? " class='" + cls + "'" : "") + "><td>" + l + "</td><td class='r'>" + x + "</td></tr>";
+  const ref = vkReferencniZakazka();
+  let h = "<p class='hint' style='margin:0 0 10px'>Výdělek na člověkohodinu v kalkulaci je <b>už po nákladech na auto (nafta, servis, odpis, pojištění), likvidaci, pytle a režii zakázky</b>. Tady se dopočítá, co zbude po mzdách, fixních nákladech a daních — a co s tím udělá zaměstnanec nebo lepší vytížení.</p>";
+
+  h += "<h3 class='vk-h3'>1. Z čeho počítáme</h3><div class='vk-ekon-fakta'><div><span>Výdělek na čl.h</span><b>" + kc(vydH) + "</b></div><div><span>Tržba na čl.h</span><b>" + kc(pr.trzbaH) + "</b></div>" +
+    "<div><span>Čl.h na zakázku</span><b>" + fmt1.format(pr.osNaZakazku) + "</b></div><div><span>Po daních s.r.o.</span><b>" + kc(m.poDaniH) + "</b></div></div>" +
+    "<p class='hint' style='margin:4px 0 8px'>Zdroj: " + esc(pr.zdroj) + ". Po daních = × (1 − " + e.dppo + " % daň z příjmů) × (1 − " + e.dividenda + " % z dividendy).</p>" +
+    "<div class='grid g3'>" + pole("vydelekH", "Počítat s výdělkem", "Kč/čl.h", "10", "0 = z kalkulace") + pole("majitelu", "Majitelů na zakázkách", "", "1", "") + pole("zamestnancu", "Zaměstnanců", "", "1", "na hlavní pracovní poměr") +
+      pole("hrubaMzda", "Hrubá mzda zaměstnance", "Kč/měsíc", "500", "min. mzda 22 400; stěhovák kolem 200 Kč/h") + pole("hodinNaCloveka", "Fakturovatelné hodiny na člověka", "h/měsíc", "5", "ze 160 h je reálně 90–120 na zakázkách, zbytek cesty bez zakázky, sklad, dovolená, nemoc") +
+      pole("fixMesic", "Fixní náklady firmy", "Kč/měsíc", "500", "účetní, pojištění odpovědnosti, telefon, portály a reklama, nářadí; režie " + kc(s.rezie) + " na zakázku se odečte") +
+      pole("odvody", "Odvody zaměstnavatele", "%", "0.1", "2026: 24,8 % sociální + 9 % zdravotní") + pole("dppo", "Daň z příjmů s.r.o.", "%", "1", "") + pole("dividenda", "Srážková daň z dividendy", "%", "1", "") + "</div>";
+
+  h += "<h3 class='vk-h3'>2. Měsíc firmy</h3><div class='tscroll'><table class='vk-ekon-tab'><tbody>" +
+    R("Člověkohodin na zakázkách (" + m.lidi + " " + (m.lidi === 1 ? "člověk" : m.lidi < 5 ? "lidé" : "lidí") + " × " + e.hodinNaCloveka + " h)", fmt0.format(m.osH) + " čl.h") + R("To je zakázek jako tahle", fmt1.format(m.zakazek) + " / měsíc") +
+    R("Výdělek zakázek (po autě, likvidaci a režii)", kc(m.prispevek)) + (m.mzdy ? R("Mzdy s odvody (" + m.zam + " × " + kc(m.nakladZam) + ")", "−" + kc(m.mzdy)) : "") +
+    R("Fixní náklady nad režii zakázek", "−" + kc(m.fixNekryte)) + R("Zisk před daní", kc(m.zisk), "sum") + R("Daň z příjmů " + e.dppo + " %", "−" + kc(m.dan)) +
+    R("Čistý zisk firmy", kc(m.cisty)) + R("Po dividendě " + (e.majitelu > 1 ? "na jednoho majitele" : "majiteli"), "<b>" + kc(m.naMajitele) + "</b>", "sum") +
+    R("Tržba za rok", kc(m.obratRok) + (!vykPlatce() && m.obratRok > 2000000 ? " <span class='pill ne'>nad limitem DPH</span>" : "")) + "</tbody></table></div>";
+  if (!vykPlatce() && m.obratRok > 2000000) h += "<div class='warnbox' style='margin:8px 0 0'>⚠️<span><b>Tržba přes 2 mil. Kč ročně = povinnost platit DPH.</b> Pro lidi by cena stoupla o 21 %, nebo vám o tolik klesne marže (odečtete jen DPH z likvidace, nafty a nákupů). Plánujte to dopředu s účetní — hlídá to i Přehled firmy.</span></div>";
+  {
+    const dppNaH = 200;
+    h += "<p style='margin:8px 0 0;font-size:14px'>Zaměstnanec stojí <b>" + kc(m.nakladZam) + "</b> měsíčně, tedy <b>" + kc(m.naZamHod) + " na fakturovatelnou hodinu</b>. Při výdělku " + kc(vydH) + "/čl.h na něm firma vydělá <b style='color:" + (m.firmaNaZamHod > 150 ? "var(--good)" : m.firmaNaZamHod > 0 ? "var(--warn-ink)" : "var(--bad)") + "'>" + kc(m.firmaNaZamHod) + " za hodinu</b>, tedy " + kc(m.firmaNaZamHod * e.hodinNaCloveka) + " měsíčně před daní. " +
+      "Brigádník na DPP za " + dppNaH + " Kč/h (do 11 999 Kč měsíčně bez odvodů, asi 59 h) firmu stojí jen odpracované hodiny: vydělá na něm <b>" + kc(vydH - dppNaH) + " za hodinu</b>. Od roku 2026 se každá DPP musí měsíčně hlásit.</p>";
+  }
+  h += "<h3 class='vk-h3'>3. Co udělá růst</h3><div class='tscroll'><table class='vk-ekon-tab'><thead><tr><th>Zaměstnanců</th><th class='r'>Zakázek / měsíc</th><th class='r'>Zisk před daní</th><th class='r'>Čistě na majitele</th><th class='r'>Tržba / rok</th></tr></thead><tbody>" +
+    [0, 1, 2, 4].map(zam => { const x = vykEkonMesic(e, s, vydH, pr.trzbaH, pr.osNaZakazku, zam);
+      return "<tr" + (zam === +e.zamestnancu ? " class='akt'" : "") + "><td>" + zam + "</td><td class='r'>" + fmt1.format(x.zakazek) + "</td><td class='r'>" + kc(x.zisk) + "</td><td class='r'><b>" + kc(x.naMajitele) + "</b></td><td class='r'>" + kc(x.obratRok) + (!vykPlatce() && x.obratRok > 2000000 ? " ⚠" : "") + "</td></tr>"; }).join("") +
+    "</tbody></table></div><p class='hint' style='margin:4px 0 0'>Každý člověk navíc potřebuje dalších " + fmt1.format(e.hodinNaCloveka / pr.osNaZakazku) + " zakázek měsíčně. Růst neomezuje marže, ale <b>kolik zakázek seženete</b> — proto se vyplatí stálí odběratelé (realitky, správci domů, SVJ, obce, notáři a dědicové).</p>";
+
+  const paky = vkPaky(ref);
+  h += "<h3 class='vk-h3'>4. Páky na marži — " + esc(ref.popis) + "</h3><p class='hint' style='margin:0 0 6px'>Teď: cena " + kc(ref.r.gross) + ", výdělek " + kc(ref.r.vydelek) + " = " + kc(ref.r.naH) + " na čl.h. Náklady zakázky " + kc(ref.r.naklady.celkem) + ", z toho likvidace " + kc(ref.r.naklady.odpad) + " (" + fmt0.format(ref.r.naklady.celkem > 0 ? ref.r.naklady.odpad / ref.r.naklady.celkem * 100 : 0) + " %) a auto " + kc(ref.r.naklady.vuz) + ".</p>" +
+    "<div class='tscroll'><table class='vk-ekon-tab paky'><thead><tr><th>Páka</th><th class='r'>Na zakázku</th><th class='r'>Kč/čl.h</th><th class='r'>Měsíčně při stejných hodinách</th></tr></thead><tbody>" +
+    paky.sort((a, b) => b.dNaH - a.dNaH).map(p => { const dobre = p.dNaH >= 0;
+      return "<tr><td><b>" + esc(p.nazev) + "</b><br><span class='hint'>" + esc(p.proc) + "</span></td>" +
+        "<td class='r'>" + (p.dVydelek >= 0 ? "+" : "") + kc(p.dVydelek) + (Math.abs(p.dOs) >= 0.1 ? "<br><span class='hint'>" + (p.dOs < 0 ? "−" : "+") + fmt1.format(Math.abs(p.dOs)) + " čl.h</span>" : "") + "</td>" +
+        "<td class='r' style='color:" + (dobre ? "var(--good)" : "var(--bad)") + "'>" + kc(p.naH) + "<br><span class='hint'>" + (dobre ? "+" : "−") + kc(Math.abs(p.dNaH)) + "</span></td>" +
+        "<td class='r'>" + (dobre ? "+" : "−") + kc(Math.abs(p.dNaH * m.osH)) + "</td></tr>"; }).join("") + "</tbody></table></div>" +
+    "<p class='hint' style='margin:4px 0 0'>Měsíčně = změna výdělku na čl.h × " + fmt0.format(m.osH) + " čl.h měsíčně. Rychlejší práce nepřinese víc peněz za zakázku, ale ušetří hodiny na další zakázky.</p>";
+
+  h += "<h3 class='vk-h3'>5. Auto — kolik opravdu stojí kilometr</h3><div class='grid g3'>" + pole("spotreba", "Spotřeba naložené dodávky", "l/100 km", "0.5", "") + pole("nafta", "Nafta", "Kč/l", "0.1", "9. 9. 2026 průměr 47,79 Kč/l") +
+      pole("servisKm", "Servis, pneu, oleje", "Kč/km", "0.1", "") + pole("cenaAuta", "Cena auta", "Kč", "10000", "") + pole("zustatek", "Za kolik ho prodáte", "Kč", "10000", "") + pole("kmZivot", "Najedete za dobu vlastnictví", "km", "5000", "") +
+      pole("pojisteniRok", "Pojištění, STK, známky, parkování", "Kč/rok", "1000", "") + pole("zakazekRok", "Zakázek za rok", "", "5", "rozpočítá fixní část") + "</div>" +
+    "<p style='margin:8px 0 0;font-size:14px'>Nafta " + fmt1.format(auto.palivo) + " + servis " + fmt1.format(auto.servis) + " + odpis " + fmt1.format(auto.odpis) + " = <b>" + fmt1.format(auto.naKm) + " Kč/km</b> a <b>" + kc(auto.naZakazku) + " na zakázku</b>. V sazbách je teď " + fmt1.format(s.vuzKm) + " Kč/km a " + kc(s.vuzFix) + ". " +
+      "<button class='b' type='button' id='vkEkonAuto'>Použít v sazbách</button></p>";
+
+  h += "<h3 class='vk-h3'>6. Co plyne z průzkumu</h3><ul class='vk-ekon-zaver'>" +
+    "<li><b>Samotná práce a odvoz je tenký byznys</b> — stejně jako stěhování. U 2+1 jde asi 60–75 % nákladů zakázky na likvidaci; jako neplátci k ní platíte i 21 % DPH.</li>" +
+    "<li><b>Firmy, o kterých se říká „super kšeft“, vydělávají na věcech</b>: výkup a protiúčet (antik, retro nábytek, spotřebiče, kovy). „Zisk z prodeje často pokryje náklady na vyklízení“ (vyklizenibyty.cz). V USA se u vyklízení počítá s 20–30 % čisté marže s partou a do 50 % u malých zakázek — hlavně díky třídění, darování a výkupu, které snižují poplatky za skládku.</li>" +
+    "<li><b>Likvidaci si konkurence často nechává platit zvlášť</b> (Vektos 500 Kč/100 kg, Formánek skládkovné podle váhy) — jejich „od 5 500 Kč za 2+1“ je bez likvidace.</li>" +
+    "<li><b>Škálování brzdí vytížení a DPH</b>: s každým člověkem potřebujete asi o " + fmt0.format(e.hodinNaCloveka / pr.osNaZakazku) + " zakázek měsíčně víc, a nad 2 mil. Kč tržby ročně přijde DPH. Pro špičky jsou levnější brigádníci na DPP než zaměstnanci.</li>" +
+    "<li><b>Nejrychlejší peníze:</b> telefon na Separex, třídění a likvidace podle lístků, u každé zakázky projít věci na prodej, víkend a expres účtovat příplatkem, malé sklepy a kusy jen s minimem.</li></ul>";
+  el.innerHTML = h;
+}
+$("#vkEkon").addEventListener("input", e => {
+  const t = e.target; if (!t.dataset.vke) return;
+  const hod = num(t.value); if (hod < 0) return;
+  vkEkon()[t.dataset.vke] = hod; save();
+  clearTimeout(renderVkEkon._t); renderVkEkon._t = setTimeout(() => { const a = document.activeElement, k = a && a.dataset && a.dataset.vke, pos = a && a.selectionStart; renderVkEkon(); if (k) { const n = $("#vkEkon [data-vke='" + k + "']"); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (x) {} } } }, 350);
+});
+$("#vkEkon").addEventListener("click", e => {
+  if (e.target.id !== "vkEkonAuto") return;
+  const a = vykEkonAuto(vkEkon());
+  if (!confirm("Nastavit náklad auta " + fmt1.format(a.naKm) + " Kč/km a " + a.naZakazku + " Kč na zakázku?")) return;
+  S.vykSazby.vuzKm = a.naKm; S.vykSazby.vuzFix = a.naZakazku; save(); renderVkSazby(); vykPrepocet(); renderVkEkon();
+});
+$("#vkEkonDet").addEventListener("toggle", e => { if (e.target.open) renderVkEkon(); });
 
 /* ---------- init ---------- */
 function fillAll(){fillHdr();fillNastaveni();renderPrace();renderKont();renderMat();renderOst();renderVP();renderFotky();renderDZ();renderOdp();renderDopravci();renderNKont();renderCenik();renderRychle();renderSablonyZak();renderSablony();renderRecenze();renderMilniky();renderInvestice();zakCount();syncVybava();renderPrehled();renderLogoNahled();renderBankStav();renderSyncStav();recalc();}
