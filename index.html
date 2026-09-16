@@ -301,6 +301,9 @@ details.gsec li{margin:3px 0}
 .fa-souhrn span{font-size:12px;text-transform:uppercase;letter-spacing:.06em;font-weight:700}
 .fa-souhrn b{font-size:18px;font-variant-numeric:tabular-nums;white-space:nowrap}
 .fa-spl{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+.fa-spl .mini{padding:5px 9px;font-size:13px}
+.fa-spl .mini.act{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+#faEditor .hint.ok{color:var(--good)}#faEditor .hint.ne{color:var(--bad)}
 .fa-hist{list-style:none;margin:0;padding:0;font-size:13.5px}
 .fa-hist li{display:flex;gap:10px;padding:5px 0;border-bottom:1px solid var(--line)}
 .fa-hist li:last-child{border-bottom:0}
@@ -310,6 +313,20 @@ details.gsec li{margin:3px 0}
 .fa-ikony{display:block;font-size:11px;color:var(--muted);font-weight:600;margin-top:2px;white-space:nowrap}
 #faTab b.minus{color:var(--bad)}
 .pill.info{background:var(--chip);color:var(--ink)}
+.fa-odp{display:flex;gap:8px;align-items:flex-start;justify-content:space-between;padding:7px 9px;margin:0 0 6px;border:1px solid var(--line);border-radius:8px;font-size:13.5px;cursor:pointer}
+.fa-odp input{margin-top:3px}
+.fa-odp>span{flex:1}
+.fa-odp .ok{color:var(--good);font-weight:600}.fa-odp .ne{color:var(--bad);font-weight:600}
+.fa-odp-dalsi{margin:4px 0 6px;font-size:13px}.fa-odp-dalsi summary{cursor:pointer;color:var(--muted);font-weight:600}
+.fa-odeslat-stav{font-size:13px;padding:6px 9px;border-radius:8px;background:var(--surface)}
+.fa-odeslat-stav .ok{color:var(--good);font-weight:700}.fa-odeslat-stav .ne{color:var(--bad);font-weight:700}
+.fa-odeslat-tl{display:flex;flex-wrap:wrap;gap:6px}
+.fa-odeslat-tl .b{min-height:40px}
+.fa-smazat{margin-top:16px;border-top:1px solid var(--line);padding-top:10px;font-size:13.5px}
+.fa-smazat summary{cursor:pointer;color:var(--muted);font-weight:600}
+.fa-ceka{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+.fa-ceka:last-child{border-bottom:0}
+.fa-ceka.pozde b{color:var(--bad)}
 .bank-stav{margin:8px 0 0;font-size:13px}
 .bank-stav .ok{color:var(--good);font-weight:700}.bank-stav .ne{color:var(--bad);font-weight:700}
 .fa-nahled-obal{overflow:auto;background:#8C877D;padding:18px;display:flex;justify-content:center}
@@ -869,6 +886,12 @@ details.gsec li{margin:3px 0}
   <div id="syncPruh"></div>
   <div class="statgrid" id="faKpi"></div>
 
+  <div class="card" id="faCekaKarta" hidden>
+    <h2>Čeká na vyfakturování <span class="badge" id="faCekaBadge"></span></h2>
+    <p class="hint" style="margin:0 0 8px">Hotové zakázky bez konečné faktury. Vystav ji do 5 pracovních dní — dokud je zakázka čerstvá, klient platí rychle.</p>
+    <div id="faCeka"></div>
+  </div>
+
   <div class="card">
     <h2>Vydané faktury <span class="badge" id="faBadge"></span></h2>
     <div class="fa-filtr">
@@ -938,6 +961,15 @@ details.gsec li{margin:3px 0}
     <h2>Synchronizace mezi zařízeními</h2>
     <div id="syncPanel"></div>
   </div>
+
+  <details class="gsec">
+    <summary>🧪 Zkušební data — smazat doklady</summary>
+    <div class="inner">
+      <p class="hint" style="margin:0 0 8px">Na zkoušení fakturace. Jeden doklad smažeš v jeho detailu dole (<b>🗑 Smazat doklad</b>). Tady jde smazat všechno najednou — faktury, zálohové faktury, storna i dobropisy, na všech zařízeních. V ostrém provozu se vystavené doklady nemažou.</p>
+      <div class="btnrow" style="margin-top:0"><button class="b" id="faSmazatVse" type="button">🗑 Smazat všechny doklady</button></div>
+      <div id="faSmazatStav" class="hint" style="margin-top:6px"></div>
+    </div>
+  </details>
 </section>
 
 <!-- editor a náhled faktury -->
@@ -1101,7 +1133,8 @@ details.gsec li{margin:3px 0}
   <div class="card">
     <h2>Výchozí hodnoty</h2>
     <div class="grid g3">
-      <label class="f">Splatnost faktur (dní)<input id="nFakSplatnost" type="number" min="1" step="1"></label>
+      <label class="f">Splatnost konečných faktur (dní)<input id="nFakSplatnost" type="number" min="1" step="1"><span class="hint">doporučeno 5</span></label>
+      <label class="f">Splatnost zálohových faktur (dní)<input id="nFakSplatnostZal" type="number" min="1" step="1"><span class="hint">záloha musí přijít před nástupem — 1 až 3</span></label>
       <div class="f" style="justify-content:flex-end"><span>&nbsp;</span><label class="chk"><input id="nPlatceDPH" type="checkbox"> Jsme plátci DPH</label></div>
       <label class="f">Sleva za platbu předem (%)<input id="nSlevaPredem" type="number" min="0" step="0.5"><span class="hint">nabízí se klientovi výměnou za peníze dopředu — běžně 3–5 %</span></label>
       <label class="f">Limit obratu pro registraci k DPH (Kč)<input id="nDphLimit" type="number" min="0" step="10000"><span class="hint">hlídá se jen když nejste plátci; aktuální hodnotu si ověř u účetní</span></label>
@@ -1366,7 +1399,7 @@ details.gsec li{margin:3px 0}
       <li>Otevře se editor: vlevo údaje, vpravo živý náhled přesně tak, jak se vytiskne. U firem vyplň IČO a dej <b>Doplnit z ARES</b>.</li>
       <li>Dokud faktura není vystavená, je to <b>koncept</b> — můžeš měnit cokoliv. Když něco povinného chybí, tlačítko Vystavit je zamčené a přesně napíše co.</li>
       <li><b>Vystavit a uložit</b> přidělí číslo (faktury <code>20260001</code>, zálohové <code>ZF20260001</code>) a fakturu zamkne.</li>
-      <li>Hned se nabídne <b>✉ Poslat klientovi</b> s předvyplněným e-mailem. Na telefonu se otevře sdílení s <b>PDF v příloze</b>, na počítači se PDF stáhne a otevře se e-mail. Odeslání se zapíše do historie faktury. Samotné PDF stáhneš kdykoliv tlačítkem <b>⬇ PDF</b>.</li>
+      <li>Hned se otevře <b>✉ Poslat klientovi</b> s předvyplněným e-mailem a PDF se připraví dopředu. <b>Telefon:</b> 📤 Sdílet s PDF → e-mail nebo WhatsApp, faktura je v příloze. <b>Počítač:</b> ⬇ Stáhnout PDF → ✉ Otevřít e-mail (nebo Gmail) → PDF přetáhni do zprávy. Po odeslání dej <b>✓ Zapsat jako odeslané</b> — zapíše se do historie.</li>
     </ol>
 
     <div class="vybg">QR platba</div>
@@ -1386,7 +1419,11 @@ details.gsec li{margin:3px 0}
     <div class="vybg">Záloha a doplatek</div>
     <ul style="margin:4px 0 12px;padding-left:20px">
       <li>Zálohová faktura <b>není daňový ani účetní doklad</b> — je to výzva k platbě. Tak je na ní i napsané.</li>
-      <li>Až záloha dorazí, dej u ní <b>✓ Zaplaceno</b>. Konečná faktura ji pak <b>sama odečte</b> a napíše „Uhrazená záloha ZF…“.</li>
+      <li>Až záloha dorazí, dej u ní <b>✓ Zaplaceno</b>. Konečná faktura ze stejné zakázky ji pak <b>sama odečte</b> a napíše „Uhrazená záloha ZF…“.</li>
+      <li>V konceptu faktury je sekce <b>Odečet zálohy</b> — zaškrtáš, které zálohové faktury se mají odečíst (i víc najednou). Záloha zaplacená bez zálohové faktury se přidá ručně částkou. Na faktuře pak je: cena celkem − uhrazená záloha = k úhradě, a QR platba je na zbytek.</li>
+      <li>U vystavené zálohové faktury je tlačítko <b>🧾 Konečná faktura s odečtem zálohy</b>. Když už je konečná faktura vystavená bez odečtu, aplikace to pozná a nabídne <b>Stornovat a vystavit znovu s odečtem</b>.</li>
+      <li><b>Splatnost:</b> zálohová faktura 3 dny (záloha má být na účtu před nástupem), konečná 5 dní. V editoru jsou rychlá tlačítka 1, 3, 5, 7, 14 a 30 dní; výchozí hodnoty změníš v Nastavení. Zákon žádnou minimální splatnost nepředepisuje — je to jen dohoda s klientem (u firem max. 30 dní bez výslovné dohody, 60 dní s dohodou).</li>
+      <li>Karta <b>Čeká na vyfakturování</b> ukáže hotové zakázky bez konečné faktury a kolik pracovních dní od dokončení uběhlo. Po 5 pracovních dnech zčervená.</li>
       <li>Celková cena na faktuře vždycky sedí na nabídku, kterou klient odsouhlasil. Haléřový rozdíl ze zaokrouhlení jednotkových cen jde do řádku <b>Zaokrouhlení</b>.</li>
     </ul>
 
@@ -1397,6 +1434,14 @@ details.gsec li{margin:3px 0}
       <li><b>Dobropis na část</b> — když se jen snižuje cena (reklamace, dohodnutá sleva). Zadáš o kolik a důvod.</li>
       <li>Když klient už zaplatil, doklad ukáže částku <b>k vrácení</b>; po vrácení peněz dej ✓ Peníze vráceny. Nezaplacená faktura se jen započte. Storno konečné faktury nechá zálohu uhrazenou — odečte se v opravené faktuře.</li>
       <li>Výnosy, daně i obrat pro DPH počítají původní fakturu a storno dohromady, takže vychází správná částka.</li>
+    </ul>
+
+    <div class="vybg">Zkoušení a mazání dokladů</div>
+    <ul style="margin:4px 0 12px;padding-left:20px">
+      <li>Na zkoušení jde doklad smazat: v detailu dole <b>🗑 Smazat doklad</b> a pro jistotu napíšeš jeho číslo. Smažou se i navazující storna a dobropisy, zakázka se od faktury odpojí a číslo se uvolní.</li>
+      <li>Zálohu odečtenou v konečné faktuře nejde smazat samostatně — nejdřív smaž konečnou fakturu.</li>
+      <li>Všechno najednou: na konci záložky <b>🧪 Zkušební data → Smazat všechny doklady</b> (potvrzuje se slovem SMAZAT). Mazání platí pro všechna synchronizovaná zařízení.</li>
+      <li>V ostrém provozu se vystavené doklady nemažou — opravují se stornem nebo dobropisem.</li>
     </ul>
 
     <div class="vybg">Výdaje a účtenky</div>
@@ -2769,7 +2814,7 @@ function defNastaveni(){return {firma:"", lide:2, hodDen:9, sazbaNajaty:250, odv
   vynKbelik:40, vynKbelikM3:0.040, vynPatroSek:35, vynVzdalenostSek:25,
   vynVytahKoef:0.25, vynRucniKoef:1.35, koefVykon:1.0,
   kontCenaKm:32, kontDnyZdarma:3, kontCenaDen:180, kontRezerva:18,
-  ico:"", dic:"", adresaFirmy:"", bankUcet:"", iban:"", swift:"", znacka:"", spisZn:"", jednatel:"", telefon:"", email:"", web:"", posledniDanPovinnost:0, platceDPH:false, dphLimit:2000000, slevaPredemPct:5, fakSplatnost:14, fakRok:0, fakPoradi:0, minZiskOsHod:450, minTrzbaB2C:0, minTrzbaB2B:0, minCenaB2C:8000, vikendPct:25, expresPct:15, nabRok:0, nabPoradi:0};}
+  ico:"", dic:"", adresaFirmy:"", bankUcet:"", iban:"", swift:"", znacka:"", spisZn:"", jednatel:"", telefon:"", email:"", web:"", posledniDanPovinnost:0, platceDPH:false, dphLimit:2000000, slevaPredemPct:5, fakSplatnost:5, fakSplatnostZal:3, fakRok:0, fakPoradi:0, minZiskOsHod:450, minTrzbaB2C:0, minTrzbaB2B:0, minCenaB2C:8000, vikendPct:25, expresPct:15, nabRok:0, nabPoradi:0};}
 /* režim DPH nové zakázky vychází z toho, jestli je firma plátcem — neplátce neúčtuje nic */
 function vychoziDph(n){return n&&n.platceDPH?"12":"ne";}
 function defJob(n){return {id:null, nazev:"", klient:"", adresa:"", poznamka:"", zdroj:"", odberatelId:"", cenik:"b2c", dph:vychoziDph(n),
@@ -3215,6 +3260,13 @@ function migrate(){
     (S.faktury||[]).forEach(f=>{ if(!f.zpusobUhrady)f.zpusobUhrady="prevod"; if(!Array.isArray(f.odeslano))f.odeslano=[]; if(!Array.isArray(f.upominky))f.upominky=[];
       if(f.odberatel&&f.odberatel.email===undefined)f.odberatel.email=""; if(f.dodavatel&&f.dodavatel.swift===undefined)f.dodavatel.swift=""; });
     S.fakturyV15=true;
+  }
+  /* v18: kratší splatnosti — konečné faktury 5 dní, zálohové 3 dny */
+  if(!S.fakturyV18){
+    const n=S.nastaveni;
+    if(!(n.fakSplatnost>0)||n.fakSplatnost===14)n.fakSplatnost=5;
+    if(!(n.fakSplatnostZal>0))n.fakSplatnostZal=3;
+    S.fakturyV18=true;
   }
   /* v12: interní přirážka, důvod slevy a platba předem */
   if(!S.slevaV12){
@@ -4151,14 +4203,14 @@ $("#dodatek").addEventListener("click",()=>{
 $("#zalohaDoporuc").addEventListener("click",()=>{
   const v=vypocet();
   J.zalohaCastka=Math.round(v.celkem*S.nastaveni.zaloha/100);
-  if(!J.zalohaSplatnost)J.zalohaSplatnost=new Date(Date.now()+3*864e5).toISOString().slice(0,10);
+  if(!J.zalohaSplatnost)J.zalohaSplatnost=new Date(Date.now()+(S.nastaveni.fakSplatnostZal||3)*864e5).toISOString().slice(0,10);
   $("#jZalohaCastka").value=J.zalohaCastka; $("#jZalohaSplatnost").value=J.zalohaSplatnost;
   recalc();save();
 });
 $("#doplatekDopocitat").addEventListener("click",()=>{
   const v=vypocet();
   J.doplatekCastka=Math.max(0,Math.round(v.celkem-(J.zalohaCastka||0)));
-  if(!J.doplatekSplatnost)J.doplatekSplatnost=new Date(Date.now()+14*864e5).toISOString().slice(0,10);
+  if(!J.doplatekSplatnost)J.doplatekSplatnost=new Date(Date.now()+(S.nastaveni.fakSplatnost||5)*864e5).toISOString().slice(0,10);
   $("#jDoplatekCastka").value=J.doplatekCastka; $("#jDoplatekSplatnost").value=J.doplatekSplatnost;
   recalc();save();
 });
@@ -7394,7 +7446,7 @@ const nMap=[["nFirma","firma",1],["nIco","ico",1],["nDic","dic",1],["nAdresaFirm
   ["nVynKbelik","vynKbelik"],["nVynKbelikM3","vynKbelikM3"],["nVynPatroSek","vynPatroSek"],
   ["nVynVzdalenostSek","vynVzdalenostSek"],["nVynVytahKoef","vynVytahKoef"],["nVynRucniKoef","vynRucniKoef"],
   ["nKontCenaKm","kontCenaKm"],["nKontDnyZdarma","kontDnyZdarma"],["nKontCenaDen","kontCenaDen"],["nKontRezerva","kontRezerva"],
-  ["nDphLimit","dphLimit"],["nSlevaPredem","slevaPredemPct"],
+  ["nDphLimit","dphLimit"],["nSlevaPredem","slevaPredemPct"],["nFakSplatnostZal","fakSplatnostZal"],
   ["nZnacka","znacka",1],["nSpisZn","spisZn",1],["nJednatel","jednatel",1],["nTelefon","telefon",1],["nEmail","email",1],["nWeb","web",1],["nSwift","swift",1]];
 nMap.forEach(([id,k,txt])=>{$( "#"+id).addEventListener("input",e=>{S.nastaveni[k]=txt?e.target.value:num(e.target.value);recalc();vynUkazka();save();})});
 $("#nPlatceDPH").addEventListener("change",e=>{S.nastaveni.platceDPH=e.target.checked;dphHint();renderPripominky();recalc();save();});
@@ -7788,6 +7840,16 @@ function faZbyva(f){
   const dobropisy = (f.dobropisy || []).filter(x => !x.poZaplaceni).reduce((a, x) => a + (x.castka || 0), 0);
   return Math.max(0, faZaokr((f.kUhrade || 0) - dobropisy));
 }
+/* odečtené zálohy: pole odpocty (víc záloh i záloha bez zálohové faktury); starší faktury mají jednu odpocetZalohy */
+function faOdpocty(f){ return Array.isArray(f.odpocty) ? f.odpocty : f.odpocetZalohy ? [f.odpocetZalohy] : []; }
+function faSoucetOdpoctu(f){ return faZaokr(faOdpocty(f).reduce((a, o) => a + (+o.castka || 0), 0)); }
+function faZalohaOdectena(zf, krome){
+  return (S.faktury || []).some(k => k.id !== krome && k.typ !== "zal" && k.typ !== "storno" && k.stav !== "stornovana" && faOdpocty(k).some(o => o.id === zf.id || (o.cislo && o.cislo === zf.cislo)));
+}
+function faZalohyKOdectu(f, zakazkaId){
+  return (S.faktury || []).filter(x => x.typ === "zal" && x.stav === "zaplacena" && zakazkaId && x.zakazkaId === zakazkaId && !faZalohaOdectena(x, f.id))
+    .map(x => ({id:x.id, cislo:x.cislo, castka:x.kUhrade, zaplaceno:x.zaplaceno || ""}));
+}
 function faCekaNaPlatbu(f){ return f.stav === "vystavena" && f.typ !== "storno" && faZbyva(f) > 0; }
 
 function faDodavatel(){
@@ -7834,12 +7896,19 @@ function faKontrola(f){
     if (orig && orig.stav === "stornovana") ch.push("původní faktura už je stornovaná");
     if (orig && !f.castecne && uzDobropisy) ch.push("k faktuře už je vystavený dobropis — zbytek oprav dalším dobropisem, ne celým stornem");
     if (orig && orig.typ === "zal") {
-      const odecteno = (S.faktury || []).find(x => x.odpocetZalohy && x.odpocetZalohy.cislo === orig.cislo && x.stav !== "stornovana");
+      const odecteno = (S.faktury || []).find(x => x.stav !== "stornovana" && faOdpocty(x).some(o => o.id === orig.id || (o.cislo && o.cislo === orig.cislo)));
       if (odecteno) ch.push("záloha je odečtená ve faktuře " + odecteno.cislo + " — nejdřív stornuj tu");
     }
   } else if (f.typ === "kon" || f.typ === "vlastni") {
     if (f.celkem < 0) ch.push("faktura nemůže mít zápornou cenu — použij storno nebo dobropis");
     if (f.typ === "vlastni" && !(f.celkem > 0)) ch.push("částka faktury musí být kladná");
+    if (f.stav === "koncept") faOdpocty(f).filter(o => o.id && !o.rucni).forEach(o => {
+      const x = (S.faktury || []).find(y => y.id === o.id);
+      if (!x) ch.push("zálohová faktura " + (o.cislo || "") + " už neexistuje — odškrtni ji v Odečtu zálohy");
+      else if (x.stav === "stornovana") ch.push("zálohová faktura " + x.cislo + " je stornovaná — odškrtni ji v Odečtu zálohy");
+      else if (faZalohaOdectena(x, f.id)) ch.push("záloha " + x.cislo + " je už odečtená v jiné faktuře");
+    });
+    if (faSoucetOdpoctu(f) > f.celkem + 0.5) ch.push("odečtené zálohy (" + faKc(faSoucetOdpoctu(f)) + ") jsou vyšší než cena faktury — přebytek je potřeba vrátit");
   } else if (!(f.kUhrade > 0)) ch.push("částka k úhradě musí být kladná");
   return ch;
 }
@@ -7854,16 +7923,15 @@ function faKonceptZeZakazky(z, typ){
   const n = S.nastaveni, dnes = faDnes();
   const f = Object.assign({id:uid(), typ, cislo:"", stav:"koncept", vystaveno:dnes,
     duzp: typ === "zal" ? "" : (z.terminDo || dnes),
-    splatnost: faPlusDni(dnes, n.fakSplatnost || 14),
+    splatnost: faPlusDni(dnes, typ === "zal" ? (n.fakSplatnostZal || 3) : (n.fakSplatnost || 5)),
     dodavatel:faDodavatel(), odberatel:faOdberatelZeZakazky(z),
-    polozky:[], slevy:[], mezisoucet:0, zaokrouhleni:0, odpocetZalohy:null, celkem:0, kUhrade:0,
+    polozky:[], slevy:[], mezisoucet:0, zaokrouhleni:0, odpocty:[], celkem:0, kUhrade:0,
     zakazkaId:z.id || "", zakazkaNazev:z.nazev || "", mistoPlneni:z.adresa || "", poznamka:""}, faNovaMetadata());
 
   if (typ === "zal") {
     const castka = (z.zalohaCastka || 0) > 0 ? z.zalohaCastka : Math.round(v.celkem * (n.zaloha || 0) / 100);
     f.polozky.push({popis:"Záloha na bourací práce — " + (z.nazev || "zakázka"), mnozstvi:1, mj:"", cenaMJ:castka, celkem:castka});
     f.mezisoucet = f.celkem = f.kUhrade = castka;
-    f.splatnost = z.zalohaSplatnost || f.splatnost;
     return f;
   }
   /* Každý řádek na papíře přesně násobí: množství × jednotková cena = celkem, na haléře. */
@@ -7893,11 +7961,9 @@ function faKonceptZeZakazky(z, typ){
   f.celkem = Math.round(v.celkem);
   f.zaokrouhleni = faZaokr(f.celkem - (f.mezisoucet - f.slevy.reduce((a, s) => a + s.castka, 0)));
 
-  /* odpočet uhrazené zálohové faktury ke stejné zakázce */
-  const zf = (S.faktury || []).find(x => x.typ === "zal" && x.zakazkaId === z.id && x.stav === "zaplacena");
-  if (zf) f.odpocetZalohy = {cislo:zf.cislo, castka:zf.kUhrade, zaplaceno:zf.zaplaceno};
-  f.kUhrade = Math.max(0, f.celkem - (f.odpocetZalohy ? f.odpocetZalohy.castka : 0));
-  f.splatnost = z.doplatekSplatnost || f.splatnost;
+  /* odpočet uhrazených zálohových faktur ke stejné zakázce — další zálohy jdou zakliknout v editoru */
+  f.odpocty = faZalohyKOdectu(f, z.id);
+  f.kUhrade = Math.max(0, f.celkem - faSoucetOdpoctu(f));
   return f;
 }
 
@@ -7905,27 +7971,27 @@ function faKonceptZeZakazky(z, typ){
 function faKonceptPrazdny(){
   const n = S.nastaveni, dnes = faDnes();
   return Object.assign({id:uid(), typ:"vlastni", cislo:"", stav:"koncept", vystaveno:dnes, duzp:dnes,
-    splatnost:faPlusDni(dnes, n.fakSplatnost || 14), dodavatel:faDodavatel(),
+    splatnost:faPlusDni(dnes, n.fakSplatnost || 5), dodavatel:faDodavatel(),
     odberatel:{jmeno:"", adresa:"", ico:"", dic:"", email:"", telefon:""},
     polozky:[{popis:"", mnozstvi:1, mj:"kpl", cenaMJ:0, celkem:0}], slevy:[], mezisoucet:0, zaokrouhleni:0,
-    odpocetZalohy:null, celkem:0, kUhrade:0, zakazkaId:"", zakazkaNazev:"", mistoPlneni:"", poznamka:""}, faNovaMetadata());
+    odpocty:[], celkem:0, kUhrade:0, zakazkaId:"", zakazkaNazev:"", mistoPlneni:"", poznamka:""}, faNovaMetadata());
 }
 
 /* Storno celé faktury nebo dobropis její části — nový doklad se zápornými položkami. */
 function faStornoKoncept(orig, castecne){
   const n = S.nastaveni, dnes = faDnes();
   const f = Object.assign({id:uid(), typ:"storno", castecne:!!castecne, cislo:"", stav:"koncept", vystaveno:dnes, duzp:dnes,
-    splatnost:faPlusDni(dnes, n.fakSplatnost || 14), dodavatel:faDodavatel(),
+    splatnost:faPlusDni(dnes, n.fakSplatnost || 5), dodavatel:faDodavatel(),
     odberatel:JSON.parse(JSON.stringify(orig.odberatel)),
     polozky:castecne
       ? [{popis:"Oprava ceny k faktuře č. " + orig.cislo, mnozstvi:-1, mj:"kpl", cenaMJ:0, celkem:0}]
       : orig.polozky.map(p => ({popis:p.popis, mnozstvi:-Math.abs(p.mnozstvi || 1), mj:p.mj, cenaMJ:Math.abs(p.cenaMJ), celkem:-Math.abs(p.celkem)})),
-    slevy:castecne ? [] : JSON.parse(JSON.stringify(orig.slevy || [])), mezisoucet:0, zaokrouhleni:0, odpocetZalohy:null, celkem:0, kUhrade:0,
+    slevy:castecne ? [] : JSON.parse(JSON.stringify(orig.slevy || [])), mezisoucet:0, zaokrouhleni:0, odpocty:[], celkem:0, kUhrade:0,
     zakazkaId:orig.zakazkaId || "", zakazkaNazev:orig.zakazkaNazev || "", mistoPlneni:orig.mistoPlneni || "",
     odkaz:{id:orig.id, cislo:orig.cislo, vystaveno:orig.vystaveno, typ:orig.typ, zaplacena:orig.stav === "zaplacena",
       celkem:faZaokr(orig.celkem - (orig.dobropisy || []).reduce((a, x) => a + (x.castka || 0), 0))},   /* cena po dřívějších dobropisech */
     pevnyCelkem:castecne ? null : -orig.celkem,   /* celé storno musí přesně vyrovnat původní cenu, i s jejím zaokrouhlením */
-    zalohaPonechana:!castecne && orig.odpocetZalohy ? {cislo:orig.odpocetZalohy.cislo, castka:orig.odpocetZalohy.castka} : null,
+    zalohaPonechana:!castecne && faOdpocty(orig).length ? {cislo:faOdpocty(orig).map(o => o.cislo || "bez zálohové faktury").join(", "), castka:faSoucetOdpoctu(orig)} : null,
     duvodStorna:"", poznamka:""}, faNovaMetadata(), {zpusobUhrady:orig.zpusobUhrady || "prevod"});
   faPrepocet(f);
   return f;
@@ -7940,7 +8006,7 @@ function faPrepocet(f){
   f.zaokrouhleni = faZaokr(f.celkem - poSleve);
   /* storno konečné faktury: záloha zůstává uhrazená (odečte se v opravené faktuře), vrací se jen doplatek */
   f.kUhrade = f.typ === "storno" ? faZaokr(f.celkem + (f.zalohaPonechana ? f.zalohaPonechana.castka : 0))
-    : Math.max(0, f.celkem - (f.odpocetZalohy ? f.odpocetZalohy.castka : 0));
+    : Math.max(0, f.celkem - faSoucetOdpoctu(f));
 }
 
 /* ================= FAKTURY — náhled a tisk (HTML) =================
@@ -8365,7 +8431,7 @@ function faPlatebniRadky(f){
     else { r.push(["Vyrovnání", "vrácením na účet klienta"]); r.push(["Vrátíme do", faDatum(f.splatnost)]); }
     return r;
   }
-  if (!(f.kUhrade > 0) && f.odpocetZalohy) return [["Úhrada", "uhrazeno zálohou " + f.odpocetZalohy.cislo]];
+  if (!(f.kUhrade > 0) && faOdpocty(f).length) { const c = faOdpocty(f).map(o => o.cislo).filter(Boolean).join(", "); return [["Úhrada", "uhrazeno zálohou" + (c ? " " + c : "")]]; }
   const r = [["Forma úhrady", faZpusobText(f)]];
   if (faZpusob(f) === "prevod") {
     if (d.bankUcet) r.push(["Číslo účtu", d.bankUcet]);
@@ -8401,10 +8467,11 @@ function faPoznamkyText(f){
 function faSouctyRadky(f){
   const r = [], zaokr = Math.abs(f.zaokrouhleni || 0) >= 0.01;
   const odecti = x => (x >= 0 ? "−" : "+") + faKc(Math.abs(x));
-  if (f.slevy.length || f.odpocetZalohy || f.zalohaPonechana || zaokr) r.push(["Součet položek", faKc(f.mezisoucet)]);
+  const odp = faOdpocty(f);
+  if (f.slevy.length || odp.length || f.zalohaPonechana || zaokr) r.push(["Součet položek", faKc(f.mezisoucet)]);
   f.slevy.forEach(s => r.push([s.popis + " " + faMn(s.pct) + " %", odecti(s.castka), "sl"]));
   if (zaokr) r.push(["Zaokrouhlení", (f.zaokrouhleni > 0 ? "+" : "−") + faKc(Math.abs(f.zaokrouhleni))]);
-  if (f.odpocetZalohy) { r.push(["Cena celkem", faKc(f.celkem), "cel"]); r.push(["Uhrazená záloha " + f.odpocetZalohy.cislo, "−" + faKc(f.odpocetZalohy.castka)]); }
+  if (odp.length) { r.push(["Cena celkem", faKc(f.celkem), "cel"]); odp.forEach(o => r.push([o.rucni ? (o.popis || "Uhrazená záloha") : "Uhrazená záloha " + o.cislo, "−" + faKc(o.castka)])); }
   if (f.zalohaPonechana) { r.push(["Opravná částka celkem", faKc(f.celkem), "cel"]); r.push(["Záloha " + f.zalohaPonechana.cislo + " zůstává uhrazená", "+" + faKc(f.zalohaPonechana.castka)]); }
   if (f.typ === "storno" && f.castecne && f.odkaz && f.odkaz.celkem != null) {
     r.push(["Cena podle faktury č. " + f.odkaz.cislo, faKc(f.odkaz.celkem)]);
@@ -8423,20 +8490,7 @@ async function faPdfStahnout(f){
   const doc = await faPdfDokument(f);
   stahniBlob(doc.output("blob"), faPdfJmeno(f));
 }
-/* sdílení z telefonu (WhatsApp, Gmail…) se souborem PDF v příloze; na počítači stáhne PDF a otevře e-mail */
-async function faPdfOdeslat(f, text, predmet){
-  const doc = await faPdfDokument(f), blob = doc.output("blob"), jmeno = faPdfJmeno(f);
-  const soubor = new File([blob], jmeno, {type:"application/pdf"});
-  if (navigator.canShare && navigator.canShare({files:[soubor]})) {
-    try { await navigator.share({files:[soubor], title:predmet, text}); return "sdileni"; }
-    catch (e) { if (e && e.name === "AbortError") return "zruseno"; }
-  }
-  stahniBlob(blob, jmeno);
-  const komu = f.odberatel.email || "";
-  setTimeout(() => { location.href = "mailto:" + encodeURIComponent(komu) + "?subject=" + encodeURIComponent(predmet) +
-    "&body=" + encodeURIComponent(text + String.fromCharCode(10, 10) + "(Faktura je v příloze — soubor " + jmeno + ".)"); }, 400);
-  return "email";
-}
+/* odeslání klientovi řeší faOdeslatPanel v editoru (PDF se připraví předem, sdílení pak funguje i na telefonu) */
 
 /* ================= FAKTURY — seznam, editor, akce ================= */
 let faOtevrena = null;          /* faktura rozpracovaná v editoru (koncept nebo vystavená) */
@@ -8514,7 +8568,57 @@ function renderFaktury(){
     kpi("Čeká na zaplacení (" + neuhr.length + ")", kc(neuhr.reduce((a, f) => a + faZbyva(f), 0)), neuhr.length ? "" : "plus") +
     kpi("Po splatnosti (" + po.length + ")", kc(po.reduce((a, f) => a + faZbyva(f), 0)), po.length ? "minus" : "plus");
   const b = $("#faBadge"); b.textContent = (S.faktury || []).length + " celkem";
+  renderFaCeka();
 }
+/* hotové zakázky bez konečné faktury — hlídá 5 pracovních dní */
+function faPracovniDny(od, doIso){
+  if (!od) return null;
+  let n = 0; const d = new Date(od + "T12:00:00"), k = new Date(doIso + "T12:00:00");
+  while (d < k) { d.setDate(d.getDate() + 1); const w = d.getDay(); if (w !== 0 && w !== 6) n++; }
+  return n;
+}
+function faCekaNaVyfakturovani(){
+  const dnes = faDnes(), out = [];
+  const maKon = id => (S.faktury || []).some(f => f.zakazkaId === id && (f.typ === "kon" || f.typ === "vlastni") && f.stav !== "stornovana");
+  (S.zakazky || []).forEach(z => {
+    if (!z.id || maKon(z.id)) return;
+    const konec = z.terminDo || z.terminOd || "";
+    if (z.status === "hotovo" || (["domluveno", "probíhá"].includes(z.status) && konec && konec < dnes)) out.push({druh:"demolice", z, konec});
+  });
+  (S.vyklizeni || []).forEach(v => {
+    if (!v.id || maKon(v.id) || v.status !== "hotovo") return;
+    const casy = (v.cas || []).map(c => c.do || c.od || "").filter(Boolean).sort();
+    out.push({druh:"vyklizeni", z:v, konec:(casy.length ? casy[casy.length - 1] : v.terminOd || v.ulozeno || "").slice(0, 10)});
+  });
+  out.forEach(x => { x.pracDni = x.konec ? faPracovniDny(x.konec, dnes) : null; });
+  return out.sort((a, b) => (b.pracDni || 0) - (a.pracDni || 0));
+}
+function renderFaCeka(){
+  const karta = $("#faCekaKarta"), el = $("#faCeka"); if (!karta || !el) return;
+  const list = faCekaNaVyfakturovani();
+  karta.hidden = !list.length;
+  $("#faCekaBadge").textContent = list.length ? list.length + "" : "";
+  el.innerHTML = list.map((x, i) => "<div class='fa-ceka" + (x.pracDni > 5 ? " pozde" : "") + "'><div><b>" + esc(x.z.nazev || "Zakázka") + "</b> <span class='hint'>" + (x.druh === "vyklizeni" ? "vyklízení" : "demolice") + (x.z.klient ? " · " + esc(x.z.klient) : "") + "</span><br>" +
+    "<span class='hint'>" + (x.konec ? "dokončeno " + faDatum(x.konec) + " · " + x.pracDni + " " + (x.pracDni === 1 ? "pracovní den" : x.pracDni < 5 && x.pracDni > 0 ? "pracovní dny" : "pracovních dní") : "bez data dokončení") + (x.pracDni > 5 ? " — <b>už je čas</b>" : "") + "</span></div>" +
+    "<button class='b prim' type='button' data-faceka='" + i + "'>🧾 Vystavit konečnou fakturu</button></div>").join("");
+  el.onclick = e => {
+    const b = e.target.closest("[data-faceka]"); if (!b) return;
+    const x = list[+b.dataset.faceka]; if (!x) return;
+    if (x.druh === "vyklizeni") { if (typeof faKonceptZVyklizeni === "function") faOtevri(faKonceptZVyklizeni(x.z, "kon")); }
+    else faOtevri(faKonceptZeZakazky(x.z, "kon"));
+  };
+}
+$("#faSmazatVse").addEventListener("click", () => {
+  const st = $("#faSmazatStav"), n = (S.faktury || []).length;
+  if (!n) { st.textContent = "Žádné doklady ke smazání."; return; }
+  const v = prompt("Smazat " + (n === 1 ? "1 doklad" : n < 5 ? "všechny " + n + " doklady" : "všech " + n + " dokladů") + " (faktury, zálohové faktury, storna, dobropisy) na všech zařízeních?\nNejde to vrátit. Pro potvrzení napiš SMAZAT:", "");
+  if (v === null) return;
+  if (v.trim().toUpperCase() !== "SMAZAT") { st.textContent = "Nic se nesmazalo — potvrzovací slovo nesouhlasí."; return; }
+  (S.faktury || []).slice().forEach(f => faOdstranit(f));
+  S.faktury = [];
+  save(); renderFaktury(); if (typeof renderDane === "function") renderDane();
+  st.innerHTML = "<span class='ok'>✓ Smazáno: " + n + " " + (n === 1 ? "doklad" : n < 5 ? "doklady" : "dokladů") + ". Další doklad dostane nejnižší volné číslo.</span>";
+});
 ["#faRok", "#faStavFiltr"].forEach(s => $(s).addEventListener("change", renderFaktury));
 $("#faHledat").addEventListener("input", renderFaktury);
 
@@ -8601,6 +8705,48 @@ function faRenderNahled(){
 window.addEventListener("resize", () => { if (!$("#faModal").hidden) faRenderNahled(); });
 
 /* ---------- editor: formulář vlevo, živý náhled vpravo ---------- */
+function faTypAkuzativ(f){
+  const t = faTypNazev(f);
+  return t === "Faktura" ? "fakturu" : t === "Zálohová faktura" ? "zálohovou fakturu" : t === "Storno faktura" ? "storno fakturu" : t.toLowerCase();
+}
+/* zálohové faktury, které jde odečíst v konceptu faktury: nestornované a ještě neodečtené jinde */
+function faKandidatiZaloh(f){
+  const jm = bezDiakritiky(f.odberatel.jmeno || "").trim(), ico = String(f.odberatel.ico || "").trim();
+  return (S.faktury || []).filter(x => x.typ === "zal" && x.stav !== "stornovana" && !faZalohaOdectena(x, f.id))
+    .map(x => ({x, shoda:!!((f.zakazkaId && x.zakazkaId === f.zakazkaId) || (jm && bezDiakritiky(x.odberatel.jmeno || "").trim() === jm) || (ico && x.odberatel.ico === ico))}))
+    .sort((a, b) => (b.shoda - a.shoda) || String(b.x.vystaveno).localeCompare(String(a.x.vystaveno)));
+}
+function faOdpocetHTML(f){
+  const kand = faKandidatiZaloh(f), odp = faOdpocty(f);
+  const radek = ({x}) => {
+    const on = odp.some(o => o.id === x.id || (o.cislo && o.cislo === x.cislo));
+    return "<label class='fa-odp'><input type='checkbox' data-faodp='" + esc(x.id) + "'" + (on ? " checked" : "") + ">" +
+      "<span><b>" + esc(x.cislo) + "</b> · " + esc(x.odberatel.jmeno || "—") + (x.zakazkaNazev ? " · " + esc(x.zakazkaNazev) : "") + "<br>" +
+      "<b>" + faKc(x.kUhrade) + "</b> · " + (x.stav === "zaplacena" ? "<span class='ok'>zaplaceno " + faDatum(x.zaplaceno) + "</span>" : "<span class='ne'>zatím nezaplacená</span>") + "</span></label>";
+  };
+  const shodne = kand.filter(k => k.shoda), ostatni = kand.filter(k => !k.shoda);
+  let h = "<h3>Odečet zálohy</h3>";
+  if (!kand.length && !odp.length) return h + "<p class='hint' style='margin:0'>Žádná zálohová faktura k odečtení. Zálohu zaplacenou bez zálohové faktury přidáš níž.</p>" + faOdpocetRucneHTML(f);
+  h += shodne.map(radek).join("") || "<p class='hint' style='margin:0 0 6px'>Pro tohoto odběratele žádná zálohová faktura.</p>";
+  if (ostatni.length) h += "<details class='fa-odp-dalsi'><summary>Zálohy jiných odběratelů (" + ostatni.length + ")</summary>" + ostatni.map(radek).join("") + "</details>";
+  /* zaškrtnutá záloha, která mezitím zmizela ze seznamu (smazaná, stornovaná, odečtená jinde) — ať jde odškrtnout */
+  odp.filter(o => !o.rucni && !kand.some(k => k.x.id === o.id || (o.cislo && k.x.cislo === o.cislo))).forEach(o => {
+    h += "<label class='fa-odp'><input type='checkbox' checked data-faodpid='" + esc(o.id || o.cislo) + "'><span><b>" + esc(o.cislo || "Záloha") + "</b> · " + faKc(o.castka) +
+      "<br><span class='ne'>už nejde odečíst — smazaná, stornovaná nebo odečtená jinde</span></span></label>";
+  });
+  odp.filter(o => o.rucni).forEach(o => { h += "<div class='fa-odp'><span>" + esc(o.popis || "Uhrazená záloha") + " · <b>" + faKc(o.castka) + "</b></span><button class='mini' type='button' data-faodprucdel='" + esc(o.id) + "'>✕</button></div>"; });
+  if (odp.some(o => { const x = (S.faktury || []).find(y => y.id === o.id); return x && x.stav !== "zaplacena"; }))
+    h += "<p class='hint ne' style='margin:4px 0 0'>Odečítáš zálohu, která ještě není označená jako zaplacená — nejdřív ověř, že peníze přišly.</p>";
+  if (odp.length) h += "<p class='hint' style='margin:4px 0 0'>Na faktuře: cena celkem − uhrazená záloha = <b>k úhradě " + faKc(f.kUhrade) + "</b>.</p>";
+  return h + faOdpocetRucneHTML(f);
+}
+function faOdpocetRucneHTML(f){
+  return "<details class='fa-odp-dalsi'><summary>+ Záloha zaplacená bez zálohové faktury</summary><div class='grid g2' style='margin-top:6px'>" +
+    "<label class='f'>Částka (Kč)<input id='faOdpRucCastka' type='number' min='0' step='1'></label>" +
+    "<label class='f'>Zaplaceno dne<input id='faOdpRucDatum' type='date' value='" + faDnes() + "'></label></div>" +
+    "<div class='btnrow'><button class='b' type='button' id='faOdpRucPridat'>Odečíst tuto zálohu</button></div></details>";
+}
+
 function faRenderEditor(){
   const f = faOtevrena, el = $("#faEditor"); if (!f || !el) return;
   const zamceno = f.stav !== "koncept", storno = f.typ === "storno";
@@ -8620,7 +8766,14 @@ function faRenderEditor(){
       (faCekaNaPlatbu(ul) ? "<button class='b' id='faAkZap' type='button'>✓ Zaplaceno</button>" : "") +
       (storno && ul.stav === "vystavena" ? "<button class='b' id='faAkZap' type='button'>✓ Peníze vráceny</button>" : "") +
       (ul.stav === "zaplacena" && !ul.zapocet ? "<button class='b' id='faAkNezap' type='button'>Vrátit na " + (storno ? "nevrácené" : "nezaplacenou") + "</button>" : "") +
+      (ul.typ === "zal" && ul.stav !== "stornovana" ? "<button class='b' id='faAkKonecna' type='button'>🧾 Konečná faktura s odečtem zálohy</button>" : "") +
       "</div><div id='faOdeslatBox'></div>";
+    /* vystavená faktura bez odečtu zálohy, ke které záloha existuje */
+    if ((ul.typ === "kon" || ul.typ === "vlastni") && ul.stav !== "stornovana" && !faOdpocty(ul).length) {
+      const zal = faKandidatiZaloh(ul).filter(k => k.shoda);
+      if (zal.length) h += "<div class='zamceno storno' style='margin-top:10px'>K odběrateli existuje zálohová faktura <b>" + zal.map(k => esc(k.x.cislo) + " (" + faKc(k.x.kUhrade) + ")").join(", ") + "</b>, která na této faktuře není odečtená. " +
+        "Vystavená faktura se nemění — oprav ji stornem a vystav znovu s odečtem.<div class='btnrow'><button class='b' id='faAkOpravitZalohu' type='button'>Stornovat a vystavit znovu s odečtem</button></div></div>";
+    }
     const hist = [[ul.vytvoreno || ul.vystaveno + "T00:00:00", "Vystaveno" + (ul.vytvoril ? " (" + ul.vytvoril + ")" : "")]].concat(faHistorie(ul));
     h += "<h3>Historie</h3><ul class='fa-hist'>" + hist.map(([d, t]) =>
       "<li><span>" + faDatum(String(d).slice(0, 10)) + (String(d).length > 11 && !/T12:00:0/.test(d) && !/T00:00:00/.test(d) ? " " + new Date(d).toLocaleTimeString("cs-CZ", {hour:"2-digit", minute:"2-digit"}) : "") + "</span>" + esc(t) + "</li>").join("") + "</ul>";
@@ -8633,6 +8786,9 @@ function faRenderEditor(){
     }
     h += "<h3>Odběratel</h3><p style='margin:0;font-size:14px'><b>" + esc(f.odberatel.jmeno) + "</b><br>" + esc(f.odberatel.adresa || "") +
       (f.odberatel.ico ? "<br>IČO " + esc(f.odberatel.ico) : "") + (f.odberatel.email ? "<br>" + esc(f.odberatel.email) : "") + "</p>";
+    h += "<details class='fa-smazat'><summary>🗑 Smazat doklad (zkušební data)</summary>" +
+      "<p class='hint' style='margin:6px 0'>V ostrém provozu se vystavené doklady nemažou — opravují se stornem nebo dobropisem a archivují se. Mazání je tu na zkoušení: doklad zmizí ze všech zařízení a jeho číslo se uvolní.</p>" +
+      "<button class='b' id='faAkSmazat' type='button'>Smazat " + esc(faTypNazev(ul).toLowerCase()) + " č. " + esc(ul.cislo) + "</button></details>";
     el.innerHTML = h;
     return;
   }
@@ -8640,7 +8796,8 @@ function faRenderEditor(){
   if (storno) {
     h += "<div class='zamceno storno'><b>" + faTypNazev(f) + " k faktuře č. " + esc(f.odkaz.cislo) + "</b> ze dne " + faDatum(f.odkaz.vystaveno) + ". " +
       (f.castecne ? "Zadej, o kolik se cena snižuje — množství je záporné." : "Položky jsou přesnou zápornou kopií původní faktury.") + " " +
-      (f.odkaz.zaplacena ? "Faktura už je zaplacená, takže doklad ukáže částku <b>k vrácení</b>." : "Faktura ještě není zaplacená — částka se jen započte, nic se nevrací.") + "</div>" +
+      (f.odkaz.zaplacena ? "Faktura už je zaplacená, takže doklad ukáže částku <b>k vrácení</b>." : "Faktura ještě není zaplacená — částka se jen započte, nic se nevrací.") +
+      (f.navazat ? " Po vystavení se otevře nová faktura s odečtem zálohy." : "") + "</div>" +
       "<label class='f'>Důvod storna / dobropisu<textarea data-fa='duvodStorna' rows='2' placeholder='např. chybně uvedená adresa odběratele'>" + esc(f.duvodStorna || "") + "</textarea></label>";
   }
 
@@ -8663,12 +8820,13 @@ function faRenderEditor(){
   h += "<h3>Údaje</h3><div class='grid g2'>" +
     "<label class='f'>Datum vystavení" + inp("vystaveno", f.vystaveno, "date") + "</label>" +
     (f.typ !== "zal" && !storno ? "<label class='f'>Datum plnění" + inp("duzp", f.duzp, "date") + "</label>" : "<span></span>") +
-    "<label class='f'>Splatnost" + inp("splatnost", f.splatnost, "date") +
-      "<span class='fa-spl'>" + [7, 14, 30].map(d => "<button type='button' class='mini' data-spl='" + d + "'>" + d + " dní</button>").join("") + "</span></label>" +
+    "<label class='f' style='grid-column:1/-1'>Splatnost" + inp("splatnost", f.splatnost, "date") +
+      "<span class='fa-spl'>" + [1, 3, 5, 7, 14, 30].map(d => "<button type='button' class='mini" + (f.splatnost === faPlusDni(f.vystaveno || faDnes(), d) ? " act" : "") + "' data-spl='" + d + "'>" + d + " " + (d === 1 ? "den" : d < 5 ? "dny" : "dní") + "</button>").join("") + "</span>" +
+      "<span class='hint'>" + (f.typ === "zal" ? "záloha má být na účtu před nástupem — doporučeno 1–3 dny" : "doporučeno 5 dní — peníze přijdou, dokud je zakázka čerstvá") + "</span></label>" +
     "<label class='f'>Forma úhrady<select data-fa='zpusobUhrady'>" +
       [["prevod", "převodem (s QR platbou)"], ["hotove", "v hotovosti"], ["karta", "platební kartou"]].map(([v, t]) =>
         "<option value='" + v + "'" + (faZpusob(f) === v ? " selected" : "") + ">" + t + "</option>").join("") + "</select></label>" +
-    (!storno ? "<label class='f' style='grid-column:1/-1'>Místo plnění" + inp("mistoPlneni", f.mistoPlneni) + "</label>" : "") +
+    (!storno ? "<label class='f'>Místo plnění" + inp("mistoPlneni", f.mistoPlneni) + "</label>" : "") +
     "</div>";
 
   h += "<h3>Položky</h3>";
@@ -8686,6 +8844,7 @@ function faRenderEditor(){
   });
   if (!polZam) h += "<div class='btnrow' style='margin-top:4px'><button class='b' id='faPolAdd' type='button'>+ Položka</button></div>";
   if (f.slevy.length) h += "<p class='hint' style='margin:8px 0 0'>Slevy ze zakázky: " + f.slevy.map(s => esc(s.popis) + " " + s.pct + " %").join(", ") + "</p>";
+  if (f.typ === "kon" || f.typ === "vlastni") h += "<div id='faOdpocetBox'>" + faOdpocetHTML(f) + "</div>";
   h += "<div class='fa-souhrn'><span>" + esc(faStitekCastky(f)) + "</span><b>" + faKc(Math.abs(f.kUhrade)) + "</b></div>";
 
   h += "<h3>Poznámka na faktuře</h3><label class='f'><textarea data-fa='poznamka' rows='3'>" + esc(f.poznamka || "") + "</textarea></label>";
@@ -8695,7 +8854,7 @@ function faRenderEditor(){
   h += "<div class='btnrow'><button class='b prim' id='faVystavit' type='button'" + (chyby.length ? " disabled" : "") + ">" +
     (storno ? "Vystavit " + faTypNazev(f).toLowerCase() : "Vystavit a uložit") + "</button></div>" +
     "<p class='hint' style='margin:6px 0 0'>Po vystavení dostane doklad trvalé číslo a uloží se do knihy faktur" +
-    (typeof syncZapnuto === "function" && syncZapnuto() ? " na všech zařízeních" : "") + ". Pak ho jedním tlačítkem pošleš klientovi jako PDF.</p>";
+    (typeof syncZapnuto === "function" && syncZapnuto() ? " na všech zařízeních" : "") + ". Pak ho hned pošleš klientovi jako PDF.</p>";
   el.innerHTML = h;
 }
 
@@ -8728,52 +8887,50 @@ function faRenderEditorZachovatFokus(){
   const a = document.activeElement, sel = a && a.dataset && (a.dataset.fa ? "[data-fa='" + a.dataset.fa + "']" :
     a.dataset.pol !== undefined ? "[data-pol='" + a.dataset.pol + "'][data-k='" + a.dataset.k + "']" : null);
   const pos = a && a.selectionStart;
+  const scroll = $("#faEditor").scrollTop;
   faRenderEditor();
+  $("#faEditor").scrollTop = scroll;
   if (sel) { const n = $("#faEditor " + sel); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) {} } }
 }
 $("#faEditor").addEventListener("change", e => {
-  if (!faOtevrena) return;
-  if (e.target.dataset && (e.target.dataset.fa === "zpusobUhrady" || e.target.dataset.k === "mnozstvi")) { faRenderEditorZachovatFokus(); faRenderNahled(); return; }
-  if (e.target.id !== "faKlient") return;
-  const k = (S.klienti || []).find(x => x.id === e.target.value); if (!k) return;
-  Object.assign(faOtevrena.odberatel, {jmeno:k.jmeno || "", adresa:k.adresa || "", ico:k.ico || "", dic:k.dic || "", email:k.email || "", telefon:k.tel || ""});
+  const f = faOtevrena; if (!f) return;
+  const t = e.target;
+  if (t.dataset.faodpid && f.stav === "koncept" && !t.checked) {
+    f.odpocty = faOdpocty(f).filter(o => o.id !== t.dataset.faodpid && o.cislo !== t.dataset.faodpid); f.odpocetZalohy = null;
+    faPrepocet(f); faRenderEditorZachovatFokus(); faRenderNahled(); return;
+  }
+  if (t.dataset.faodp && f.stav === "koncept") {
+    const x = (S.faktury || []).find(y => y.id === t.dataset.faodp); if (!x) return;
+    f.odpocty = faOdpocty(f).filter(o => o.id !== x.id && o.cislo !== x.cislo);
+    if (t.checked) f.odpocty.push({id:x.id, cislo:x.cislo, castka:x.kUhrade, zaplaceno:x.zaplaceno || ""});
+    f.odpocetZalohy = null;
+    faPrepocet(f); faRenderEditorZachovatFokus(); faRenderNahled(); return;
+  }
+  if (t.dataset && (t.dataset.fa === "zpusobUhrady" || t.dataset.k === "mnozstvi" || t.dataset.fa === "vystaveno" || t.dataset.fa === "splatnost")) { faRenderEditorZachovatFokus(); faRenderNahled(); return; }
+  if (t.id !== "faKlient") return;
+  const k = (S.klienti || []).find(x => x.id === t.value); if (!k) return;
+  Object.assign(f.odberatel, {jmeno:k.jmeno || "", adresa:k.adresa || "", ico:k.ico || "", dic:k.dic || "", email:k.email || "", telefon:k.tel || ""});
   faRenderEditor(); faRenderNahled();
 });
 $("#faEditor").addEventListener("click", async e => {
   const f = faOtevrena; if (!f) return;
-  const id = e.target.id, ul = (S.faktury || []).find(x => x.id === f.id);
-  if (e.target.classList.contains("faPolDel")) { f.polozky.splice(+e.target.dataset.ix, 1); faPrepocet(f); faRenderEditor(); faRenderNahled(); return; }
-  if (e.target.dataset.spl && f.stav === "koncept") { f.splatnost = faPlusDni(f.vystaveno || faDnes(), +e.target.dataset.spl); faRenderEditor(); faRenderNahled(); return; }
+  const cil = e.target.closest("button"); if (!cil) return;
+  const id = cil.id, ul = (S.faktury || []).find(x => x.id === f.id);
+  if (cil.classList.contains("faPolDel")) { f.polozky.splice(+cil.dataset.ix, 1); faPrepocet(f); faRenderEditor(); faRenderNahled(); return; }
+  if (cil.dataset.spl && f.stav === "koncept") { f.splatnost = faPlusDni(f.vystaveno || faDnes(), +cil.dataset.spl); faRenderEditorZachovatFokus(); faRenderNahled(); return; }
+  if (cil.dataset.faodprucdel && f.stav === "koncept") { f.odpocty = faOdpocty(f).filter(o => o.id !== cil.dataset.faodprucdel); faPrepocet(f); faRenderEditorZachovatFokus(); faRenderNahled(); return; }
+  if (id === "faOdpRucPridat" && f.stav === "koncept") {
+    const castka = Math.round(num($("#faOdpRucCastka").value)), datum = $("#faOdpRucDatum").value;
+    if (!(castka > 0)) { alert("Zadej částku zaplacené zálohy."); return; }
+    f.odpocty = faOdpocty(f).concat([{id:"r" + uid(), rucni:true, cislo:"", popis:"Uhrazená záloha" + (datum ? " dne " + faDatum(datum) : ""), castka, zaplaceno:datum || ""}]);
+    f.odpocetZalohy = null;
+    faPrepocet(f); faRenderEditorZachovatFokus(); faRenderNahled(); return;
+  }
   if (id === "faPolAdd") { f.polozky.push({popis:"", mnozstvi:f.typ === "storno" ? -1 : 1, mj:"kpl", cenaMJ:0, celkem:0}); faRenderEditor(); faRenderNahled(); return; }
   if (id === "faAres") { await faAres(); return; }
   if (id === "faVystavit") { await faVystavit(); return; }
   if (id === "faAkOdeslat") { faOdeslatPanel("odeslani"); return; }
   if (id === "faAkUpominka") { faOdeslatPanel("upominka"); return; }
-  if (id === "faOdZrusit") { $("#faOdeslatBox").innerHTML = ""; return; }
-  if (id === "faOdKopirovat") {
-    const text = $("#faOdText").value;
-    try { await navigator.clipboard.writeText(text); e.target.textContent = "✓ Zkopírováno"; } catch (x) { $("#faOdText").select(); document.execCommand("copy"); e.target.textContent = "✓ Zkopírováno"; }
-    return;
-  }
-  if (id === "faOdPoslat") {
-    if (!ul) return;
-    const email = $("#faOdKomu").value.trim();
-    if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { alert("E-mail klienta má špatný tvar."); return; }
-    if (email !== (ul.odberatel.email || "")) { ul.odberatel.email = email; faOtevrena.odberatel.email = email; }
-    const btn = e.target; btn.disabled = true; btn.textContent = pdfFonty ? "vytvářím PDF…" : "připravuji PDF (poprvé chvíli trvá)…";
-    try {
-      const kanal = await faOdeslatSeZaznamem(ul.id, btn.dataset.druh, $("#faOdText").value, $("#faOdPredmet").value);
-      if (kanal === "zruseno") { btn.disabled = false; btn.textContent = "📎 Poslat s PDF"; return; }
-      renderFaktury(); faOtevri(JSON.parse(JSON.stringify(ul)));
-      const box = $("#faOdeslatBox");
-      if (box) box.innerHTML = "<p class='hint ok' style='margin:8px 0'>✓ " + (kanal === "sdileni" ? "Předáno ke sdílení a zapsáno do historie." :
-        "PDF je stažené a otevřel se e-mail s textem — přilož soubor " + esc(faPdfJmeno(ul)) + " a odešli. Odeslání je zapsané v historii.") + "</p>";
-    } catch (err) {
-      btn.disabled = false; btn.textContent = "📎 Poslat s PDF";
-      alert("Odeslání se nepovedlo: " + err.message);
-    }
-    return;
-  }
   if (id === "faAkZap") { faOznacZaplaceno(f.id); return; }
   if (id === "faAkNezap") {
     if (!ul) return;
@@ -8781,33 +8938,176 @@ $("#faEditor").addEventListener("click", async e => {
     ul.stav = "vystavena"; ul.zaplaceno = ""; ul.sparovano = false; ul.upraveno = new Date().toISOString();
     faZmena(ul); renderFaktury(); faOtevri(JSON.parse(JSON.stringify(ul))); return;
   }
-  if (id === "faAkStorno" || id === "faAkDobropis") {
+  if (id === "faAkStorno" || id === "faAkDobropis") { if (ul) faOtevri(faStornoKoncept(ul, id === "faAkDobropis")); return; }
+  if (id === "faAkOpravitZalohu") {
     if (!ul) return;
-    faOtevri(faStornoKoncept(ul, id === "faAkDobropis")); return;
+    const zal = faKandidatiZaloh(ul).filter(k => k.shoda).map(k => k.x);
+    const k = faStornoKoncept(ul, false);
+    k.duvodStorna = "Oprava: nebyla odečtena uhrazená záloha č. " + zal.map(x => x.cislo).join(", ") + ".";
+    k.navazat = {kopieOd:ul.id, odpocty:zal.map(x => ({id:x.id, cislo:x.cislo, castka:x.kUhrade, zaplaceno:x.zaplaceno || ""}))};
+    faPrepocet(k); faOtevri(k); return;
   }
-  if (id === "faAkKopie") {
-    const k = JSON.parse(JSON.stringify(f));
-    Object.assign(k, faNovaMetadata(), {id:uid(), cislo:"", stav:"koncept", vystaveno:faDnes(), splatnost:faPlusDni(faDnes(), S.nastaveni.fakSplatnost || 14),
-      zpusobUhrady:f.zpusobUhrady || "prevod", dodavatel:faDodavatel(), sparovano:false, dobropisy:[], zapocet:false});
-    if (k.typ !== "zal") k.duzp = faDnes();
-    faOtevri(k);
-  }
+  if (id === "faAkKonecna") { if (ul) faOtevri(faKonecnaZeZalohy(ul)); return; }
+  if (id === "faAkKopie") { faOtevri(faKopieKoncept(f)); return; }
+  if (id === "faAkSmazat") { if (ul && faSmazatDoklad(ul.id)) faZavri(); return; }
+  if (id === "faOdSdilet" || id === "faOdMail" || id === "faOdGmail" || id === "faOdPdf" || id === "faOdKopirovat" || id === "faOdOdeslano" || id === "faOdZrusit") { faOdeslatAkce(id, cil); return; }
 });
 
-/* panel pro odeslání faktury nebo upomínky — text jde před odesláním upravit */
+/* nový koncept jako kopie (bez čísla, historie a plateb) */
+function faKopieKoncept(f){
+  const k = JSON.parse(JSON.stringify(f)), n = S.nastaveni;
+  Object.assign(k, faNovaMetadata(), {id:uid(), cislo:"", stav:"koncept", vystaveno:faDnes(), splatnost:faPlusDni(faDnes(), k.typ === "zal" ? (n.fakSplatnostZal || 3) : (n.fakSplatnost || 5)),
+    zpusobUhrady:f.zpusobUhrady || "prevod", dodavatel:faDodavatel(), sparovano:false, dobropisy:[], zapocet:false});
+  delete k.navazat;
+  if (k.typ !== "zal") k.duzp = faDnes();
+  return k;
+}
+/* ze zálohové faktury rovnou konečnou fakturu s odečtem — ze zakázky, nebo s údaji odběratele */
+function faKonecnaZeZalohy(zf){
+  const jiz = (S.faktury || []).find(k => k.typ !== "zal" && k.typ !== "storno" && k.stav !== "stornovana" && faOdpocty(k).some(o => o.id === zf.id || o.cislo === zf.cislo));
+  if (jiz && confirm("Záloha " + zf.cislo + " je už odečtená ve faktuře " + jiz.cislo + ". Otevřít ji?")) return JSON.parse(JSON.stringify(jiz));
+  const odpocet = {id:zf.id, cislo:zf.cislo, castka:zf.kUhrade, zaplaceno:zf.zaplaceno || ""};
+  let f = null;
+  const z = zf.zakazkaId && (S.zakazky || []).find(x => x.id === zf.zakazkaId);
+  const v = zf.zakazkaId && (S.vyklizeni || []).find(x => x.id === zf.zakazkaId);
+  if (z) f = faKonceptZeZakazky(z, "kon");
+  else if (v && typeof faKonceptZVyklizeni === "function") f = faKonceptZVyklizeni(v, "kon");
+  else {
+    f = faKonceptPrazdny();
+    Object.assign(f, {odberatel:JSON.parse(JSON.stringify(zf.odberatel)), zakazkaId:zf.zakazkaId || "", zakazkaNazev:zf.zakazkaNazev || "", mistoPlneni:zf.mistoPlneni || "", zpusobUhrady:zf.zpusobUhrady || "prevod"});
+  }
+  if (!faOdpocty(f).some(o => o.id === zf.id)) { f.odpocty = faOdpocty(f).concat([odpocet]); f.odpocetZalohy = null; }
+  faPrepocet(f);
+  return f;
+}
+
+/* ---------- odeslání klientovi: PDF se připraví hned, sdílení a e-mail pak fungují i na telefonu ---------- */
+let faOdeslani = null;
 function faOdeslatPanel(druh){
   const box = $("#faOdeslatBox"), f = faOtevrena; if (!box || !f) return;
   const ul = (S.faktury || []).find(x => x.id === f.id); if (!ul) return;
   const poradi = (ul.upominky || []).length + 1;
   const t = druh === "upominka" ? faTextUpominky(ul, poradi) : faTextOdeslani(ul);
-  box.innerHTML = "<div class='fa-odeslat'><b>" + (druh === "upominka" ? poradi + ". upomínka" : "Poslat " + faTypNazev(ul).toLowerCase() + " klientovi") + "</b>" +
+  box.innerHTML = "<div class='fa-odeslat'><b>" + (druh === "upominka" ? poradi + ". upomínka k faktuře " + esc(ul.cislo) : "Poslat " + faTypAkuzativ(ul) + " klientovi") + "</b>" +
     "<label class='f'>E-mail klienta<input id='faOdKomu' type='email' inputmode='email' value='" + esc(ul.odberatel.email || "") + "' placeholder='klient@email.cz'></label>" +
     "<label class='f'>Předmět<input id='faOdPredmet' value='" + esc(t.predmet) + "'></label>" +
-    "<label class='f'>Text zprávy<textarea id='faOdText' rows='10'>" + esc(t.text) + "</textarea></label>" +
-    "<div class='btnrow'><button class='b prim' id='faOdPoslat' type='button' data-druh='" + druh + "'>📎 Poslat s PDF</button>" +
-    "<button class='b' id='faOdKopirovat' type='button'>Kopírovat text</button><button class='b' id='faOdZrusit' type='button'>Zrušit</button></div>" +
-    "<p class='hint' style='margin:6px 0 0'>Na telefonu se otevře sdílení (Gmail, Outlook, WhatsApp…) s PDF v příloze. Na počítači se PDF stáhne a otevře se e-mail s připraveným textem — soubor jen přetáhneš do přílohy. Odeslání se zapíše do historie.</p></div>";
+    "<label class='f'>Text zprávy<textarea id='faOdText' rows='9'>" + esc(t.text) + "</textarea></label>" +
+    "<div class='fa-odeslat-stav' id='faOdStav'>⏳ Připravuji PDF…</div>" +
+    "<div class='fa-odeslat-tl'>" +
+      "<button class='b prim' id='faOdSdilet' type='button' hidden>📤 Sdílet s PDF</button>" +
+      "<button class='b' id='faOdPdf' type='button' disabled>⬇ Stáhnout PDF</button>" +
+      "<button class='b' id='faOdMail' type='button'>✉ Otevřít e-mail</button>" +
+      "<button class='b' id='faOdGmail' type='button'>Gmail</button>" +
+      "<button class='b' id='faOdKopirovat' type='button'>📋 Kopírovat text</button>" +
+    "</div>" +
+    "<div class='fa-odeslat-tl'><button class='b' id='faOdOdeslano' type='button'>✓ Zapsat jako odeslané</button><button class='b' id='faOdZrusit' type='button'>Zavřít</button></div>" +
+    "<p class='hint' style='margin:4px 0 0'><b>Telefon:</b> Sdílet s PDF → vyber e-mail nebo WhatsApp, faktura je v příloze. " +
+    "<b>Počítač:</b> Stáhnout PDF → Otevřít e-mail nebo Gmail → PDF přetáhni do zprávy. Po odeslání dej <b>Zapsat jako odeslané</b>.</p></div>";
+  const moje = faOdeslani = {id:ul.id, druh, blob:null, soubor:null, jmeno:faPdfJmeno(ul)};
   box.scrollIntoView({block:"nearest", behavior:"smooth"});
+  faPdfDokument(ul).then(doc => {
+    if (faOdeslani !== moje) return;
+    moje.blob = doc.output("blob");
+    try { moje.soubor = new File([moje.blob], moje.jmeno, {type:"application/pdf"}); } catch (e) { moje.soubor = null; }
+    const st = $("#faOdStav"); if (st) st.innerHTML = "<span class='ok'>✓ PDF připravené</span> — " + esc(moje.jmeno) + " (" + Math.round(moje.blob.size / 1024) + " kB)";
+    const b = $("#faOdPdf"); if (b) b.disabled = false;
+    const sd = $("#faOdSdilet");
+    if (sd && moje.soubor && navigator.canShare) { try { if (navigator.canShare({files:[moje.soubor]})) sd.hidden = false; } catch (e) {} }
+  }).catch(err => {
+    if (faOdeslani !== moje) return;
+    const st = $("#faOdStav");
+    if (st) st.innerHTML = "<span class='ne'>PDF se nepodařilo připravit: " + esc(err.message) + ".</span> Poprvé je potřeba internet (stahuje se písmo). Náhradou dej nahoře Tisk → Uložit jako PDF.";
+  });
+}
+function faOdeslatUdaje(){
+  return {komu:($("#faOdKomu") || {}).value ? $("#faOdKomu").value.trim() : "", predmet:($("#faOdPredmet") || {}).value || "", text:($("#faOdText") || {}).value || ""};
+}
+function faOdeslatStav(html){ const st = $("#faOdStav"); if (st) st.innerHTML = html; }
+function faOdeslatAkce(id, btn){
+  const moje = faOdeslani; if (!moje) return;
+  const u = faOdeslatUdaje();
+  if (u.komu && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(u.komu) && ["faOdMail", "faOdGmail", "faOdOdeslano"].includes(id)) { alert("E-mail klienta má špatný tvar."); return; }
+  if (id === "faOdZrusit") { faOdeslani = null; $("#faOdeslatBox").innerHTML = ""; return; }
+  if (id === "faOdKopirovat") {
+    const hotovo = () => { btn.textContent = "✓ Zkopírováno"; setTimeout(() => { btn.textContent = "📋 Kopírovat text"; }, 1600); };
+    const ta = $("#faOdText"); ta.select(); let ok = false; try { ok = document.execCommand("copy"); } catch (e) {}
+    if (ok) hotovo(); else if (navigator.clipboard) navigator.clipboard.writeText(u.text).then(hotovo, () => {});
+    return;
+  }
+  if (id === "faOdPdf") { if (moje.blob) { stahniBlob(moje.blob, moje.jmeno); faOdeslatStav("<span class='ok'>✓ PDF staženo</span> — " + esc(moje.jmeno) + ". Teď otevři e-mail a soubor přilož."); } return; }
+  if (id === "faOdSdilet") {
+    if (!moje.soubor) return;
+    /* sdílení se volá hned v kliknutí (PDF je už hotové), jinak ho telefon odmítne */
+    navigator.share({files:[moje.soubor], title:u.predmet, text:u.text})
+      .then(() => faZapisOdeslani(moje.id, moje.druh, "sdileni", u.komu))
+      .catch(err => { if (err && err.name === "AbortError") return; faOdeslatStav("<span class='ne'>Sdílení se nepovedlo (" + esc(err && err.message || "") + ").</span> Použij Stáhnout PDF a Otevřít e-mail."); });
+    return;
+  }
+  if (id === "faOdMail") {
+    const a = document.createElement("a");
+    a.href = "mailto:" + encodeURIComponent(u.komu) + "?subject=" + encodeURIComponent(u.predmet) + "&body=" + encodeURIComponent(u.text);
+    document.body.appendChild(a); a.click(); a.remove();
+    faOdeslatStav("E-mail se otevírá v poštovním programu. <b>Přilož PDF</b> (Stáhnout PDF), odešli a pak dej <b>Zapsat jako odeslané</b>. Když se nic neotevřelo, použij Gmail.");
+    return;
+  }
+  if (id === "faOdGmail") {
+    window.open("https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(u.komu) + "&su=" + encodeURIComponent(u.predmet) + "&body=" + encodeURIComponent(u.text), "_blank", "noopener");
+    faOdeslatStav("Gmail se otevřel v novém okně. <b>Přilož PDF</b> (Stáhnout PDF), odešli a pak dej <b>Zapsat jako odeslané</b>.");
+    return;
+  }
+  if (id === "faOdOdeslano") { faZapisOdeslani(moje.id, moje.druh, u.komu ? "email" : "rucne", u.komu); }
+}
+function faZapisOdeslani(id, druh, kanal, komu){
+  const ul = (S.faktury || []).find(x => x.id === id); if (!ul) return;
+  if (komu && komu !== (ul.odberatel.email || "")) ul.odberatel.email = komu;
+  const zaznam = {datum:new Date().toISOString(), kanal, komu:komu || ""};
+  if (druh === "upominka") { ul.upominky = ul.upominky || []; zaznam.poradi = ul.upominky.length + 1; ul.upominky.push(zaznam); }
+  else { ul.odeslano = ul.odeslano || []; ul.odeslano.push(zaznam); }
+  ul.upraveno = new Date().toISOString();
+  faZmena(ul); renderFaktury();
+  faOdeslani = null;
+  faOtevri(JSON.parse(JSON.stringify(ul)));
+  const box = $("#faOdeslatBox");
+  if (box) box.innerHTML = "<p class='hint ok' style='margin:8px 0'>✓ " + (druh === "upominka" ? "Upomínka zapsaná" : "Odeslání zapsané") + " do historie faktury.</p>";
+}
+
+/* ---------- mazání dokladů (zkušební data) ---------- */
+function faOdstranit(f){
+  if (f.typ === "storno" && f.odkaz) {
+    const orig = (S.faktury || []).find(x => x.id === f.odkaz.id);
+    if (orig) {
+      if (!f.castecne && orig.storno && orig.storno.dokladId === f.id) { orig.stav = orig.storno.poZaplaceni ? "zaplacena" : "vystavena"; orig.storno = null; }
+      orig.dobropisy = (orig.dobropisy || []).filter(x => x.id !== f.id);
+      orig.upraveno = new Date().toISOString(); faZmena(orig);
+    }
+  }
+  const odpoj = t => {
+    if (!t) return;
+    if (f.cislo && t.cisloFakZal === f.cislo) { t.cisloFakZal = ""; t.zalohaZaplaceno = ""; }
+    if (f.cislo && t.cisloFakKon === f.cislo) { t.cisloFakKon = ""; t.doplatekZaplaceno = ""; }
+  };
+  if (f.zakazkaId) {
+    odpoj((S.zakazky || []).find(z => z.id === f.zakazkaId)); odpoj((S.vyklizeni || []).find(z => z.id === f.zakazkaId));
+    if (typeof J !== "undefined" && J && J.id === f.zakazkaId) odpoj(J);
+    if (typeof VK !== "undefined" && VK && VK.id === f.zakazkaId) odpoj(VK);
+  }
+  S.faktury = (S.faktury || []).filter(x => x.id !== f.id);
+  if (typeof syncSmazat === "function") syncSmazat("faktura", f.id);
+}
+function faSmazatDoklad(id){
+  const f = (S.faktury || []).find(x => x.id === id); if (!f) return false;
+  const navazne = (S.faktury || []).filter(x => x.typ === "storno" && x.odkaz && x.odkaz.id === f.id);
+  const odecteno = f.typ === "zal" ? (S.faktury || []).filter(x => x.id !== f.id && faOdpocty(x).some(o => o.id === f.id || (o.cislo && o.cislo === f.cislo))) : [];
+  if (odecteno.length) { alert("Záloha " + f.cislo + " je odečtená ve faktuře " + odecteno.map(x => x.cislo).join(", ") + " — nejdřív smaž tu."); return false; }
+  const v = prompt("Smazat " + faTypNazev(f).toLowerCase() + " č. " + f.cislo + "?" +
+    (navazne.length ? "\nSmažou se i navazující doklady: " + navazne.map(x => x.cislo).join(", ") + "." : "") +
+    ((f.odeslano || []).length || f.stav === "zaplacena" ? "\nPozor: doklad už byl odeslán nebo zaplacen." : "") +
+    "\n\nPro potvrzení napiš číslo dokladu:", "");
+  if (v === null) return false;
+  if (v.trim() !== String(f.cislo)) { alert("Číslo nesouhlasí — nic se nesmazalo."); return false; }
+  faOdstranit(f); navazne.forEach(faOdstranit);
+  save(); renderFaktury(); if (typeof renderDane === "function") renderDane();
+  return true;
 }
 
 /* ARES — veřejný registr ekonomických subjektů, doplní název a sídlo podle IČO */
@@ -8869,6 +9169,10 @@ async function faVystavit(){
   }
   if (f.typ === "storno") {
     faPoStornu(f); save(); renderFaktury();
+    if (f.navazat) {                 /* oprava odečtu zálohy: po stornu rovnou nová faktura s odečtem */
+      const orig = (S.faktury || []).find(x => x.id === f.navazat.kopieOd);
+      if (orig) { const k = faKopieKoncept(orig); k.odpocty = f.navazat.odpocty; k.odpocetZalohy = null; faPrepocet(k); faOtevri(k); return; }
+    }
     faOtevri(JSON.parse(JSON.stringify(S.faktury.find(x => x.id === f.id) || f)));
     return;
   }
@@ -8900,10 +9204,6 @@ function faZeZakazky(typ){
     if (!confirm((typ === "zal" ? "Zálohová faktura" : "Faktura") + " " + f.cislo + " k téhle zakázce už existuje.\n\nOK = otevřít ji\nZrušit = vystavit další")) { faOtevri(faKonceptZeZakazky(z, typ)); return; }
     faOtevri(JSON.parse(JSON.stringify(f))); return;
   }
-  if (typ === "kon") {
-    const zf = (S.faktury || []).find(f => f.zakazkaId === z.id && f.typ === "zal" && f.stav === "vystavena");
-    if (zf && !confirm("Zálohová faktura " + zf.cislo + " ještě není označená jako zaplacená, takže se v konečné faktuře neodečte.\n\nPokračovat bez odpočtu zálohy?")) return;
-  }
   faOtevri(faKonceptZeZakazky(z, typ));
 }
 
@@ -8920,7 +9220,7 @@ function faTextOdeslani(f){
   else if (f.typ === "storno") telo = "v příloze posílám " + (f.castecne ? "dobropis" : "storno fakturu") + " č. " + f.cislo + " k faktuře č. " + ((f.odkaz && f.odkaz.cislo) || "") + "." +
     (f.odkaz && f.odkaz.zaplacena ? " Částku " + castka + " vám vrátíme na účet, ze kterého jste platili." : "");
   else telo = "v příloze posílám fakturu č. " + f.cislo + (f.zakazkaNazev ? " za zakázku " + f.zakazkaNazev : "") +
-    (f.kUhrade > 0 ? " na " + castka + " se splatností " + faDatum(f.splatnost) + "." : ". Faktura je uhrazená zálohou, nic dalšího neplatíte.");
+    (f.kUhrade > 0 ? " na " + castka + (faOdpocty(f).length ? " (cena " + faKc(f.celkem) + " po odečtení uhrazené zálohy " + faKc(faSoucetOdpoctu(f)) + ")" : "") + " se splatností " + faDatum(f.splatnost) + "." : ". Faktura je uhrazená zálohou, nic dalšího neplatíte.");
   const platba = faZpusob(f) === "prevod" && f.kUhrade > 0 && f.typ !== "storno"
     ? nl + nl + "Platbu prosím pošlete na účet " + (d.bankUcet || d.iban) + " s variabilním symbolem " + vs +
       ". Nejrychlejší je načíst QR kód z faktury v bankovní aplikaci — údaje se vyplní samy." : "";
@@ -8950,25 +9250,15 @@ function faTextUpominky(f, poradi){
   return {predmet:predmet + " — " + (d.znacka || d.firma), text:"Dobrý den," + nl + nl + telo + nl + nl + "Faktura je znovu v příloze." + nl + nl + "Děkuji" + nl + podpis};
 }
 
-/* ---------- odeslání s PDF a evidence ---------- */
-async function faOdeslatSeZaznamem(id, druh, text, predmet){
-  const f = (S.faktury || []).find(x => x.id === id); if (!f) throw new Error("Faktura nenalezena");
-  const kanal = await faPdfOdeslat(f, text, predmet);
-  if (kanal === "zruseno") return kanal;
-  const zaznam = {datum:new Date().toISOString(), kanal, komu:f.odberatel.email || ""};
-  if (druh === "upominka") { f.upominky = f.upominky || []; zaznam.poradi = f.upominky.length + 1; f.upominky.push(zaznam); }
-  else { f.odeslano = f.odeslano || []; f.odeslano.push(zaznam); }
-  f.upraveno = new Date().toISOString();
-  faZmena(f);
-  return kanal;
-}
+/* ---------- historie dokladu ---------- */
 function faHistorie(f){
   const t = [];
-  (f.odeslano || []).forEach(z => t.push([z.datum, "Odesláno klientovi" + (z.kanal === "sdileni" ? " (sdílení z telefonu)" : z.kanal === "email" ? " (e-mailem" + (z.komu ? " na " + z.komu : "") + ")" : "")]));
+  (f.odeslano || []).forEach(z => t.push([z.datum, "Odesláno klientovi" + (z.kanal === "sdileni" ? " (sdílení z telefonu)" : z.kanal === "email" ? " (e-mailem" + (z.komu ? " na " + z.komu : "") + ")" : z.kanal === "rucne" ? " (zapsáno ručně)" : "")]));
   (f.upominky || []).forEach(z => t.push([z.datum, z.poradi + ". upomínka odeslána"]));
   if (f.zaplaceno && f.stav !== "koncept") t.push([f.zaplaceno + "T12:00:00", f.typ === "storno" ? (f.zapocet ? "Vyrovnáno zápočtem proti nezaplacené faktuře" : "Vráceno klientovi") : "Zaplaceno" + (f.sparovano ? " (spárováno z výpisu)" : "")]);
   if (f.storno && f.storno.cislo) t.push([f.storno.datum + "T12:00:01", "Stornováno dokladem č. " + f.storno.cislo + (f.storno.duvod ? " — " + f.storno.duvod : "")]);
   (f.dobropisy || []).forEach(x => t.push([x.datum ? x.datum + "T12:00:02" : f.vystaveno, "Dobropis č. " + x.cislo + " na " + faKc(x.castka)]));
+  faOdpocty(f).forEach(o => t.push([f.vytvoreno || f.vystaveno + "T00:00:00", "Odečtena záloha " + (o.cislo || "bez zálohové faktury") + " " + faKc(o.castka)]));
   return t.sort((a, b) => String(a[0]).localeCompare(String(b[0])));
 }
 
@@ -9372,7 +9662,7 @@ function ucFakturyCSV(list){
       f.vystaveno, f.duzp || "", f.splatnost, f.zaplaceno || "", faZpusobText(f),
       f.odberatel.jmeno, f.odberatel.ico, f.odberatel.dic, f.odberatel.adresa,
       csvCislo(f.mezisoucet), csvCislo((f.slevy || []).reduce((a, s) => a + s.castka, 0)), csvCislo(f.celkem),
-      csvCislo(f.odpocetZalohy ? f.odpocetZalohy.castka : 0), csvCislo(f.kUhrade), faVS(f.cislo), f.zakazkaNazev || "",
+      csvCislo(faSoucetOdpoctu(f)), csvCislo(f.kUhrade), faVS(f.cislo), f.zakazkaNazev || "",
       f.odkaz ? f.odkaz.cislo : "", [f.storno && f.storno.cislo].concat((f.dobropisy || []).map(x => x.cislo)).filter(Boolean).join(", "),
       f.duvodStorna || (f.storno ? f.storno.duvod : ""), faDoVynosu(f) ? "ano" : "ne"])));
 }
@@ -11426,9 +11716,9 @@ function faKonceptZVyklizeni(v, typ){
   const r = vykVypocet(v), n = S.nastaveni, dnes = faDnes();
   const k = (S.klienti || []).find(x => x.id === v.klientId);
   const f = Object.assign(faNovaMetadata(), {id:uid(), typ, cislo:"", stav:"koncept", vystaveno:dnes, duzp:typ === "zal" ? "" : (v.terminOd || dnes),
-    splatnost:faPlusDni(dnes, n.fakSplatnost || 14), dodavatel:faDodavatel(),
+    splatnost:faPlusDni(dnes, typ === "zal" ? (n.fakSplatnostZal || 3) : (n.fakSplatnost || 5)), dodavatel:faDodavatel(),
     odberatel:{jmeno:(k && k.jmeno) || v.klient || "", adresa:(k && k.adresa) || v.adresa || "", ico:(k && k.ico) || "", dic:(k && k.dic) || "", email:(k && k.email) || "", telefon:(k && k.tel) || ""},
-    polozky:[], slevy:[], mezisoucet:0, zaokrouhleni:0, odpocetZalohy:null, celkem:0, kUhrade:0,
+    polozky:[], slevy:[], mezisoucet:0, zaokrouhleni:0, odpocty:[], celkem:0, kUhrade:0,
     zakazkaId:v.id, zakazkaNazev:v.nazev || "", mistoPlneni:v.adresa || "", poznamka:"", zaplaceno:"", storno:null, vytvoril:n.jednatel || "", vytvoreno:new Date().toISOString()});
   if (typ === "zal") {
     const zaklad = r.ok ? (v.uctovani === "hodina" ? r.hodinove.gross : r.gross) : 0;
@@ -11441,8 +11731,7 @@ function faKonceptZVyklizeni(v, typ){
   const sk = vykSkutecnost(v);
   f.polozky = sk.polozky.filter(p => p.celkem).map(p => ({popis:p.popis, mnozstvi:p.mnozstvi, mj:p.mj, cenaMJ:p.cenaMJ, celkem:p.celkem}));
   if (v.sleva > 0) f.slevy.push({popis:v.predem ? "Sleva za platbu předem" : "Sleva", pct:vykPct(v.sleva), castka:0});
-  const zf = (S.faktury || []).find(x => x.typ === "zal" && x.zakazkaId === v.id && x.stav === "zaplacena");
-  if (zf) f.odpocetZalohy = {cislo:zf.cislo, castka:zf.kUhrade, zaplaceno:zf.zaplaceno};
+  f.odpocty = faZalohyKOdectu(f, v.id);
   faPrepocet(f);
   f.poznamka = (v.cisloNab ? "Podle cenové nabídky č. " + v.cisloNab + ". " : "") + (v.uctovani === "hodina" ? "Vyúčtování podle výkazu práce; výkaz a vážní lístky jsou přílohou." : "Pevná cena za vyklizení včetně odvozu a likvidace.");
   return f;
@@ -11457,7 +11746,6 @@ function faZVyklizeni(typ){
   const v = S.vyklizeni.find(x => x.id === VK.id);
   const exist = (S.faktury || []).filter(f => f.zakazkaId === v.id && f.typ === typ && f.stav !== "stornovana");
   if (exist.length) { const f = exist[exist.length - 1]; if (confirm((typ === "zal" ? "Zálohová faktura" : "Faktura") + " " + f.cislo + " k téhle zakázce už existuje.\n\nOK = otevřít ji\nZrušit = vystavit další")) { faOtevri(JSON.parse(JSON.stringify(f))); return; } }
-  if (typ === "kon") { const zf = (S.faktury || []).find(f => f.zakazkaId === v.id && f.typ === "zal" && f.stav === "vystavena"); if (zf && !confirm("Zálohová faktura " + zf.cislo + " ještě není zaplacená, v konečné faktuře se neodečte. Pokračovat?")) return; }
   faOtevri(faKonceptZVyklizeni(v, typ));
 }
 
