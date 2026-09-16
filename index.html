@@ -464,6 +464,30 @@ details.gsec li{margin:3px 0}
 .vk-ekon-tab tr.sum td{font-weight:800}.vk-ekon-tab tr.akt td{background:var(--surface2)}
 .vk-ekon-zaver{margin:0;padding-left:20px;font-size:14px;line-height:1.5}.vk-ekon-zaver li{margin-bottom:6px}
 
+
+/* ekonomika firmy */
+.ek-card h2{padding:12px 16px 0}
+.ek-parta{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:4px 16px 8px}
+.ek-parta-f{display:flex;align-items:center;gap:4px;font-size:13px;color:var(--muted)}
+.ek-parta-f input{width:48px;border:1px solid var(--line);border-radius:6px;padding:4px 6px;background:var(--ground);color:var(--ink)}
+.ek-card .sumline.ek-mezi{border-top:1px solid var(--line);margin-top:4px;padding-top:8px}
+.ek-card .sumline.ek-hl b{font-size:19px;font-weight:900}
+.ek-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:6px 16px 2px}
+.ek-kpi>div{background:var(--surface2);border-radius:10px;padding:6px 8px;display:flex;flex-direction:column}
+.ek-kpi span{font-size:11.5px;color:var(--muted)}.ek-kpi b{font-size:16px;font-weight:900;font-variant-numeric:tabular-nums}
+.ek-var{margin:2px 0 6px}.ek-var>summary{cursor:pointer;padding:6px 16px;font-size:13px;font-weight:700;color:var(--muted)}
+.ek-tab{width:100%}.ek-tab td,.ek-tab th{font-size:13px;padding:5px 8px;border-bottom:1px solid var(--line)}
+.ek-tab td.r,.ek-tab th.r{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ek-zdroj{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 8px;font-size:13.5px}
+.vk-ekon-fakta>div.ek-vysl{background:var(--good-bg)}.vk-ekon-fakta>div.ek-vysl b{color:var(--good)}
+.ek-nast{margin-top:14px;border-top:1px solid var(--line);padding-top:8px}.ek-nast>summary{cursor:pointer;font-weight:800}
+.ek-fix{display:grid;gap:6px}
+.ek-fix-r{display:grid;grid-template-columns:minmax(0,1fr) 120px 34px;gap:6px;align-items:center}
+.ek-fix-r.ek-nar{grid-template-columns:minmax(0,1fr) 120px 120px 70px 34px}
+.ek-fix-r input{border:1px solid var(--line);border-radius:6px;padding:6px 8px;background:var(--ground);color:var(--ink);min-width:0;width:100%;box-sizing:border-box}
+.ek-fix-r label{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted)}
+@media (max-width:560px){.ek-fix-r.ek-nar{grid-template-columns:1fr 1fr}.ek-fix-r.ek-nar>input:first-child{grid-column:1/-1}}
+
 @media (prefers-reduced-motion: no-preference){
   nav button,button.b{transition:background .12s,filter .12s,border-color .12s}
 }
@@ -804,8 +828,13 @@ details.gsec li{margin:3px 0}
     </div>
     <div id="varovani"></div>
   </div>
+  <div class="card ek-card" id="dmZisk"></div>
 </aside>
 </div>
+  <details class="gsec" id="dmEkonDet">
+    <summary>💼 Ekonomika firmy — lidé, nářadí, auto, fixní náklady a daně</summary>
+    <div class="inner" id="dmEkon"></div>
+  </details>
 </section>
 
 <!-- ============ ZAKÁZKY ============ -->
@@ -1488,9 +1517,9 @@ details.gsec li{margin:3px 0}
 
     <div class="vybg">Zkoušení a mazání dokladů</div>
     <ul style="margin:4px 0 12px;padding-left:20px">
-      <li>Na zkoušení jde doklad smazat: v detailu dole <b>🗑 Smazat doklad</b> a pro jistotu napíšeš jeho číslo. Smažou se i navazující storna a dobropisy, zakázka se od faktury odpojí a číslo se uvolní.</li>
-      <li>Zálohu odečtenou v konečné faktuře nejde smazat samostatně — nejdřív smaž konečnou fakturu.</li>
-      <li>Všechno najednou: na konci záložky <b>🧪 Zkušební data → Smazat všechny doklady</b> (potvrzuje se slovem SMAZAT). Mazání platí pro všechna synchronizovaná zařízení.</li>
+      <li>Doklad smažeš tlačítkem <b>🗑</b> v řádku seznamu faktur nebo <b>🗑 Smazat</b> v akcích dokladu a potvrdíš v okně. Smažou se i navazující storna a dobropisy, zakázka se od faktury odpojí a číslo se uvolní.</li>
+      <li>Se zálohovou fakturou se smaže i konečná faktura, ve které je odečtená — okno je předem vyjmenuje.</li>
+      <li>Všechno najednou: na konci záložky <b>🧪 Zkušební data → Smazat všechny doklady</b> (potvrzuje se napsáním SMAZAT). Mazání platí pro všechna synchronizovaná zařízení.</li>
       <li>V ostrém provozu se vystavené doklady nemažou — opravují se stornem nebo dobropisem.</li>
     </ul>
 
@@ -1582,6 +1611,37 @@ details.gsec li{margin:3px 0}
     </ul>
   </div></details>
 
+  <details class="gsec"><summary>💼 Ekonomika firmy a skutečný zisk zakázky — demolice i vyklízení</summary><div class="inner">
+    <p style="margin:0 0 10px">Hodinovka „zisk na osobohodinu“ neříká, kolik vám opravdu zbude. Karta <b>💰 Skutečný zisk zakázky</b> (v souhrnu kalkulace i vyklízení) počítá celou cestu až do kapsy majitelů.</p>
+    <div class="vybg">Jak se počítá zisk jedné zakázky</div>
+    <ol style="margin:4px 0 12px;padding-left:20px">
+      <li><b>Tržba bez DPH</b> − přímé náklady (materiál, kontejnery, skládkovné, likvidace, auto a doprava, provize).</li>
+      <li>− <b>lidé, kteří nejsou majitelé</b>: zaměstnanec (hrubá mzda + 33,8 % odvodů, rozpočítaná na fakturovatelné hodiny), brigádník na DPP (hodinová odměna), spolupracovník na IČO (jeho sazba).</li>
+      <li>− <b>nářadí</b>: u demolic amortizace (cena ÷ hodiny životnosti) + spotřební materiál (kotouče, sekáče, vrtáky, rukavice); u vyklízení drobné pomůcky.</li>
+      <li>− <b>podíl fixních nákladů</b> (účetní, pojištění, telefony, reklama, zdravotní pojištění majitelů) na člověkohodinu.</li>
+      <li>= zisk před daní − <b>daň z příjmů 21 %</b> = čistý zisk firmy − <b>15 % z dividendy</b> = čistě majitelům, na majitele a na jeho hodinu.</li>
+    </ol>
+    <ul style="margin:4px 0 12px;padding-left:20px">
+      <li>V kartě zadáš, kdo na zakázce dělá (zaměstnanci, brigádníci, na IČO) — zbytek jsou majitelé. U demolic se to propíše do „Z toho najatých“.</li>
+      <li><b>Vyplatí se vzít pomocníka?</b> Rozbalovací srovnání ukáže pro stejnou zakázku: jen majitelé / + zaměstnanec / + brigádník / + IČO — kolik majitelům zůstane a kolik na hodinu. Pomocník ubere peníze ze zakázky, ale uvolní majiteli hodiny na další zakázku.</li>
+      <li>U demolic se do člověkohodin počítá i čas na cestě (kilometry ÷ průměrná rychlost × lidé).</li>
+    </ul>
+    <div class="vybg">💼 Ekonomika firmy (dole v kalkulaci i ve vyklízení — stejné nastavení)</div>
+    <ul style="margin:4px 0 12px;padding-left:20px">
+      <li><b>Kolik vydělá hodina práce</b> z uložených zakázek (všech, demolic nebo vyklízení) a <b>měsíc firmy</b> podle plánu hodin a lidí: zisk, daně, čistě na majitele, tržba za rok a hlídání limitu DPH 2 mil. Kč.</li>
+      <li><b>Co udělá další člověk</b>: +1 zaměstnanec, +1 brigádník, +1 na IČO, +2 zaměstnanci — kolik zakázek navíc potřebujete a o kolik se změní výplata majitelů.</li>
+      <li><b>Zaměstnanec, brigádník, nebo IČO?</b> Pro zvolené hodiny: kolik firmu stojí, kolik na něm firma vydělá a kolik mu zbude čistého (čistá mzda podle pravidel 2026, paušální daň OSVČ 9 984 Kč/měs.). Včetně „férové sazby na IČO“, aby měl jako zaměstnanec.</li>
+      <li><b>Pozor na švarcsystém:</b> člověk na IČO, kterému určujete pracovní dobu, řídíte a organizujete práci, je podle zákona zaměstnanec. Pokuta pro firmu 50 000 Kč až 10 mil. Kč. Bezpečnější je platba za výsledek (m², tuny, paušál), vlastní nářadí a čas.</li>
+      <li><b>Skutečnost podle faktur a výdajů</b> za letošní rok vedle plánu. Fixní náklady jdou převzít z výdajů za poslední 3 měsíce.</li>
+      <li><b>Auto</b>: nafta, spotřeba, servis, odpis a pojištění → Kč/km jedním tlačítkem do obou kalkulaček.</li>
+    </ul>
+    <div class="vybg">Čísla 2026, se kterými to počítá</div>
+    <ul style="margin:4px 0 0;padding-left:20px">
+      <li>Zaměstnavatel 24,8 % sociální + 9 % zdravotní; zaměstnanec 7,1 % + 4,5 %, záloha na daň 15 % (23 % nad 146 901 Kč), sleva na poplatníka 2 570 Kč; minimální mzda 22 400 Kč.</li>
+      <li>DPP bez odvodů do 11 999 Kč měsíčně, nejvýš 300 hodin ročně u jedné firmy, každá DPP se hlásí. Paušální daň OSVČ 1. pásmo 9 984 Kč/měs. Zdravotní pojištění osoby bez příjmů 3 024 Kč/měs.</li>
+      <li>Daň z příjmů s.r.o. 21 %, srážková daň z dividendy 15 %. Odhad — daňové detaily (odpisy, uznatelnost, výplata mzdou jednatele) řeší účetní.</li>
+    </ul>
+  </div></details>
   <details class="gsec"><summary>📸 Nacenit zakázku z fotek přes Claude — i z mobilu na prohlídce</summary><div class="inner">
     <p style="margin:0 0 10px">Tohle je nejrychlejší cesta od prohlídky k nabídce. Na místě naměříš a nafotíš, Claude ti to nacení podle <b>tvého</b> ceníku a tvých pravidel, a výsledek vložíš do kalkulačky. Funguje z telefonu, z počítače, odkudkoliv.</p>
 
@@ -3292,8 +3352,21 @@ function migrate(){
   /* v19: nafta 47,8 Kč/l (auto 10 Kč/km), objemný odpad Separex 2 490 + poplatek 1 600 + převoz 570; ekonomika firmy */
   if(!S.vyklizeniV19){
     if(S.vykSazby){ if(S.vykSazby.vuzKm===8)S.vykSazby.vuzKm=10; if(S.vykSazby.o_objemny===4500)S.vykSazby.o_objemny=4660; }
-    if(!S.vykEkon)S.vykEkon=vykEkonVychozi();
     S.vyklizeniV19=true;
+  }
+  /* v20: společná ekonomika firmy pro demolice i vyklízení (převezme nastavení z ekonomiky vyklízení) */
+  if(!S.ekonV20){
+    if(!S.ekon){
+      S.ekon=ekVychozi(); const st=S.vykEkon;
+      if(st){
+        ["majitelu","dppo","dividenda"].forEach(k=>{ if(typeof st[k]==="number")S.ekon[k]=st[k]; });
+        if(st.hodinNaCloveka>0)S.ekon.hodinNaMajitele=st.hodinNaCloveka;
+        if(st.hrubaMzda>0)S.ekon.hpp.hrubaMzda=st.hrubaMzda;
+        ["spotreba","nafta","servisKm","cenaAuta","zustatek","kmZivot","pojisteniRok","zakazekRok"].forEach(k=>{ if(typeof st[k]==="number")S.ekon.auto[k]=st[k]; });
+      }
+      if(S.nastaveni&&S.nastaveni.sazbaNajaty>0)S.ekon.osvc.sazba=S.nastaveni.sazbaNajaty;
+    }
+    S.ekonV20=true;
   }
   /* v13: faktury jako trvalé záznamy, rozšířené výdaje, údaje firmy z výpisu z rejstříku */
   if(!S.fakturyV13){
@@ -3918,7 +3991,7 @@ function vypocet(){
   const provize=prace*(J.provize||0)/100;
   const lide=Math.max(1,J.lide||1);
   const dny=hodiny>0?hodiny/(lide*n.hodDen):0;
-  const najatiN=(J.najati||0)*dny*n.hodDen*n.sazbaNajaty;
+  const najatiN=typeof ekNajatiNaklad==="function"?ekNajatiNaklad(dny*n.hodDen):(J.najati||0)*dny*n.hodDen*n.sazbaNajaty;   /* HPP, DPP a IČO každý svou cenou */
   const vpOK=J.viceprace.filter(r=>r.stav==="odsouhlaseno");
   const vpCeka=J.viceprace.filter(r=>r.stav!=="odsouhlaseno"&&r.stav!=="odmítnuto");
   const viceprace=vpOK.reduce((a,r)=>a+(r.cena||0),0);
@@ -4035,6 +4108,7 @@ function recalc(){
   if(nk)nk="<div class='sumline' style='margin-top:6px'><span><b>Náklady</b></span><b style='color:var(--bad)'>−"+kc(v.naklady)+"</b></div>"+nk;
   $("#sumNaklady").innerHTML=nk;
   renderPredem(v);
+  if(typeof renderDmZisk==="function")renderDmZisk(v);
   $("#sumCelkem").textContent=kc(v.celkem);
   if(J.dph==="rc"){$("#dphLabel").textContent="DPH 21 % — odvádí odběratel (informativně)";$("#sumDph").textContent=kc(v.dphInfo);}
   else if(J.dph==="ne"){$("#dphLabel").textContent="DPH — neplátce";$("#sumDph").textContent=kc(0);}
@@ -9979,7 +10053,7 @@ async function syncToken(){
 function syncOdhlasit(){ SY.access = ""; SY.refresh = ""; SY.vyprsi = 0; SY.stav = "vypnuto"; syncUloz(); renderSync(); }
 
 /* ---------- převod stavu aplikace na záznamy ---------- */
-const SYNC_STAV_KLICE = ["nastaveni","cenik","kontejnery","dopravci","klienti","odberatele","naradi","sablony","milniky","investice","vybava","cenikHistorie","vykSazby","vykKatalog","vykEkon"];
+const SYNC_STAV_KLICE = ["nastaveni","cenik","kontejnery","dopravci","klienti","odberatele","naradi","sablony","milniky","investice","vybava","cenikHistorie","vykSazby","vykKatalog","ekon"];
 function syncStavData(){ const o = {}; SYNC_STAV_KLICE.forEach(k => { if (S[k] !== undefined) o[k] = S[k]; }); return o; }
 function syncDoFronty(druh, id, data, cislo, smazano){
   SY.fronta = SY.fronta.filter(z => !(z.druh === druh && z.id === id));
@@ -10773,37 +10847,6 @@ function vykDoTextu(z, katalog){
   return L.join("\n");
 }
 
-/* ================= VYKLÍZENÍ — ekonomika firmy (čisté funkce) =================
-   Výdělek na člověkohodinu ze zakázek je už po nákladech na auto, likvidaci, materiál a režii zakázky.
-   Tady se z něj dopočítá, co zbude firmě a majitelům: mzdy zaměstnanců s odvody, fixní náklady,
-   daň z příjmů s.r.o. a srážková daň z dividendy. Zdroje: odvody zaměstnavatele 33,8 % (2026),
-   DPPO 21 %, dividenda 15 %, DPP bez odvodů do 11 999 Kč/měsíc, nafta 47,79 Kč/l (9. 9. 2026). */
-
-function vykEkonVychozi(){
-  return {vydelekH:0, hodinNaCloveka:100, majitelu:2, zamestnancu:0, hrubaMzda:32000, odvody:33.8, fixMesic:12000, dppo:21, dividenda:15,
-    spotreba:11, nafta:47.8, servisKm:2.5, cenaAuta:450000, zustatek:80000, kmZivot:180000, pojisteniRok:28000, zakazekRok:100};
-}
-/* auto: proměnný náklad na km a fixní náklad na zakázku */
-function vykEkonAuto(e){
-  const palivo = e.spotreba / 100 * e.nafta, odpis = e.kmZivot > 0 ? Math.max(0, e.cenaAuta - e.zustatek) / e.kmZivot : 0;
-  return {palivo:vykR2(palivo), servis:vykR2(+e.servisKm || 0), odpis:vykR2(odpis), naKm:vykR2(palivo + (+e.servisKm || 0) + odpis),
-    naZakazku:e.zakazekRok > 0 ? Math.round(e.pojisteniRok / e.zakazekRok) : 0};
-}
-/* měsíc firmy při daném vytížení; osHodinNaZakazku = kolik člověkohodin má průměrná zakázka */
-function vykEkonMesic(e, s, vydelekH, trzbaH, osHodinNaZakazku, zamestnancu){
-  const zam = zamestnancu != null ? zamestnancu : +e.zamestnancu || 0, lidi = (+e.majitelu || 0) + zam;
-  const osH = lidi * e.hodinNaCloveka, prispevek = osH * vydelekH;
-  const zakazek = osHodinNaZakazku > 0 ? osH / osHodinNaZakazku : 0;
-  const fixNekryte = Math.max(0, e.fixMesic - zakazek * (s.rezie || 0));
-  const nakladZam = e.hrubaMzda * (1 + e.odvody / 100), mzdy = zam * nakladZam;
-  const zisk = prispevek - mzdy - fixNekryte, dan = Math.max(0, zisk) * e.dppo / 100, cisty = zisk - dan;
-  const vyplata = Math.max(0, cisty) * (1 - e.dividenda / 100);
-  const naZamHod = e.hodinNaCloveka > 0 ? nakladZam / e.hodinNaCloveka : 0;
-  return {lidi, zam, osH, prispevek, zakazek, fixNekryte, nakladZam, mzdy, zisk, dan, cisty, vyplata,
-    naMajitele:e.majitelu > 0 ? vyplata / e.majitelu : vyplata, naZamHod, firmaNaZamHod:vydelekH - naZamHod,
-    obratRok:osH * trzbaH * 12, poDaniH:vydelekH * (1 - e.dppo / 100) * (1 - e.dividenda / 100)};
-}
-
 /* ================= VYKLÍZENÍ A VYNÁŠKA — sekce v3 =================
    Postaveno jako demoliční kalkulačka: rychlý odhad na místě (dispozice × zaplnění),
    nacenění z fotek přes Claude (balík + blok VYK1), soupis věcí z katalogu s normami,
@@ -11199,6 +11242,7 @@ function vykPrepocet(){
     "</div><p class='hint' style='margin:6px 16px 10px'>Jen pro vás. Zdroje v „Trh, zařízení, výkup a zdroje“ dole.</p></div>";
   if (r.varovani.length) h += "<div class='card'><h2>Zkontrolovat</h2><ul style='margin:0;padding:0 16px 12px 34px;font-size:13.5px'>" + r.varovani.map(w => "<li>" + esc(w) + "</li>").join("") + "</ul></div>";
   el.innerHTML = h;
+  const vydKarta = el.querySelector(".vk-vydelek"); if (vydKarta) { const k = document.createElement("div"); k.className = "card ek-card"; k.id = "vkZisk"; vydKarta.closest(".card").after(k); renderVkZisk(r); }
   renderVkVyuctovani();
   const ekon = $("#vkEkonDet"); if (ekon && ekon.open) renderVkEkon();
   return r;
@@ -11737,7 +11781,7 @@ function vkSoubor02(){
   const s = S.vykSazby, platce = vykPlatce();
   const ukazka = Object.assign(vykNovy(), {prostor:"21", plnost:"bezne", patro:3, vytah:"ne", vzdalenost:15, km:20, rozebirat:true});
   const r = vykSpocitej(ukazka, s, vykKat(), platce);
-  const t = vkT, e = vkEkon(), auto = vykEkonAuto(e);
+  const t = vkT, e = ekNastaveni().auto, auto = ekAuto(e);
   return `# Jak se počítá vyklízení — kompletní model
 
 Verze: ${vkBalikVerze()}. Všechna čísla jsou naše aktuální nastavení. ${platce ? "Jsme plátci DPH (21 %)." : "Nejsme plátci DPH — cena je konečná a DPH zařízení na odpad, nafty a nákupů je náš náklad."}
@@ -12142,8 +12186,9 @@ function vkSoubor07(){
 }
 
 function vkSoubor08(){
-  const s = S.vykSazby, e = vkEkon(), pr = vkPrumerZakazek(), ref = vkReferencniZakazka(), paky = vkPaky(ref);
-  const m = vykEkonMesic(e, s, pr.vydelekH, pr.trzbaH, pr.osNaZakazku), t = vkT;
+  const s = S.vykSazby, e = ekNastaveni(), pr = vkPrumerZakazek(), ref = vkReferencniZakazka(), paky = vkPaky(ref);
+  const L = ekLide(e), pe = ekPrumer("vyklizeni", e), m = pe ? ekMesic(e, pe) : null, t = vkT, zaHod = pe ? pe.predH - ekRezieNaHod(e) : 0;
+  const zk = ref.r.ok ? ekZakazka(ekVstupVyklizeni(ref.z, ref.r, e), e) : null;
   return `# Ekonomika a marže — jak na vyklízení vydělat
 
 Verze: ${vkBalikVerze()}.
@@ -12153,12 +12198,18 @@ Je to cena bez DPH **po** provizi, autě (nafta, servis, odpis, pojištění), l
 (práce, cesta, vykládka). Není v něm mzda majitelů ani daně. Pravidlo firmy: minimum ${t(s.tvrdeMinHod)}, ideál ${t(s.cenaMinHod)}, výborné od ${t(s.cilHod)} Kč/čl.h.
 Po daních s.r.o. (21 % + 15 % z dividendy) zbude zhruba **${t((1 - e.dppo / 100) * (1 - e.dividenda / 100) * 100)} %**.
 
-## Jak to teď vychází (${pr.zdroj})
-- výdělek ${t(pr.vydelekH)} Kč/čl.h, tržba ${t(pr.trzbaH)} Kč/čl.h, ${t(pr.osNaZakazku, 1)} čl.h na zakázku
-- při ${e.majitelu} majitelích, ${e.zamestnancu} zaměstnancích a ${e.hodinNaCloveka} fakturovatelných hodinách na člověka měsíčně:
-  ${t(m.zakazek, 1)} zakázek, výdělek ${t(m.prispevek)} Kč, zisk před daní ${t(m.zisk)} Kč, **čistě na majitele ${t(m.naMajitele)} Kč měsíčně**
-- zaměstnanec za ${t(e.hrubaMzda)} Kč hrubého stojí ${t(m.nakladZam)} Kč (odvody ${t(e.odvody, 1)} %), tedy ${t(m.naZamHod)} Kč na fakturovatelnou hodinu
-  → firma na něm vydělá ${t(m.firmaNaZamHod)} Kč/h; brigádník na DPP za 200 Kč/h (do 11 999 Kč měsíčně bez odvodů) ${t(pr.vydelekH - 200)} Kč/h
+## Skutečný zisk zakázky (${ref.popis})
+${zk ? `- tržba bez DPH ${t(zk.trzba)} Kč − přímé náklady ${t(zk.primeKc)} − nářadí ${t(zk.naradi)} − podíl fixních nákladů ${t(zk.rezie)} (${t(zk.rezieH)} Kč/čl.h)
+- zisk před daní ${t(zk.zisk)} Kč, daň ${e.dppo} % → čistý zisk ${t(zk.cisty)} Kč → **majitelům po dividendě ${t(zk.majitelum)} Kč** (${zk.naHodMajitele != null ? t(zk.naHodMajitele) + " Kč na hodinu majitele" : "bez majitelů na zakázce"})` : "(nepodařilo se spočítat)"}
+
+## Měsíc firmy (${pe ? pe.zdroj : "bez dat"})
+${m ? `- ${e.majitelu} majitelé × ${e.hodinNaMajitele} fakturovatelných hodin, fixní náklady ${t(ekFixMesic(e))} Kč měsíčně${e.obzp ? " vč. zdravotního pojištění majitelů" : ""}
+- ${t(m.zakazek, 1)} zakázek, zisk před daní ${t(m.zisk)} Kč, **čistě na majitele ${t(m.naMajitele)} Kč měsíčně**` : "- zatím bez uložených zakázek"}
+
+## Lidé (zákonná čísla 2026)
+- zaměstnanec za ${t(e.hpp.hrubaMzda)} Kč hrubého: čistá mzda ${t(L.hpp.cista)} Kč, firmu stojí ${t(L.hpp.naklad)} Kč (odvody 33,8 %) = ${t(L.hpp.naHod)} Kč na fakturovatelnou hodinu; firmě na něm zbude ${t(zaHod - L.hpp.naHod)} Kč/h
+- brigádník na DPP za ${t(e.dpp.sazba)} Kč/h: do 11 999 Kč měsíčně bez odvodů (≈ ${L.dpp.maxHodin} h, max 300 h ročně); firmě zbude ${t(zaHod - L.dpp.naHod)} Kč/h
+- spolupracovník na IČO za ${t(e.osvc.sazba)} Kč/h: firmě zbude ${t(zaHod - L.osvc.naHod)} Kč/h; on platí paušální daň 9 984 Kč/měsíc. Pozor na švarcsystém — platit za výsledek, vlastní nářadí a čas.
 
 ## Páky na marži — spočítáno na: ${ref.popis}
 | Páka | Výdělek navíc na zakázku | Kč/čl.h potom |
@@ -12459,12 +12510,8 @@ $("#vkLista").addEventListener("click", () => {
   window.scrollTo({top:el.getBoundingClientRect().top + window.scrollY - 70, behavior:"smooth"});
 });
 
-/* ---------- ekonomika firmy: co zbude po autě, likvidaci, mzdách a daních; páky na marži ---------- */
-function vkEkon(){
-  if (!S.vykEkon || typeof S.vykEkon !== "object") S.vykEkon = vykEkonVychozi();
-  const d = vykEkonVychozi(); Object.keys(d).forEach(k => { if (typeof S.vykEkon[k] !== "number") S.vykEkon[k] = d[k]; });
-  return S.vykEkon;
-}
+/* ---------- ekonomika vyklízení: napojení na společnou Ekonomiku firmy (payload-ekonomika.js) ---------- */
+function vkEkon(){ return ekNastaveni(); }
 function vkReferencniZakazka(){
   const r = VK ? vykVypocet(VK) : null;
   if (r && r.ok && r.cas.os > 0) return {z:VK, r, popis:"otevřená zakázka" + (VK.nazev ? " „" + VK.nazev + "“" : "")};
@@ -12504,78 +12551,375 @@ function vkPaky(ref){
     return r && r.ok ? {nazev, proc, dVydelek:r.vydelek - zakl.vydelek, naH:r.naH, dNaH:r.naH - zakl.naH, dOs:r.cas.os - zakl.cas.os, cena:r.gross} : null;
   }).filter(Boolean);
 }
-function renderVkEkon(){
-  const el = $("#vkEkon"); if (!el || !el.closest("details").open) return;
-  const e = vkEkon(), s = S.vykSazby, auto = vykEkonAuto(e), pr = vkPrumerZakazek();
-  const vydH = e.vydelekH > 0 ? e.vydelekH : pr.vydelekH;
-  const m = vykEkonMesic(e, s, vydH, pr.trzbaH, pr.osNaZakazku);
-  const pole = (k, l, j, krok, hint) => "<label class='f'>" + l + (j ? " (" + j + ")" : "") + "<input type='number' inputmode='decimal' min='0' step='" + krok + "' data-vke='" + k + "' value='" + e[k] + "'>" + (hint ? "<span class='hint'>" + hint + "</span>" : "") + "</label>";
-  const R = (l, x, cls) => "<tr" + (cls ? " class='" + cls + "'" : "") + "><td>" + l + "</td><td class='r'>" + x + "</td></tr>";
-  const ref = vkReferencniZakazka();
-  let h = "<p class='hint' style='margin:0 0 10px'>Výdělek na člověkohodinu v kalkulaci je <b>už po nákladech na auto (nafta, servis, odpis, pojištění), likvidaci, pytle a režii zakázky</b>. Tady se dopočítá, co zbude po mzdách, fixních nákladech a daních — a co s tím udělá zaměstnanec nebo lepší vytížení.</p>";
-
-  h += "<h3 class='vk-h3'>1. Z čeho počítáme</h3><div class='vk-ekon-fakta'><div><span>Výdělek na čl.h</span><b>" + kc(vydH) + "</b></div><div><span>Tržba na čl.h</span><b>" + kc(pr.trzbaH) + "</b></div>" +
-    "<div><span>Čl.h na zakázku</span><b>" + fmt1.format(pr.osNaZakazku) + "</b></div><div><span>Po daních s.r.o.</span><b>" + kc(m.poDaniH) + "</b></div></div>" +
-    "<p class='hint' style='margin:4px 0 8px'>Zdroj: " + esc(pr.zdroj) + ". Po daních = × (1 − " + e.dppo + " % daň z příjmů) × (1 − " + e.dividenda + " % z dividendy).</p>" +
-    "<div class='grid g3'>" + pole("vydelekH", "Počítat s výdělkem", "Kč/čl.h", "10", "0 = z kalkulace") + pole("majitelu", "Majitelů na zakázkách", "", "1", "") + pole("zamestnancu", "Zaměstnanců", "", "1", "na hlavní pracovní poměr") +
-      pole("hrubaMzda", "Hrubá mzda zaměstnance", "Kč/měsíc", "500", "min. mzda 22 400; stěhovák kolem 200 Kč/h") + pole("hodinNaCloveka", "Fakturovatelné hodiny na člověka", "h/měsíc", "5", "ze 160 h je reálně 90–120 na zakázkách, zbytek cesty bez zakázky, sklad, dovolená, nemoc") +
-      pole("fixMesic", "Fixní náklady firmy", "Kč/měsíc", "500", "účetní, pojištění odpovědnosti, telefon, portály a reklama, nářadí; režie " + kc(s.rezie) + " na zakázku se odečte") +
-      pole("odvody", "Odvody zaměstnavatele", "%", "0.1", "2026: 24,8 % sociální + 9 % zdravotní") + pole("dppo", "Daň z příjmů s.r.o.", "%", "1", "") + pole("dividenda", "Srážková daň z dividendy", "%", "1", "") + "</div>";
-
-  h += "<h3 class='vk-h3'>2. Měsíc firmy</h3><div class='tscroll'><table class='vk-ekon-tab'><tbody>" +
-    R("Člověkohodin na zakázkách (" + m.lidi + " " + (m.lidi === 1 ? "člověk" : m.lidi < 5 ? "lidé" : "lidí") + " × " + e.hodinNaCloveka + " h)", fmt0.format(m.osH) + " čl.h") + R("To je zakázek jako tahle", fmt1.format(m.zakazek) + " / měsíc") +
-    R("Výdělek zakázek (po autě, likvidaci a režii)", kc(m.prispevek)) + (m.mzdy ? R("Mzdy s odvody (" + m.zam + " × " + kc(m.nakladZam) + ")", "−" + kc(m.mzdy)) : "") +
-    R("Fixní náklady nad režii zakázek", "−" + kc(m.fixNekryte)) + R("Zisk před daní", kc(m.zisk), "sum") + R("Daň z příjmů " + e.dppo + " %", "−" + kc(m.dan)) +
-    R("Čistý zisk firmy", kc(m.cisty)) + R("Po dividendě " + (e.majitelu > 1 ? "na jednoho majitele" : "majiteli"), "<b>" + kc(m.naMajitele) + "</b>", "sum") +
-    R("Tržba za rok", kc(m.obratRok) + (!vykPlatce() && m.obratRok > 2000000 ? " <span class='pill ne'>nad limitem DPH</span>" : "")) + "</tbody></table></div>";
-  if (!vykPlatce() && m.obratRok > 2000000) h += "<div class='warnbox' style='margin:8px 0 0'>⚠️<span><b>Tržba přes 2 mil. Kč ročně = povinnost platit DPH.</b> Pro lidi by cena stoupla o 21 %, nebo vám o tolik klesne marže (odečtete jen DPH z likvidace, nafty a nákupů). Plánujte to dopředu s účetní — hlídá to i Přehled firmy.</span></div>";
-  {
-    const dppNaH = 200;
-    h += "<p style='margin:8px 0 0;font-size:14px'>Zaměstnanec stojí <b>" + kc(m.nakladZam) + "</b> měsíčně, tedy <b>" + kc(m.naZamHod) + " na fakturovatelnou hodinu</b>. Při výdělku " + kc(vydH) + "/čl.h na něm firma vydělá <b style='color:" + (m.firmaNaZamHod > 150 ? "var(--good)" : m.firmaNaZamHod > 0 ? "var(--warn-ink)" : "var(--bad)") + "'>" + kc(m.firmaNaZamHod) + " za hodinu</b>, tedy " + kc(m.firmaNaZamHod * e.hodinNaCloveka) + " měsíčně před daní. " +
-      "Brigádník na DPP za " + dppNaH + " Kč/h (do 11 999 Kč měsíčně bez odvodů, asi 59 h) firmu stojí jen odpracované hodiny: vydělá na něm <b>" + kc(vydH - dppNaH) + " za hodinu</b>. Od roku 2026 se každá DPP musí měsíčně hlásit.</p>";
-  }
-  h += "<h3 class='vk-h3'>3. Co udělá růst</h3><div class='tscroll'><table class='vk-ekon-tab'><thead><tr><th>Zaměstnanců</th><th class='r'>Zakázek / měsíc</th><th class='r'>Zisk před daní</th><th class='r'>Čistě na majitele</th><th class='r'>Tržba / rok</th></tr></thead><tbody>" +
-    [0, 1, 2, 4].map(zam => { const x = vykEkonMesic(e, s, vydH, pr.trzbaH, pr.osNaZakazku, zam);
-      return "<tr" + (zam === +e.zamestnancu ? " class='akt'" : "") + "><td>" + zam + "</td><td class='r'>" + fmt1.format(x.zakazek) + "</td><td class='r'>" + kc(x.zisk) + "</td><td class='r'><b>" + kc(x.naMajitele) + "</b></td><td class='r'>" + kc(x.obratRok) + (!vykPlatce() && x.obratRok > 2000000 ? " ⚠" : "") + "</td></tr>"; }).join("") +
-    "</tbody></table></div><p class='hint' style='margin:4px 0 0'>Každý člověk navíc potřebuje dalších " + fmt1.format(e.hodinNaCloveka / pr.osNaZakazku) + " zakázek měsíčně. Růst neomezuje marže, ale <b>kolik zakázek seženete</b> — proto se vyplatí stálí odběratelé (realitky, správci domů, SVJ, obce, notáři a dědicové).</p>";
-
-  const paky = vkPaky(ref);
-  h += "<h3 class='vk-h3'>4. Páky na marži — " + esc(ref.popis) + "</h3><p class='hint' style='margin:0 0 6px'>Teď: cena " + kc(ref.r.gross) + ", výdělek " + kc(ref.r.vydelek) + " = " + kc(ref.r.naH) + " na čl.h. Náklady zakázky " + kc(ref.r.naklady.celkem) + ", z toho likvidace " + kc(ref.r.naklady.odpad) + " (" + fmt0.format(ref.r.naklady.celkem > 0 ? ref.r.naklady.odpad / ref.r.naklady.celkem * 100 : 0) + " %) a auto " + kc(ref.r.naklady.vuz) + ".</p>" +
+/* páky na marži vyklízení — vloží se do společné Ekonomiky firmy */
+function vkPakyHTML(m){
+  const ref = vkReferencniZakazka(); if (!ref.r.ok) return "";
+  const paky = vkPaky(ref), osH = m && m.osH > 0 ? m.osH : 200;
+  return "<h3 class='vk-h3'>6. Páky na marži vyklízení — " + esc(ref.popis) + "</h3><p class='hint' style='margin:0 0 6px'>Teď: cena " + kc(ref.r.gross) + ", výdělek " + kc(ref.r.vydelek) + " = " + kc(ref.r.naH) + " na čl.h (po autě, likvidaci a režii zakázky). Náklady " + kc(ref.r.naklady.celkem) + ", z toho likvidace " + kc(ref.r.naklady.odpad) + " (" + fmt0.format(ref.r.naklady.celkem > 0 ? ref.r.naklady.odpad / ref.r.naklady.celkem * 100 : 0) + " %) a auto " + kc(ref.r.naklady.vuz) + ".</p>" +
     "<div class='tscroll'><table class='vk-ekon-tab paky'><thead><tr><th>Páka</th><th class='r'>Na zakázku</th><th class='r'>Kč/čl.h</th><th class='r'>Měsíčně při stejných hodinách</th></tr></thead><tbody>" +
     paky.sort((a, b) => b.dNaH - a.dNaH).map(p => { const dobre = p.dNaH >= 0;
       return "<tr><td><b>" + esc(p.nazev) + "</b><br><span class='hint'>" + esc(p.proc) + "</span></td>" +
         "<td class='r'>" + (p.dVydelek >= 0 ? "+" : "") + kc(p.dVydelek) + (Math.abs(p.dOs) >= 0.1 ? "<br><span class='hint'>" + (p.dOs < 0 ? "−" : "+") + fmt1.format(Math.abs(p.dOs)) + " čl.h</span>" : "") + "</td>" +
         "<td class='r' style='color:" + (dobre ? "var(--good)" : "var(--bad)") + "'>" + kc(p.naH) + "<br><span class='hint'>" + (dobre ? "+" : "−") + kc(Math.abs(p.dNaH)) + "</span></td>" +
-        "<td class='r'>" + (dobre ? "+" : "−") + kc(Math.abs(p.dNaH * m.osH)) + "</td></tr>"; }).join("") + "</tbody></table></div>" +
-    "<p class='hint' style='margin:4px 0 0'>Měsíčně = změna výdělku na čl.h × " + fmt0.format(m.osH) + " čl.h měsíčně. Rychlejší práce nepřinese víc peněz za zakázku, ale ušetří hodiny na další zakázky.</p>";
-
-  h += "<h3 class='vk-h3'>5. Auto — kolik opravdu stojí kilometr</h3><div class='grid g3'>" + pole("spotreba", "Spotřeba naložené dodávky", "l/100 km", "0.5", "") + pole("nafta", "Nafta", "Kč/l", "0.1", "9. 9. 2026 průměr 47,79 Kč/l") +
-      pole("servisKm", "Servis, pneu, oleje", "Kč/km", "0.1", "") + pole("cenaAuta", "Cena auta", "Kč", "10000", "") + pole("zustatek", "Za kolik ho prodáte", "Kč", "10000", "") + pole("kmZivot", "Najedete za dobu vlastnictví", "km", "5000", "") +
-      pole("pojisteniRok", "Pojištění, STK, známky, parkování", "Kč/rok", "1000", "") + pole("zakazekRok", "Zakázek za rok", "", "5", "rozpočítá fixní část") + "</div>" +
-    "<p style='margin:8px 0 0;font-size:14px'>Nafta " + fmt1.format(auto.palivo) + " + servis " + fmt1.format(auto.servis) + " + odpis " + fmt1.format(auto.odpis) + " = <b>" + fmt1.format(auto.naKm) + " Kč/km</b> a <b>" + kc(auto.naZakazku) + " na zakázku</b>. V sazbách je teď " + fmt1.format(s.vuzKm) + " Kč/km a " + kc(s.vuzFix) + ". " +
-      "<button class='b' type='button' id='vkEkonAuto'>Použít v sazbách</button></p>";
-
-  h += "<h3 class='vk-h3'>6. Co plyne z průzkumu</h3><ul class='vk-ekon-zaver'>" +
-    "<li><b>Samotná práce a odvoz je tenký byznys</b> — stejně jako stěhování. U 2+1 jde asi 60–75 % nákladů zakázky na likvidaci; jako neplátci k ní platíte i 21 % DPH.</li>" +
-    "<li><b>Firmy, o kterých se říká „super kšeft“, vydělávají na věcech</b>: výkup a protiúčet (antik, retro nábytek, spotřebiče, kovy). „Zisk z prodeje často pokryje náklady na vyklízení“ (vyklizenibyty.cz). V USA se u vyklízení počítá s 20–30 % čisté marže s partou a do 50 % u malých zakázek — hlavně díky třídění, darování a výkupu, které snižují poplatky za skládku.</li>" +
-    "<li><b>Likvidaci si konkurence často nechává platit zvlášť</b> (Vektos 500 Kč/100 kg, Formánek skládkovné podle váhy) — jejich „od 5 500 Kč za 2+1“ je bez likvidace.</li>" +
-    "<li><b>Škálování brzdí vytížení a DPH</b>: s každým člověkem potřebujete asi o " + fmt0.format(e.hodinNaCloveka / pr.osNaZakazku) + " zakázek měsíčně víc, a nad 2 mil. Kč tržby ročně přijde DPH. Pro špičky jsou levnější brigádníci na DPP než zaměstnanci.</li>" +
-    "<li><b>Nejrychlejší peníze:</b> telefon na Separex, třídění a likvidace podle lístků, u každé zakázky projít věci na prodej, víkend a expres účtovat příplatkem, malé sklepy a kusy jen s minimem.</li></ul>";
-  el.innerHTML = h;
+        "<td class='r'>" + (dobre ? "+" : "−") + kc(Math.abs(p.dNaH * osH)) + "</td></tr>"; }).join("") + "</tbody></table></div>" +
+    "<p class='hint' style='margin:4px 0 0'>Měsíčně = změna výdělku na čl.h × " + fmt0.format(osH) + " čl.h podle plánu. Rychlejší práce nepřinese víc peněz za zakázku, ale ušetří hodiny na další zakázky.</p>" +
+    "<ul class='vk-ekon-zaver' style='margin-top:8px'><li><b>Samotná práce a odvoz je tenký byznys</b> — u 2+1 jde 60–75 % nákladů zakázky na likvidaci; jako neplátci k ní platíte 21 % DPH.</li>" +
+    "<li><b>„Super kšeft“ je vyklízení pro ty, kdo vydělávají na věcech</b>: výkup a protiúčet, bazar, kovy („zisk z prodeje často pokryje náklady na vyklízení“, vyklizenibyty.cz).</li>" +
+    "<li><b>Konkurence si likvidaci často nechává platit zvlášť</b> (Vektos 500 Kč/100 kg, Formánek skládkovné podle váhy).</li></ul>";
 }
-$("#vkEkon").addEventListener("input", e => {
-  const t = e.target; if (!t.dataset.vke) return;
-  const hod = num(t.value); if (hod < 0) return;
-  vkEkon()[t.dataset.vke] = hod; save();
-  clearTimeout(renderVkEkon._t); renderVkEkon._t = setTimeout(() => { const a = document.activeElement, k = a && a.dataset && a.dataset.vke, pos = a && a.selectionStart; renderVkEkon(); if (k) { const n = $("#vkEkon [data-vke='" + k + "']"); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (x) {} } } }, 350);
+function renderVkEkon(){ const d = $("#vkEkonDet"); if (d && d.open) renderEkFirma($("#vkEkon"), "vyklizeni"); }
+
+
+/* ================= EKONOMIKA FIRMY — společná pro demolice i vyklízení =================
+   Co opravdu zbude ze zakázky a z měsíce: přímé náklady (materiál, odvoz, likvidace, auto), opotřebení nářadí,
+   lidé (majitelé, zaměstnanci, brigádníci na DPP, spolupracovníci na IČO), fixní náklady firmy, daň z příjmů s.r.o.
+   a srážková daň z dividendy. Zákonná čísla 2026 (ověřeno 16. 9. 2026):
+   odvody zaměstnavatele 24,8 + 9 %, zaměstnanec 7,1 + 4,5 %, záloha na daň 15 % (23 % nad 146 901 Kč/měs.),
+   sleva na poplatníka 2 570 Kč, DPP bez odvodů do 11 999 Kč/měs., paušální daň OSVČ 1. pásmo 9 984 Kč/měs.,
+   zdravotní pojištění OBZP 3 024 Kč/měs., DPPO 21 %, dividenda 15 %, limit obratu pro DPH 2 mil. Kč. */
+
+const EK_2026 = {odvodyFirma:0.338, spFirma:0.248, zpFirma:0.09, spZam:0.071, zpZam:0.045, dan:0.15, dan23Nad:146901, sleva:2570,
+  dppLimit:11999, pausalni1:9984, obzp:3024, minMzda:22400, dphLimit:2000000};
+
+function ekVychozi(){
+  return {majitelu:2, hodinNaMajitele:100, obzp:true,
+    fixni:[["Účetní a mzdy", 3000], ["Pojištění odpovědnosti", 800], ["Telefony a internet", 800], ["Portály, web a reklama", 3000], ["Software a banka", 400], ["Sklad nebo garáž", 0], ["Ostatní", 1000]]
+      .map(([nazev, castka]) => ({nazev, castka})),
+    auto:{spotreba:11, nafta:47.8, servisKm:2.5, cenaAuta:450000, zustatek:80000, kmZivot:180000, pojisteniRok:28000, zakazekRok:100},
+    naradi:[["Bourací kladivo 10–30 kg", 28000, 1500], ["Vrtací kladivo SDS-max", 14000, 1200], ["Úhlová bruska 230 mm, řezačka", 6000, 600],
+      ["Průmyslový vysavač a odsávání", 12000, 2000], ["Kolečka, rudly, žebříky, lešení", 15000, 3000]].map(([nazev, cena, hodin]) => ({nazev, cena, hodin})),
+    spotrebniH:25, naradiVyklH:6, rychlostCesty:50,
+    hpp:{hrubaMzda:32000, hodinFakt:110}, dpp:{sazba:200, hodin:50}, osvc:{sazba:300, hodin:100},
+    plan:{hpp:0, dpp:0, osvc:0}, pomocnikHodin:80, dppo:21, dividenda:15, zdroj:"oboji"};
+}
+function ekNastaveni(){
+  const d = ekVychozi();
+  if (!S.ekon || typeof S.ekon !== "object") S.ekon = d;
+  const e = S.ekon;
+  Object.keys(d).forEach(k => {
+    if (e[k] == null) e[k] = d[k];
+    else if (d[k] && typeof d[k] === "object" && !Array.isArray(d[k])) Object.keys(d[k]).forEach(k2 => { if (typeof e[k][k2] !== typeof d[k][k2]) e[k][k2] = d[k][k2]; });
+  });
+  return e;
+}
+
+/* ---------- lidé ---------- */
+function ekCistaMzda(hruba){
+  hruba = Math.max(0, +hruba || 0);
+  const sp = Math.ceil(hruba * EK_2026.spZam), zp = Math.ceil(hruba * EK_2026.zpZam);
+  const zaklad = hruba > 100 ? Math.ceil(hruba / 100) * 100 : hruba;
+  const dan = Math.max(0, Math.ceil(Math.min(zaklad, EK_2026.dan23Nad) * EK_2026.dan + Math.max(0, zaklad - EK_2026.dan23Nad) * 0.23) - EK_2026.sleva);
+  const naklad = hruba + Math.ceil(hruba * EK_2026.spFirma) + Math.ceil(hruba * EK_2026.zpFirma);
+  return {hruba, sp, zp, dan, cista:hruba - sp - zp - dan, naklad};
+}
+function ekLide(e){
+  const m = ekCistaMzda(e.hpp.hrubaMzda);
+  return {
+    hpp:{nazev:"Zaměstnanec (HPP)", naklad:m.naklad, naHod:e.hpp.hodinFakt > 0 ? m.naklad / e.hpp.hodinFakt : 0, cista:m.cista, mzda:m},
+    dpp:{nazev:"Brigádník (DPP)", naHod:+e.dpp.sazba || 0, maxHodin:e.dpp.sazba > 0 ? Math.floor(EK_2026.dppLimit / e.dpp.sazba) : 0},
+    osvc:{nazev:"Spolupracovník na IČO", naHod:+e.osvc.sazba || 0}
+  };
+}
+/* kolik zbude člověku na IČO z fakturace (paušální daň 1. pásmo, bez DPH) */
+function ekOsvcCisto(sazba, hodin){ const f = (+sazba || 0) * (+hodin || 0); return {fakturace:f, cisto:f - EK_2026.pausalni1}; }
+
+/* ---------- auto, nářadí, fixní náklady ---------- */
+function ekAuto(a){
+  const palivo = (+a.spotreba || 0) / 100 * (+a.nafta || 0), odpis = a.kmZivot > 0 ? Math.max(0, a.cenaAuta - a.zustatek) / a.kmZivot : 0;
+  const r2 = x => Math.round(x * 100) / 100;
+  return {palivo:r2(palivo), servis:r2(+a.servisKm || 0), odpis:r2(odpis), naKm:r2(palivo + (+a.servisKm || 0) + odpis), naZakazku:a.zakazekRok > 0 ? Math.round(a.pojisteniRok / a.zakazekRok) : 0};
+}
+function ekNaradiH(e, druh){
+  if (druh === "vyklizeni") return +e.naradiVyklH || 0;
+  return (e.naradi || []).reduce((s, x) => s + (x.hodin > 0 ? (+x.cena || 0) / x.hodin : 0), 0) + (+e.spotrebniH || 0);
+}
+function ekFixMesic(e){ return (e.fixni || []).reduce((s, x) => s + (+x.castka || 0), 0) + (e.obzp ? e.majitelu * EK_2026.obzp : 0); }
+function ekHodinPlan(e, plan){
+  const p = plan || e.plan;
+  return {maj:e.majitelu * e.hodinNaMajitele, hpp:(p.hpp || 0) * e.hpp.hodinFakt, dpp:(p.dpp || 0) * e.dpp.hodin, osvc:(p.osvc || 0) * e.osvc.hodin};
+}
+function ekRezieNaHod(e){ const h = ekHodinPlan(e), celkem = h.maj + h.hpp + h.dpp + h.osvc; return celkem > 0 ? ekFixMesic(e) / celkem : 0; }
+
+/* ---------- jedna zakázka ---------- */
+/* inp: {trzba, prime:[[název, Kč]] (bez lidí, nářadí a režie; příjmy záporně), osH, cestaH, lide, parta:{hpp,dpp,osvc}, naradiH} */
+function ekZakazka(inp, e){
+  const L = ekLide(e), lide = Math.max(1, Math.round(+inp.lide || 1)), osH = Math.max(0, +inp.osH || 0), naOs = osH / lide;
+  const p = {hpp:Math.max(0, Math.round(+(inp.parta || {}).hpp || 0)), dpp:Math.max(0, Math.round(+(inp.parta || {}).dpp || 0)), osvc:Math.max(0, Math.round(+(inp.parta || {}).osvc || 0))};
+  let cizi = p.hpp + p.dpp + p.osvc;
+  if (cizi > lide) { const k = lide / cizi; ["hpp", "dpp", "osvc"].forEach(t => { p[t] = Math.floor(p[t] * k); }); cizi = p.hpp + p.dpp + p.osvc; }
+  const maj = lide - cizi;
+  const prace = [["hpp", p.hpp * naOs * L.hpp.naHod], ["dpp", p.dpp * naOs * L.dpp.naHod], ["osvc", p.osvc * naOs * L.osvc.naHod]].filter(x => x[1] > 0)
+    .map(([t, kc]) => ({typ:t, nazev:L[t].nazev + " × " + p[t], hodin:p[t] * naOs, kc}));
+  const primeKc = (inp.prime || []).reduce((s, x) => s + (+x[1] || 0), 0);
+  const praceKc = prace.reduce((s, x) => s + x.kc, 0);
+  const naradi = osH * (+inp.naradiH || 0), rezieH = ekRezieNaHod(e), rezie = osH * rezieH;
+  const zisk = inp.trzba - primeKc - praceKc - naradi - rezie;
+  const dan = Math.max(0, zisk) * e.dppo / 100, cisty = zisk - dan;
+  const majitelum = cisty > 0 ? cisty * (1 - e.dividenda / 100) : cisty;
+  const hodMaj = maj * naOs;
+  return {trzba:inp.trzba, prime:inp.prime || [], primeKc, prace, praceKc, naradi, rezie, rezieH, zisk, dan, cisty, majitelum, lide, maj, parta:p, osH, naOs, hodMaj, cestaH:+inp.cestaH || 0,
+    naMajitele:maj > 0 ? majitelum / maj : null, naHodMajitele:hodMaj > 0 ? majitelum / hodMaj : null, pred:inp.trzba - primeKc - naradi - rezie};
+}
+function ekVariantyZakazky(inp, e){
+  const lide = Math.max(1, Math.round(+inp.lide || 1));
+  const v = [["Jen majitelé", {}]];
+  if (lide >= 2) v.push(["1 zaměstnanec (HPP)", {hpp:1}], ["1 brigádník (DPP)", {dpp:1}], ["1 na IČO", {osvc:1}]);
+  if (lide >= 3) v.push(["2 zaměstnanci (HPP)", {hpp:2}]);
+  return v.map(([nazev, parta]) => ({nazev, r:ekZakazka(Object.assign({}, inp, {parta}), e)}));
+}
+
+/* ---------- demolice: najatí podle druhu (HPP, DPP, IČO) ---------- */
+/* „Z toho najatých“ v kalkulaci = součet; co není zaměstnanec ani brigádník, je na IČO */
+function ekPartaDemolice(z){
+  const p = z && z.parta && typeof z.parta === "object" ? z.parta : {}, celkem = Math.max(0, Math.round(+(z && z.najati) || 0));
+  const hpp = Math.min(celkem, Math.max(0, Math.round(+p.hpp || 0))), dpp = Math.min(celkem - hpp, Math.max(0, Math.round(+p.dpp || 0)));
+  return {hpp, dpp, osvc:celkem - hpp - dpp};
+}
+/* volá vypocet() místo najatí × sazba: každý druh se svou cenou hodiny */
+function ekNajatiNaklad(hodinNaOsobu){
+  const p = ekPartaDemolice(J);
+  if (!p.hpp && !p.dpp) return p.osvc * hodinNaOsobu * (S.nastaveni.sazbaNajaty || 0);
+  const L = ekLide(ekNastaveni());
+  return hodinNaOsobu * (p.hpp * L.hpp.naHod + p.dpp * L.dpp.naHod + p.osvc * (S.nastaveni.sazbaNajaty || L.osvc.naHod));
+}
+
+/* ---------- průměr z uložených zakázek (bez lidí a režie) ---------- */
+function ekVstupDemolice(z, e){
+  const puvodni = J; J = z;
+  let v; try { v = vypocet(); } finally { J = puvodni; }
+  const cestaH = (+z.km || 0) / (e.rychlostCesty || 50) * Math.max(1, z.lide || 1);
+  const parta = ekPartaDemolice(z);
+  return {v, inp:{trzba:v.trzba, osH:v.hodiny + cestaH, cestaH, lide:z.lide || 1, parta, naradiH:ekNaradiH(e, "demolice"),
+    prime:[["Materiál (nákup)", v.matN], ["Kontejnery (nákup)", v.kontN], ["Skládkovné", v.sklN], ["Auto a doprava " + (z.km || 0) + " km", v.dopravaN], ["Provize", v.provize], ["Vlastní položky", v.ostN]].filter(x => x[1])}};
+}
+function ekVstupVyklizeni(z, r, e){
+  const hod = z.uctovani === "hodina", n = r.naklady;
+  const trzba = hod ? r.hodinove.net : r.net;
+  return {trzba, osH:r.cas.os, cestaH:(r.cas.cestaH + r.cas.vykladkaH) * r.cas.lide, lide:r.cas.lide, parta:z.parta || {}, naradiH:ekNaradiH(e, "vyklizeni"),
+    prime:[["Auto " + Math.round(r.cas.kmCelkem) + " km", n.vuz], ["Likvidace odpadu", n.odpad], ["Pytle a fólie", n.material], ["Jiné náklady", n.jine], ["Provize", trzba * (+z.provize || 0)],
+      ["Výkup kovů", -n.kovy], [hod ? "" : "Převzaté věci na protiúčet", hod ? 0 : -r.protiucet]].filter(x => x[0] && x[1])};
+}
+function ekPrumer(druh, e){
+  let tr = 0, pr = 0, na = 0, os = 0, n = 0;
+  const pridej = inp => { if (!(inp.osH > 0)) return; tr += inp.trzba; pr += inp.prime.reduce((s, x) => s + x[1], 0); na += inp.osH * inp.naradiH; os += inp.osH; n++; };
+  if (druh !== "vyklizeni") (S.zakazky || []).filter(z => z.status !== "zamítnuto" && (z.prace || []).length).forEach(z => { try { pridej(ekVstupDemolice(z, e).inp); } catch (x) {} });
+  if (druh !== "demolice" && typeof vykVypocet === "function") (S.vyklizeni || []).filter(z => z.status !== "zamítnuto").forEach(z => { const r = vykVypocet(z); if (r.ok) pridej(ekVstupVyklizeni(z, r, e)); });
+  let zdroj = n + " " + (n === 1 ? "uložená zakázka" : n < 5 ? "uložené zakázky" : "uložených zakázek");
+  if (n < 1) {
+    if (druh !== "vyklizeni" && typeof J !== "undefined" && J && (J.prace || []).length) { pridej(ekVstupDemolice(J, e).inp); zdroj = "demolice — otevřená kalkulace"; }
+    else if (druh !== "demolice" && typeof vkReferencniZakazka === "function") { const ref = vkReferencniZakazka(); if (ref.r.ok) { pridej(ekVstupVyklizeni(ref.z, ref.r, e)); zdroj = "vyklízení — " + ref.popis; } }
+  }
+  if (!(os > 0)) return null;
+  return {n, zdroj, trzbaH:tr / os, primeH:pr / os, naradiH:na / os, predH:(tr - pr - na) / os, osNaZakazku:os / Math.max(1, n)};
+}
+
+/* ---------- měsíc firmy ---------- */
+function ekMesic(e, pr, plan){
+  const p = plan || e.plan, L = ekLide(e), h = ekHodinPlan(e, p), osH = h.maj + h.hpp + h.dpp + h.osvc;
+  const prispevek = osH * pr.predH;
+  const lide = [["Zaměstnanci HPP × " + (p.hpp || 0), (p.hpp || 0) * L.hpp.naklad], ["Brigádníci DPP × " + (p.dpp || 0), h.dpp * L.dpp.naHod], ["Na IČO × " + (p.osvc || 0), h.osvc * L.osvc.naHod]].filter(x => x[1] > 0);
+  const lideKc = lide.reduce((s, x) => s + x[1], 0), fix = ekFixMesic(e);
+  const zisk = prispevek - lideKc - fix, dan = Math.max(0, zisk) * e.dppo / 100, cisty = zisk - dan;
+  const majitelum = cisty > 0 ? cisty * (1 - e.dividenda / 100) : cisty;
+  return {osH, h, prispevek, lide, lideKc, fix, zisk, dan, cisty, majitelum, naMajitele:e.majitelu > 0 ? majitelum / e.majitelu : majitelum,
+    naHodMajitele:h.maj > 0 ? majitelum / h.maj : null, zakazek:pr.osNaZakazku > 0 ? osH / pr.osNaZakazku : 0, obratRok:osH * pr.trzbaH * 12};
+}
+
+/* ---------- vykreslení: zisk jedné zakázky ---------- */
+const ekKc = x => (x < 0 ? "−" : "") + kc(Math.abs(x));
+function ekZakazkaHTML(inp, druh){
+  const e = ekNastaveni(), r = ekZakazka(inp, e), L = ekLide(e);
+  const R = (l, x, cls, hint) => "<div class='sumline" + (cls ? " " + cls : "") + "'><span>" + l + (hint ? " <span class='hint'>" + hint + "</span>" : "") + "</span><b>" + x + "</b></div>";
+  const vstup = (t, l) => "<label class='ek-parta-f'>" + l + "<input type='number' min='0' max='" + r.lide + "' step='1' data-ekparta='" + t + "' value='" + (r.parta[t] || 0) + "'></label>";
+  let h = "<h2>💰 Skutečný zisk zakázky <span class='badge'>po lidech a daních</span></h2>" +
+    "<div class='ek-parta'><span class='hint'>Kdo na ní dělá (z " + r.lide + " lidí):</span>" + vstup("hpp", "zaměstnanci") + vstup("dpp", "brigádníci DPP") + vstup("osvc", "na IČO") +
+      "<span class='hint'>majitelé: <b>" + r.maj + "</b></span></div>" +
+    R("Tržba bez DPH", kc(r.trzba)) +
+    r.prime.map(x => R(esc(x[0]), (x[1] > 0 ? "−" : "+") + kc(Math.abs(x[1])), "sub")).join("") +
+    r.prace.map(x => R(esc(x.nazev), "−" + kc(x.kc), "sub", fmt1.format(x.hodin) + " h × " + kc(x.kc / Math.max(0.01, x.hodin)))).join("") +
+    (r.naradi ? R("Nářadí — opotřebení a spotřební", "−" + kc(r.naradi), "sub", fmt1.format(r.osH) + " čl.h × " + kc(inp.naradiH)) : "") +
+    R("Podíl fixních nákladů firmy", "−" + kc(r.rezie), "sub", kc(r.rezieH) + "/čl.h") +
+    R("Zisk před daní", ekKc(r.zisk), "ek-mezi") + R("Daň z příjmů " + e.dppo + " %", "−" + kc(r.dan), "sub") +
+    R("Čistý zisk firmy", ekKc(r.cisty)) + R("Po dividendě majitelům (−" + e.dividenda + " %)", "<span style='color:" + (r.majitelum >= 0 ? "var(--good)" : "var(--bad)") + "'>" + ekKc(r.majitelum) + "</span>", "ek-hl");
+  h += "<div class='ek-kpi'><div><span>Na majitele</span><b>" + (r.naMajitele != null ? ekKc(r.naMajitele) : "—") + "</b></div>" +
+    "<div><span>Na hodinu majitele</span><b>" + (r.naHodMajitele != null ? ekKc(r.naHodMajitele) : "—") + "</b></div>" +
+    "<div><span>Čl.h celkem</span><b>" + fmt1.format(r.osH) + "</b></div></div>" +
+    "<p class='hint' style='margin:4px 16px 8px'>Čistě do kapsy po všech nákladech, dani 21 % a 15 % z dividendy. " + (r.cestaH ? "Včetně cesty " + fmt1.format(r.cestaH) + " čl.h. " : "") +
+    "Mzdy, sazby, nářadí a fixní náklady nastavíš v „💼 Ekonomika firmy“ dole.</p>";
+  const varianty = ekVariantyZakazky(inp, e);
+  h += "<details class='ek-var'><summary>Vyplatí se vzít pomocníka? Srovnání na téhle zakázce</summary><div class='tscroll'><table class='ek-tab'><thead><tr><th>Kdo dělá</th><th class='r'>Lidi stojí</th><th class='r'>Majitelům čistě</th><th class='r'>Na hodinu majitele</th></tr></thead><tbody>" +
+    varianty.map(x => "<tr><td>" + esc(x.nazev) + "</td><td class='r'>" + kc(x.r.praceKc) + "</td><td class='r'><b>" + ekKc(x.r.majitelum) + "</b></td><td class='r'>" + (x.r.naHodMajitele != null ? ekKc(x.r.naHodMajitele) : "—") + "</td></tr>").join("") +
+    "</tbody></table></div><p class='hint' style='margin:4px 16px 8px'>Pomocník ubere peníze ze zakázky, ale uvolní majiteli hodiny na další zakázku nebo shánění práce. Vyplatí se, když ty hodiny opravdu naplníte. " +
+    "Zaměstnanec stojí " + kc(L.hpp.naklad) + " měsíčně i bez zakázek, brigádník a IČO jen odpracované hodiny.</p></details>";
+  return h;
+}
+function renderDmZisk(v){
+  const el = $("#dmZisk"); if (!el) return;
+  const e = ekNastaveni(), vst = ekVstupDemolice(J, e);
+  if (!(vst.v.trzba > 0) || !(vst.inp.osH > 0)) { el.innerHTML = "<h2>💰 Skutečný zisk zakázky</h2><p class='hint' style='margin:0 16px 12px'>Přidej bourací práce — spočítá se, kolik ze zakázky opravdu zbude po lidech, nářadí, fixních nákladech a daních.</p>"; return; }
+  el.innerHTML = ekZakazkaHTML(vst.inp, "demolice");
+}
+function renderVkZisk(r){
+  const el = $("#vkZisk"); if (!el || typeof VK === "undefined" || !VK) return;
+  if (!r || !r.ok) { el.innerHTML = ""; return; }
+  el.innerHTML = ekZakazkaHTML(ekVstupVyklizeni(VK, r, ekNastaveni()), "vyklizeni");
+}
+document.addEventListener("input", ev => {
+  const t = ev.target; if (!t.dataset || t.dataset.ekparta === undefined) return;
+  const karta = t.closest("#dmZisk, #vkZisk"); if (!karta) return;
+  const hod = Math.max(0, Math.round(num(t.value)));
+  if (karta.id === "dmZisk") {
+    J.parta = Object.assign({}, ekPartaDemolice(J)); J.parta[t.dataset.ekparta] = hod;
+    J.najati = Math.min(Math.max(1, J.lide || 1), J.parta.hpp + J.parta.dpp + J.parta.osvc);
+    const inp = $("#jNajati"); if (inp) inp.value = J.najati;
+    save(); clearTimeout(renderDmZisk._t); renderDmZisk._t = setTimeout(() => { recalc(); ekObnovFokus("#dmZisk", t.dataset.ekparta); }, 250);
+  } else {
+    VK.parta = Object.assign({hpp:0, dpp:0, osvc:0}, VK.parta || {}); VK.parta[t.dataset.ekparta] = hod;
+    vykUloz(); clearTimeout(renderVkZisk._t); renderVkZisk._t = setTimeout(() => { vykPrepocet(); ekObnovFokus("#vkZisk", t.dataset.ekparta); }, 250);
+  }
 });
-$("#vkEkon").addEventListener("click", e => {
-  if (e.target.id !== "vkEkonAuto") return;
-  const a = vykEkonAuto(vkEkon());
-  if (!confirm("Nastavit náklad auta " + fmt1.format(a.naKm) + " Kč/km a " + a.naZakazku + " Kč na zakázku?")) return;
-  S.vykSazby.vuzKm = a.naKm; S.vykSazby.vuzFix = a.naZakazku; save(); renderVkSazby(); vykPrepocet(); renderVkEkon();
+function ekObnovFokus(karta, klic){ const n = $(karta + " [data-ekparta='" + klic + "']"); if (n) { n.focus(); try { const d = n.value.length; n.setSelectionRange(d, d); } catch (x) {} } }
+
+/* ---------- vykreslení: ekonomika firmy ---------- */
+function ekSkutecneFixni(){
+  /* průměr posledních 3 celých měsíců z výdajů v kategoriích, které nejsou přímým nákladem zakázek */
+  const kat = ["Telefon, internet, software", "Marketing a reklama", "Účetní a právní služby", "Pojištění", "Bankovní a úřední poplatky", "Nájem a půjčovné"];
+  const d = new Date(), mesice = [];
+  for (let i = 1; i <= 3; i++) { const x = new Date(d.getFullYear(), d.getMonth() - i, 1); mesice.push(x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0")); }
+  const sum = {}; let celkem = 0;
+  (S.vydaje || []).forEach(v => { if (!mesice.includes(String(v.datum || "").slice(0, 7)) || !kat.includes(v.kategorie)) return; sum[v.kategorie] = (sum[v.kategorie] || 0) + (+v.castka || 0); celkem += +v.castka || 0; });
+  return {mesicne:celkem / 3, polozky:Object.keys(sum).map(k => ({nazev:k, castka:Math.round(sum[k] / 3)})), mesice};
+}
+function renderEkFirma(el, druh){
+  if (!el) return;
+  const e = ekNastaveni(), L = ekLide(e), zdroj = e.zdroj === "demolice" || e.zdroj === "vyklizeni" ? e.zdroj : "oboji";
+  const pr = ekPrumer(zdroj, e) || ekPrumer(druh, e);
+  const pole = (cesta, l, j, krok, hint) => { const [a, b] = cesta.split("."), hod = b ? e[a][b] : e[a];
+    return "<label class='f'>" + l + (j ? " (" + j + ")" : "") + "<input type='number' inputmode='decimal' min='0' step='" + krok + "' data-eks='" + cesta + "' value='" + hod + "'>" + (hint ? "<span class='hint'>" + hint + "</span>" : "") + "</label>"; };
+  const T = (l, x, cls) => "<tr" + (cls ? " class='" + cls + "'" : "") + "><td>" + l + "</td><td class='r'>" + x + "</td></tr>";
+  let h = "<p class='hint' style='margin:0 0 10px'>Stejná ekonomika pro demolice i vyklízení. Všechno, co tu nastavíš, se hned promítne do karty <b>💰 Skutečný zisk zakázky</b> u každé kalkulace.</p>" +
+    "<div class='ek-zdroj'><span>Počítat z:</span>" + [["oboji", "všech zakázek"], ["demolice", "demolic"], ["vyklizeni", "vyklízení"]].map(([k, t]) => "<button type='button' class='vk3-chip" + (zdroj === k ? " on" : "") + "' data-ekzdroj='" + k + "'>" + t + "</button>").join("") + "</div>";
+  if (!pr) { el.innerHTML = h + "<p style='margin:10px 0'>Zatím není z čeho počítat — ulož aspoň jednu zakázku nebo otevři kalkulaci.</p>" + ekNastaveniHTML(e, L, pole); return; }
+  const m = ekMesic(e, pr);
+  h += "<h3 class='vk-h3'>1. Kolik vydělá hodina práce (" + esc(pr.zdroj) + ")</h3><div class='vk-ekon-fakta'>" +
+    "<div><span>Tržba bez DPH</span><b>" + kc(pr.trzbaH) + "</b></div><div><span>Přímé náklady</span><b>−" + kc(pr.primeH) + "</b></div>" +
+    "<div><span>Nářadí</span><b>−" + kc(pr.naradiH) + "</b></div><div><span>Fixní náklady</span><b>−" + kc(ekRezieNaHod(e)) + "</b></div>" +
+    "<div class='ek-vysl'><span>Zisk na čl.h před daní</span><b>" + kc(pr.predH - ekRezieNaHod(e)) + "</b></div><div class='ek-vysl'><span>Po daních majitelům</span><b>" + kc((pr.predH - ekRezieNaHod(e)) * (1 - e.dppo / 100) * (1 - e.dividenda / 100)) + "</b></div></div>" +
+    "<p class='hint' style='margin:4px 0 0'>Na člověkohodinu (práce i cesta), když dělají jen majitelé. Přímé náklady = materiál, kontejnery, skládkovné, likvidace, auto, provize. Průměrná zakázka " + fmt1.format(pr.osNaZakazku) + " čl.h.</p>";
+
+  h += "<h3 class='vk-h3'>2. Měsíc firmy podle plánu</h3><div class='tscroll'><table class='vk-ekon-tab'><tbody>" +
+    T("Fakturovatelné hodiny (majitelé " + fmt0.format(m.h.maj) + (m.h.hpp ? ", HPP " + fmt0.format(m.h.hpp) : "") + (m.h.dpp ? ", DPP " + fmt0.format(m.h.dpp) : "") + (m.h.osvc ? ", IČO " + fmt0.format(m.h.osvc) : "") + ")", fmt0.format(m.osH) + " čl.h") +
+    T("To je zakázek průměrné velikosti", fmt1.format(m.zakazek) + " / měsíc") +
+    T("Tržba bez DPH", kc(m.osH * pr.trzbaH)) + T("Přímé náklady a nářadí", "−" + kc(m.osH * (pr.primeH + pr.naradiH))) +
+    m.lide.map(x => T(esc(x[0]), "−" + kc(x[1]))).join("") +
+    T("Fixní náklady" + (e.obzp ? " (vč. zdravotního pojištění majitelů " + kc(e.majitelu * EK_2026.obzp) + ")" : ""), "−" + kc(m.fix)) +
+    T("Zisk před daní", ekKc(m.zisk), "sum") + T("Daň z příjmů " + e.dppo + " %", "−" + kc(m.dan)) + T("Čistý zisk firmy", ekKc(m.cisty)) +
+    T("Po dividendě " + (e.majitelu > 1 ? "na jednoho majitele" : "majiteli"), "<b>" + ekKc(m.naMajitele) + "</b>" + (m.naHodMajitele != null ? " · " + ekKc(m.naHodMajitele) + "/h" : ""), "sum") +
+    T("Tržba za rok bez DPH", kc(m.obratRok) + (!S.nastaveni.platceDPH && m.obratRok > EK_2026.dphLimit ? " <span class='pill ne'>nad limitem DPH</span>" : "")) + "</tbody></table></div>";
+  if (!S.nastaveni.platceDPH && m.obratRok > EK_2026.dphLimit) h += "<div class='warnbox' style='margin:8px 0 0'>⚠️<span><b>Tržba přes 2 mil. Kč ročně = povinnost platit DPH.</b> U lidí cena stoupne o 21 %, nebo o tolik klesne marže. U demolic pro firmy (plátce) platí přenesená daňová povinnost. Plánujte s účetní dopředu.</span></div>";
+
+  const scen = [["Současný plán", e.plan], ["+1 zaměstnanec HPP", {hpp:(e.plan.hpp || 0) + 1, dpp:e.plan.dpp, osvc:e.plan.osvc}], ["+1 brigádník DPP", {hpp:e.plan.hpp, dpp:(e.plan.dpp || 0) + 1, osvc:e.plan.osvc}],
+    ["+1 na IČO", {hpp:e.plan.hpp, dpp:e.plan.dpp, osvc:(e.plan.osvc || 0) + 1}], ["+2 zaměstnanci HPP", {hpp:(e.plan.hpp || 0) + 2, dpp:e.plan.dpp, osvc:e.plan.osvc}]];
+  h += "<h3 class='vk-h3'>3. Co udělá další člověk</h3><div class='tscroll'><table class='vk-ekon-tab'><thead><tr><th>Varianta</th><th class='r'>Zakázek / měsíc</th><th class='r'>Zisk před daní</th><th class='r'>Čistě na majitele</th><th class='r'>Tržba / rok</th></tr></thead><tbody>" +
+    scen.map(([nazev, p], i) => { const x = ekMesic(e, pr, p);
+      return "<tr" + (i === 0 ? " class='akt'" : "") + "><td>" + nazev + "</td><td class='r'>" + fmt1.format(x.zakazek) + "</td><td class='r'>" + ekKc(x.zisk) + "</td><td class='r'><b>" + ekKc(x.naMajitele) + "</b> <span class='hint'>" + (x.naMajitele >= m.naMajitele ? "+" : "−") + kc(Math.abs(x.naMajitele - m.naMajitele)) + "</span></td><td class='r'>" + kc(x.obratRok) + (!S.nastaveni.platceDPH && x.obratRok > EK_2026.dphLimit ? " ⚠" : "") + "</td></tr>"; }).join("") +
+    "</tbody></table></div><p class='hint' style='margin:4px 0 0'>Každý člověk navíc = víc zakázek, které musíte sehnat. Když je nesezenete, zaměstnanec stojí dál — brigádník a IČO ne.</p>";
+
+  const N = e.pomocnikHodin, zaHod = pr.predH - ekRezieNaHod(e), dppHodin = Math.min(N, L.dpp.maxHodin), osvc = ekOsvcCisto(e.osvc.sazba, N);
+  const ferova = N > 0 ? (L.hpp.cista + EK_2026.pausalni1) / N : 0;
+  const radek = (nazev, stoji, hodin, cisto, pozn) => "<tr><td><b>" + nazev + "</b><br><span class='hint'>" + pozn + "</span></td><td class='r'>" + kc(stoji) + "</td><td class='r'><b>" + ekKc(hodin * zaHod - stoji) + "</b><br><span class='hint'>" + fmt0.format(hodin) + " h</span></td><td class='r'>" + ekKc(cisto) + "</td></tr>";
+  h += "<h3 class='vk-h3'>4. Pomocník: zaměstnanec, brigádník, nebo na IČO?</h3><div class='grid g3'>" + pole("pomocnikHodin", "Kolik hodin měsíčně ho vytížíte na zakázkách", "h", "5", "") + "</div>" +
+    "<div class='tscroll'><table class='vk-ekon-tab'><thead><tr><th>Forma</th><th class='r'>Firmu stojí měsíčně</th><th class='r'>Firmě na něm zbude před daní</th><th class='r'>Jemu zbude čistého</th></tr></thead><tbody>" +
+    radek("Zaměstnanec (HPP)", L.hpp.naklad, N, L.hpp.cista, "hrubá " + kc(e.hpp.hrubaMzda) + " + odvody 33,8 %; platí se i bez zakázek, dovolená, nemoc; nejjistější pro obě strany") +
+    radek("Brigádník (DPP)", dppHodin * L.dpp.naHod, dppHodin, dppHodin * L.dpp.naHod, kc(e.dpp.sazba) + "/h, do 11 999 Kč měsíčně bez odvodů (≈ " + L.dpp.maxHodin + " h); každou DPP hlásit; max 300 h ročně u jedné firmy") +
+    radek("Spolupracovník na IČO", N * L.osvc.naHod, N, osvc.cisto, kc(e.osvc.sazba) + "/h; on platí paušální daň " + kc(EK_2026.pausalni1) + "/měs.; férová sazba, aby měl jako zaměstnanec: ≈ " + kc(ferova) + "/h") +
+    "</tbody></table></div>" +
+    "<div class='warnbox' style='margin:8px 0 0'>⚖️<span><b>IČO jen jako skutečný subdodavatel, ne skrytý zaměstnanec (švarcsystém).</b> Pokuta pro firmu 50 000 Kč až 10 mil. Kč, doměření daní a odvodů. " +
+      "Od 1. 12. 2026 je závislá práce, když firma práci <b>organizuje, řídí, dává pokyny a určuje pracovní dobu</b> zároveň. Bezpečněji: platba za výsledek (m², tuny, paušál za zakázku), vlastní nářadí a pojištění, vlastní čas, víc zákazníků, faktura. Nejistotu konzultujte s účetní.</span></div>";
+
+  const rok = new Date().getFullYear();
+  if (typeof daneRok === "function") {
+    const d = daneRok(rok), mes = new Date().getMonth() + 1;
+    if (d.vynosy || d.naklady) h += "<h3 class='vk-h3'>5. Skutečnost " + rok + " podle faktur a výdajů</h3><div class='vk-ekon-fakta'>" +
+      "<div><span>Výnosy</span><b>" + kc(d.vynosy) + "</b></div><div><span>Náklady</span><b>−" + kc(d.naklady) + "</b></div><div><span>Daň odhadem</span><b>−" + kc(d.dan) + "</b></div>" +
+      "<div class='ek-vysl'><span>Majitelům po dividendě</span><b>" + kc(d.dividendaCiste) + "</b></div><div><span>Průměr měsíčně</span><b>" + kc(d.dividendaCiste / mes) + "</b></div></div>" +
+      "<p class='hint' style='margin:4px 0 0'>Z vystavených faktur a zapsaných výdajů (záložka Faktury a daně) — porovnej s plánem výš.</p>";
+  }
+  if (druh === "vyklizeni" && typeof vkPakyHTML === "function") h += vkPakyHTML(m);
+  el.innerHTML = h + ekNastaveniHTML(e, L, pole);
+}
+function ekNastaveniHTML(e, L, pole){
+  const auto = ekAuto(e.auto), skut = ekSkutecneFixni(), nar = ekNaradiH(e, "demolice");
+  return "<details class='ek-nast' open><summary>⚙️ Nastavení — majitelé, lidé, fixní náklady, auto, nářadí, daně</summary>" +
+    "<h3 class='vk-h3'>Majitelé a plán lidí</h3><div class='grid g3'>" + pole("majitelu", "Majitelů na zakázkách", "", "1", "") + pole("hodinNaMajitele", "Fakturovatelné hodiny na majitele", "h/měsíc", "5", "ze ~170 h měsíčně jde na zakázky 90–120, zbytek nacenění, shánění, nákupy, účetnictví") +
+      "<label class='chk' style='align-self:end'><input type='checkbox' data-eksb='obzp'" + (e.obzp ? " checked" : "") + "> Majitelé platí zdravotní pojištění sami (3 024 Kč/měs. jako osoba bez příjmů)</label>" +
+      pole("plan.hpp", "V plánu zaměstnanců HPP", "", "1", "") + pole("plan.dpp", "V plánu brigádníků DPP", "", "1", "") + pole("plan.osvc", "V plánu lidí na IČO", "", "1", "") + "</div>" +
+    "<h3 class='vk-h3'>Lidé</h3><div class='grid g3'>" + pole("hpp.hrubaMzda", "Zaměstnanec — hrubá mzda", "Kč/měsíc", "500", "čistá " + kc(L.hpp.cista) + ", firmu stojí " + kc(L.hpp.naklad) + "; minimální mzda 22 400") +
+      pole("hpp.hodinFakt", "Zaměstnanec — fakturovatelné hodiny", "h/měsíc", "5", "náklad " + kc(L.hpp.naHod) + " na hodinu na zakázce") +
+      pole("dpp.sazba", "Brigádník DPP — hodinová odměna", "Kč/h", "10", "do 11 999 Kč/měs. bez odvodů ≈ " + L.dpp.maxHodin + " h") + pole("dpp.hodin", "Brigádník — hodin měsíčně", "h", "5", "") +
+      pole("osvc.sazba", "Na IČO — sazba", "Kč/h", "10", "neplátce DPH; stávající „najatí“ u demolic") + pole("osvc.hodin", "Na IČO — hodin měsíčně", "h", "5", "") + "</div>" +
+    "<h3 class='vk-h3'>Fixní náklady firmy (měsíčně)</h3><div class='ek-fix'>" + (e.fixni || []).map((x, i) => "<div class='ek-fix-r'><input data-ekfix='" + i + "' data-k='nazev' value='" + esc(x.nazev) + "'><input type='number' min='0' step='100' data-ekfix='" + i + "' data-k='castka' value='" + (+x.castka || 0) + "'><button class='mini' type='button' data-ekfixdel='" + i + "'>✕</button></div>").join("") + "</div>" +
+      "<div class='btnrow'><button class='b' type='button' id='ekFixAdd'>+ Položka</button>" + (skut.mesicne > 0 ? "<button class='b' type='button' id='ekFixVydaje'>Podle výdajů za 3 měsíce: " + kc(skut.mesicne) + "/měs.</button>" : "") + "</div>" +
+      "<p class='hint' style='margin:4px 0 0'>Celkem " + kc(ekFixMesic(e)) + " měsíčně" + (e.obzp ? " vč. zdravotního pojištění majitelů" : "") + " = " + kc(ekRezieNaHod(e)) + " na fakturovatelnou hodinu. Přímé náklady zakázek (materiál, kontejnery, PHM) sem nepatří.</p>" +
+    "<h3 class='vk-h3'>Auto</h3><div class='grid g3'>" + pole("auto.spotreba", "Spotřeba naložené dodávky", "l/100 km", "0.5", "") + pole("auto.nafta", "Nafta", "Kč/l", "0.1", "9. 9. 2026 průměr 47,79") + pole("auto.servisKm", "Servis, pneu, oleje", "Kč/km", "0.1", "") +
+      pole("auto.cenaAuta", "Cena auta", "Kč", "10000", "") + pole("auto.zustatek", "Za kolik ho prodáte", "Kč", "10000", "") + pole("auto.kmZivot", "Najedete za dobu vlastnictví", "km", "5000", "") +
+      pole("auto.pojisteniRok", "Pojištění, STK, známky, parkování", "Kč/rok", "1000", "") + pole("auto.zakazekRok", "Zakázek za rok", "", "5", "") + "</div>" +
+      "<p style='margin:6px 0 0;font-size:14px'>Nafta " + fmt1.format(auto.palivo) + " + servis " + fmt1.format(auto.servis) + " + odpis " + fmt1.format(auto.odpis) + " = <b>" + fmt1.format(auto.naKm) + " Kč/km</b>, pojištění <b>" + kc(auto.naZakazku) + " na zakázku</b>. " +
+      "V demolicích je " + fmt1.format(S.nastaveni.km || 0) + " Kč/km" + (S.vykSazby ? ", ve vyklízení " + fmt1.format(S.vykSazby.vuzKm) + " Kč/km + " + kc(S.vykSazby.vuzFix) : "") + ". <button class='b' type='button' id='ekAutoPouzit'>Použít v obou kalkulačkách</button></p>" +
+    "<h3 class='vk-h3'>Nářadí — demolice</h3><div class='ek-fix'>" + (e.naradi || []).map((x, i) => "<div class='ek-fix-r ek-nar'><input data-eknar='" + i + "' data-k='nazev' value='" + esc(x.nazev) + "'><label>cena<input type='number' min='0' step='500' data-eknar='" + i + "' data-k='cena' value='" + (+x.cena || 0) + "'></label><label>vydrží h<input type='number' min='1' step='50' data-eknar='" + i + "' data-k='hodin' value='" + (+x.hodin || 0) + "'></label><span class='hint'>" + (x.hodin > 0 ? fmt1.format(x.cena / x.hodin) : "0") + " Kč/h</span><button class='mini' type='button' data-eknardel='" + i + "'>✕</button></div>").join("") + "</div>" +
+      "<div class='btnrow'><button class='b' type='button' id='ekNarAdd'>+ Nářadí</button></div><div class='grid g3'>" +
+      pole("spotrebniH", "Spotřební materiál bourání", "Kč/čl.h", "1", "kotouče, sekáče, vrtáky, rukavice, respirátory, pytle") + pole("naradiVyklH", "Nářadí a pomůcky — vyklízení", "Kč/čl.h", "1", "popruhy, rudl, rukavice") + pole("rychlostCesty", "Průměrná rychlost cesty — demolice", "km/h", "5", "čas na cestě se počítá do člověkohodin") + "</div>" +
+      "<p class='hint' style='margin:4px 0 0'>Demolice: nářadí " + kc(nar) + " na člověkohodinu. Hodiny životnosti jsou odhad — upravte podle zkušenosti.</p>" +
+    "<h3 class='vk-h3'>Daně</h3><div class='grid g3'>" + pole("dppo", "Daň z příjmů s.r.o.", "%", "1", "") + pole("dividenda", "Srážková daň z dividendy", "%", "1", "") + "</div></details>";
+}
+function ekPrekresli(){
+  const t = document.activeElement, k = t && t.dataset ? (t.dataset.eks || (t.dataset.ekfix != null ? "fix" + t.dataset.ekfix + t.dataset.k : t.dataset.eknar != null ? "nar" + t.dataset.eknar + t.dataset.k : "")) : "", pos = t && t.selectionStart;
+  const kontejner = t && t.closest ? t.closest("#vkEkon, #dmEkon") : null;
+  renderEkFirmyVse();
+  if (typeof recalc === "function" && $("#tab-kalkulace").classList.contains("on")) recalc();
+  if (typeof vykPrepocet === "function" && $("#tab-vyklizeni") && $("#tab-vyklizeni").classList.contains("on")) vykPrepocet();
+  if (kontejner && k) {
+    const sel = t.dataset.eks ? "[data-eks='" + t.dataset.eks + "']" : t.dataset.ekfix != null ? "[data-ekfix='" + t.dataset.ekfix + "'][data-k='" + t.dataset.k + "']" : "[data-eknar='" + t.dataset.eknar + "'][data-k='" + t.dataset.k + "']";
+    const n = $("#" + kontejner.id + " " + sel); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (x) {} }
+  }
+}
+function renderEkFirmyVse(){
+  const d = $("#dmEkonDet"); if (d && d.open) renderEkFirma($("#dmEkon"), "demolice");
+  const v = $("#vkEkonDet"); if (v && v.open) renderEkFirma($("#vkEkon"), "vyklizeni");
+}
+["#dmEkon", "#vkEkon"].forEach(sel => {
+  const el = $(sel); if (!el) return;
+  el.addEventListener("input", ev => {
+    const t = ev.target, e = ekNastaveni();
+    if (t.dataset.eks) { const hod = num(t.value); if (hod < 0) return; const [a, b] = t.dataset.eks.split("."); if (b) e[a][b] = hod; else e[a] = hod;
+      if (t.dataset.eks === "osvc.sazba" && S.nastaveni) S.nastaveni.sazbaNajaty = hod; }                /* stejná sazba jako „najatí“ v demoliční kalkulaci */
+    else if (t.dataset.ekfix != null) { const x = e.fixni[+t.dataset.ekfix]; if (!x) return; x[t.dataset.k] = t.dataset.k === "nazev" ? t.value : num(t.value); if (t.dataset.k === "nazev") { save(); return; } }
+    else if (t.dataset.eknar != null) { const x = e.naradi[+t.dataset.eknar]; if (!x) return; x[t.dataset.k] = t.dataset.k === "nazev" ? t.value : num(t.value); if (t.dataset.k === "nazev") { save(); return; } }
+    else return;
+    save(); clearTimeout(ekPrekresli._t); ekPrekresli._t = setTimeout(ekPrekresli, 400);
+  });
+  el.addEventListener("change", ev => { const t = ev.target; if (!t.dataset.eksb) return; ekNastaveni()[t.dataset.eksb] = t.checked; save(); ekPrekresli(); });
+  el.addEventListener("click", ev => {
+    const t = ev.target.closest("button"); if (!t) return;
+    const e = ekNastaveni();
+    if (t.dataset.ekzdroj) { e.zdroj = t.dataset.ekzdroj; save(); renderEkFirmyVse(); return; }
+    if (t.dataset.ekfixdel != null) { e.fixni.splice(+t.dataset.ekfixdel, 1); save(); ekPrekresli(); return; }
+    if (t.dataset.eknardel != null) { e.naradi.splice(+t.dataset.eknardel, 1); save(); ekPrekresli(); return; }
+    if (t.id === "ekFixAdd") { e.fixni.push({nazev:"", castka:0}); save(); renderEkFirmyVse(); return; }
+    if (t.id === "ekNarAdd") { e.naradi.push({nazev:"", cena:0, hodin:1000}); save(); renderEkFirmyVse(); return; }
+    if (t.id === "ekFixVydaje") {
+      const s = ekSkutecneFixni(); if (!confirm("Nahradit fixní náklady průměrem výdajů za " + s.mesice.join(", ") + " (" + kc(s.mesicne) + " měsíčně)?")) return;
+      e.fixni = s.polozky; save(); ekPrekresli(); return;
+    }
+    if (t.id === "ekAutoPouzit") {
+      const a = ekAuto(e.auto);
+      if (!confirm("Nastavit náklad auta " + fmt1.format(a.naKm) + " Kč/km v demolicích i vyklízení (a " + a.naZakazku + " Kč na zakázku ve vyklízení)?")) return;
+      S.nastaveni.km = a.naKm; if (S.vykSazby) { S.vykSazby.vuzKm = a.naKm; S.vykSazby.vuzFix = a.naZakazku; }
+      save(); if (typeof fillNastaveni === "function") fillNastaveni(); ekPrekresli(); return;
+    }
+  });
 });
-$("#vkEkonDet").addEventListener("toggle", e => { if (e.target.open) renderVkEkon(); });
+["#dmEkonDet", "#vkEkonDet"].forEach(sel => { const d = $(sel); if (d) d.addEventListener("toggle", () => { if (d.open) renderEkFirma($(sel === "#dmEkonDet" ? "#dmEkon" : "#vkEkon"), sel === "#dmEkonDet" ? "demolice" : "vyklizeni"); }); });
 
 /* ---------- init ---------- */
 function fillAll(){fillHdr();fillNastaveni();renderPrace();renderKont();renderMat();renderOst();renderVP();renderFotky();renderDZ();renderOdp();renderDopravci();renderNKont();renderCenik();renderRychle();renderSablonyZak();renderSablony();renderRecenze();renderMilniky();renderInvestice();zakCount();syncVybava();renderPrehled();renderLogoNahled();renderBankStav();renderSyncStav();recalc();}
