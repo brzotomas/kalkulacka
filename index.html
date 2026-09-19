@@ -492,10 +492,60 @@ details.gsec li{margin:3px 0}
 .ek-fix-r label{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted)}
 @media (max-width:560px){.ek-fix-r.ek-nar{grid-template-columns:1fr 1fr}.ek-fix-r.ek-nar>input:first-child{grid-column:1/-1}}
 
+
+/* zámek aplikace */
+.zamek{position:fixed;inset:0;z-index:9999;background:var(--ground);display:flex;align-items:center;justify-content:center;padding:24px 16px;overflow:auto}
+.zamek[hidden]{display:none}
+body.zamceno{overflow:hidden}
+.zamek-box{width:min(320px,100%);text-align:center}
+.zamek-znak{font-size:40px;line-height:1}
+.zamek-firma{font-size:12px;color:var(--muted);letter-spacing:.09em;text-transform:uppercase;font-weight:700;margin-top:6px}
+.zamek-box h1{font-size:20px;margin:12px 0 3px}
+.zamek-pod{font-size:13px;color:var(--muted);margin:0 0 16px;min-height:34px;line-height:1.45}
+.zamek-tecky{display:flex;gap:14px;justify-content:center;margin:0 0 22px}
+.zamek-tecky i{width:14px;height:14px;border-radius:50%;border:2px solid var(--line);transition:background .12s,border-color .12s}
+.zamek-tecky i.on{background:var(--accent);border-color:var(--accent)}
+.zamek-klav{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;justify-items:center}
+.zamek-klav.blok{opacity:.4;pointer-events:none}
+.zamek-t{width:72px;height:72px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-family:inherit;font-size:26px;font-weight:600;cursor:pointer;box-shadow:var(--shadow)}
+.zamek-t:active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.zamek-t-prazdna{visibility:hidden;box-shadow:none}
+.zamek-t-maz{font-size:20px;box-shadow:none;background:transparent;border-color:transparent}
+.zamek-pozn{min-height:20px;font-size:13.5px;color:var(--muted);margin:16px 0 0}
+.zamek-pozn.ne{color:var(--bad);font-weight:700}
+.zamek-spod{display:flex;gap:16px;justify-content:center;margin-top:8px}
+.zamek-odkaz{background:none;border:0;color:var(--muted);font-family:inherit;font-size:13px;text-decoration:underline;cursor:pointer;padding:6px}
+.zamek-napoveda{font-size:12.5px;color:var(--muted);margin:8px 0 0;line-height:1.55}
+.zamek-napoveda code{background:var(--surface2);padding:1px 4px;border-radius:4px;font-size:12px}
+.zamek-hlaska{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:10000;background:var(--ink);color:var(--ground);padding:9px 14px;border-radius:10px;font-size:14px;box-shadow:var(--shadow)}
+.zamek-hlaska[hidden]{display:none}
+.zamek-stav{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 10px}
+@keyframes zamek-tres{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-7px)}40%,60%{transform:translateX(7px)}}
+.zamek-box.tres{animation:zamek-tres .5s}
+@media (max-height:660px){.zamek-t{width:58px;height:58px;font-size:22px}.zamek-klav{gap:9px}.zamek-tecky{margin-bottom:14px}.zamek-znak{font-size:30px}}
+
 @media (prefers-reduced-motion: no-preference){
   nav button,button.b{transition:background .12s,filter .12s,border-color .12s}
 }
 </style>
+
+<div id="zamek" class="zamek" aria-hidden="false">
+  <div class="zamek-box">
+    <div class="zamek-znak">🧱</div>
+    <div class="zamek-firma">Demoliční kalkulačka</div>
+    <h1 id="zamekTitul">Zadej PIN</h1>
+    <p class="zamek-pod" id="zamekPodtitul">Po každém otevření i obnovení stránky.</p>
+    <div class="zamek-tecky" id="zamekTecky"><i></i><i></i><i></i><i></i></div>
+    <div class="zamek-klav" id="zamekKlav"></div>
+    <p class="zamek-pozn" id="zamekPozn"></p>
+    <div class="zamek-spod">
+      <button type="button" class="zamek-odkaz" id="zamekZrusit" hidden>Zrušit</button>
+      <button type="button" class="zamek-odkaz" id="zamekZapomenuty">Zapomenutý PIN?</button>
+    </div>
+    <p class="zamek-napoveda" id="zamekNapoveda" hidden>Data se neztratí, ale zámek jde sundat jen v prohlížeči: F12 → Console → <code>localStorage.removeItem("dkZamek")</code> → Enter.</p>
+  </div>
+</div>
+<div id="zamekHlaska" class="zamek-hlaska" hidden></div>
 
 <header>
   <div class="hwrap">
@@ -1323,6 +1373,11 @@ details.gsec li{margin:3px 0}
   </div>
 
   <div class="card">
+    <h2>🔒 Zámek aplikace</h2>
+    <div id="zamekNastaveni"></div>
+  </div>
+
+  <div class="card">
     <h2>Data</h2>
     <div class="btnrow" style="margin-top:0">
       <button class="b" id="exportBtn">⬇ Export zálohy (JSON)</button>
@@ -1666,6 +1721,18 @@ details.gsec li{margin:3px 0}
       <li>DPP bez odvodů do 11 999 Kč měsíčně, nejvýš 300 hodin ročně u jedné firmy, každá DPP se hlásí. Paušální daň OSVČ 1. pásmo 9 984 Kč/měs. Zdravotní pojištění osoby bez příjmů 3 024 Kč/měs.</li>
       <li>Daň z příjmů s.r.o. 21 %, srážková daň z dividendy 15 %. Odhad — daňové detaily (odpisy, uznatelnost, výplata mzdou jednatele) řeší účetní.</li>
     </ul>
+  </div></details>
+
+  <details class="gsec"><summary>🔒 Zámek aplikace — PIN při otevření</summary><div class="inner">
+    <p style="margin:0 0 10px">Po otevření aplikace i po každém obnovení stránky se objeví klávesnice a zeptá se na čtyřmístný PIN — stejně jako odemykání telefonu. Výchozí PIN je <b>4845</b>, změníš ho v <b>Ceník a nastavení → 🔒 Zámek aplikace</b>.</p>
+    <ul style="margin:4px 0 12px;padding-left:20px">
+      <li>PIN jde zadat i z klávesnice počítače, <b>Backspace</b> maže. Po pěti špatných pokusech se zadávání na půl minuty zablokuje.</li>
+      <li>PIN platí <b>jen pro tohle zařízení</b> — na telefonu a na počítači si ho nastav zvlášť. Nesynchronizuje se a neuloží se do zálohy.</li>
+      <li>Volitelně se aplikace zamkne i po 10 minutách, kdy ji máš na pozadí (zaškrtávátko v nastavení). Bez něj se ptá jen při spuštění a obnovení stránky.</li>
+      <li>Zámek jde vypnout — nejdřív po tobě chce současný PIN.</li>
+    </ul>
+    <div class="warn" style="margin:0 0 10px"><b>Co zámek umí a co ne.</b> Zabrání tomu, aby si někdo otevřel tvoje zakázky, faktury a klienty, když necháš mobil nebo notebook chvíli bez dozoru. <b>Není to šifrování dat.</b> Kdo umí otevřít vývojářské nástroje prohlížeče, přečte si data i bez PINu — jsou uložená v prohlížeči nešifrovaně, stejně jako předtím. Na citlivé věci to ber jako závoru, ne jako trezor.</div>
+    <p style="margin:0"><b>Kdybys PIN zapomněl:</b> data zůstanou, ale zámek jde sundat jen v prohlížeči — F12 → Console → <code>localStorage.removeItem("dkZamek")</code> → Enter → obnovit stránku. Na telefonu je to bez počítače složité, takže si PIN radši někam zapiš.</p>
   </div></details>
   <details class="gsec"><summary>📸 Nacenit zakázku z fotek přes Claude — i z mobilu na prohlídce</summary><div class="inner">
     <p style="margin:0 0 10px">Tohle je nejrychlejší cesta od prohlídky k nabídce. Na místě naměříš a nafotíš, Claude ti to nacení podle <b>tvého</b> ceníku a tvých pravidel, a výsledek vložíš do kalkulačky. Funguje z telefonu, z počítače, odkudkoliv.</p>
@@ -2128,6 +2195,203 @@ material: Fólie a pytle | 800 | 1100</pre>
 
 <script>
 "use strict";
+/* ================= ZÁMEK APLIKACE =================
+   PIN jako na telefonu — po otevření i po obnovení stránky. Drží zvědavé oči dál od zakázek,
+   faktur a klientů. Proti někomu, kdo umí otevřít vývojářské nástroje, to ochrana není:
+   data leží v prohlížeči nešifrovaná. PIN je uložený jen jako otisk a platí pro tohle zařízení.
+   Běží jako první kód stránky, proto si vystačí s document.getElementById — $ a S v té chvíli
+   ještě neexistují. */
+const ZAMEK_KLIC = "dkZamek", ZAMEK_DELKA = 4, ZAMEK_POKUSU = 5, ZAMEK_BLOK_S = 30, ZAMEK_VYCHOZI = "4845";
+let zamekRezim = "odemknout", zamekCislice = "", zamekKrok = 0, zamekNovy = "", zamekTik = null, zamekSkryto = 0, zamekSpusten = false;
+
+function zamekOtisk(pin){
+  let h = 0x811c9dc5 >>> 0;
+  const t = "dk-zamek-1:" + String(pin);
+  for (let k = 0; k < 3000; k++) {
+    for (let i = 0; i < t.length; i++) { h = Math.imul((h ^ t.charCodeAt(i)) >>> 0, 0x01000193) >>> 0; }
+    h = (h ^ k) >>> 0;
+  }
+  return h.toString(36);
+}
+function zamekData(){
+  let z = null;
+  try { z = JSON.parse(localStorage.getItem(ZAMEK_KLIC) || "null"); } catch (e) {}
+  if (!z || typeof z !== "object") z = {zap:true, h:zamekOtisk(ZAMEK_VYCHOZI), spatne:0, blokDo:0, poNecinnosti:0};
+  if (typeof z.h !== "string" || !z.h) { z.h = zamekOtisk(ZAMEK_VYCHOZI); z.zap = true; }
+  return z;
+}
+function zamekUlozData(z){ try { localStorage.setItem(ZAMEK_KLIC, JSON.stringify(z)); } catch (e) {} }
+function zamekEl(id){ return document.getElementById(id); }
+function zamekZbyvaBloku(){ const z = zamekData(); return Math.max(0, Math.ceil(((+z.blokDo || 0) - Date.now()) / 1000)); }
+
+/* ---------- obrazovka zámku ---------- */
+function zamekKlavesnice(){
+  const k = zamekEl("zamekKlav"); if (!k || k.dataset.hotovo) return;
+  k.innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9].map(c => "<button type='button' class='zamek-t' data-cislo='" + c + "'>" + c + "</button>").join("") +
+    "<button type='button' class='zamek-t zamek-t-prazdna' disabled></button>" +
+    "<button type='button' class='zamek-t' data-cislo='0'>0</button>" +
+    "<button type='button' class='zamek-t zamek-t-maz' data-maz='1' aria-label='Smazat'>⌫</button>";
+  k.dataset.hotovo = "1";
+}
+function zamekTecky(){
+  const t = zamekEl("zamekTecky"); if (!t) return;
+  t.innerHTML = Array.from({length:ZAMEK_DELKA}, (_, i) => "<i" + (i < zamekCislice.length ? " class='on'" : "") + "></i>").join("");
+}
+function zamekTexty(){
+  const titulky = {
+    odemknout:["Zadej PIN", "Po každém otevření i obnovení stránky."],
+    zapnout:["Nastav nový PIN", "Zapamatuj si ho — jinak se k datům dostaneš jen přes vymazání zámku v prohlížeči."],
+    zmena:["Zadej současný PIN", "Pak nastavíš nový."],
+    vypnout:["Zadej PIN", "Potvrzením zámek vypneš."]
+  };
+  const kroky = {1:["Nový PIN", "Čtyři číslice."], 2:["Zopakuj nový PIN", "Pro jistotu ještě jednou."]};
+  const [t, p] = zamekKrok && kroky[zamekKrok] ? kroky[zamekKrok] : titulky[zamekRezim] || titulky.odemknout;
+  const tit = zamekEl("zamekTitul"), pod = zamekEl("zamekPodtitul");
+  if (tit) tit.textContent = t;
+  if (pod) pod.textContent = p;
+  const zrus = zamekEl("zamekZrusit");
+  if (zrus) zrus.hidden = zamekRezim === "odemknout";
+  const zapom = zamekEl("zamekZapomenuty");
+  if (zapom) zapom.hidden = zamekRezim !== "odemknout";
+}
+function zamekZprava(text, chyba){
+  const p = zamekEl("zamekPozn"); if (!p) return;
+  p.textContent = text || "";
+  p.className = "zamek-pozn" + (chyba ? " ne" : "");
+}
+function zamekOtevri(rezim){
+  zamekRezim = rezim || "odemknout"; zamekCislice = ""; zamekKrok = 0; zamekNovy = "";
+  const o = zamekEl("zamek"); if (!o) return;
+  o.hidden = false; o.setAttribute("aria-hidden", "false");
+  document.body.classList.add("zamceno");
+  zamekKlavesnice(); zamekTecky(); zamekTexty(); zamekZprava("");
+  zamekOdpocet();
+}
+function zamekZavri(){
+  const o = zamekEl("zamek"); if (!o) return;
+  o.hidden = true; o.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("zamceno");
+  zamekCislice = ""; zamekKrok = 0; zamekNovy = ""; zamekRezim = "odemknout";
+  if (zamekTik) { clearInterval(zamekTik); zamekTik = null; }
+}
+function zamekOdpocet(){
+  if (zamekTik) { clearInterval(zamekTik); zamekTik = null; }
+  const ukaz = () => {
+    const s = zamekZbyvaBloku(), k = zamekEl("zamekKlav");
+    if (k) k.classList.toggle("blok", s > 0);
+    if (s > 0) zamekZprava("Moc pokusů — zkus to za " + s + " s.", true);
+    else if (zamekTik) { clearInterval(zamekTik); zamekTik = null; zamekZprava(""); }
+  };
+  if (zamekZbyvaBloku() > 0) { ukaz(); zamekTik = setInterval(ukaz, 1000); }
+}
+function zamekTres(){
+  const b = document.querySelector("#zamek .zamek-box"); if (!b) return;
+  b.classList.remove("tres"); void b.offsetWidth; b.classList.add("tres");
+}
+
+/* ---------- zadávání ---------- */
+function zamekPis(c){
+  if (zamekZbyvaBloku() > 0) return;
+  if (zamekCislice.length >= ZAMEK_DELKA) return;
+  zamekCislice += String(c); zamekTecky();
+  if (zamekCislice.length === ZAMEK_DELKA) setTimeout(zamekVyhodnot, 120);
+}
+function zamekSmaz(){ zamekCislice = zamekCislice.slice(0, -1); zamekTecky(); zamekZprava(""); }
+function zamekVyhodnot(){
+  const z = zamekData(), zadano = zamekCislice;
+  zamekCislice = ""; zamekTecky();
+  /* nastavení nového PINu — dva kroky pro kontrolu překlepu */
+  if (zamekKrok === 1) { zamekNovy = zadano; zamekKrok = 2; zamekTexty(); zamekZprava(""); return; }
+  if (zamekKrok === 2) {
+    if (zadano !== zamekNovy) { zamekKrok = 1; zamekNovy = ""; zamekTexty(); zamekZprava("PINy se neshodují — zkus to znovu.", true); zamekTres(); return; }
+    z.zap = true; z.h = zamekOtisk(zadano); z.spatne = 0; z.blokDo = 0; zamekUlozData(z);
+    zamekZavri(); renderZamekNastaveni(); zamekHlaska("🔒 PIN nastaven.");
+    return;
+  }
+  /* ověření současného PINu */
+  if (zamekOtisk(zadano) !== z.h) {
+    z.spatne = (+z.spatne || 0) + 1;
+    if (z.spatne >= ZAMEK_POKUSU) { z.blokDo = Date.now() + ZAMEK_BLOK_S * 1000; z.spatne = 0; }
+    zamekUlozData(z); zamekTres(); zamekOdpocet();
+    if (zamekZbyvaBloku() <= 0) zamekZprava("Špatný PIN." + (ZAMEK_POKUSU - z.spatne > 0 ? " Zbývá pokusů: " + (ZAMEK_POKUSU - z.spatne) + "." : ""), true);
+    return;
+  }
+  z.spatne = 0; z.blokDo = 0; zamekUlozData(z);
+  if (zamekRezim === "zmena") { zamekKrok = 1; zamekTexty(); zamekZprava(""); return; }
+  if (zamekRezim === "vypnout") { z.zap = false; zamekUlozData(z); zamekZavri(); renderZamekNastaveni(); zamekHlaska("🔓 Zámek vypnutý."); return; }
+  zamekZavri();
+}
+function zamekHlaska(text){
+  const el = zamekEl("zamekHlaska"); if (!el) return;
+  el.textContent = text; el.hidden = false;
+  setTimeout(() => { if (el) el.hidden = true; }, 2600);
+}
+
+/* ---------- nastavení v záložce Ceník a nastavení ---------- */
+function renderZamekNastaveni(){
+  const el = zamekEl("zamekNastaveni"); if (!el) return;
+  const z = zamekData();
+  el.innerHTML = "<p class='hint' style='margin:0 0 8px'>Po otevření aplikace i po obnovení stránky se zeptá na čtyřmístný PIN. Platí <b>jen pro tohle zařízení</b> — na telefonu a na počítači si ho nastav zvlášť. Chrání před zvědavýma očima (klient u stolu, půjčený notebook), <b>není to šifrování</b>: kdo umí otevřít vývojářské nástroje prohlížeče, data si přečte.</p>" +
+    "<div class='zamek-stav'><span class='pill " + (z.zap ? "ok" : "ne") + "'>" + (z.zap ? "🔒 Zapnutý" : "🔓 Vypnutý") + "</span>" +
+      (z.zap ? "<span class='hint'>PIN se ptá při každém spuštění</span>" : "<span class='hint'>aplikace se otevře rovnou</span>") + "</div>" +
+    "<div class='btnrow'>" +
+      (z.zap ? "<button class='b' type='button' id='zamekZmenit'>Změnit PIN</button><button class='b' type='button' id='zamekVypnout'>Vypnout zámek</button>"
+             : "<button class='b prim' type='button' id='zamekZapnout'>Zapnout zámek a nastavit PIN</button>") + "</div>" +
+    "<label class='chk' style='margin-top:8px'><input type='checkbox' id='zamekNecinnost'" + (+z.poNecinnosti > 0 ? " checked" : "") + (z.zap ? "" : " disabled") + "> Zamknout i po 10 minutách, kdy je aplikace na pozadí</label>" +
+    "<p class='hint' style='margin:8px 0 0'><b>Kdybys PIN zapomněl:</b> data se neztratí, ale zámek jde sundat jen v prohlížeči — F12 → Console → <code>localStorage.removeItem(\"dkZamek\")</code> → Enter. Na telefonu si nejdřív udělej Export zálohy na počítači. Proto si PIN někam zapiš.</p>";
+}
+function zamekKlik(e){
+  const t = e.target.closest ? e.target.closest("button") : null;
+  if (!t) return;
+  if (t.id === "zamekZmenit") { zamekOtevri("zmena"); return; }
+  if (t.id === "zamekVypnout") { zamekOtevri("vypnout"); return; }
+  if (t.id === "zamekZapnout") { zamekOtevri("zapnout"); zamekKrok = 1; zamekTexty(); return; }
+}
+
+/* ---------- start ---------- */
+function zamekStart(){
+  if (typeof document === "undefined" || !document.getElementById) return;
+  if (zamekSpusten) { const d0 = zamekData(); if (d0.zap) zamekOtevri("odemknout"); return; }   /* posluchače navěsit jen jednou */
+  zamekSpusten = true;
+  const o = zamekEl("zamek"); if (!o) return;
+  const z = zamekData();
+  renderZamekNastaveni();
+  const nast = zamekEl("zamekNastaveni");
+  if (nast) {
+    nast.addEventListener("click", zamekKlik);
+    nast.addEventListener("change", e => {
+      if (e.target.id !== "zamekNecinnost") return;
+      const d = zamekData(); d.poNecinnosti = e.target.checked ? 10 : 0; zamekUlozData(d);
+    });
+  }
+  o.addEventListener("click", e => {
+    const t = e.target.closest("button"); if (!t) return;
+    if (t.dataset.cislo) { zamekPis(t.dataset.cislo); return; }
+    if (t.dataset.maz) { zamekSmaz(); return; }
+    if (t.id === "zamekZrusit") { zamekZavri(); renderZamekNastaveni(); return; }
+    if (t.id === "zamekZapomenuty") { const n = zamekEl("zamekNapoveda"); if (n) n.hidden = !n.hidden; return; }
+  });
+  document.addEventListener("keydown", e => {
+    const ot = zamekEl("zamek");
+    if (!ot || ot.hidden) return;
+    if (/^[0-9]$/.test(e.key)) { zamekPis(e.key); e.preventDefault(); }
+    else if (e.key === "Backspace") { zamekSmaz(); e.preventDefault(); }
+    else if (e.key === "Escape" && zamekRezim !== "odemknout") { zamekZavri(); e.preventDefault(); }
+  });
+  /* zamknout po návratu, když aplikace dlouho ležela na pozadí */
+  document.addEventListener("visibilitychange", () => {
+    const d = zamekData();
+    if (!d.zap || !(+d.poNecinnosti > 0)) return;
+    if (document.hidden) { zamekSkryto = Date.now(); return; }
+    const ot = zamekEl("zamek");
+    if (zamekSkryto && Date.now() - zamekSkryto > d.poNecinnosti * 60000 && ot && ot.hidden) zamekOtevri("odemknout");
+    zamekSkryto = 0;
+  });
+  if (z.zap) zamekOtevri("odemknout"); else zamekZavri();
+}
+
+try { zamekStart(); } catch (e) { console.warn("zámek se nespustil:", e); }
+
 /* ---------- výchozí data ---------- */
 const KAT = ["Příčky nenosné","Nosné konstrukce","Stropy a schodiště","Podhledy","Podlahy","Omítky, obklady, fasády","Otvory, prostupy a rýhy","Základy","Bytová jádra a vybavení","Zárubně, dveře, okna","Demolice objektů (m³)","Ostatní práce"];
 /* Ceny: RTS 25/II × 1,08 (B2C), B2B = B2C × 0,90. Suť t/MJ a hod/MJ = normy RTS (dem. hmotnost, Nhod/MJ). */
