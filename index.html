@@ -485,6 +485,14 @@ details.gsec li{margin:3px 0}
 .ek-zdroj{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 8px;font-size:13.5px}
 .vk-ekon-fakta>div.ek-vysl{background:var(--good-bg)}.vk-ekon-fakta>div.ek-vysl b{color:var(--good)}
 .ek-nast{margin-top:14px;border-top:1px solid var(--line);padding-top:8px}.ek-nast>summary{cursor:pointer;font-weight:800}
+.ek-info{margin:6px 0 2px}
+.ek-info>summary{color:var(--accent);font-weight:700}
+.ek-info-t{padding:2px 16px 10px;font-size:13.5px;line-height:1.55}
+.ek-info-t p{margin:8px 0}
+.ek-info-t ol{margin:6px 0;padding-left:20px}
+.ek-info-t li{margin:4px 0}
+.ek-info-t .ek-kam{padding:6px 0 2px;margin:8px 0}
+.dn-box .ek-info{margin-top:10px}.dn-box .ek-info-t{padding:2px 0 4px}
 .ek-fix{display:grid;gap:6px}
 .ek-fix-r{display:grid;grid-template-columns:minmax(0,1fr) 120px 34px;gap:6px;align-items:center}
 .ek-fix-r.ek-nar{grid-template-columns:minmax(0,1fr) 120px 120px 70px 34px}
@@ -1705,6 +1713,16 @@ body.zamceno{overflow:hidden}
       <li><b>Kotouče, sekáče a spotřební materiál, který fakturujete klientovi</b>, zapisuj v kalkulaci do Materiálu (nákup i prodej) — zisk nesnižuje. Náklad na nářadí je jen opotřebení strojů.</li>
       <li><b>Kam mizí peníze z hodinovky</b> (rozbalit v kartě): od zisku na člověkohodinu přes nářadí, fixní náklady a daně až k čistému na majitele — a čemu to odpovídá u zaměstnance (hrubá mzda a kolik by stál firmu). Nejvíc ubírají daně: z každé koruny zisku zůstane majitelům po dani 21 % a 15 % z dividendy asi 67 haléřů — stejně jako u zaměstnance zůstane z ceny práce asi 60 %.</li>
       <li><b>Cíl na hodinu majitele</b> (Ekonomika firmy → Nastavení): karta u každé zakázky řekne, na kolik ji nacenit, aby cíl zůstal.</li>
+    </ul>
+    <div class="vybg">Proč se zisk daní dvakrát — 21 % a pak 15 %</div>
+    <p style="margin:4px 0 8px">Nejsou to dvě daně z jedné částky. Peníze projdou dvěma kapsami a druhá daň se počítá až z toho, co zbylo po první — proto se dá ze zisku „ztratit“ zhruba třetina:</p>
+    <ul style="margin:4px 0 12px;padding-left:20px">
+      <li><b>Firma zaplatí 21 %.</b> S.r.o. je samostatný poplatník daně z příjmů právnických osob. Co po dani zbude, patří pořád firmě — ne tobě osobně.</li>
+      <li><b>Ty zaplatíš 15 % při výplatě.</b> Když si zisk pošleš jako podíl na zisku (dividendu), firma z něj strhne srážkovou daň 15 % a odvede ji za tebe. Do přiznání to nedáváš a sociální ani zdravotní se z podílu na zisku neplatí.</li>
+      <li><b>Dohromady 32,85 %:</b> z 10 000 Kč zisku zaplatí firma 2 100 Kč daně, zůstane 7 900 Kč, při výplatě se strhne 1 185 Kč a tobě přijde <b>6 715 Kč</b>. Z každé koruny zisku ti tedy zůstane zhruba 67 haléřů.</li>
+      <li><b>Druhá daň přijde až při výplatě.</b> Dokud peníze necháš ve firmě (nářadí, auto, rezerva), platí se jen 21 %. Kalkulačka počítá i tu druhou proto, aby „čistě majitelům“ znamenalo peníze v kapse, ne na účtu firmy. Kdo chce vidět čísla bez ní, dá v Ekonomice firmy srážkovou daň na 0.</li>
+      <li><b>Mzda nebo odměna jednatele je druhá cesta:</b> pro firmu je to náklad, takže se z ní 21 % neplatí, ale platí se pojistné (firma 33,8 %, ty 11,6 %) a daň 15 %. U menších částek bývá výhodnější mzda (sleva na poplatníka 2 570 Kč měsíčně, a je z ní placené zdravotní, takže neplatíš OBZP 3 024 Kč), u větších dividenda. Většina malých s.r.o. obojí kombinuje — poměr nech spočítat účetní.</li>
+      <li>Stejné vysvětlení najdeš i v aplikaci pod <b>ⓘ</b> v kartě „💰 Skutečný zisk zakázky“, v Ekonomice firmy a v <b>Faktury a daně → Daně a výsledek hospodaření</b>.</li>
     </ul>
     <div class="vybg">💼 Ekonomika firmy (dole v kalkulaci i ve vyklízení — stejné nastavení)</div>
     <ul style="margin:4px 0 12px;padding-left:20px">
@@ -10051,6 +10069,7 @@ function renderDane(){
     R("Zisk po zdanění k rozdělení", kc(d.dividendaHrube)) +
     R("Srážková daň 15 %", "−" + kc(d.dividendaHrube - d.dividendaCiste)) +
     R("Na ruku společníkovi", kc(d.dividendaCiste), "vel") +
+    (typeof ekDaneInfoHTML === "function" ? ekDaneInfoHTML() : "") +
     "<p class='hint' style='margin:8px 0 0'>Podíl na zisku jde vyplatit až po schválení účetní závěrky. Jestli se víc vyplatí dividenda, nebo odměna jednatele, ať spočítá účetní — záleží na vaší celkové situaci.</p></div>";
   h += "</div>";
 
@@ -13402,6 +13421,24 @@ function ekMesic(e, pr, plan){
 
 /* ---------- vykreslení: zisk jedné zakázky ---------- */
 const ekKc = x => (x < 0 ? "−" : "") + kc(Math.abs(x));
+/* Proč z jednoho zisku odejdou dvě daně. Používá se v kartě zisku zakázky, v Ekonomice firmy i v Daních. */
+function ekDaneInfoHTML(e){
+  const n = e || ekNastaveni(), dppo = +n.dppo || 0, div = +n.dividenda || 0, z = 10000;
+  const dan = z * dppo / 100, poDani = z - dan, sraz = poDani * div / 100, naRuku = poDani - sraz;
+  return "<details class='ek-var ek-info'><summary>ⓘ Proč se zisk daní dvakrát — " + dppo + " % a pak " + div + " %</summary><div class='ek-info-t'>" +
+    "<p>Peníze projdou <b>dvěma kapsami</b> a každá má svoji daň. Nejsou to dvě daně z jedné částky — druhá se počítá až z toho, co zbylo po první.</p>" +
+    "<ol><li><b>Firma.</b> S.r.o. je samostatný poplatník. Ze zisku zaplatí <b>daň z příjmů právnických osob " + dppo + " %</b>. Co zbude, patří pořád firmě — ne tobě.</li>" +
+      "<li><b>Ty.</b> Když si zisk vyplatíš jako podíl na zisku (dividendu), firma při výplatě strhne <b>srážkovou daň " + div + " %</b> a odvede ji za tebe. Tím je to vyřízené: do daňového přiznání to nedáváš a sociální ani zdravotní se z podílu na zisku neplatí.</li></ol>" +
+    "<div class='ek-kam'><div><span>Zisk firmy před daní</span><b>" + kc(z) + "</b></div>" +
+      "<div><span>− daň z příjmů " + dppo + " %</span><b>−" + kc(dan) + "</b></div>" +
+      "<div><span>Zůstane ve firmě</span><b>" + kc(poDani) + "</b></div>" +
+      "<div><span>− srážková daň " + div + " % při výplatě</span><b>−" + kc(sraz) + "</b></div>" +
+      "<div class='ek-kam-vys'><span>Tobě na účet</span><b>" + kc(naRuku) + "</b></div></div>" +
+    "<p><b>Druhá daň přijde až při výplatě.</b> Dokud peníze necháš ve firmě — nové nářadí, auto, rezerva na horší měsíc — platí se jen " + dppo + " %. Kalkulačka počítá i tu druhou proto, abys porovnával to, co ti opravdu zůstane v kapse, ne co leží na účtu firmy. Kdybys chtěl vidět čísla bez ní, dej v Ekonomice firmy „Srážková daň z dividendy“ na 0.</p>" +
+    "<p><b>Mzda nebo odměna jednatele je jiná cesta.</b> Pro firmu je nákladem, takže se z ní " + dppo + " % neplatí — zato se z ní platí pojistné (firma 33,8 %, ty 11,6 %) a daň z příjmů 15 %. U menších částek bývá výhodnější mzda (sleva na poplatníka 2 570 Kč měsíčně ji umí celou smazat a máš z ní placené zdravotní, takže neplatíš OBZP 3 024 Kč), u větších částek dividenda. Většina malých s.r.o. obojí kombinuje — přesný poměr si nech spočítat účetní.</p>" +
+    "<p class='hint' style='margin:0'>Podíl na zisku se vyplácí až po schválení účetní závěrky valnou hromadou; zálohu lze vyplatit jen podle mezitímní účetní závěrky a nikdy tak, aby firmu poslala do úpadku. Čísla jsou zjednodušená — odpisy, neuznatelné náklady a zálohy na daň řeší účetní.</p>" +
+    "</div></details>";
+}
 function ekZakazkaHTML(inp, druh){
   const e = ekNastaveni(), r = ekZakazka(inp, e), L = ekLide(e);
   const R = (l, x, cls, hint) => "<div class='sumline" + (cls ? " " + cls : "") + "'><span>" + l + (hint ? " <span class='hint'>" + hint + "</span>" : "") + "</span><b>" + x + "</b></div>";
@@ -13416,6 +13453,7 @@ function ekZakazkaHTML(inp, druh){
     R("Podíl fixních nákladů firmy", "−" + kc(r.rezie), "sub", kc(r.rezieH) + "/čl.h") +
     R("Zisk před daní", ekKc(r.zisk), "ek-mezi") + R("Daň z příjmů " + e.dppo + " %", "−" + kc(r.dan), "sub") +
     R("Čistý zisk firmy", ekKc(r.cisty)) + R("Po dividendě majitelům (−" + e.dividenda + " %)", "<span style='color:" + (r.majitelum >= 0 ? "var(--good)" : "var(--bad)") + "'>" + ekKc(r.majitelum) + "</span>", "ek-hl");
+  h += ekDaneInfoHTML(e);
   if (r.osH > 0 && r.hodMaj > 0) {
     const naH = x => x / r.osH, pred = r.trzba - r.primeKc - r.praceKc, ekv = ekEkvivalentMzdy(r.naHodMajitele || 0), cil = +e.cilNaHod || 0, proCil = cil > 0 ? ekCenaProCil(inp, e, cil) : null;
     h += "<details class='ek-var'><summary>Kam mizí peníze z hodinovky</summary><div class='ek-kam'>" +
@@ -13555,7 +13593,8 @@ function ekNastaveniHTML(e, L, pole){
       "<div class='btnrow'><button class='b' type='button' id='ekNarAdd'>+ Nářadí</button></div><div class='grid g3'>" +
       pole("spotrebniH", "Spotřební materiál, který NEúčtujete klientovi", "Kč/čl.h", "1", "kotouče a spotřební materiál fakturované klientovi patří do Materiál v kalkulaci — tady 0") + pole("naradiVyklH", "Nářadí a pomůcky — vyklízení", "Kč/čl.h", "1", "popruhy, rudl, rukavice") + pole("rychlostCesty", "Průměrná rychlost cesty — demolice", "km/h", "5", "čas na cestě se počítá do člověkohodin") + "</div>" +
       "<p class='hint' style='margin:4px 0 0'>Demolice: nářadí " + kc(nar) + " na člověkohodinu. Hodiny životnosti jsou odhad — upravte podle zkušenosti.</p>" +
-    "<h3 class='vk-h3'>Daně</h3><div class='grid g3'>" + pole("dppo", "Daň z příjmů s.r.o.", "%", "1", "") + pole("dividenda", "Srážková daň z dividendy", "%", "1", "") + "</div></details>";
+    "<h3 class='vk-h3'>Daně</h3><div class='grid g3'>" + pole("dppo", "Daň z příjmů s.r.o.", "%", "1", "") + pole("dividenda", "Srážková daň z dividendy", "%", "1", "") + "</div>" +
+    ekDaneInfoHTML(e) + "</details>";
 }
 function ekPrekresli(){
   const t = document.activeElement, k = t && t.dataset ? (t.dataset.eks || (t.dataset.ekfix != null ? "fix" + t.dataset.ekfix + t.dataset.k : t.dataset.eknar != null ? "nar" + t.dataset.eknar + t.dataset.k : "")) : "", pos = t && t.selectionStart;
