@@ -1724,9 +1724,10 @@ body.zamceno{overflow:hidden}
   </div></details>
 
   <details class="gsec"><summary>🔒 Zámek aplikace — PIN při otevření</summary><div class="inner">
-    <p style="margin:0 0 10px">Po otevření aplikace i po každém obnovení stránky se objeví klávesnice a zeptá se na čtyřmístný PIN — stejně jako odemykání telefonu. Výchozí PIN je <b>4845</b>, změníš ho v <b>Ceník a nastavení → 🔒 Zámek aplikace</b>.</p>
+    <p style="margin:0 0 10px">Po otevření aplikace i po každém obnovení stránky se objeví klávesnice a zeptá se na čtyřmístný PIN — stejně jako odemykání telefonu. Výchozí PIN je <b>2001</b> (dřív 4845 — kde jsi ho nezměnil, přepnul se sám), měníš ho v <b>Ceník a nastavení → 🔒 Zámek aplikace</b>.</p>
     <ul style="margin:4px 0 12px;padding-left:20px">
-      <li>PIN jde zadat i z klávesnice počítače, <b>Backspace</b> maže. Po pěti špatných pokusech se zadávání na půl minuty zablokuje.</li>
+      <li>PIN jde zadat i z klávesnice počítače, <b>Backspace</b> maže. Po pěti špatných pokusech se zadávání zablokuje na půl minuty a každá další série čeká dvakrát dýl (až 15 minut) — hádat číslice se nevyplatí.</li>
+      <li><b>Výchozí PIN je ve zdrojovém kódu</b>, který je na GitHubu veřejný. Skutečný smysl to dává až ve chvíli, kdy si v nastavení dáš vlastní — ten zná jen tvoje zařízení.</li>
       <li>PIN platí <b>jen pro tohle zařízení</b> — na telefonu a na počítači si ho nastav zvlášť. Nesynchronizuje se a neuloží se do zálohy.</li>
       <li>Volitelně se aplikace zamkne i po 10 minutách, kdy ji máš na pozadí (zaškrtávátko v nastavení). Bez něj se ptá jen při spuštění a obnovení stránky.</li>
       <li>Zámek jde vypnout — nejdřív po tobě chce současný PIN.</li>
@@ -2201,7 +2202,7 @@ material: Fólie a pytle | 800 | 1100</pre>
    data leží v prohlížeči nešifrovaná. PIN je uložený jen jako otisk a platí pro tohle zařízení.
    Běží jako první kód stránky, proto si vystačí s document.getElementById — $ a S v té chvíli
    ještě neexistují. */
-const ZAMEK_KLIC = "dkZamek", ZAMEK_DELKA = 4, ZAMEK_POKUSU = 5, ZAMEK_BLOK_S = 30, ZAMEK_VYCHOZI = "4845";
+const ZAMEK_KLIC = "dkZamek", ZAMEK_DELKA = 4, ZAMEK_POKUSU = 5, ZAMEK_BLOK_S = 30, ZAMEK_BLOK_MAX_S = 900, ZAMEK_VYCHOZI = "2001", ZAMEK_PRVNI = "4845";
 let zamekRezim = "odemknout", zamekCislice = "", zamekKrok = 0, zamekNovy = "", zamekTik = null, zamekSkryto = 0, zamekSpusten = false;
 
 function zamekOtisk(pin){
@@ -2218,6 +2219,8 @@ function zamekData(){
   try { z = JSON.parse(localStorage.getItem(ZAMEK_KLIC) || "null"); } catch (e) {}
   if (!z || typeof z !== "object") z = {zap:true, h:zamekOtisk(ZAMEK_VYCHOZI), spatne:0, blokDo:0, poNecinnosti:0};
   if (typeof z.h !== "string" || !z.h) { z.h = zamekOtisk(ZAMEK_VYCHOZI); z.zap = true; }
+  /* komu zůstal úplně první výchozí PIN, tomu se změní na nový výchozí; vlastní PIN se nikdy nepřepíše */
+  if (!z.v2) { if (z.h === zamekOtisk(ZAMEK_PRVNI)) z.h = zamekOtisk(ZAMEK_VYCHOZI); z.v2 = true; zamekUlozData(z); }
   return z;
 }
 function zamekUlozData(z){ try { localStorage.setItem(ZAMEK_KLIC, JSON.stringify(z)); } catch (e) {} }
@@ -2279,7 +2282,7 @@ function zamekOdpocet(){
   const ukaz = () => {
     const s = zamekZbyvaBloku(), k = zamekEl("zamekKlav");
     if (k) k.classList.toggle("blok", s > 0);
-    if (s > 0) zamekZprava("Moc pokusů — zkus to za " + s + " s.", true);
+    if (s > 0) zamekZprava("Moc pokusů — zkus to za " + (s > 90 ? Math.ceil(s / 60) + " min" : s + " s") + ".", true);
     else if (zamekTik) { clearInterval(zamekTik); zamekTik = null; zamekZprava(""); }
   };
   if (zamekZbyvaBloku() > 0) { ukaz(); zamekTik = setInterval(ukaz, 1000); }
@@ -2304,19 +2307,20 @@ function zamekVyhodnot(){
   if (zamekKrok === 1) { zamekNovy = zadano; zamekKrok = 2; zamekTexty(); zamekZprava(""); return; }
   if (zamekKrok === 2) {
     if (zadano !== zamekNovy) { zamekKrok = 1; zamekNovy = ""; zamekTexty(); zamekZprava("PINy se neshodují — zkus to znovu.", true); zamekTres(); return; }
-    z.zap = true; z.h = zamekOtisk(zadano); z.spatne = 0; z.blokDo = 0; zamekUlozData(z);
+    z.zap = true; z.h = zamekOtisk(zadano); z.spatne = 0; z.blokDo = 0; z.kola = 0; zamekUlozData(z);
     zamekZavri(); renderZamekNastaveni(); zamekHlaska("🔒 PIN nastaven.");
     return;
   }
   /* ověření současného PINu */
   if (zamekOtisk(zadano) !== z.h) {
     z.spatne = (+z.spatne || 0) + 1;
-    if (z.spatne >= ZAMEK_POKUSU) { z.blokDo = Date.now() + ZAMEK_BLOK_S * 1000; z.spatne = 0; }
+    /* každá další série špatných pokusů čeká dvakrát dýl — hádání číslic je pak na dlouhé hodiny */
+    if (z.spatne >= ZAMEK_POKUSU) { z.kola = (+z.kola || 0) + 1; z.blokDo = Date.now() + Math.min(ZAMEK_BLOK_S * Math.pow(2, z.kola - 1), ZAMEK_BLOK_MAX_S) * 1000; z.spatne = 0; }
     zamekUlozData(z); zamekTres(); zamekOdpocet();
     if (zamekZbyvaBloku() <= 0) zamekZprava("Špatný PIN." + (ZAMEK_POKUSU - z.spatne > 0 ? " Zbývá pokusů: " + (ZAMEK_POKUSU - z.spatne) + "." : ""), true);
     return;
   }
-  z.spatne = 0; z.blokDo = 0; zamekUlozData(z);
+  z.spatne = 0; z.blokDo = 0; z.kola = 0; zamekUlozData(z);
   if (zamekRezim === "zmena") { zamekKrok = 1; zamekTexty(); zamekZprava(""); return; }
   if (zamekRezim === "vypnout") { z.zap = false; zamekUlozData(z); zamekZavri(); renderZamekNastaveni(); zamekHlaska("🔓 Zámek vypnutý."); return; }
   zamekZavri();
@@ -2338,6 +2342,7 @@ function renderZamekNastaveni(){
       (z.zap ? "<button class='b' type='button' id='zamekZmenit'>Změnit PIN</button><button class='b' type='button' id='zamekVypnout'>Vypnout zámek</button>"
              : "<button class='b prim' type='button' id='zamekZapnout'>Zapnout zámek a nastavit PIN</button>") + "</div>" +
     "<label class='chk' style='margin-top:8px'><input type='checkbox' id='zamekNecinnost'" + (+z.poNecinnosti > 0 ? " checked" : "") + (z.zap ? "" : " disabled") + "> Zamknout i po 10 minutách, kdy je aplikace na pozadí</label>" +
+    "<p class='hint' style='margin:8px 0 0'><b>Výchozí PIN je 2001</b> a je vidět ve zdrojovém kódu aplikace — dokud si ho nezměníš tady, není to tajemství. Vlastní PIN zná jen tohle zařízení.</p>" +
     "<p class='hint' style='margin:8px 0 0'><b>Kdybys PIN zapomněl:</b> data se neztratí, ale zámek jde sundat jen v prohlížeči — F12 → Console → <code>localStorage.removeItem(\"dkZamek\")</code> → Enter. Na telefonu si nejdřív udělej Export zálohy na počítači. Proto si PIN někam zapiš.</p>";
 }
 function zamekKlik(e){
