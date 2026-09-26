@@ -637,6 +637,22 @@ tr.br-nejl td{background:var(--good-bg)}
 .br-pod-cvbox .mini{margin-top:4px}
 .br-pod-dluh{background:var(--warn-bg);color:var(--warn-ink);border:1px solid var(--warn-line);border-radius:8px;padding:8px 10px;margin:8px 0}
 #brPodChyba:empty{display:none}
+.br-maj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media (max-width:760px){.br-maj-grid{grid-template-columns:1fr 1fr}}
+.br-maj-t{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;background:var(--ground);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--ink);font:inherit;cursor:pointer;min-width:0}
+.br-maj-t:hover{border-color:var(--accent)}
+.br-maj-t span{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700}
+.br-maj-t b{font-size:22px;line-height:1.2;overflow-wrap:anywhere}
+.br-maj-t b i{font-size:13px;font-style:normal;font-weight:600;color:var(--muted)}
+.br-maj-t small{font-size:12.5px;color:var(--muted);line-height:1.35}
+.br-maj-t small em{font-style:normal;font-weight:700;color:var(--bad)}
+.br-maj-t.ok{border-left-color:var(--good)}
+.br-maj-t.pozor{border-left-color:var(--warn-line)}
+.br-maj-t.ne{border-left-color:var(--bad)}
+.br-maj-h{font-size:14px;margin:14px 0 4px}
+.br-maj-akce{margin:0;padding-left:20px;line-height:1.55;font-size:14.5px}
+.br-maj-akce a{color:var(--ink);text-decoration:none;border-bottom:1px dashed var(--muted)}
+.br-maj-akce a:hover{color:var(--accent);border-bottom-color:var(--accent)}
 
 
 /* roadmapa */
@@ -1412,6 +1428,10 @@ body.zamceno{overflow:hidden}
 <!-- ============ PŘEHLED FIRMY ============ -->
 <section id="tab-prehled" class="tab">
   <div id="pripominky"></div>
+  <div class="card br-maj">
+    <h2>📊 Pondělní přehled — celá firma na jedné obrazovce</h2>
+    <div id="brMajitel"></div>
+  </div>
   <div class="statgrid" id="pKpi"></div>
   <div class="card">
     <h2>Měsíční výsledky</h2>
@@ -8462,7 +8482,7 @@ function renderPripominky(){
     x.ikona+" <span>"+x.txt+"</span></div>").join(""):
     "<div class='warnbox' style='margin:0 0 12px;background:var(--good-bg);border-color:var(--good);color:var(--good)'>✓ <span>Nic nehoří — žádná propadlá revize, platba po splatnosti ani nevyřízená vícepráce.</span></div>";
 }
-function renderPrehled(){if(typeof renderBrPrace==="function"){renderBrPrace();renderBrPresnost();renderBrCashflow();}renderVydaje();renderKlienti();renderNaradi();renderOdberatele();renderZdroje();renderRealita();renderPohledavky();renderProhry();renderRust();renderOdpSouhrn();renderPripominky();pStats();}
+function renderPrehled(){if(typeof renderBrPrace==="function"){renderBrPrace();renderBrPresnost();renderBrCashflow();renderBrMajitel();}renderVydaje();renderKlienti();renderNaradi();renderOdberatele();renderZdroje();renderRealita();renderPohledavky();renderProhry();renderRust();renderOdpSouhrn();renderPripominky();pStats();}
 
 /* ---------- výbava checklist ---------- */
 document.querySelectorAll("[data-vyb]").forEach(ch=>{
@@ -17222,6 +17242,125 @@ if (typeof document !== "undefined" && document.addEventListener) {
   document.addEventListener("change", e => { if (e.target.name === "brPodStav") { const v = $("#brPodVady"); if (v) v.hidden = e.target.value !== "vady"; } });
 }
 
+/* ---------- Jedna obrazovka pro majitele ----------
+   Pondělní přehled demolic i vyklízení dohromady: poptávky a nabídky za týden, úspěšnost, nasmlouváno na 4 týdny,
+   zisk na hodinu plán vs. skutečnost, peníze na cestě, zůstatek za 4 týdny, úkoly. Pod tím „Co udělat tento týden“
+   poskládané z ostatních modulů a text pro společníka. */
+function brPl(n, a, b, c){ return n + " " + (n === 1 ? a : n >= 2 && n <= 4 ? b : c); }
+function brMajitel(dnes){
+  dnes = dnes || faDnes();
+  const n = S.nastaveni, tyden = faPlusDni(dnes, -6), d28z = faPlusDni(dnes, -27), d90 = faPlusDni(dnes, -90), d28 = faPlusDni(dnes, 27);
+  const vse = (S.zakazky || []).filter(z => z.id).map(z => ({druh:"demolice", z})).concat((S.vyklizeni || []).filter(z => z.id).map(z => ({druh:"vyklizeni", z})));
+  const cena = x => x.druh === "vyklizeni" ? (x.z.vysledek ? (x.z.vysledek.skutCena != null ? x.z.vysledek.skutCena : x.z.vysledek.cena || 0) : 0) : (x.z.vysCelkem || 0);
+  const mezi = (d, od, doo) => d && d >= od && d <= doo;
+  /* poptávky a nabídky */
+  const pop7 = vse.filter(x => mezi(brZalozeno(x.z), tyden, dnes)).length, pop28 = vse.filter(x => mezi(brZalozeno(x.z), d28z, dnes)).length;
+  const nab7 = vse.filter(x => mezi(x.z.nabVystaveno, tyden, dnes)).length;
+  const rozh = vse.filter(x => brZalozeno(x.z) >= d90 && (BR_VYHRANO.includes(x.z.status) || x.z.status === "zamítnuto"));
+  const vyhr = rozh.filter(x => BR_VYHRANO.includes(x.z.status)).length, uspech = rozh.length >= 3 ? vyhr / rozh.length : null;
+  const cekaNab = vse.filter(x => x.z.status === "nabídka" && x.z.nabVystaveno);
+  /* nasmlouváno na 4 týdny */
+  const nasml = vse.filter(x => ["domluveno", "probíhá"].includes(x.z.status) && x.z.terminOd && x.z.terminOd <= d28 && (x.z.terminDo || x.z.terminOd) >= dnes);
+  let prac = 0, obs = 0;
+  for (let i = 0; i < 28; i++) {
+    const d = faPlusDni(dnes, i), w = new Date(d + "T12:00:00").getDay(); if (!w || w === 6) continue; prac++;
+    if (nasml.some(x => x.z.terminOd <= d && (x.z.terminDo || x.z.terminOd) >= d)) obs++;
+  }
+  /* zisk na hodinu: plán vs. skutečnost u hotových za 90 dní */
+  let pZ = 0, pH = 0, sZ = 0, sH = 0, nH = 0;
+  vse.forEach(x => {
+    if (x.z.status !== "hotovo") return;
+    const kon = x.druh === "vyklizeni" ? brZakKonec(x) : (x.z.terminDo || x.z.terminOd || String(x.z.ulozeno || "").slice(0, 10));
+    if (!kon || kon < d90) return;
+    if (x.druh === "demolice") {
+      if (!(x.z.skutHodiny > 0)) return; let ph = 0; try { ph = planZak(x.z).hod; } catch (e) {} if (!(ph > 0)) return;
+      pZ += x.z.vysZisk || 0; pH += ph; sZ += x.z.vysZisk || 0; sH += x.z.skutHodiny; nH++;
+    } else {
+      const r = x.z.vysledek || {}; if (!(r.os > 0) || !(r.skutOs > 0) || r.skutGp == null) return;
+      pZ += r.gp || 0; pH += r.os; sZ += r.skutGp; sH += r.skutOs; nH++;
+    }
+  });
+  /* peníze na cestě */
+  const fak = (S.faktury || []).filter(f => faCekaNaPlatbu(f)), poSpl = fak.filter(f => f.splatnost && f.splatnost < dnes);
+  const kFak = typeof faCekaNaVyfakturovani === "function" ? faCekaNaVyfakturovani() : [];
+  /* peníze za 4 týdny a úkoly */
+  const cf = brCashflow(dnes), uk = typeof hnUkoly === "function" ? hnUkoly() : [];
+  /* tržba za měsíc */
+  const mes = dnes.slice(0, 7), minuly = (() => { const x = new Date(dnes.slice(0, 8) + "01T12:00:00"); x.setMonth(x.getMonth() - 1); return x.toISOString().slice(0, 7); })();
+  const trzbaMes = m => vse.filter(x => x.z.status === "hotovo" && String(x.druh === "vyklizeni" ? brZakKonec(x) : (x.z.terminDo || x.z.terminOd || String(x.z.ulozeno || "").slice(0, 10))).startsWith(m)).reduce((s, x) => s + cena(x), 0);
+  return {dnes, pop7, popPrumer:pop28 / 4, nab7, uspech, rozhodnuto:rozh.length, cekaNab:cekaNab.length,
+    nasmlKc:nasml.reduce((s, x) => s + cena(x), 0), nasmlN:nasml.length, prac, obs,
+    zhPlan:pH > 0 ? pZ / pH : null, zhSkut:sH > 0 ? sZ / sH : null, zhN:nH,
+    naCeste:fak.reduce((s, f) => s + faZbyva(f), 0), faktur:fak.length, poSpl:poSpl.length, poSplKc:poSpl.reduce((s, f) => s + faZbyva(f), 0), kFak:kFak.length,
+    cf, zust4:cf.tydny[3].zustatek, zustatekZadan:n.cfZustatek != null && n.cfZustatek !== "",
+    ukolu:uk.length, zmeskano:uk.filter(u => u.zbyva < 0).length, ukolDnes:uk.filter(u => u.zbyva === 0).length,
+    trzbaMes:trzbaMes(mes), trzbaMinuly:trzbaMes(minuly)};
+}
+function brMajitelAkce(m){
+  const a = [];
+  if (m.cf.podNulou) a.push([10, "🚨 V týdnu od " + hnDatumCz(m.cf.podNulou.od) + " dojdou peníze (chybí " + kc(-m.cf.podNulou.zustatek) + "). Upomínky, zálohy, posunout nákupy.", "#brCashflow"]);
+  else if (m.cf.podRezervou && m.zustatekZadan) a.push([7, "Zůstatek klesne pod rezervu v týdnu od " + hnDatumCz(m.cf.podRezervou.od) + ".", "#brCashflow"]);
+  if (m.poSpl) a.push([9, "Pošli upomínky: " + m.poSpl + " " + (m.poSpl === 1 ? "faktura je" : m.poSpl < 5 ? "faktury jsou" : "faktur je") + " po splatnosti za " + kc(m.poSplKc) + ".", "tab:faktury"]);
+  if (m.kFak) a.push([8, "Vyfakturuj " + m.kFak + " " + (m.kFak === 1 ? "hotovou zakázku" : m.kFak < 5 ? "hotové zakázky" : "hotových zakázek") + " — dokud není faktura, peníze nepřijdou.", "tab:faktury"]);
+  if (m.zmeskano) a.push([8, m.zmeskano + " " + (m.zmeskano === 1 ? "úkol je" : m.zmeskano < 5 ? "úkoly jsou" : "úkolů je") + " po termínu v Plánu.", "#hnUkoly"]);
+  if (m.prac && m.obs / m.prac < 0.5) a.push([6, "Na příští 4 týdny je obsazeno jen " + m.obs + " z " + m.prac + " pracovních dní. " + (m.cekaNab ? "Obvolej čekající nabídky (" + m.cekaNab + ") a přidej do marketingu." : "Přidej do marketingu a ozvi se stálým partnerům."), "#hnUkoly"]);
+  else if (m.prac && m.obs / m.prac > 0.9) a.push([5, "Na 4 týdny jste skoro plní (" + m.obs + " z " + m.prac + " dní) — nové nabídky dávej o 5–10 % dráž.", "tab:cenik"]);
+  if (m.uspech != null && m.rozhodnuto >= 5 && m.uspech < 0.2) a.push([6, "Vyhráváte jen " + fmt0.format(m.uspech * 100) + " % nabídek — podívej se do „Proč prohráváme“ a odpovídej na poptávky do 24 hodin.", "#prohryTab"]);
+  else if (m.uspech != null && m.rozhodnuto >= 5 && m.uspech > 0.6) a.push([4, "Vyhráváte " + fmt0.format(m.uspech * 100) + " % nabídek — jste levní, zdražte.", "tab:cenik"]);
+  if (m.zhPlan && m.zhSkut != null && m.zhN >= 2 && m.zhSkut < m.zhPlan * 0.85) a.push([6, "Skutečný zisk na hodinu " + kc(m.zhSkut) + " je o " + fmt0.format((1 - m.zhSkut / m.zhPlan) * 100) + " % pod plánem (" + kc(m.zhPlan) + "). Které práce trvají déle, ukáže „Skutečnost po pracích“.", "#brPraceKarta"]);
+  brPartneri().forEach(o => { const s = brPartnerStat(o, m.dnes); if (s.moralka[0] === "ne") a.push([5, "Partner " + o.nazev + " platí pozdě (průměrně +" + fmt0.format(s.zpozdeni) + " dní" + (s.dluzi > 0 ? ", dluží " + kc(s.dluzi) : "") + ") — kratší splatnost nebo zálohy.", "#odbList"]); });
+  brCac("3", m.dnes).rows.filter(r => r.naklad > 0 && r.verdikt[0] === "ne").forEach(r => a.push([4, "Kanál " + r.zdroj + " za 3 měsíce: " + r.verdikt[1] + " (náklad " + kc(r.naklad) + ", zisk " + kc(r.zisk) + ").", "#zdrojTab"]));
+  if (!m.zustatekZadan) a.push([3, "Doplň zůstatek na účtu v „Peníze na 13 týdnů“ — pak uvidíš, kolik peněz bude za 4 týdny.", "#brCashflow"]);
+  return a.sort((x, y) => y[0] - x[0]).slice(0, 6);
+}
+function brMajitelText(m, akce){
+  const r = [], d = hnDatumCz(m.dnes);
+  r.push("Týden firmy k " + d + (S.nastaveni.firma ? " — " + S.nastaveni.firma : ""));
+  r.push("• Poptávky za 7 dní: " + m.pop7 + " (průměr " + fmt1.format(m.popPrumer) + "/týden), odeslané nabídky: " + m.nab7 + ", úspěšnost 90 dní: " + (m.uspech == null ? "málo dat" : fmt0.format(m.uspech * 100) + " %"));
+  r.push("• Nasmlouváno na 4 týdny: " + kc(m.nasmlKc) + " (" + brPl(m.nasmlN, "zakázka", "zakázky", "zakázek") + "), obsazeno " + m.obs + " z " + m.prac + " pracovních dní");
+  r.push("• Zisk na hodinu (hotové 90 dní): plán " + (m.zhPlan == null ? "—" : kc(m.zhPlan)) + ", skutečnost " + (m.zhSkut == null ? "—" : kc(m.zhSkut)));
+  r.push("• Peníze na cestě: " + kc(m.naCeste) + (m.poSpl ? ", z toho po splatnosti " + kc(m.poSplKc) : "") + (m.kFak ? "; k vyfakturování " + brPl(m.kFak, "zakázka", "zakázky", "zakázek") : ""));
+  r.push("• Zůstatek za 4 týdny: " + (m.zustatekZadan ? kc(m.zust4) : "zůstatek není zadaný"));
+  r.push("• Tržba hotových zakázek: tento měsíc " + kc(m.trzbaMes) + ", minulý " + kc(m.trzbaMinuly));
+  if (akce.length) { r.push("Co udělat tento týden:"); akce.forEach((x, i) => r.push((i + 1) + ". " + x[1].replace(/^🚨 /, ""))); }
+  return r.join("\n");
+}
+function renderBrMajitel(){
+  const el = $("#brMajitel"); if (!el) return;
+  let m; try { m = brMajitel(); } catch (e) { el.innerHTML = "<p class='hint'>Přehled se nepodařilo spočítat: " + esc(e.message) + "</p>"; return; }
+  const akce = brMajitelAkce(m);
+  const dl = (cls, cil, nad, hod, pod) => "<button type='button' class='br-maj-t " + cls + "' data-brmaj='" + cil + "'><span>" + nad + "</span><b>" + hod + "</b><small>" + pod + "</small></button>";
+  const obsPct = m.prac ? m.obs / m.prac : 0;
+  el.innerHTML = "<div class='br-maj-grid'>" +
+    dl(m.uspech == null ? "" : m.uspech < 0.2 ? "ne" : m.uspech > 0.6 ? "pozor" : "ok", "#zdrojTab", "Poptávky za 7 dní", m.pop7 + " <i>· nabídek " + m.nab7 + "</i>", "průměr " + fmt1.format(m.popPrumer) + " týdně · úspěšnost " + (m.uspech == null ? "—" : fmt0.format(m.uspech * 100) + " %")) +
+    dl(obsPct < 0.5 ? "ne" : obsPct > 0.9 ? "pozor" : "ok", "tab:plan", "Nasmlouváno na 4 týdny", kc(m.nasmlKc), brPl(m.nasmlN, "zakázka", "zakázky", "zakázek") + " · obsazeno " + m.obs + " z " + m.prac + " dní") +
+    dl(m.zhSkut == null || !m.zhPlan ? "" : m.zhSkut < m.zhPlan * 0.85 ? "ne" : m.zhSkut < m.zhPlan ? "pozor" : "ok", "#brPraceKarta", "Zisk na hodinu", m.zhSkut == null ? "—" : kc(m.zhSkut), m.zhPlan == null ? "vyplňuj skutečné hodiny u hotových zakázek" : "plán " + kc(m.zhPlan) + " · " + brPl(m.zhN, "hotová", "hotové", "hotových") + " za 90 dní") +
+    dl(m.poSpl ? "ne" : m.naCeste > 0 ? "pozor" : "ok", "tab:faktury", "Peníze na cestě", kc(m.naCeste), brPl(m.faktur, "faktura", "faktury", "faktur") + (m.poSpl ? " · <em>" + m.poSpl + " po splatnosti</em>" : "") + (m.kFak ? " · " + m.kFak + " k vyfakturování" : "")) +
+    dl(!m.zustatekZadan ? "" : m.zust4 < 0 ? "ne" : m.zust4 < m.cf.rezerva ? "pozor" : "ok", "#brCashflow", "Zůstatek za 4 týdny", m.zustatekZadan ? kc(m.zust4) : "—", m.zustatekZadan ? "rezerva " + kc(m.cf.rezerva) + " · nejníž " + kc(m.cf.min.zustatek) : "doplň zůstatek na účtu") +
+    dl(m.zmeskano ? "ne" : m.ukolDnes ? "pozor" : "ok", "#hnUkoly", "Úkoly", m.ukolu + "", m.zmeskano ? m.zmeskano + " po termínu" : m.ukolDnes ? m.ukolDnes + " na dnes" : "nic nehoří") +
+    "</div><p class='hint' style='margin:8px 0 0'>Tržba hotových zakázek tento měsíc <b>" + kc(m.trzbaMes) + "</b>, minulý " + kc(m.trzbaMinuly) + ". Demolice i vyklízení dohromady.</p>" +
+    (akce.length ? "<h3 class='br-maj-h'>Co udělat tento týden</h3><ol class='br-maj-akce'>" + akce.map(x => "<li><a href='#' data-brmaj='" + x[2] + "'>" + esc(x[1]) + "</a></li>").join("") + "</ol>" : "<p class='hint ok' style='margin:8px 0 0'>✓ Nic naléhavého — věnuj týden shánění a zakázkám.</p>") +
+    "<div class='btnrow'><button type='button' class='b' id='brMajKopie'>📋 Zkopírovat pro společníka</button><span class='hint' id='brMajStav'></span></div><textarea id='brMajText' rows='9' hidden readonly style='width:100%;margin-top:6px'></textarea>";
+}
+function brMajitelJdi(cil){
+  if (cil.startsWith("tab:")) { const b = document.querySelector('nav button[data-tab="' + cil.slice(4) + '"]'); if (b) b.click(); window.scrollTo(0, 0); return; }
+  const el = document.querySelector(cil); if (!el) return;
+  const sek = el.closest("section.tab");
+  if (sek && !sek.classList.contains("on") && sek.id) { const b = document.querySelector('nav button[data-tab="' + sek.id.slice(4) + '"]'); if (b) b.click(); }
+  setTimeout(() => { const k = el.closest(".card") || el; k.scrollIntoView({behavior:"smooth", block:"start"}); }, 60);
+}
+if (typeof document !== "undefined" && document.addEventListener) {
+  document.addEventListener("click", async e => {
+    const t = e.target.closest && e.target.closest("[data-brmaj]");
+    if (t) { e.preventDefault(); brMajitelJdi(t.dataset.brmaj); return; }
+    if (e.target.id === "brMajKopie") {
+      const m = brMajitel(), text = brMajitelText(m, brMajitelAkce(m)), st = $("#brMajStav"), ta = $("#brMajText");
+      try { await navigator.clipboard.writeText(text); st.textContent = "✓ Zkopírováno — vlož do zprávy."; ta.hidden = true; }
+      catch (err) { ta.value = text; ta.hidden = false; ta.focus(); ta.select(); st.textContent = "Text je níže — označ a zkopíruj."; }
+    }
+  });
+}
+
 /* ================= ROADMAPA — co řeší velké firmy =================
    Samostatná záložka: seznam věcí, na kterých velké demoliční, dopravní a odpadové firmy dělají marži
    (nebo se chrání před ztrátou), rozdělený do fází. Nic z toho zatím není naprogramované v kalkulaci —
@@ -17629,7 +17768,10 @@ const RM_HOTOVO = {
     kde:"<b>Faktury a daně</b> → seznam dokladů (tlačítko ISDOC) a <b>Pro účetní</b> → 📦 Stáhnout podklady (ZIP). Při prvním importu u účetní ověřte jeden doklad."},
   "riz-protokol":{datum:"2026-09-26",
     co:"U demolice i vyklízení tlačítko <b>✍️ Podepsat předání</b>: na mobilu se ukáže, co se předává, volba <b>bez vad</b> nebo <b>s výhradami</b> (text a termín odstranění), jméno přebírajícího, kolik zbývá doplatit, a <b>podpis prstem</b> objednatele i zhotovitele. Uloží se k zakázce s datem a časem, zakázka se označí jako hotová a u demolice začne běžet splatnost doplatku (14 dní od podpisu). Vytištěný protokol (i do PDF) pak obsahuje oba podpisy, záznam o předání a výhradách, uznání dluhu a přílohu <b>fotodokumentace</b> (fotky „po dokončení“, škody, „před“).",
-    kde:"Kalkulace → Po dokončení → <b>✍️ Podepsat předání</b> vedle Předávacího protokolu; Vyklízení → Průběh a vyúčtování → ✍️ Podepsat předání."}
+    kde:"Kalkulace → Po dokončení → <b>✍️ Podepsat předání</b> vedle Předávacího protokolu; Vyklízení → Průběh a vyúčtování → ✍️ Podepsat předání."},
+  "data-tyden":{datum:"2026-09-26",
+    co:"Nahoře v Přehledu firmy <b>📊 Pondělní přehled</b> — demolice i vyklízení dohromady v šesti dlaždicích: poptávky a odeslané nabídky za týden s úspěšností za 90 dní, <b>nasmlouváno na 4 týdny</b> (Kč a obsazené dny), <b>zisk na hodinu plán vs. skutečnost</b>, <b>peníze na cestě</b> (po splatnosti, k vyfakturování), <b>zůstatek za 4 týdny</b> z cashflow a úkoly. Pod tím <b>Co udělat tento týden</b> — nejvýš 6 kroků poskládaných z ostatních modulů (upomínky, fakturace, prázdný kalendář, drahý kanál, partner platící pozdě, zisk pod plánem, pokles pod rezervu), každý s prokliknutím na místo, kde se to řeší. Tlačítko <b>Zkopírovat pro společníka</b> dá týdenní shrnutí jako text do zprávy.",
+    kde:"<b>Přehled firmy</b> — první karta. Dlaždice i kroky jsou klikací."}
 };
 const rmHotova = x => !!RM_HOTOVO[x.id];
 const RM_JIZ = [
@@ -17885,6 +18027,7 @@ const NAPOVEDA = [
 
   /* ---------------- PŘEHLED FIRMY ---------------- */
   ["h2:prehled:Měsíční výsledky", "Měsíční výsledky", "Tržby, výdaje a zisk po měsících z hotových zakázek a výdajů. Ukáže sezónnost a jestli firma roste."],
+  ["h2:prehled:📊 Pondělní přehled", "Pondělní přehled", "Každé pondělí stejná čísla za celou firmu — rozhodujete podle nich, ne podle pocitu z posledního týdne. Barva proužku: zelená v pořádku, oranžová pozor, červená řešit. Klikni na dlaždici nebo krok a skočíš tam, kde se to řeší. „Zkopírovat pro společníka“ dá shrnutí do zprávy."],
   ["h2:prehled:💰 Peníze na 13 týdnů", "Peníze na 13 týdnů dopředu", "Firmy nekrachují na nízké marži, ale když na výplaty a dopravce chybí peníze. Jednou týdně přepiš zůstatek podle banky — graf ukáže, jestli v příštích 13 týdnech neklesnete pod rezervu. Klikni na týden a uvidíš, co v něm přijde a odejde. Položky „odhad“ se zpřesní vystavením faktury."],
   ["h2:prehled:Zdroje zakázek", "Zdroje zakázek", "Odkud chodí poptávky a který kanál přináší <b>zakázky a zisk</b>, ne jen kontakty. Když pod tabulkou vyplníš <b>Náklady kanálů</b> (nebo zapíšeš výdaj za reklamu), uvidíš, kolik stojí jedna vyhraná zakázka a kolik zisku přinese každá vložená koruna. Kanál pod 1 Kč zisku na korunu prodělává; hodně poptávek a málo výher = chodí srovnávači cen."],
   ["h2:prehled:Plán vs. realita", "Plán vs. realita", "Porovná odhadované a skutečné hodiny u hotových zakázek. Po 5 zakázkách nabídne přepočet norem nebo koeficientu výkonu party — odhady pak sedí na vás, ne na tabulky."],
