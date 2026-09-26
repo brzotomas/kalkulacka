@@ -558,6 +558,19 @@ details.gsec li{margin:3px 0}
 @media (max-width:600px){.odp-tab .odp-co{display:none}.odp-tab th,.odp-tab td{padding:5px 5px}}
 
 
+/* roadmapa brzy — prohlídka a rizika */
+.br-prh-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px}
+@media (max-width:760px){.br-prh-grid{grid-template-columns:1fr}}
+.br-otq{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;margin-bottom:4px}
+.br-chips{display:flex;flex-wrap:wrap;gap:5px}
+.br-chip{min-height:30px;padding:4px 10px;font-size:12.5px}
+.br-riz{margin-top:12px}
+.br-rez{margin-top:8px;padding:8px 12px;border-radius:9px;background:var(--surface2);border:1px solid var(--line);font-size:13.5px}
+.br-pov{margin-top:12px}
+.br-pov ul{list-style:none;margin:6px 0 0;padding:0}
+.br-pov li{margin:0 0 4px}
+
+
 /* roadmapa */
 .rm-uvod p{margin:0 0 6px;font-size:14px;line-height:1.55;max-width:900px}
 .rm-akce{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:12px}
@@ -824,6 +837,11 @@ body.zamceno{overflow:hidden}
       <label class="f">Termín od<input id="jTerminOd" type="date"><span class="hint" id="terminHint"></span></label>
       <label class="f">Termín do<input id="jTerminDo" type="date"></label>
     </div>
+  </div>
+
+  <div class="card" id="brPrhCard">
+    <h2>🔎 Prohlídka a rizika <span class="badge" id="brPrhBadge"></span></h2>
+    <div id="brPrh"></div>
   </div>
 
   <div class="card">
@@ -4803,6 +4821,7 @@ function recalc(){
   if(typeof hnRenderZabor==="function")hnRenderZabor();
   if(typeof hnRenderRiziko==="function")hnRenderRiziko();
   if(typeof hnRenderPojisteni==="function")hnRenderPojisteni();
+  if(typeof renderBrPrh==="function")renderBrPrh(v);
   $("#dopravaHint").textContent=(J.dopravaUctovat&&(J.km||0)>0)?
     "klientovi "+kc(v.dopravaP)+" = max("+(J.km||0)+" km × "+fmt0.format(n.kmProdej)+" Kč; paušál "+fmt0.format(n.pausal)+"), náklad "+kc(v.dopravaN):
     ((J.km||0)>0?"náklad "+kc(v.dopravaN)+" (neúčtuje se)":"");
@@ -5450,7 +5469,7 @@ function sablonaPouzit(){
 /* ========== přenos zakázky textem (kód DK1|…) ========== */
 const ZAK_POLE=["nazev","klient","adresa","poznamka","zdroj","cenik","dph","patro","vytah","vytahNaSut",
   "vzdalenost","rucniNoseni","lide","najati","kmDopravce","dnyKontejneru","skladkovne","rezerva","provize",
-  "sleva","slevaDuvod","prirazka","platbaPredem","nabidnoutPredem","odpadModel","trideni","poplatky","zabor","zaborM2","zaborDny","zaborSazba","followup","smlouva",
+  "sleva","slevaDuvod","prirazka","platbaPredem","nabidnoutPredem","odpadModel","trideni","poplatky","zabor","zaborM2","zaborDny","zaborSazba","followup","smlouva","prohlidka","povoleni",
   "km","dopravaUctovat","vikend","expres","terminOd","terminDo","prace","material","ostatni","kontejnery","odpady"];
 function zakDoTextu(z){
   const o={};
@@ -15242,6 +15261,8 @@ function hnTextFollowup(x){
     "{terminOd}":z.terminOd ? hnDatumCz(z.terminOd) : "…", "{terminDo}":z.terminDo ? hnDatumCz(z.terminDo) : "…", "{firma}":(S.nastaveni || {}).firma || "…"};
   return sb.text.replace(/\{\w+\}/g, m => hodnoty[m] !== undefined ? hodnoty[m] : m);
 }
+/* další moduly sem přidávají funkce (dnes) → [úkol]; úkol může mít vlastní tlačítka v x.akce (HTML) */
+const HN_UKOLY_EXT = [];
 function hnUkoly(){
   const u = [], dnes = faDnes(), n = S.nastaveni || {}, predstih = n.zaborPredstih != null ? +n.zaborPredstih : 7;
   const vse = (S.zakazky || []).slice(); if (J && J.zabor && J.terminOd && !vse.some(z => z.id && z.id === J.id)) vse.push(J);
@@ -15263,6 +15284,7 @@ function hnUkoly(){
       text:(x.krok === 2 ? "Naposledy připomenout nabídku — " : "Připomenout nabídku — ") + (x.z.nazev || "zakázka") + (x.z.klient ? ", " + x.z.klient : ""),
       pozn:(x.druh === "vyklizeni" ? "vyklízení · " : "demolice · ") + (x.cena > 0 ? kc(x.cena) + " · " : "") + "odesláno " + hnPred(x.dni) + " · " + (x.krok + 1) + ". připomenutí"});
   });
+  HN_UKOLY_EXT.forEach(fn => { try { (fn(dnes) || []).forEach(x => u.push(x)); } catch (e) { console.warn("úkoly:", e); } });
   return u.sort((a, b) => a.datum.localeCompare(b.datum));
 }
 function hnNavBadge(){
@@ -15278,7 +15300,7 @@ function hnRenderUkoly(){
   if (u.length) h += "<div class='card'><h2>📋 Úkoly — co dnes zařídit <span class='badge'>" + u.length + "</span></h2><ul class='hn-ukoly'>" + u.map(x =>
     "<li class='" + (x.zbyva < 0 ? "po" : x.zbyva <= 2 ? "brzy" : "") + "'><div><b>" + esc(x.text) + "</b><div class='hint'>" + esc(x.pozn) + " · " + (x.typ === "followup" ? "" : "nejpozději ") + hnDatumCz(x.datum) + " — " +
       (x.zbyva < 0 ? "<span class='ne'>" + (x.typ === "followup" ? "mělo být " + hnPred(-x.zbyva) : "zmeškáno o " + hnDni(-x.zbyva)) + "</span>" : x.zbyva === 0 ? "<b>dnes</b>" : "za " + hnDni(x.zbyva)) + "</div></div>" +
-      "<div class='hn-uk-akce'>" + (x.typ === "followup"
+      "<div class='hn-uk-akce'>" + (x.akce ? x.akce : x.typ === "followup"
         ? "<button type='button' class='b' data-hnfu='text' data-hnid='" + esc(x.id) + "' data-hndruh='" + x.druh + "'>📋 Text</button><button type='button' class='b prim' data-hnfu='napsano' data-hnid='" + esc(x.id) + "' data-hndruh='" + x.druh + "'>✓ Napsáno</button><button type='button' class='b' data-hnfu='odlozit' data-hnid='" + esc(x.id) + "' data-hndruh='" + x.druh + "'>Za 3 dny</button>"
         : x.typ === "smlouva" ? "<button type='button' class='b' data-hnsml='" + esc(x.id) + "' data-hndruh='" + x.druh + "'>✓ Podepsáno</button>"
         : x.id === "firma" ? (x.typ === "odpad-role" ? "<button type='button' class='b' data-hnukol='odpad-role' data-hnid='firma'>✓ Ověřeno</button>" : "<button type='button' class='b' data-hnjdi='cenik'>Otevřít Nastavení</button>")
@@ -15567,6 +15589,127 @@ if (typeof document !== "undefined" && document.addEventListener) {
 function smlVarovani(z){
   if (!z || !["domluveno", "probíhá"].includes(z.status) || (z.smlouva && z.smlouva.podepsano)) return [];
   return ["Zakázka je domluvená, ale smlouva není podepsaná — vytiskni ji (📝 Smlouva) a nech podepsat před začátkem prací."];
+}
+
+
+/* ================= ROADMAPA — BRZY (priority uživatele) ================= */
+
+/* ---------- Prohlídkový formulář + rizika zakázky + povolení a souhlasy ----------
+   Odpovědi z prohlídky: nastaví výtah a zábor, sestaví seznam rizik (pravděpodobnost × dopad v Kč) a z něj
+   doporučenou rezervu místo paušálu, a checklist povolení s úkoly v Plánu před začátkem prací. */
+const BR_POVOLENI = {
+  svj:"Písemný souhlas SVJ / správce domu",
+  vytah:"Souhlas s použitím výtahu na suť + ochrana výtahu",
+  media:"Odpojení vody, plynu a elektřiny v místě prací (zajistí objednatel)",
+  hluk:"Časy hlučných prací podle domovního řádu nebo vyhlášky obce",
+  statik:"Statický posudek nebo projekt od objednatele",
+  stavebni:"Ohlášení / povolení stavebního úřadu, je-li potřeba",
+  azbest:"Oprávněná firma na azbest + ohlášení hygieně",
+  zabor:"Povolení záboru pro kontejner"
+};
+const BR_PROHLIDKA = [
+  {k:"pristup", q:"Kde zastaví auto a kontejner", m:[["dvur", "Na pozemku / ve dvoře", {}], ["ulice", "Na ulici nebo chodníku", {set:{zabor:true}, pov:["zabor"]}], ["daleko", "Daleko nebo placené parkování", {r:[["Delší přesuny a parkování", 1, 0.03]]}]]},
+  {k:"vytah", q:"Výtah", m:[["zadny", "Není", {set:{vytah:false, vytahNaSut:false}}], ["lide", "Jen na lidi — suť po schodech", {set:{vytah:true, vytahNaSut:false}}], ["sut", "Smí se i na suť", {set:{vytah:true, vytahNaSut:true}, pov:["vytah"]}]]},
+  {k:"svj", q:"Souhlas SVJ / správce", m:[["netreba", "Netřeba (rodinný dům)", {}], ["mame", "Máme písemně", {pov:["svj"], hotovo:["svj"]}], ["ne", "Ještě není", {pov:["svj"], r:[["Zastavení prací bez souhlasu správce", 0.15, 0.1]]}]]},
+  {k:"hluk", q:"Hlučné práce", m:[["volno", "Bez omezení", {}], ["den", "Jen v pracovní době", {pov:["hluk"], r:[["Kratší pracovní doba kvůli hluku", 0.5, 0.05]]}], ["prisne", "Přísně omezené (pár hodin)", {pov:["hluk"], r:[["Výrazně zkrácené hlučné práce", 0.9, 0.15]]}]]},
+  {k:"rozvody", q:"Rozvody a stoupačky", m:[["ok", "Známé, odpojí se", {pov:["media"]}], ["nejasne", "Nejasné vedení", {pov:["media"], r:[["Poškození nezakreslených rozvodů", 0.2, 0.08]]}], ["stare", "Staré ocelové / litinové stoupačky", {pov:["media"], r:[["Prasklá stará stoupačka — zatopení", 0.15, 0.15]], w:"Staré stoupačky: před bouráním jádra je nafoť a domluv se správcem uzavření vody."}]]},
+  {k:"konstrukce", q:"Konstrukce", m:[["jasne", "Odpovídá tomu, co je vidět", {}], ["nejasne", "Nejasné (možný železobeton, dvojité příčky, vrstvy podlah)", {r:[["Skryté konstrukce — železobeton, dvojité příčky", 0.3, 0.25]]}]]},
+  {k:"nosne", q:"Nosné konstrukce", m:[["ne", "Nic nosného", {}], ["posudek", "Ano, statický posudek je", {pov:["statik", "stavebni"], hotovo:["statik"]}], ["bez", "Ano, posudek zatím není", {pov:["statik", "stavebni"], w:"Nosné konstrukce bez statického posudku — nezačínej, dokud ho objednatel nedodá."}]]},
+  {k:"azbest", q:"Azbest", m:[["ne", "Ne (po roce 1990 nebo ověřeno)", {}], ["mozna", "Možná (eternit, stará lepidla, PVC, izolace)", {r:[["Nález azbestu — přerušení a subdodávka", 0.3, 0.1]], w:"Možný azbest: domluv rozbor vzorku, než začneš bourat."}], ["ano", "Ano", {pov:["azbest"], w:"Azbest jen přes oprávněnou firmu s ohlášením hygieně — sami nebourat."}]]},
+  {k:"obsazeno", q:"Prostor", m:[["prazdny", "Prázdný", {}], ["castecne", "Částečně zařízený", {r:[["Přesouvání věcí a ochrana zařízení", 0.6, 0.04]]}], ["plny", "Plný věcí", {r:[["Vyklizení navíc", 0.8, 0.1]], w:"Plný prostor: nabídni vyklizení (Vyklízení → Připravit k rekonstrukci), jinak ho vyhraď jako vícepráci."}]]},
+  {k:"sousede", q:"Sousedé", m:[["ok", "Bez problémů", {}], ["citlivi", "Citliví, hrozí stížnosti", {r:[["Stížnosti a přerušení prací", 0.3, 0.05]]}]]},
+  {k:"energie", q:"Voda a elektřina pro práci", m:[["ano", "K dispozici", {}], ["ne", "Nejsou", {r:[["Vlastní elektrocentrála a voda", 1, 0.03]]}]]},
+  {k:"termin", q:"Termín", m:[["volny", "Volný", {}], ["pevny", "Pevný — navazují řemeslníci", {r:[["Tlak na termín, práce navíc o víkendu", 0.3, 0.05]]}]]}
+];
+function brRezervaMin(){ const n = S.nastaveni || {}; return n.rezervaMin != null ? +n.rezervaMin : 5; }
+function brProhlidka(z){
+  z = z || J; const p = z.prohlidka || {}, rizika = [], pov = new Set(), hotovo = new Set(), var_ = [];
+  BR_PROHLIDKA.forEach(ot => {
+    const vol = ot.m.find(m => m[0] === p[ot.k]); if (!vol) return;
+    const e = vol[2] || {};
+    (e.r || []).forEach(([n, pr, d]) => rizika.push({n, p:pr, d, otazka:ot.q}));
+    (e.pov || []).forEach(x => pov.add(x)); (e.hotovo || []).forEach(x => hotovo.add(x));
+    if (e.w) var_.push(e.w);
+  });
+  if (z.zabor) pov.add("zabor");
+  if (z === J && typeof maNosne === "function" && maNosne()) { pov.add("statik"); }
+  const odpovezeno = BR_PROHLIDKA.filter(ot => p[ot.k]).length;
+  const rezerva = Math.round(brRezervaMin() + rizika.reduce((a, r) => a + r.p * r.d * 100, 0));
+  return {odpovezeno, celkem:BR_PROHLIDKA.length, rizika, povoleni:[...pov], hotovo:[...hotovo], varovani:var_, rezerva:Math.min(35, rezerva)};
+}
+function brPovoleniStav(z, key){
+  if (key === "zabor") return z.zaborPodano || (z.povoleni || {}).zabor || "";
+  return (z.povoleni || {})[key] || "";
+}
+let brPrhOtevreno = null;
+function renderBrPrh(v){
+  const el = $("#brPrh"); if (!el) return;
+  const p = J.prohlidka || {}, x = brProhlidka(J), prace = (v && v.prace) || 0;
+  const b = $("#brPrhBadge"); if (b) { b.textContent = x.odpovezeno ? x.odpovezeno + "/" + x.celkem + " zodpovězeno" : ""; b.style.display = x.odpovezeno ? "" : "none"; }
+  let h = "<div class='br-prh-grid'>" + BR_PROHLIDKA.map(ot => "<div class='br-ot'><div class='br-otq'>" + esc(ot.q) + "</div><div class='br-chips'>" +
+    ot.m.map(m => "<button type='button' class='vk3-chip br-chip" + (p[ot.k] === m[0] ? " on" : "") + "' data-brprh='" + ot.k + "' data-brval='" + m[0] + "'>" + esc(m[1]) + "</button>").join("") + "</div></div>").join("") + "</div>";
+  if (x.varovani.length) h += "<div class='hn-platnost ne' style='margin-top:10px'><ul>" + x.varovani.map(w => "<li>" + esc(w) + "</li>").join("") + "</ul></div>";
+  if (x.odpovezeno) {
+    h += "<div class='br-riz'><b>Rizika zakázky</b>" + (x.rizika.length ? "<div class='tscroll'><table class='odp-tab'><thead><tr><th>Riziko</th><th class='r'>Pravděpodobnost</th><th class='r'>Dopad</th><th class='r'>Očekávaně</th></tr></thead><tbody>" +
+      x.rizika.map(r => "<tr><td>" + esc(r.n) + "</td><td class='r'>" + Math.round(r.p * 100) + " %</td><td class='r'>" + (prace ? kc(r.d * prace) : Math.round(r.d * 100) + " % prací") + "</td><td class='r'>" + (prace ? kc(r.p * r.d * prace) : fmt1.format(r.p * r.d * 100) + " %") + "</td></tr>").join("") +
+      "</tbody></table></div>" : "<p class='hint' style='margin:4px 0'>Žádná zvláštní rizika — stačí základní rezerva.</p>") +
+      "<div class='br-rez'>Doporučená rezerva <b>" + x.rezerva + " %</b>" + (prace ? " (" + kc(prace * x.rezerva / 100) + ")" : "") + " = základ " + brRezervaMin() + " % + očekávané dopady rizik. Teď máš " + (J.rezerva || 0) + " %." +
+      (x.rezerva !== (J.rezerva || 0) ? " <button type='button' class='b' id='brRezervaPouzit'>Použít " + x.rezerva + " %</button>" : " <span class='ok'>✓ sedí</span>") + "</div></div>";
+    if (x.povoleni.length) h += "<div class='br-pov'><b>Povolení a souhlasy před zahájením</b><ul>" + x.povoleni.map(k => {
+      const st = brPovoleniStav(J, k) || (x.hotovo.includes(k) ? "ano" : "");
+      return "<li><label class='chk'><input type='checkbox' data-brpov='" + k + "'" + (st ? " checked" : "") + "> " + esc(BR_POVOLENI[k]) + (st && st !== "ano" ? " <span class='hint'>(" + hnDatumCz(st) + ")</span>" : "") + "</label></li>";
+    }).join("") + "</ul><p class='hint' style='margin:4px 0 0'>Nesplněné body se ukážou jako úkoly v Plánu, jakmile je zakázka domluvená a blíží se termín.</p></div>";
+  } else h += "<p class='hint' style='margin:8px 0 0'>Na prohlídce projdi otázky a klepni odpovědi — kalkulačka nastaví výtah a zábor, spočítá rizika a rezervu a připraví seznam povolení.</p>";
+  el.innerHTML = h;
+}
+if (typeof document !== "undefined" && document.addEventListener) {
+  document.addEventListener("click", e => {
+    const c = e.target.closest && e.target.closest("[data-brprh]");
+    if (c) {
+      if (!J.prohlidka) J.prohlidka = {};
+      const k = c.dataset.brprh, val = c.dataset.brval;
+      if (J.prohlidka[k] === val) delete J.prohlidka[k]; else {
+        J.prohlidka[k] = val;
+        const ot = BR_PROHLIDKA.find(o => o.k === k), vol = ot && ot.m.find(m => m[0] === val), e2 = (vol && vol[2]) || {};
+        Object.assign(J, e2.set || {});
+        (e2.hotovo || []).forEach(x => { if (!J.povoleni) J.povoleni = {}; if (!J.povoleni[x]) J.povoleni[x] = faDnes(); });
+        if (e2.set) { if ($("#jVytah")) $("#jVytah").checked = !!J.vytah; if ($("#jVytahNaSut")) $("#jVytahNaSut").checked = !!J.vytahNaSut; }
+      }
+      recalc(); save(); return;
+    }
+    if (e.target.id === "brRezervaPouzit") { J.rezerva = brProhlidka(J).rezerva; if ($("#jRezerva")) $("#jRezerva").value = J.rezerva; recalc(); save(); }
+  });
+  document.addEventListener("change", e => {
+    const c = e.target.closest && e.target.closest("[data-brpov]"); if (!c) return;
+    if (!J.povoleni) J.povoleni = {};
+    const k = c.dataset.brpov;
+    if (c.checked) { J.povoleni[k] = faDnes(); if (k === "zabor") J.zaborPodano = J.zaborPodano || faDnes(); }
+    else { delete J.povoleni[k]; if (k === "zabor") J.zaborPodano = ""; }
+    recalc(); save();
+  });
+}
+/* úkoly: nesplněná povolení u domluvených zakázek do 10 dnů před začátkem (zábor hlídá vlastní úkol) */
+HN_UKOLY_EXT.push(dnes => {
+  const u = [];
+  (S.zakazky || []).forEach(z => {
+    if (!["domluveno", "probíhá"].includes(z.status) || !z.terminOd) return;
+    const zb = hnDnyMezi(dnes, z.terminOd); if (zb > 10) return;
+    const x = brProhlidka(z);
+    x.povoleni.filter(k => k !== "zabor" && !brPovoleniStav(z, k) && !x.hotovo.includes(k)).forEach(k => {
+      const do_ = faPlusDni(z.terminOd, -1);
+      u.push({id:z.id, typ:"povoleni", datum:do_, zbyva:hnDnyMezi(dnes, do_), text:"Zajistit: " + BR_POVOLENI[k] + " — " + (z.nazev || "zakázka"), pozn:"práce od " + hnDatumCz(z.terminOd),
+        akce:"<button type='button' class='b' data-brpovuk='" + k + "' data-brid='" + esc(z.id) + "'>✓ Hotovo</button>"});
+    });
+  });
+  return u;
+});
+if (typeof document !== "undefined" && document.addEventListener) {
+  document.addEventListener("click", e => {
+    const b = e.target.closest && e.target.closest("[data-brpovuk]"); if (!b) return;
+    const id = b.dataset.brid, k = b.dataset.brpovuk, dnes = faDnes();
+    [(S.zakazky || []).find(z => z.id === id), J && J.id === id ? J : null].filter(Boolean).forEach(z => { z.povoleni = Object.assign({}, z.povoleni || {}, {[k]:dnes}); });
+    save(); hnRenderUkoly();
+  });
 }
 
 /* ================= ROADMAPA — co řeší velké firmy =================
@@ -15922,7 +16065,16 @@ const RM_HOTOVO = {
     kde:"Kalkulace nebo Vyklízení → <b>📝 Smlouva</b> → 🖨 Obchodní podmínky."},
   "riz-smlouvy":{datum:"2026-09-26",
     co:"Tlačítko <b>📝 Smlouva</b> u demolice i vyklízení vytiskne <b>smlouvu o dílo</b> vyplněnou ze zakázky — <b>po etapách</b> (záloha, volitelně průběžná platba, doplatek) nebo <b>s platbou předem</b> (cena se slevou a záruka vrácení: když nezačneme včas, vše zpět do 5 pracovních dnů; když klient skončí, vrátí se nevyčerpaná část, odečte se provedená práce <b>bez slevy</b> a vynaložené náklady). Pro spotřebitele i pro firmu. Páky pro nás: nezahájíme bez zálohy, při neplacení smíme přerušit práce, úrok z prodlení + smluvní pokuta 0,05 % denně (firmy 0,1 % a 1 200 Kč, soud podle našeho sídla), převzetí nejde odmítnout pro drobné vady, náhradní termín předání, e-mail/SMS jako textová forma. Klient má jistotu: pevná cena, vícepráce jen s jeho souhlasem, pojištění, oboustranná pokuta za naše zpoždění. U spotřebitele poučení o odstoupení s formulářem a jeho <b>žádost o dřívější zahájení</b> (bez ní by mohl po práci odstoupit a nic nezaplatit). <b>Předávací protokoly</b> nově obsahují uznání dluhu — nejsilnější podklad pro platební rozkaz. Upozornění, když je zakázka domluvená bez podpisu, a úkol v Plánu 2 dny před začátkem.",
-    kde:"Kalkulace → tlačítka dole (<b>📝 Smlouva</b>), Vyklízení → tlačítka u nabídky. Datum podpisu tlačítkem <b>✓ Podepsáno</b> v okně smlouvy nebo v Úkolech. <b>Než ji začneš používat, nech šablonu jednou zkontrolovat advokátem</b> — pár hodin práce a pak slouží roky."}
+    kde:"Kalkulace → tlačítka dole (<b>📝 Smlouva</b>), Vyklízení → tlačítka u nabídky. Datum podpisu tlačítkem <b>✓ Podepsáno</b> v okně smlouvy nebo v Úkolech. <b>Než ji začneš používat, nech šablonu jednou zkontrolovat advokátem</b> — pár hodin práce a pak slouží roky."},
+  "nac-prohlidka":{datum:"2026-09-26",
+    co:"Karta <b>🔎 Prohlídka a rizika</b> v Kalkulaci: 12 otázek s odpověďmi na klepnutí (auto a kontejner, výtah, souhlas SVJ, hluk, stoupačky, konstrukce, nosné, azbest, prostor, sousedé, voda a elektřina, termín). Odpovědi rovnou nastaví výtah a zábor, ukážou varování (staré stoupačky, možný azbest, nosné bez posudku, plný prostor → nabídni vyklizení) a připraví rizika a povolení. Na mobilu se dá projít přímo na prohlídce.",
+    kde:"Kalkulace → karta <b>🔎 Prohlídka a rizika</b> nad Bouracími pracemi. Odpovědi se ukládají se zakázkou a jdou i v kódu pro parťáka."},
+  "riz-registr":{datum:"2026-09-26",
+    co:"Místo paušální rezervy <b>seznam rizik</b> z prohlídky: u každého pravděpodobnost, dopad v Kč (podíl z ceny prací) a očekávaná hodnota. Doporučená rezerva = základ 5 % + součet očekávaných dopadů (nejvýš 35 %) — jednoduchá zakázka vyjde levněji, složitá dráž. Tlačítko „Použít“ ji přepíše do rezervy.",
+    kde:"Kalkulace → Prohlídka a rizika → <b>Rizika zakázky</b> a Doporučená rezerva."},
+  "riz-povoleni":{datum:"2026-09-26",
+    co:"Z odpovědí vznikne <b>checklist povolení a souhlasů</b> (souhlas SVJ, výtah na suť, odpojení médií, hlučné práce, statický posudek, stavební úřad, azbest, zábor) s odškrtáváním a datem. Když je zakázka domluvená a do začátku zbývá 10 dní, nesplněné body se ukážou jako <b>úkoly v Plánu</b> s tlačítkem Hotovo.",
+    kde:"Kalkulace → Prohlídka a rizika → <b>Povolení a souhlasy</b>; úkoly v <b>📅 Plánu</b>."}
 };
 const rmHotova = x => !!RM_HOTOVO[x.id];
 const RM_JIZ = [
@@ -16046,6 +16198,7 @@ const NAPOVEDA = [
   ["#jLide", "Lidí na stavbě", "Kolik lidí bude na zakázce pracovat. Z toho kalkulačka počítá, kolik dní zakázka zabere (hodiny prací ÷ lidé ÷ hodiny za den) a jak se dělí zisk."],
   ["#jNajati", "Z toho najatých", "Kolik z lidí nejsou majitelé (brigádník, pomocník, člověk na IČO). Jejich hodiny jsou <b>náklad</b> (Nastavení → náklad na najatého), zisk se pak dělí jen mezi majitele. V kartě „Skutečný zisk zakázky“ můžeš rozlišit zaměstnance, DPP a IČO."],
   ["#jTerminOd", "Termín", "Termín od–do se propíše do Plánu. Kalkulačka porovná, kolik dní zakázka potřebuje, a upozorní, když se nevejde nebo koliduje s jinou zakázkou (i s vyklízením)."],
+  ["h2:kalkulace:🔎 Prohlídka a rizika", "Prohlídka a rizika", "Projdi na prohlídce otázky a klepni odpovědi. Kalkulačka nastaví výtah a zábor, upozorní na rizika (stoupačky, azbest, nosné bez posudku), spočítá <b>rizika v Kč a doporučenou rezervu</b> místo paušálu a připraví <b>seznam povolení</b> — nesplněné se před začátkem prací objeví jako úkoly v Plánu. Druhé klepnutí odpověď zruší."],
   ["h2:kalkulace:Bourací práce", "Bourací práce", "Seznam prací z ceníku. Začni psát do vyhledávání (otvor, příčka, beton, omítka…) a klikni na položku, pak zadej množství. U položky vidíš <b>Kč/h</b> (kolik ta práce vydělá za hodinu) a <b>★ až ★★★★★</b> — fyzickou dřinu a neoblíbenost práce (u dřiny je v ceně +10 až +30 %). Pod tabulkou je přepočet m² × tloušťka → m³ pro objemové položky. Nosné konstrukce jen se statickým posudkem od objednatele."],
   ["h2:kalkulace:Odvoz suti a likvidace", "Odvoz suti a likvidace", "Kolik suti vznikne (z norem u každé práce), <b>jakého druhu</b> a v kolika kontejnerech ji odvezete. Čistá suť (beton, cihly, keramika) stojí na likvidaci zlomek ceny směsi (sádrokarton, izolace, PVC, dřevo) — kalkulačka porovná „tříděně vs. nevytříděně“ i s kontejnery a vybere levnější. Kovy jdou do výkupu. Vyber <b>dopravce</b> — nákupní ceny kontejnerů se spočítají z jeho paušálu, km a dní na stavbě. „Navrhnout podle suti“ navrhne kontejnery s rezervou místa (suť se nedá skládat jako kostky). Prodejní cena kontejneru je tvoje marže na odvozu."],
   ["#jDopravce", "Dopravce", "Firma, která přistaví a odveze kontejner. Jejich ceny zadáš v Nastavení → Dopravci. Nejlevnější dopravce se mění podle vzdálenosti a počtu dní — porovnání v Nastavení počítá pro konkrétní zakázku."],
