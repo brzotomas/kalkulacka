@@ -4740,7 +4740,7 @@ $("#zakTab").addEventListener("click",e=>{
     const fot=z&&z.fotky?z.fotky.length:0;
     if(!confirm("Smazat tuto zakázku?"+(fot?"\nSmaže se i "+fot+" uložených fotek.":"")))return;
     if(z&&z.fotky)z.fotky.forEach(f=>IDB.del(id+"|"+f.id));
-    S.zakazky=S.zakazky.filter(x=>x.id!==id); save(); zakCount(); renderZakazky();
+    S.zakazky=S.zakazky.filter(x=>x.id!==id); if(typeof syncSmazat==="function")syncSmazat("zakazka",id); save(); zakCount(); renderZakazky();
   }
 });
 $("#zakTab").addEventListener("change",e=>{
@@ -10603,8 +10603,12 @@ function syncPrevzitOtisky(){
 }
 
 /* ---------- odeslání fronty ---------- */
-let syncT = null, syncBezi = false;
+let syncT = null, syncBezi = false, syncZnovu = false;
 function syncNaplanuj(ms){ clearTimeout(syncT); syncT = setTimeout(syncKolo, ms == null ? 1500 : ms); }
+/* kdy server potvrdil naši změnu záznamu — stažení, které začalo dřív, nese starší stav a nesmí ho vrátit
+   (jinak se smazaná zakázka hned objeví zpět nebo se ztratí čerstvá úprava) */
+const syncPotvrzeno = new Map();
+function syncPotvrd(z){ syncPotvrzeno.set(z.druh + "|" + z.id, Date.now()); }
 async function syncOdeslat(){
   while (SY.fronta.length) {
     const davka = SY.fronta.slice(0, 50);
@@ -10618,13 +10622,15 @@ async function syncOdeslat(){
           headers:{"Content-Type":"application/json", Prefer:"resolution=merge-duplicates,return=minimal"},
           body:JSON.stringify([{druh:z.druh, id:z.id, data:z.data, cislo:z.cislo, smazano:z.smazano}])});
         if (r1.status === 409) { SY.chyba = "Faktura " + z.cislo + " má číslo, které už existuje na jiném zařízení — otevři ji a vystav znovu."; }
-        else await syncJson(r1);
+        else { await syncJson(r1); syncPotvrd(z); }
         SY.fronta = SY.fronta.filter(q => q !== z); syncUloz();
       }
       continue;
     }
     await syncJson(r);
-    SY.fronta = SY.fronta.slice(davka.length); syncUloz();
+    davka.forEach(syncPotvrd);
+    /* během odesílání mohla přibýt nebo nahradit jiná změna (třeba smazání) — odebrat jen to, co opravdu odešlo */
+    SY.fronta = SY.fronta.filter(q => !davka.includes(q)); syncUloz();
   }
 }
 
@@ -10633,13 +10639,17 @@ async function syncStahnout(){
   /* 5 minut zpět: transakce, která začala dřív a potvrdila se později, má starší čas než už stažené řádky */
   const posl = SY.posledni ? new Date(new Date(SY.posledni).getTime() - 5 * 60000).toISOString() : "1970-01-01T00:00:00Z";
   let od = posl, zmen = 0, nejnovejsi = SY.posledni || od;
+  syncPotvrzeno.forEach((cas, k) => { if (Date.now() - cas > 10 * 60000) syncPotvrzeno.delete(k); });
   for (;;) {
+    const zacatek = Date.now();
     const r = await syncFetch("/rest/v1/zaznamy?select=druh,id,data,smazano,upraveno&upraveno=gt." + encodeURIComponent(od) +
       "&order=upraveno.asc&limit=500", {headers:{Accept:"application/json"}});
     const rows = await syncJson(r) || [];
     rows.forEach(z => {
       const cekaLokalne = SY.fronta.some(q => q.druh === z.druh && q.id === z.id);
       if (cekaLokalne) return;                      /* moje neodeslaná změna je novější */
+      const potvrzeno = syncPotvrzeno.get(z.druh + "|" + z.id);
+      if (potvrzeno && potvrzeno >= zacatek) return; /* stažení začalo před odesláním mé změny — příště přijde znovu (překryv 5 min) */
       if (z.druh === "stav") {
         if (syncOtisk(syncStavData()) === syncOtisk(Object.assign(syncStavData(), z.data))) return;
         zmen++; SYNC_STAV_KLICE.forEach(k => { if (z.data[k] !== undefined) S[k] = z.data[k]; }); return; }
@@ -10664,7 +10674,8 @@ async function syncStahnout(){
 function syncOtevrenaUpravena(){ const z = S.zakazky.find(x => x.id === J.id); return z && syncOtisk(z) !== syncOtisk(J); }
 
 async function syncKolo(){
-  if (!syncZapnuto() || syncBezi) return;
+  if (syncBezi) { syncZnovu = true; return; }
+  if (!syncZapnuto()) return;
   if (!navigator.onLine) { SY.stav = "offline"; renderSyncStav(); return; }
   syncBezi = true; SY.stav = "bezi"; renderSyncStav();
   try {
@@ -10676,7 +10687,11 @@ async function syncKolo(){
     SY.stav = "ok"; SY.posledniKolo = new Date().toISOString(); if (!/má číslo/.test(SY.chyba)) SY.chyba = "";
   } catch (err) {
     SY.stav = err.offline ? "offline" : "chyba"; if (!err.offline) SY.chyba = err.message;
-  } finally { syncBezi = false; syncUloz(); renderSyncStav(); }
+  } finally {
+    syncBezi = false; syncUloz(); renderSyncStav();
+    const znovu = syncZnovu; syncZnovu = false;
+    if (znovu && SY.stav === "ok") syncNaplanuj(300);
+  }
 }
 function renderAktivniZalozku(){
   const b = document.querySelector("nav button.on"); if (!b) return;
