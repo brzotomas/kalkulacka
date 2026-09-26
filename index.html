@@ -544,6 +544,14 @@ details.gsec li{margin:3px 0}
 .hn-cek-tab th.r,.hn-cek-tab td.r{text-align:right;white-space:nowrap}
 .hn-nav-n{margin-left:5px;background:var(--accent);color:#fff}
 @media (max-width:600px){.hn-ukoly li{flex-direction:column;align-items:stretch}.hn-uk-akce{justify-content:flex-start}}
+.hn-odkaz{background:none;border:0;padding:0;color:var(--accent);font:inherit;font-weight:700;cursor:pointer;text-decoration:underline}
+.hn-prov-blok{margin:0 0 10px;font-size:13.5px;line-height:1.5}
+.hn-prov-ul{margin:4px 0 0;padding-left:18px}
+.hn-prov-dop{margin:0 0 10px;padding:8px 12px;border-radius:9px;font-size:14px;background:var(--good-bg);border:1px solid var(--good)}
+.hn-prov-dop.pozor{background:var(--warn-bg);border-color:var(--warn-line);color:var(--warn-ink)}
+.hn-prov-dop.ne{background:var(--bad-bg);border-color:var(--bad);color:var(--bad)}
+.hn-prov-odkazy{display:flex;flex-wrap:wrap;gap:6px}
+.hn-prov-odkazy a{text-decoration:none;color:var(--ink);font-size:13px}
 .hn-hist{margin-top:10px;font-size:12.5px;color:var(--muted);border-top:1px dashed var(--line);padding-top:8px}
 @media (max-width:600px){.odp-tab .odp-co{display:none}.odp-tab th,.odp-tab td{padding:5px 5px}}
 
@@ -791,9 +799,10 @@ body.zamceno{overflow:hidden}
     <h2>Zakázka</h2>
     <div id="dmProjekt" hidden></div>
     <div id="hnPlatnost" hidden></div>
+    <div id="hnRiziko" class="hn-platnost ne" hidden></div>
     <div class="grid g2">
       <label class="f">Název zakázky<input id="jNazev" placeholder="např. Byt 3+1 Zábřeh – vybourání"></label>
-      <label class="f">Klient z adresáře<select id="jKlientId"></select><span class="hint">spravuje se v Přehledu firmy</span></label>
+      <label class="f">Klient z adresáře<select id="jKlientId"></select><span class="hint">spravuje se v Přehledu firmy · <button type="button" class="hn-odkaz" id="hnProveritBtn">🔍 Prověřit klienta</button></span></label>
       <label class="f">Klient (jméno na nabídku)<input id="jKlient" placeholder="jméno / firma, telefon"></label>
       <label class="f">Adresa<input id="jAdresa" placeholder="ulice, město"></label>
       <label class="f">Poznámka<input id="jPoznamka" placeholder="přístup, termín, specifika…"></label>
@@ -4771,6 +4780,7 @@ function recalc(){
   if(typeof renderOdpadDruhy==="function")renderOdpadDruhy(v);
   if(typeof hnRenderPlatnost==="function")hnRenderPlatnost();
   if(typeof hnRenderZabor==="function")hnRenderZabor();
+  if(typeof hnRenderRiziko==="function")hnRenderRiziko();
   $("#dopravaHint").textContent=(J.dopravaUctovat&&(J.km||0)>0)?
     "klientovi "+kc(v.dopravaP)+" = max("+(J.km||0)+" km × "+fmt0.format(n.kmProdej)+" Kč; paušál "+fmt0.format(n.pausal)+"), náklad "+kc(v.dopravaN):
     ((J.km||0)>0?"náklad "+kc(v.dopravaN)+" (neúčtuje se)":"");
@@ -8021,7 +8031,7 @@ function renderKlienti(){
       "<td><input class='klI' data-ix='"+ix+"' value='"+esc(k.ico||"")+"'></td>"+
       "<td class='r num'>"+s.pocet+"</td><td class='r num'>"+kc(s.trzba)+"</td>"+
       "<td class='mjcell'>"+(dnu===null?"—":dnu+" dní")+"</td>"+
-      "<td><button class='mini klDel' data-ix='"+ix+"'>✕</button></td>";
+      "<td style='white-space:nowrap'><button class='mini' data-hnprov-ix='"+ix+"' title='Prověřit klienta (ARES, insolvence, historie)'>🔍</button> <button class='mini klDel' data-ix='"+ix+"'>✕</button></td>";
     tb.appendChild(tr);
   });
   const b=$("#klBadge"); b.textContent=S.klienti.length?S.klienti.length+" klientů":"";
@@ -12045,7 +12055,7 @@ function renderVyklizeni(){
     "<label class='chk' style='margin-top:8px'><input type='checkbox' data-vkb='predem'" + (v.predem ? " checked" : "") + "> Klient platí celou částku předem — sleva 5 %, záloha 100 %</label>" +
     (!v.predem ? "<label class='chk'><input type='checkbox' data-vkb='nabidnoutPredem'" + (v.nabidnoutPredem !== false ? " checked" : "") + "> Nabídnout v nabídce i druhou, levnější cenu při platbě předem</label>" : "") +
     "<div class='btnrow'><button class='b prim' type='button' id='vkUlozit'>💾 Uložit</button><button class='b' type='button' id='vkTisk'>🖨 Nabídka</button>" +
-      "<button class='b' type='button' id='vkFakZal'>🧾 Zálohová faktura</button><button class='b' type='button' id='vkFakKon'>🧾 Konečná faktura</button><button class='b' type='button' id='vkZmareny'>⏱ Zmařený výjezd / čekání</button>" +
+      "<button class='b' type='button' id='vkFakZal'>🧾 Zálohová faktura</button><button class='b' type='button' id='vkFakKon'>🧾 Konečná faktura</button><button class='b' type='button' id='vkZmareny'>⏱ Zmařený výjezd / čekání</button><button class='b' type='button' id='vkProverit'>🔍 Prověřit klienta</button>" +
       "<button class='b' type='button' id='vkNova'>Nová zakázka</button><button class='b' type='button' id='vkModel'>Modelový příklad</button></div>" +
     "<div class='vk-zpravy'><select id='vkZpravaVyber'>" + VYK_ZPRAVY.map((z, i) => "<option value='" + i + "'>" + esc(z[0]) + "</option>").join("") + "</select>" +
       "<button class='b' type='button' id='vkZpravaKop'>✉ Kopírovat zprávu klientovi</button><button class='b' type='button' id='vkKodKop'>📤 Kód zakázky (VYK1)</button></div>" +
@@ -12276,6 +12286,7 @@ function vykPrepocet(){
   const s = S.vykSazby, el = $("#vkVysledek");
   const r = vykVypocet();
   if (r.ok && typeof hnKontrolaPlatnosti === "function") hnKontrolaPlatnosti(VK, "vyklizeni").forEach(w => r.varovani.push(w));
+  if (r.ok && typeof hnRizikoKlienta === "function") hnRizikoKlienta(VK).forEach(w => r.varovani.push(w));
   if (r.ok && r.viceprace.ceka.length) r.varovani.push("Vícepráce za " + kc(r.viceprace.kcCeka) + " čekají na odsouhlasení — do ceny se nepočítají, dokud je klient neodsouhlasí (tlačítko „Dodatek k odsouhlasení“).");
   const ph = $("#vkPrirazkaHint");
   if (ph) ph.textContent = !(+VK.prirazkaInt) ? "0 = ekonomická cena podle cílové marže. Klient přirážku nikde neuvidí."
@@ -14987,6 +14998,115 @@ function hnProdleniVeta(f){
   return "Při prodlení s úhradou účtujeme zákonný úrok z prodlení podle nařízení vlády č. 351/2013 Sb." + (firma ? " a náklady spojené s uplatněním pohledávky 1 200 Kč." : "");
 }
 
+
+/* ---------- 8) Prověřit klienta ----------
+   Firma s IČO: ARES (existence, vznik, zánik, insolvenční rejstřík, plátce DPH) + odkazy na insolvenční rejstřík,
+   obchodní rejstřík (Sbírka listin) a registr plátců DPH (spolehlivost). Všichni: historie zakázek a plateb u nás
+   a doporučená záloha. Nový klient bez historie → upozornění v kalkulaci i ve vyklízení. */
+function hnNormJmeno(s){ return bezDiakritiky(String(s || "")).replace(/[^a-z0-9]/g, ""); }
+function hnKlientZakazky(z){
+  const kid = z.klientId, jm = hnNormJmeno(z.klient);
+  const shoda = x => x && x.id !== z.id && ((kid && x.klientId === kid) || (!kid && jm && hnNormJmeno(x.klient) === jm));
+  return (S.zakazky || []).filter(shoda).map(x => ({x, druh:"demolice"})).concat((S.vyklizeni || []).filter(shoda).map(x => ({x, druh:"vyklizeni"})));
+}
+function hnHistorie(z){
+  const zak = hnKlientZakazky(z), ids = new Set(zak.map(y => y.x.id)), dnes = faDnes();
+  const k = (S.klienti || []).find(x => x.id === z.klientId), ico = k && String(k.ico || "").replace(/\D/g, "");
+  const fa = (S.faktury || []).filter(f => f.stav !== "koncept" && f.typ !== "storno" && (ids.has(f.zakazkaId) || (ico && String((f.odberatel || {}).ico || "").replace(/\D/g, "") === ico)));
+  const zaplacene = fa.filter(f => f.stav === "zaplacena"), pozde = zaplacene.filter(f => f.zaplaceno && f.splatnost && f.zaplaceno > f.splatnost);
+  const poSplatnosti = fa.filter(f => f.stav === "vystavena" && f.splatnost && f.splatnost < dnes && faZbyva(f) > 0);
+  return {zakazek:zak.length, hotovych:zak.filter(y => y.x.status === "hotovo").length, faktur:fa.length, zaplaceno:zaplacene.length, pozde:pozde.length,
+    poSplatnosti:poSplatnosti.length, dluh:poSplatnosti.reduce((a, f) => a + faZbyva(f), 0)};
+}
+function hnDoporucenaZaloha(h, ares){
+  const n = S.nastaveni || {}, zakl = +n.zaloha || 40;
+  if (ares && (ares.insolvence || ares.zanik)) return {pct:100, proc:ares.insolvence ? "je v insolvenčním rejstříku" : "firma zanikla"};
+  if (h.poSplatnosti) return {pct:100, proc:"u vás má neuhrazené faktury po splatnosti"};
+  if (h.pozde >= 2) return {pct:Math.max(zakl, 60), proc:"už " + h.pozde + "× platil pozdě"};
+  if (!h.hotovych) return {pct:Math.max(zakl, ares && ares.mladaFirma ? 60 : 50), proc:"nový klient bez historie" + (ares && ares.mladaFirma ? " a mladá firma" : "")};
+  return {pct:zakl, proc:"platil včas (" + h.zaplaceno + " faktur)"};
+}
+async function hnAres(ico){
+  const r = await fetch("https://ares.gov.cz/ekonomicke-subjekty-v-be/rest/ekonomicke-subjekty/" + ico, {headers:{accept:"application/json"}});
+  if (r.status === 404) return {nenalezen:true};
+  if (!r.ok) throw new Error("ARES odpověděl chybou " + r.status);
+  const d = await r.json(), reg = d.seznamRegistraci || {};
+  const vznik = d.datumVzniku || "", mesicu = vznik ? Math.round((Date.now() - new Date(vznik + "T12:00:00")) / (30.4 * 864e5)) : null;
+  return {jmeno:d.obchodniJmeno || "", adresa:(d.sidlo && d.sidlo.textovaAdresa) || "", dic:d.dic || "", vznik, zanik:d.datumZaniku || "", mesicu,
+    mladaFirma:mesicu != null && mesicu < 12, insolvence:reg.stavZdrojeIr === "AKTIVNI", platceDph:reg.stavZdrojeDph === "AKTIVNI" || reg.stavZdrojeSkDph === "AKTIVNI"};
+}
+function hnOdkazy(ico){
+  return ico ? [["Insolvenční rejstřík", "https://isir.justice.cz/isir/ueu/vysledek_lustrace.do?ic=" + ico + "&aktualnost=AKTUALNI_I_UKONCENA&rowsAtOnce=50"],
+    ["Obchodní rejstřík a účetní závěrky", "https://or.justice.cz/ias/ui/rejstrik-$firma?ico=" + ico],
+    ["Registr plátců DPH — spolehlivost a účty", "https://adisspr.mfcr.cz/dpr/DphReg?id=1&pocet=1&fu=&OK=+Search+&ZPRAC=RDPHI1&dic=" + ico],
+    ["ARES", "https://ares.gov.cz/ekonomicke-subjekty?ico=" + ico]]
+    : [["Insolvenční rejstřík (hledání podle jména a data narození)", "https://isir.justice.cz/isir/common/index.do"]];
+}
+async function hnProverit(zdroj, klientIx){
+  const z = zdroj === "adresar" ? null : hnZakazka(zdroj);
+  const k = zdroj === "adresar" ? (S.klienti || [])[klientIx] : (S.klienti || []).find(x => x.id === (z && z.klientId));
+  let ico = String((k && k.ico) || "").replace(/\D/g, "");
+  if (!ico && zdroj !== "adresar") {
+    const zad = prompt("Klient nemá v adresáři IČO. U firmy ho zadej (8 číslic), u soukromé osoby nech prázdné — prověří se aspoň historie u vás.", "");
+    if (zad === null) return;
+    ico = String(zad).replace(/\D/g, "");
+  }
+  const vzor = z || {id:"", klientId:k ? k.id : "", klient:k ? k.jmeno : ""};
+  const h = hnHistorie(vzor), jmeno = (k && k.jmeno) || (z && z.klient) || "Klient";
+  let m = document.getElementById("hnProvModal");
+  if (!m) { m = document.createElement("div"); m.id = "hnProvModal"; m.className = "hn-modal"; document.body.appendChild(m); }
+  const kresli = (ares, chyba) => {
+    const dop = hnDoporucenaZaloha(h, ares), riziko = ares && (ares.insolvence || ares.zanik || ares.nenalezen);
+    m.innerHTML = "<div class='hn-okno' role='dialog' aria-label='Prověření klienta'><div class='hn-hl'><b>🔍 Prověření klienta — " + esc(jmeno) + "</b><button type='button' class='hn-x' data-hnprov='zavrit' aria-label='Zavřít'>×</button></div>" +
+      (ico ? "<div class='hn-prov-blok'><b>ARES — IČO " + ico + "</b><br>" + (ares === undefined ? "<span class='hint'>načítám…</span>"
+        : chyba ? "<span class='ne'>ARES se nepodařilo načíst (" + esc(chyba) + ") — použij odkazy níž.</span>"
+        : ares.nenalezen ? "<span class='ne'>Subjekt s tímhle IČO v ARES není — ověř ho, než začneš pracovat.</span>"
+        : esc(ares.jmeno) + "<br><span class='hint'>" + esc(ares.adresa) + "</span><ul class='hn-prov-ul'>" +
+          "<li>" + (ares.zanik ? "<span class='ne'>✗ Firma zanikla " + hnDatumCz(ares.zanik) + "</span>" : "✓ Firma existuje" + (ares.vznik ? " od " + hnDatumCz(ares.vznik) + (ares.mladaFirma ? " — <b>mladší než rok</b>" : "") : "")) + "</li>" +
+          "<li>" + (ares.insolvence ? "<span class='ne'>✗ Je záznam v insolvenčním rejstříku — pracuj jen za platbu předem</span>" : "✓ V insolvenčním rejstříku není") + "</li>" +
+          "<li>" + (ares.platceDph ? "Plátce DPH — v registru ověř spolehlivost a zveřejněný účet (až budete plátci, ručíte za jeho DPH)" : "Není plátce DPH") + "</li></ul>") + "</div>"
+        : "<p class='hint' style='margin:0 0 8px'>Soukromá osoba nebo chybí IČO — v ARES se neověřuje. Insolvenci jde dohledat podle jména a data narození.</p>") +
+      "<div class='hn-prov-blok'><b>Historie u vás</b><br>" + (h.zakazek ? h.zakazek + " zakázek (" + h.hotovych + " hotových), faktur " + h.faktur + ", zaplaceno " + h.zaplaceno + (h.pozde ? ", <span class='ne'>pozdě " + h.pozde + "×</span>" : "") +
+        (h.poSplatnosti ? ", <span class='ne'>po splatnosti " + h.poSplatnosti + " za " + kc(h.dluh) + "</span>" : "") : "Nový klient — zatím žádná zakázka ani faktura.") + "</div>" +
+      "<div class='hn-prov-dop " + (riziko || dop.pct >= 100 ? "ne" : dop.pct > (+(S.nastaveni || {}).zaloha || 40) ? "pozor" : "ok") + "'>Doporučená záloha: <b>" + dop.pct + " %</b> — " + esc(dop.proc) + ".</div>" +
+      "<div class='hn-prov-odkazy'>" + hnOdkazy(ico).map(([l, u]) => "<a class='b' href='" + u + "' target='_blank' rel='noopener'>" + esc(l) + " ↗</a>").join("") + "</div>" +
+      (ares && !ares.nenalezen && !chyba && k ? "<p class='hint' style='margin:8px 0 0'>Výsledek je uložený u klienta v adresáři (" + hnDatumCz(faDnes()) + ").</p>" : "") +
+    "</div>";
+  };
+  m.hidden = false; kresli(ico ? undefined : null);
+  if (!ico) return;
+  try {
+    const a = await hnAres(ico);
+    if (k && !a.nenalezen) { k.provereno = {datum:faDnes(), insolvence:a.insolvence, zanik:a.zanik, vznik:a.vznik, platceDph:a.platceDph}; if (!k.ico) k.ico = ico; save(); }
+    kresli(a);
+  } catch (err) { kresli(null, err.message || "chyba"); }
+}
+/* upozornění: nový klient bez historie, riziko z prověření */
+function hnRizikoKlienta(z){
+  if (!z || !(z.klient || z.klientId) || ["hotovo", "zamítnuto"].includes(z.status)) return [];
+  const w = [], k = (S.klienti || []).find(x => x.id === z.klientId), p = k && k.provereno, h = hnHistorie(z);
+  if (p && p.insolvence) w.push("Klient je v insolvenčním rejstříku (prověřeno " + hnDatumCz(p.datum) + ") — pracuj jen za platbu předem.");
+  if (p && p.zanik) w.push("Firma klienta zanikla " + hnDatumCz(p.zanik) + " — neuzavírej zakázku, dokud to nevyjasníš.");
+  if (h.poSplatnosti) w.push("Klient má u vás " + h.poSplatnosti + " neuhrazené faktury po splatnosti (" + kc(h.dluh) + ") — nejdřív vyrovnat, pak další práce.");
+  else if (!h.hotovych) w.push("Nový klient bez historie — nezačínej bez zálohy" + (k && k.ico && !p ? " a prověř ho (🔍 Prověřit klienta)" : "") + ".");
+  return w;
+}
+function hnRenderRiziko(){
+  const el = $("#hnRiziko"); if (!el) return;
+  const w = hnRizikoKlienta(J);
+  el.hidden = !w.length; el.innerHTML = w.length ? "<b>Klient</b><ul>" + w.map(x => "<li>" + esc(x) + "</li>").join("") + "</ul>" : "";
+}
+if (typeof document !== "undefined" && document.addEventListener) {
+  document.addEventListener("click", e => {
+    if (e.target.id === "hnProveritBtn") { hnProverit("demolice"); return; }
+    if (e.target.id === "vkProverit") { hnProverit("vyklizeni"); return; }
+    const a = e.target.closest && e.target.closest("[data-hnprov-ix]"); if (a) { hnProverit("adresar", +a.dataset.hnprovIx); return; }
+    const m = document.getElementById("hnProvModal");
+    if (m && !m.hidden && (e.target === m || (e.target.closest && e.target.closest("[data-hnprov='zavrit']")))) m.hidden = true;
+  });
+  document.addEventListener("keydown", e => { const m = document.getElementById("hnProvModal"); if (e.key === "Escape" && m && !m.hidden) m.hidden = true; });
+}
+
 /* ---------- Úkoly v Plánu: zábor + připomínání nabídek (follow-up) ----------
    6) Follow-up: otevřená nabídka (demolice i vyklízení) se připomene 2., 7. a 14. den od vystavení.
    V Plánu je „komu dnes napsat“ s hotovým textem, zápisem „napsáno“ a odložením; pod tím všechny nabídky, které čekají na odpověď. */
@@ -15444,7 +15564,10 @@ const RM_HOTOVO = {
     kde:"Záložka <b>📅 Plán</b> nahoře (Úkoly a Nabídky čekají na odpověď), texty v <b>✉ Zprávy</b> hned za „Odeslání nabídky“. Počítá se od tisku nebo kopie nabídky, u starších zakázek od uložení."},
   "pen-prodleni":{datum:"2026-09-26",
     co:"Nové faktury mají větu o <b>zákonném úroku z prodlení</b> (nařízení vlády č. 351/2013 Sb.), u firem i o <b>nákladech 1 200 Kč</b> za uplatnění pohledávky. <b>2. upomínka</b> spočítá úrok ke dni odeslání (repo sazba ČNB + 8 p. b., teď 11,75 % ročně), firmě připomene 1 200 Kč a nabídne, že při zaplacení jistiny do 7 dnů se úrok ani náklady účtovat nebudou — to lidi rozhýbe nejvíc. <b>Poslední upomínka</b> vyčíslí jistinu, úrok, náklady a celkem a oznámí návrh na elektronický platební rozkaz. U spotřebitele jen úrok. Starší vystavené faktury se nemění.",
-    kde:"Faktury a daně → otevřená faktura → upomínky. Repo sazba a zapnutí věty v Nastavení → <b>📄 Podmínky nabídky a poplatky → Prodlení s platbou</b> (sazbu aktualizuj 1. 1. a 1. 7.)."}
+    kde:"Faktury a daně → otevřená faktura → upomínky. Repo sazba a zapnutí věty v Nastavení → <b>📄 Podmínky nabídky a poplatky → Prodlení s platbou</b> (sazbu aktualizuj 1. 1. a 1. 7.)."},
+  "pen-proverit":{datum:"2026-09-26",
+    co:"Tlačítko <b>🔍 Prověřit klienta</b>: u firmy načte z ARES, jestli existuje, kdy vznikla (mladší než rok = pozor), jestli <b>nezanikla</b>, jestli je v <b>insolvenčním rejstříku</b> a jestli je plátce DPH, a dá odkazy na insolvenční rejstřík, obchodní rejstřík (účetní závěrky), registr plátců DPH (spolehlivost, účty) a ARES. U každého klienta ukáže <b>historii u vás</b> (zakázky, zaplacené faktury, platby pozdě, dluh po splatnosti) a <b>doporučenou zálohu</b> — 100 % při insolvenci nebo dluhu, 50–60 % u nového klienta, běžná u toho, kdo platí včas. Výsledek se uloží k adresáři. Nový klient bez historie a riziková zjištění se ukážou jako upozornění u zakázky.",
+    kde:"Kalkulace → karta Zakázka pod výběrem klienta; Vyklízení → tlačítka u nabídky; Přehled firmy → Adresář klientů (🔍 u řádku). Upozornění: nahoře v kartě Zakázka, ve vyklízení v „Zkontrolovat“."}
 };
 const rmHotova = x => !!RM_HOTOVO[x.id];
 const RM_JIZ = [
@@ -15558,7 +15681,7 @@ const NAPOVEDA = [
   ["sum:kalkulace:📥 Načíst zakázku z textu", "Načíst zakázku z textu", "Sem vložíš odpověď od Clauda (blok začínající <b>DKT1</b>) nebo kód od parťáka (<b>DK1|…</b>) a zakázka se sama vyplní — práce, patro, kontejnery, termín. Opačně „Zkopírovat kód“ pošle rozpracovanou zakázku parťákovi."],
   ["sum:kalkulace:📸 Nacenit z fotek", "Nacenit z fotek přes Claude", "Jednou si stáhneš balík souborů a založíš v Claudovi projekt. Pak na prohlídce nafotíš místnosti, napíšeš míry a Claude vrátí soupis prací a blok DKT1, který vložíš do „Načíst zakázku z textu“. Návod je v balíku a v Průvodci."],
   ["h2:kalkulace:Zakázka", "Zakázka", "Hlavička zakázky: kdo, kde, kdy a za jakých podmínek. Z údajů se tiskne nabídka a faktura, termín se propíše do Plánu, zdroj do Přehledu firmy. <b>Uložit</b> zakázku najdeš dole — bez uložení se nedá fakturovat ani vyhodnocovat."],
-  ["#jKlientId", "Klient z adresáře", "Vyber klienta z adresáře (Přehled firmy → Adresář klientů) — doplní se jméno, adresa a údaje na fakturu. U nového klienta stačí vyplnit jméno níž, do adresáře ho přidáš později."],
+  ["#jKlientId", "Klient z adresáře", "Vyber klienta z adresáře (Přehled firmy → Adresář klientů) — doplní se jméno, adresa a údaje na fakturu. U nového klienta stačí vyplnit jméno níž, do adresáře ho přidáš později. <b>🔍 Prověřit klienta</b> ukáže stav firmy v ARES (insolvence, zánik, stáří), historii plateb u vás a doporučenou zálohu."],
   ["#jZdroj", "Zdroj zakázky", "Odkud poptávka přišla (portál, doporučení, web, realitka…). Je povinný, protože z něj Přehled firmy počítá, <b>který kanál přináší zakázky a zisk</b> — a kam tedy dávat peníze a čas na marketing."],
   ["#jOdberatel", "Stálý odběratel (B2B)", "Firma, se kterou spolupracujete pravidelně (stavební firma, správce). Jen stálým odběratelům je povolený B2B ceník (o 10 % levnější). Spravují se v Přehledu firmy → Stálí odběratelé."],
   ["#jCenik", "Ceník B2C / B2B", "<b>B2C</b> = koncový zákazník (plné ceny). <b>B2B</b> = subdodávka pro firmu, ceny o 10 % nižší, protože firma přináší objem a méně starostí. B2B dávej jen stálým odběratelům — jinak zbytečně slevuješ."],
