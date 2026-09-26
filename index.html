@@ -605,6 +605,14 @@ tr.br-nejl td{background:var(--good-bg)}
 .br-det summary{cursor:pointer;font-weight:600;margin:12px 0 6px}
 #brJizdy .ok{color:var(--good);font-weight:700}
 #brJizdy .ne{color:var(--bad);font-weight:600}
+.br-par-tab{min-width:880px}
+.br-par-tab td{vertical-align:top}
+.br-par-tab td:first-child{min-width:200px}
+#zdrojTab{min-width:900px}
+.br-par-akce{white-space:nowrap;text-align:right}
+.br-par-akce .mini{margin-left:4px}
+.br-par-form{background:var(--ground);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:2px 0 6px}
+.br-par-tab .ne{color:var(--bad);font-weight:600}
 
 
 /* roadmapa */
@@ -1454,10 +1462,10 @@ body.zamceno{overflow:hidden}
   </div>
 
   <div class="card">
-    <h2>Stálí odběratelé — povolený B2B ceník</h2>
-    <p class="hint" style="margin:0 0 10px">B2B (subdodavatelské) ceny jde v kalkulaci použít jen pro firmy z tohoto seznamu. Jednorázová zakázka = vždy B2C. Sem patří stavební firmy, které nosí ≥ 3–4 zakázky ročně.</p>
+    <h2>🤝 Partneři a rámcové smlouvy — B2B ceník</h2>
+    <p class="hint" style="margin:0 0 10px">Realitky, správci domů a SVJ, developeři a stavební firmy, se kterými pracujete pravidelně. Jen pro ně je v kalkulaci povolený B2B ceník (u vyklízení partnerská marže). Tužkou ✏️ nastavíš dobu reakce, splatnost a fakturaci, 📝 vytiskne rámcovou smlouvu s partnerským ceníkem. Jednorázová zakázka = vždy B2C.</p>
     <div id="odbList"></div>
-    <div class="btnrow"><input id="odbNazev" placeholder="název firmy" style="border:1px solid var(--line);border-radius:7px;padding:7px 9px;background:var(--ground);color:var(--ink);min-width:220px"><button class="b" id="addOdb">+ Přidat stálého odběratele</button></div>
+    <div class="btnrow"><input id="odbNazev" placeholder="název firmy" style="border:1px solid var(--line);border-radius:7px;padding:7px 9px;background:var(--ground);color:var(--ink);min-width:220px"><button class="b" id="addOdb">+ Přidat partnera</button></div>
   </div>
 
   <div class="card">
@@ -8083,9 +8091,7 @@ function pStats(){
 }
 /* ---------- stálí odběratelé (B2B) ---------- */
 function renderOdberatele(){
-  $("#odbList").innerHTML=S.odberatele.length?
-    S.odberatele.map(o=>"<span class='odbrow'>"+esc(o.nazev)+"<button class='mini odbDel' data-id='"+o.id+"'>✕</button></span>").join(""):
-    "<p class='hint' style='margin:0 0 4px'>Zatím žádný stálý odběratel — B2B ceník je proto v kalkulaci chráněný potvrzením.</p>";
+  brRenderPartneri();
   fillOdberatelSelect();
 }
 $("#addOdb").addEventListener("click",()=>{
@@ -8938,6 +8944,7 @@ function faKonceptZeZakazky(z, typ){
     dodavatel:faDodavatel(), odberatel:faOdberatelZeZakazky(z),
     polozky:[], slevy:[], mezisoucet:0, zaokrouhleni:0, odpocty:[], celkem:0, kUhrade:0,
     zakazkaId:z.id || "", zakazkaNazev:z.nazev || "", mistoPlneni:z.adresa || "", poznamka:""}, faNovaMetadata());
+  if (typ !== "zal" && typeof brPartnerSplatnost === "function" && brPartnerSplatnost(z)) f.splatnost = faPlusDni(dnes, brPartnerSplatnost(z));
 
   if (typ === "zal") {
     const castka = (z.zalohaCastka || 0) > 0 ? z.zalohaCastka : Math.round(v.celkem * (n.zaloha || 0) / 100);
@@ -9594,14 +9601,14 @@ function faPracovniDny(od, doIso){
 }
 function faCekaNaVyfakturovani(){
   const dnes = faDnes(), out = [];
-  const maKon = id => (S.faktury || []).some(f => f.zakazkaId === id && (f.typ === "kon" || f.typ === "vlastni") && f.stav !== "stornovana");
+  const maKon = id => (S.faktury || []).some(f => (f.zakazkaId === id || (f.zakazkyIds || []).includes(id)) && (f.typ === "kon" || f.typ === "vlastni") && f.stav !== "stornovana");
   (S.zakazky || []).forEach(z => {
-    if (!z.id || maKon(z.id)) return;
+    if (!z.id || maKon(z.id) || (typeof brPartnerMesicne === "function" && brPartnerMesicne(z))) return;
     const konec = z.terminDo || z.terminOd || "";
     if (z.status === "hotovo" || (["domluveno", "probíhá"].includes(z.status) && konec && konec < dnes)) out.push({druh:"demolice", z, konec});
   });
   (S.vyklizeni || []).forEach(v => {
-    if (!v.id || maKon(v.id) || v.status !== "hotovo") return;
+    if (!v.id || maKon(v.id) || v.status !== "hotovo" || (typeof brPartnerMesicne === "function" && brPartnerMesicne(v))) return;
     const casy = (v.cas || []).map(c => c.do || c.od || "").filter(Boolean).sort();
     out.push({druh:"vyklizeni", z:v, konec:(casy.length ? casy[casy.length - 1] : v.terminOd || v.ulozeno || "").slice(0, 10)});
   });
@@ -12169,6 +12176,7 @@ function renderVyklizeni(){
     "<label class='f'>Klient z adresáře<select data-vks='klientId'><option value=''>—</option>" + klienti.map(k => "<option value='" + esc(k.id) + "'" + (k.id === v.klientId ? " selected" : "") + ">" + esc(k.jmeno) + "</option>").join("") + "</select></label>" +
     "<label class='f'>Klient (jméno na nabídku)<input data-vkt='klient' value='" + esc(v.klient) + "'></label>" +
     "<label class='f'>Adresa<input data-vkt='adresa' value='" + esc(v.adresa) + "'></label>" +
+    (typeof brPartnerSelectVk === "function" ? brPartnerSelectVk(v) : "") +
     "<label class='f'>Zdroj zakázky<select data-vks='zdroj'><option value=''>— vyber —</option>" + ZDROJE.map(z => "<option" + (v.zdroj === z ? " selected" : "") + ">" + esc(z) + "</option>").join("") + "</select></label>" +
     "<div class='grid g2' style='gap:8px'><label class='f'>Termín od<input type='date' data-vkt='terminOd' value='" + esc(v.terminOd) + "'></label>" +
       "<label class='f'>do<input type='date' data-vkt='terminDo' value='" + esc(v.terminDo || "") + "'" + (v.terminOd ? " placeholder='" + esc(v.terminOd) + "'" : "") + "></label></div>" +
@@ -12750,8 +12758,9 @@ $("#vkForm").addEventListener("change", e => {
   }
   if (t.dataset.vks) {
     VK[t.dataset.vks] = t.value;
+    if (t.dataset.vks === "odberatelId" && typeof brPartnerDoVyklizeni === "function") brPartnerDoVyklizeni();
     if (t.dataset.vks === "klientId") { const k = (S.klienti || []).find(x => x.id === t.value); if (k) { VK.klient = k.jmeno || VK.klient; VK.adresa = k.adresa || VK.adresa; } }
-    vykUloz(); vkUlozitTise(); if (["klientId", "uctovani", "status"].includes(t.dataset.vks)) renderVyklizeni(); else { vykPrepocet(); renderVkSeznam(); }
+    vykUloz(); vkUlozitTise(); if (["klientId", "uctovani", "status", "odberatelId"].includes(t.dataset.vks)) renderVyklizeni(); else { vykPrepocet(); renderVkSeznam(); }
     return;
   }
   if (t.dataset.vkb) {
@@ -14220,6 +14229,7 @@ function faKonceptZVyklizeni(v, typ){
     odberatel:{jmeno:(k && k.jmeno) || v.klient || "", adresa:(k && k.adresa) || v.adresa || "", ico:(k && k.ico) || "", dic:(k && k.dic) || "", email:(k && k.email) || "", telefon:(k && k.tel) || ""},
     polozky:[], slevy:[], mezisoucet:0, zaokrouhleni:0, odpocty:[], celkem:0, kUhrade:0,
     zakazkaId:v.id, zakazkaNazev:v.nazev || "", mistoPlneni:v.adresa || "", poznamka:"", zaplaceno:"", storno:null, vytvoril:n.jednatel || "", vytvoreno:new Date().toISOString()});
+  if (typ !== "zal" && typeof brPartnerSplatnost === "function" && brPartnerSplatnost(v)) f.splatnost = faPlusDni(dnes, brPartnerSplatnost(v));
   if (typ === "zal") {
     const zaklad = r.ok ? (vkRozpisovy(v) ? vkRozpis(r, v).gross : r.gross) : 0;
     const castka = Math.round(zaklad * (v.predem ? 1 : v.zaloha));
@@ -16543,6 +16553,249 @@ if (typeof document !== "undefined" && document.addEventListener) {
   document.addEventListener("change", e => { if (e.target.id === "brCacObd") renderZdroje(); });
 }
 
+/* ---------- Rámcové smlouvy s partnery ----------
+   Stálí odběratelé = partneři s rámcovou smlouvou: typ, doba reakce, splatnost, fakturace po zakázce nebo souhrnně
+   za měsíc, platnost smlouvy. Přehled obratu, marže a platební morálky; rámcová smlouva k tisku s partnerským
+   ceníkem; souhrnná měsíční faktura; úkoly v Plánu (odpovědět do doby reakce, vyfakturovat měsíc). */
+const BR_PARTNER_TYP = ["Realitní kancelář", "Správce domů / SVJ", "Developer", "Stavební firma", "Jiné"];
+function brPartneri(){
+  (S.odberatele || []).forEach((o, i) => {
+    if (!o.typ) o.typ = "Stavební firma";
+    if (o.reakce == null) o.reakce = 2;
+    if (o.splatnost == null) o.splatnost = 14;
+    if (!o.fakturace) o.fakturace = "zakazka";
+    if (o.objem == null) o.objem = 0;
+    if (!o.cislo) o.cislo = "RS-" + new Date().getFullYear() + "-" + String(i + 1).padStart(2, "0");
+  });
+  return S.odberatele || [];
+}
+function brPartner(id){ return id ? brPartneri().find(o => o.id === id) || null : null; }
+function brPartnerSplatnost(z){ const o = brPartner(z && z.odberatelId); return o && +o.splatnost > 0 ? +o.splatnost : 0; }
+function brPartnerMesicne(z){ const o = brPartner(z && z.odberatelId); return !!(o && o.fakturace === "mesic"); }
+function brPartnerZakazky(o){
+  const v = [];
+  (S.zakazky || []).forEach(z => { if (z.odberatelId === o.id) v.push({druh:"demolice", z}); });
+  if (J && J.id && J.odberatelId === o.id && !v.some(x => x.z.id === J.id)) v.push({druh:"demolice", z:J});
+  (S.vyklizeni || []).forEach(z => { if (z.odberatelId === o.id) v.push({druh:"vyklizeni", z}); });
+  return v;
+}
+function brZakKonec(x){
+  if (x.druh === "vyklizeni") { const c = (x.z.cas || []).map(t => t.do || t.od || "").filter(Boolean).sort(); return (c.length ? c[c.length - 1] : x.z.terminDo || x.z.terminOd || x.z.ulozeno || "").slice(0, 10); }
+  return String(x.z.terminDo || x.z.terminOd || "").slice(0, 10);
+}
+function brMaFakturu(id){ return (S.faktury || []).some(f => (f.zakazkaId === id || (f.zakazkyIds || []).includes(id)) && (f.typ === "kon" || f.typ === "vlastni") && f.stav !== "stornovana"); }
+function brPartnerKFakturaci(o, predMesicem){
+  const dnes = faDnes();
+  return brPartnerZakazky(o).filter(x => {
+    if (!x.z.id || brMaFakturu(x.z.id)) return false;
+    const k = brZakKonec(x);
+    const hot = x.z.status === "hotovo" || (x.druh === "demolice" && ["domluveno", "probíhá"].includes(x.z.status) && k && k < dnes);
+    return hot && (!predMesicem || (k && k < predMesicem));
+  }).map(x => Object.assign(x, {konec:brZakKonec(x)}));
+}
+function brPartnerStat(o, dnes){
+  dnes = dnes || faDnes();
+  const od = faPlusDni(dnes, -365), zak = brPartnerZakazky(o).filter(x => (brZalozeno(x.z) || brZakKonec(x)) >= od);
+  let vyhr = 0, obrat = 0, zisk = 0;
+  zak.forEach(x => {
+    if (!BR_VYHRANO.includes(x.z.status)) return; vyhr++;
+    if (x.druh === "vyklizeni") { const r = x.z.vysledek || {}; obrat += r.skutCena != null ? r.skutCena : (r.cena || 0); zisk += r.skutGp != null ? r.skutGp : (r.gp || 0); }
+    else { obrat += x.z.vysCelkem || 0; zisk += x.z.vysZisk || 0; }
+  });
+  const ids = new Set(brPartnerZakazky(o).map(x => x.z.id).filter(Boolean)), kl = (S.klienti || []).find(k => k.id === o.klientId), ico = String((kl && kl.ico) || "").trim();
+  const fak = (S.faktury || []).filter(f => f.typ !== "storno" && f.stav !== "stornovana" && f.stav !== "koncept" && f.cislo &&
+    (ids.has(f.zakazkaId) || (f.zakazkyIds || []).some(i => ids.has(i)) || (ico && f.odberatel && String(f.odberatel.ico || "").trim() === ico)));
+  let zpSum = 0, zpN = 0, pozde = 0, dluzi = 0;
+  fak.forEach(f => {
+    if (!f.splatnost) return;
+    if (f.zaplaceno) { const d = Math.max(0, hnDnyMezi(f.splatnost, String(f.zaplaceno).slice(0, 10))); zpSum += d; zpN++; if (d > 3) pozde++; }
+    else { dluzi += f.kUhrade || 0; if (f.splatnost < dnes) { const d = hnDnyMezi(f.splatnost, dnes); zpSum += d; zpN++; if (d > 3) pozde++; } }
+  });
+  const zpozdeni = zpN ? zpSum / zpN : null;
+  const mesSmlouvy = o.od ? Math.max(1, Math.min(12, Math.round(hnDnyMezi(o.od > od ? o.od : od, dnes) / 30.4) || 1)) : 12;
+  return {zakazek:zak.length, vyhr, obrat, zisk, marze:obrat > 0 ? zisk / obrat : null, faktur:fak.length, zpozdeni, pozde, dluzi,
+    naMesic:vyhr / mesSmlouvy, kFakturaci:brPartnerKFakturaci(o).length,
+    moralka:zpozdeni == null ? ["", "zatím bez faktur"] : zpozdeni <= 3 ? ["ok", "platí včas"] : zpozdeni <= 14 ? ["pozor", "občas pozdě"] : ["ne", "platí pozdě"]};
+}
+let brPartnerEdit = "";
+function brRenderPartneri(){
+  const el = $("#odbList"); if (!el) return;
+  const list = brPartneri();
+  if (!list.length) { el.innerHTML = "<p class='hint' style='margin:0 0 4px'>Zatím žádný partner — B2B ceník je proto v kalkulaci chráněný potvrzením. Přidej realitku, správce domů, developera nebo stavební firmu, se kterou chcete pracovat pravidelně.</p>"; return; }
+  const dnes = faDnes();
+  el.innerHTML = "<div class='tscroll'><table class='odp-tab br-par-tab'><thead><tr><th>Partner</th><th>Smlouva</th><th class='r'>Zakázek 12 m.</th><th class='r'>Obrat</th><th class='r'>Marže</th><th>Platby</th><th class='r'>Dluží</th><th></th></tr></thead><tbody>" +
+    list.map(o => {
+      const s = brPartnerStat(o, dnes), platna = !o.do || o.do >= dnes;
+      return "<tr><td><b>" + esc(o.nazev) + "</b><div class='hint'>" + esc(o.typ) + " · reakce " + o.reakce + " prac. dny · splatnost " + o.splatnost + " dní · " + (o.fakturace === "mesic" ? "faktura za měsíc" : "faktura po zakázce") + "</div></td>" +
+        "<td>" + esc(o.cislo) + "<div class='hint'>" + (o.od ? (platna ? "platí " + (o.do ? "do " + hnDatumCz(o.do) : "na neurčito") : "<span class='ne'>skončila " + hnDatumCz(o.do) + "</span>") : "zatím nepodepsaná") + "</div></td>" +
+        "<td class='r num'>" + s.vyhr + (s.zakazek > s.vyhr ? " <span class='hint'>z " + s.zakazek + "</span>" : "") + (o.objem > 0 ? "<div class='hint'>" + fmt1.format(s.naMesic) + " / " + fmt1.format(o.objem) + " měs.</div>" : "") + "</td>" +
+        "<td class='r num'>" + kc(s.obrat) + "</td><td class='r num'>" + (s.marze == null ? "—" : fmt0.format(s.marze * 100) + " %") + "</td>" +
+        "<td><span class='br-cac-v " + s.moralka[0] + "'>" + s.moralka[1] + "</span>" + (s.zpozdeni != null ? "<div class='hint'>průměrně " + (s.zpozdeni < 0.5 ? "v termínu" : "+" + fmt0.format(s.zpozdeni) + " dní") + "</div>" : "") + "</td>" +
+        "<td class='r num'>" + (s.dluzi > 0 ? kc(s.dluzi) : "—") + "</td>" +
+        "<td class='br-par-akce'><button class='mini' type='button' data-brpar='upravit' data-id='" + o.id + "'>✏️</button><button class='mini' type='button' data-brpar='smlouva' data-id='" + o.id + "'>📝 Smlouva</button>" +
+          (s.kFakturaci && o.fakturace === "mesic" ? "<button class='mini' type='button' data-brpar='faktura' data-id='" + o.id + "'>🧾 Vyfakturovat " + s.kFakturaci + "</button>" : "") +
+          "<button class='mini odbDel' data-id='" + o.id + "'>✕</button></td></tr>";
+    }).join("") + "</tbody></table></div>" +
+    (brPartner(brPartnerEdit) ? "<div class='hint' style='margin:8px 0 4px'>Podmínky partnera <b>" + esc(brPartner(brPartnerEdit).nazev) + "</b></div>" + brPartnerForm(brPartner(brPartnerEdit)) : "") +
+    (list.some(o => brPartnerStat(o, dnes).moralka[0] === "ne") ? "<p class='hint' style='margin:6px 0 0'>Partner, který platí pozdě, u vás bere úvěr zadarmo. Zkraťte splatnost, chtějte zálohu, nebo mu dávejte běžné ceny — smlouva to umožňuje (čl. III).</p>" : "");
+}
+function brPartnerForm(o){
+  const kl = S.klienti || [];
+  return "<div class='grid g3 br-par-form' data-brparid='" + o.id + "'>" +
+    "<label class='f'>Název<input data-brpp='nazev' value='" + esc(o.nazev) + "'></label>" +
+    "<label class='f'>Typ<select data-brpp='typ'>" + BR_PARTNER_TYP.map(t => "<option" + (o.typ === t ? " selected" : "") + ">" + esc(t) + "</option>").join("") + "</select></label>" +
+    "<label class='f'>Firma v adresáři <span class='hint'>IČO a adresa na smlouvu a faktury</span><select data-brpp='klientId'><option value=''>—</option>" + kl.map(k => "<option value='" + esc(k.id) + "'" + (k.id === o.klientId ? " selected" : "") + ">" + esc(k.jmeno) + (k.ico ? " · IČO " + esc(k.ico) : "") + "</option>").join("") + "</select></label>" +
+    "<label class='f'>Číslo smlouvy<input data-brpp='cislo' value='" + esc(o.cislo) + "'></label>" +
+    "<label class='f'>Platí od <span class='hint'>den podpisu</span><input type='date' data-brpp='od' value='" + esc(o.od || "") + "'></label>" +
+    "<label class='f'>Platí do <span class='hint'>prázdné = na neurčito</span><input type='date' data-brpp='do' value='" + esc(o.do || "") + "'></label>" +
+    "<label class='f'>Doba reakce (pracovní dny)<input type='number' min='0' max='20' data-brpp='reakce' value='" + o.reakce + "'><span class='hint'>do kdy pošlete nabídku nebo přijedete na prohlídku</span></label>" +
+    "<label class='f'>Splatnost faktur (dní)<input type='number' min='1' max='60' data-brpp='splatnost' value='" + o.splatnost + "'></label>" +
+    "<label class='f'>Fakturace<select data-brpp='fakturace'><option value='zakazka'" + (o.fakturace === "zakazka" ? " selected" : "") + ">po každé zakázce</option><option value='mesic'" + (o.fakturace === "mesic" ? " selected" : "") + ">souhrnně za měsíc</option></select></label>" +
+    "<label class='f'>Očekáváno zakázek za měsíc<input type='number' min='0' step='0.5' data-brpp='objem' value='" + (o.objem || "") + "'></label>" +
+    "<div class='f' style='justify-content:flex-end'><span>&nbsp;</span><button class='b' type='button' data-brpar='zavrit' data-id='" + o.id + "'>Hotovo</button></div></div>";
+}
+/* ---------- rámcová smlouva k tisku ---------- */
+function brRamcovaHTML(o){
+  const d = faDodavatel(), n = S.nastaveni || {}, k = (S.klienti || []).find(x => x.id === o.klientId) || {}, poj = typeof hnPojisteni === "function" ? hnPojisteni() : {};
+  const kc0 = x => kc(Math.round(x || 0)), podm = smlPodminky(), dph = d.platceDPH ? "bez DPH; k cenám se připočte DPH podle platných předpisů" : "konečné — zhotovitel není plátcem DPH";
+  const cl = [];
+  cl.push(["Předmět a účel smlouvy", [
+    "Smlouva upravuje podmínky, za kterých bude zhotovitel pro objednatele opakovaně provádět bourací a demontážní práce, vyklízení prostor, odvoz a likvidaci odpadu a související práce (dále jen „dílčí zakázky“).",
+    "Smlouva sama nezavazuje objednatele objednat ani zhotovitele přijmout konkrétní dílčí zakázku. Dílčí smlouva o dílo vzniká potvrzením objednávky nebo cenové nabídky zhotovitelem v textové podobě. Na dílčí smlouvy se použijí ustanovení této smlouvy; odchylná ujednání v dílčí smlouvě mají přednost.",
+    "Smlouva se řídí § 1746 odst. 2 a § 2586 a násl. zákona č. 89/2012 Sb., občanský zákoník. Obě strany jsou podnikateli a uzavírají smlouvu v rámci svého podnikání."]]);
+  cl.push(["Objednávky a doba reakce", [
+    "Objednatel zasílá objednávky e-mailem nebo zprávou na kontakty zhotovitele; uvede adresu, rozsah prací, požadovaný termín a kontaktní osobu na místě.",
+    "Zhotovitel potvrdí přijetí objednávky do 1 pracovního dne a do <b>" + o.reakce + " pracovních dnů</b> provede prohlídku nebo zašle cenovou nabídku. Termín zahájení prací se sjednává v dílčí smlouvě podle volné kapacity zhotovitele.",
+    "Zhotovitel může objednávku odmítnout zejména z kapacitních důvodů, pro nebezpečné materiály (azbest), statické riziko nebo je-li objednatel v prodlení s úhradou kterékoliv faktury."]]);
+  cl.push(["Cena", [
+    "Za bourací a demontážní práce účtuje zhotovitel <b>partnerské jednotkové ceny podle přílohy č. 1</b>; práce neuvedené v ceníku a vyklízení se oceňují cenovou nabídkou po prohlídce v partnerské cenové hladině zhotovitele. Doprava, odvoz a likvidace odpadu, kontejnery a zábor se účtují podle nabídky k dílčí zakázce. Ceny jsou " + dph + ".",
+    "Partnerské ceny zhotovitel poskytuje s ohledem na opakovaný objem zakázek a řádné placení. Je-li objednatel v prodlení s úhradou kterékoliv faktury déle než 14 dnů, je zhotovitel oprávněn u nově potvrzených dílčích zakázek účtovat své běžné ceny, a to do úplné úhrady dlužných částek.",
+    "Zhotovitel může ceník upravit nejvýše jednou za 12 měsíců o míru inflace vyhlášenou Českým statistickým úřadem, nebo vzrostou-li prokazatelně ceny likvidace odpadu, pohonných hmot nebo kontejnerů o více než " + (+n.valorizacePct || 5) + " %. Úpravu oznámí objednateli nejméně 30 dnů předem; objednatel, který s ní nesouhlasí, může smlouvu vypovědět bez jakékoliv sankce. <b>Ceny potvrzených dílčích zakázek se nemění.</b>"]]);
+  cl.push(["Fakturace a platby", [
+    o.fakturace === "mesic" ? "Zhotovitel fakturuje <b>souhrnně jednou měsíčně</b> za dílčí zakázky předané v předchozím kalendářním měsíci, a to do 10. dne následujícího měsíce; faktura obsahuje soupis dílčích zakázek." : "Zhotovitel fakturuje každou dílčí zakázku po jejím předání.",
+    "Splatnost faktur je <b>" + o.splatnost + " dnů</b> ode dne vystavení; faktury se zasílají elektronicky. U dílčí zakázky nad " + kc0(100000) + " nebo s dobou provádění delší než 10 pracovních dnů může zhotovitel požadovat zálohu až 30 % ceny.",
+    "Objednatel není oprávněn zadržovat část ceny jako zádržné ani ji započíst proti jakýmkoliv svým pohledávkám, ledaže to dílčí smlouva výslovně připouští nebo jde o pohledávku uznanou zhotovitelem písemně.",
+    "Při prodlení s úhradou zaplatí objednatel zákonný úrok z prodlení a náklady spojené s uplatněním každé pohledávky ve výši 1 200 Kč podle nařízení vlády č. 351/2013 Sb.; dále smluvní pokutu 0,05 % z dlužné částky za každý den prodlení. Zhotovitel je oprávněn po dobu prodlení přerušit provádění rozpracovaných dílčích zakázek i nepřijímat nové; termíny se prodlužují o dobu přerušení."]]);
+  cl.push(["Součinnost, zmařený výjezd a čekání", [
+    "Objednatel zajistí u každé dílčí zakázky přístup a klíče v dohodnutý čas, souhlas vlastníka, správce nebo SVJ, odpojení rozvodů v místě prací a pravdivé informace o rozvodech, statice a materiálech s možným obsahem azbestu.",
+    ...podm]]);
+  cl.push(["Vícepráce a skryté konstrukce", [
+    "Práce nad rámec dílčí smlouvy provede zhotovitel jen se souhlasem objednatele nebo jím určené kontaktní osoby v textové podobě; ocení se podle přílohy č. 1, jinak dohodou předem.",
+    "Zjistí-li zhotovitel skryté konstrukce, materiály nebo rozvody, které nebyly při prohlídce zřejmé, bez odkladu to oznámí a navrhne postup; do vyjádření objednatele může práce v dotčené části přerušit a termín se prodlužuje."]]);
+  const odp = ["Zhotovitel provádí práce s odbornou péčí, dodržuje předpisy o bezpečnosti práce a odpadech, pořizuje fotodokumentaci před zahájením a po dokončení a průběžně uklízí dotčené společné prostory.",
+    "Odpad vzniklý při provádění dílčích zakázek přebírá zhotovitel jako jeho původce a předává ho do oprávněných zařízení; doklady o převzetí odpadu na požádání předloží."];
+  if (poj.pojistovna && poj.limit > 0) odp.push("Zhotovitel je pojištěn pro případ odpovědnosti za škodu způsobenou při výkonu činnosti u pojišťovny " + esc(poj.pojistovna) + " s limitem pojistného plnění " + kc0(poj.limit) + " a na žádost předloží potvrzení o pojištění.");
+  odp.push("Náhrada škody zhotovitele z dílčí zakázky je omezena částkou rovnající se ceně této dílčí zakázky" + (poj.limit > 0 ? ", nejvýše však limitem pojistného plnění" : "") + ". Omezení se nevztahuje na škodu způsobenou úmyslně nebo z hrubé nedbalosti ani na újmu na přirozených právech člověka.");
+  cl.push(["Provádění prací, odpady, odpovědnost a pojištění", odp]);
+  cl.push(["Předání a vady", [
+    "Dílčí zakázka je dokončena předáním; o předání se sepíše protokol s fotodokumentací, podepsat jej může i kontaktní osoba objednatele na místě. Převzetí nelze odmítnout pro ojedinělé drobné vady nebránící užívání; ty se zapíší se lhůtou k odstranění.",
+    "Nedostaví-li se objednatel ani jeho kontaktní osoba k předání v termínu oznámeném alespoň 1 pracovní den předem, pořídí zhotovitel fotodokumentaci a dílčí zakázka se považuje za předanou tímto dnem.",
+    "Vady oznámí objednatel v textové podobě bez zbytečného odkladu po jejich zjištění, nejpozději do 6 měsíců od předání. Zhotovitel oprávněně vytknuté vady odstraní bezplatně v dohodnuté lhůtě."]]);
+  cl.push(["Mlčenlivost a klienti objednatele", [
+    "Strany zachovají mlčenlivost o obchodních podmínkách této smlouvy a o údajích o nemovitostech a osobách, se kterými se seznámí. Zhotovitel se na místě prací prezentuje jako dodavatel objednatele, pokud se strany nedohodnou jinak."]]);
+  cl.push(["Doba trvání a ukončení", [
+    "Smlouva se uzavírá " + (o.do ? "na dobu určitou do " + smlDatum(o.do) : "na dobu neurčitou") + " s účinností od " + smlDatum(o.od) + ".",
+    "Každá strana může smlouvu vypovědět i bez udání důvodu s výpovědní dobou 1 měsíc, která počíná prvním dnem měsíce následujícího po doručení výpovědi. Dílčí zakázky potvrzené před doručením výpovědi se dokončí podle této smlouvy.",
+    "Zhotovitel může od smlouvy odstoupit s okamžitou účinností, je-li objednatel v prodlení s úhradou kterékoliv faktury déle než 30 dnů; nárok na zaplacení provedených prací a smluvní pokuty tím není dotčen."]]);
+  cl.push(["Závěrečná ustanovení", [
+    "Komunikace e-mailem nebo zprávou na kontakty uvedené ve smlouvě se považuje za textovou podobu. Změny smlouvy jsou možné jen písemnými dodatky; změna ceníku podle čl. III se provádí oznámením.",
+    "Spory rozhoduje obecný soud určený podle sídla zhotovitele.",
+    "Smlouva je vyhotovena ve dvou stejnopisech, každá strana obdrží jeden; lze ji uzavřít i elektronicky. Příloha č. 1: partnerský ceník bouracích a demontážních prací."]]);
+  const rim = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
+  const telo = cl.map(([nad, ods], i) => "<h3>Článek " + rim[i] + " — " + nad + "</h3><ol>" + ods.map(x => "<li>" + x + "</li>").join("") + "</ol>").join("");
+  const strany = "<div class='sml-strany'><div><b>Zhotovitel</b><br>" + esc(d.firma) + "<br>IČO " + esc(d.ico) + (d.dic ? ", DIČ " + esc(d.dic) : "") + "<br>" + esc(d.adresa) +
+      (d.spisZn ? "<br>zapsaná v obchodním rejstříku, sp. zn. " + esc(d.spisZn) : "") + (d.jednatel ? "<br>jednatel: " + esc(d.jednatel) : "") + "<br>tel. " + esc(d.telefon || "…") + ", " + esc(d.email || "…") + "</div>" +
+    "<div><b>Objednatel</b><br>" + esc(k.jmeno || o.nazev) + "<br>IČO " + esc(k.ico || "……………………") + (k.dic ? ", DIČ " + esc(k.dic) : "") + "<br>" + esc(k.adresa || "………………………………") +
+      "<br>zastoupený: ……………………………<br>tel. " + esc(k.tel || "……………………") + ", e-mail " + esc(k.email || "……………………") + "</div></div>";
+  const podpisy = "<div class='sml-podpisy'><div>V ……………… dne ……………<br><br><br>……………………………………<br>zhotovitel</div><div>V ……………… dne ……………<br><br><br>……………………………………<br>objednatel</div></div>";
+  const kat = {};
+  (S.cenik || []).filter(i => +i.b2b > 0).forEach(i => { (kat[i.kat || "Ostatní"] = kat[i.kat || "Ostatní"] || []).push(i); });
+  const cenik = "<div class='sml-nova'><h2>Příloha č. 1 — Partnerský ceník bouracích a demontážních prací</h2><p style='font-size:9pt'>Platný od " + smlDatum(o.od || faDnes()) + ". Ceny jsou " + dph + ", za měrnou jednotku, včetně naložení suti; bez odvozu a likvidace odpadu, pokud není uvedeno jinak.</p>" +
+    "<table style='width:100%;border-collapse:collapse;font-size:8.5pt'>" + Object.keys(kat).map(kk => "<tr><td colspan='3' style='padding:2.5mm 0 1mm;font-weight:700'>" + esc(kk) + "</td></tr>" +
+      kat[kk].map(i => "<tr><td style='border-bottom:.2mm solid #ccc;padding:.6mm 0'>" + esc(i.nazev) + "</td><td style='border-bottom:.2mm solid #ccc;text-align:center;width:14mm'>" + esc(i.mj || "") + "</td><td style='border-bottom:.2mm solid #ccc;text-align:right;width:24mm'>" + kc(i.b2b) + "</td></tr>").join("")).join("") + "</table></div>";
+  return "<style>" + SML_CSS + "</style><div class='sml'><h1>Rámcová smlouva o dílo č. " + esc(o.cislo) + "</h1><div class='sml-pod'>uzavřená podle § 1746 odst. 2 a § 2586 a násl. zákona č. 89/2012 Sb., občanský zákoník</div>" +
+    strany + telo + podpisy + cenik + "</div>";
+}
+/* ---------- souhrnná faktura za měsíc ---------- */
+function brPartnerFaktura(o){
+  const list = brPartnerKFakturaci(o); if (!list.length) { alert("U partnera " + o.nazev + " nejsou žádné dokončené zakázky bez faktury."); return null; }
+  const f = faKonceptPrazdny(), n = S.nastaveni, kl = (S.klienti || []).find(k => k.id === o.klientId);
+  f.typ = "kon"; f.polozky = []; f.odpocty = [];
+  list.sort((a, b) => String(a.konec).localeCompare(String(b.konec))).forEach(x => {
+    const c = x.druh === "vyklizeni" ? faKonceptZVyklizeni(x.z, "kon") : faKonceptZeZakazky(x.z, "kon");
+    f.polozky.push({popis:(x.druh === "vyklizeni" ? "Vyklizení" : "Bourací práce") + " — " + (x.z.nazev || "zakázka") + (x.z.adresa ? ", " + x.z.adresa : "") + (x.konec ? " (předáno " + hnDatumCz(x.konec) + ")" : ""), mnozstvi:1, mj:"kpl", cenaMJ:c.celkem, celkem:c.celkem});
+    f.odpocty = f.odpocty.concat(faOdpocty(c));
+  });
+  f.odberatel = kl ? {jmeno:kl.jmeno || o.nazev, adresa:kl.adresa || "", ico:kl.ico || "", dic:kl.dic || "", email:kl.email || "", telefon:kl.tel || ""} : faOdberatelZeZakazky(list[0].z);
+  if (!kl) f.odberatel.jmeno = o.nazev;
+  f.zakazkyIds = list.map(x => x.z.id); f.zakazkaNazev = "Souhrnná faktura — " + o.nazev; f.mistoPlneni = "podle soupisu položek";
+  f.duzp = list.map(x => x.konec).filter(Boolean).sort().pop() || f.duzp;
+  f.splatnost = faPlusDni(faDnes(), +o.splatnost || n.fakSplatnost || 14);
+  f.poznamka = "Souhrnná faktura za dílčí zakázky podle rámcové smlouvy č. " + o.cislo + ".";
+  faPrepocet(f);
+  return f;
+}
+/* úkoly v Plánu: odpovědět partnerovi v době reakce, vyfakturovat měsíc */
+function brPracDniPlus(od, n){ const d = new Date(od + "T12:00:00"); let k = 0; while (k < n) { d.setDate(d.getDate() + 1); const w = d.getDay(); if (w && w !== 6) k++; } return d.toISOString().slice(0, 10); }
+HN_UKOLY_EXT.push(dnes => {
+  const u = [];
+  brPartneri().forEach(o => {
+    brPartnerZakazky(o).forEach(x => {
+      if (x.z.status !== "nabídka" || x.z.nabVystaveno || !x.z.id) return;
+      const zal = brZalozeno(x.z); if (!zal) return;
+      const do_ = brPracDniPlus(zal, +o.reakce || 0);
+      u.push({id:x.z.id, typ:"partner-reakce", datum:do_, zbyva:hnDnyMezi(dnes, do_), text:"Poslat nabídku partnerovi " + o.nazev + " — " + (x.z.nazev || "zakázka"), pozn:"rámcová smlouva: reakce do " + o.reakce + " prac. dnů",
+        akce:"<span class='hint'>zmizí po vystavení nabídky</span>"});
+    });
+    if (o.fakturace !== "mesic") return;
+    const mes1 = dnes.slice(0, 8) + "01", k = brPartnerKFakturaci(o, mes1); if (!k.length) return;
+    const do_ = dnes.slice(0, 8) + "10";
+    u.push({id:"firma", typ:"partner-faktura", datum:do_, zbyva:hnDnyMezi(dnes, do_), text:"Vyfakturovat partnerovi " + o.nazev + " souhrnně za minulý měsíc", pozn:k.length + " " + (k.length === 1 ? "zakázka" : k.length < 5 ? "zakázky" : "zakázek") + " bez faktury",
+      akce:"<button type='button' class='b prim' data-brpar='faktura' data-id='" + o.id + "'>🧾 Vyfakturovat</button>"});
+  });
+  return u;
+});
+function brPartnerDoVyklizeni(){
+  const o = brPartner(VK.odberatelId); if (!o) return;
+  VK.partner = true;
+  if (o.klientId && !VK.klientId) { const k = (S.klienti || []).find(x => x.id === o.klientId); VK.klientId = o.klientId; if (k) { VK.klient = VK.klient || k.jmeno; } }
+  if (!VK.zdroj) VK.zdroj = "Stálá firma";
+}
+function brPartnerSelectVk(v){
+  const list = brPartneri(); if (!list.length) return "";
+  return "<label class='f'>Partner (rámcová smlouva)<select data-vks='odberatelId'><option value=''>— není —</option>" + list.map(o => "<option value='" + esc(o.id) + "'" + (o.id === v.odberatelId ? " selected" : "") + ">" + esc(o.nazev) + "</option>").join("") + "</select><span class='hint'>partnerská marže a jeho splatnost na faktuře</span></label>";
+}
+if (typeof document !== "undefined" && document.addEventListener) {
+  document.addEventListener("click", e => {
+    const b = e.target.closest && e.target.closest("[data-brpar]"); if (!b) return;
+    const o = brPartner(b.dataset.id); if (!o) return;
+    const a = b.dataset.brpar;
+    if (a === "upravit") { brPartnerEdit = brPartnerEdit === o.id ? "" : o.id; brRenderPartneri(); }
+    else if (a === "zavrit") { brPartnerEdit = ""; renderOdberatele(); }
+    else if (a === "smlouva") {
+      if (!o.od) { o.od = faDnes(); save(); }
+      smlTiskni(brRamcovaHTML(o), "Rámcová smlouva " + o.cislo + " — " + o.nazev);
+    }
+    else if (a === "faktura") { const f = brPartnerFaktura(o); if (f) faOtevri(f); }
+  });
+  const zmena = e => {
+    const t = e.target; if (!t.dataset || !t.dataset.brpp) return;
+    const box = t.closest("[data-brparid]"), o = box && brPartner(box.dataset.brparid); if (!o) return;
+    const k = t.dataset.brpp;
+    o[k] = ["reakce", "splatnost", "objem"].includes(k) ? Math.max(0, +t.value || 0) : t.value;
+    save();
+    if (e.type === "change" && (k === "nazev" || k === "fakturace")) fillOdberatelSelect();
+  };
+  document.addEventListener("input", zmena);
+  document.addEventListener("change", zmena);
+  const jo = typeof document.getElementById === "function" ? document.getElementById("jOdberatel") : null;
+  if (jo) jo.addEventListener("change", () => {
+    const o = brPartner(J.odberatelId); if (!o) return;
+    if (o.klientId && !J.klientId) { J.klientId = o.klientId; if (typeof fillKlientSelect === "function") fillKlientSelect(); }
+    if (J.cenik !== "b2b") { const c = document.getElementById("jCenik"); if (c) c.value = "b2b"; prepniCenik("b2b"); if (typeof recalc === "function") recalc(); }
+  });
+}
+
 /* ================= ROADMAPA — co řeší velké firmy =================
    Samostatná záložka: seznam věcí, na kterých velké demoliční, dopravní a odpadové firmy dělají marži
    (nebo se chrání před ztrátou), rozdělený do fází. Nic z toho zatím není naprogramované v kalkulaci —
@@ -16938,7 +17191,10 @@ const RM_HOTOVO = {
     kde:"<b>📅 Plán → 🚐 Plán jízd a kilometry</b>. Adresa základny se vyplní z firmy, jde přepsat."},
   "obch-cac":{datum:"2026-09-26",
     co:"Karta <b>Zdroje zakázek</b> počítá za zvolené období (3, 6, 12 měsíců nebo celou historii) po kanálech: poptávky, vyhrané a úspěšnost, tržbu, zisk — u demolic i vyklízení — a <b>náklad kanálu</b>. Z něj <b>Kč za poptávku, Kč za vyhranou zakázku a zisk na vloženou korunu</b> s verdiktem (vydělává — přidat / drží se / prodělává — omezit / srovnávači cen / zadarmo — pěstovat). Náklad se bere ze skutečných výdajů „Marketing a reklama“ s názvem kanálu v dodavateli či popisu, jinak z nastaveného měsíčního paušálu a poplatku za poptávku. Nové zakázky si pamatují datum poptávky.",
-    kde:"Přehled firmy → <b>Zdroje zakázek — který kanál vydělává</b>; náklady v rozbalení <b>Náklady kanálů</b> pod tabulkou."}
+    kde:"Přehled firmy → <b>Zdroje zakázek — který kanál vydělává</b>; náklady v rozbalení <b>Náklady kanálů</b> pod tabulkou."},
+  "obch-ramcove":{datum:"2026-09-26",
+    co:"Stálí odběratelé jsou teď <b>partneři s rámcovou smlouvou</b>: typ (realitka, správce/SVJ, developer, stavební firma), firma z adresáře, číslo a platnost smlouvy, <b>doba reakce</b>, <b>splatnost</b>, fakturace po zakázce nebo <b>souhrnně za měsíc</b> a očekávaný objem. U každého obrat, marže a <b>platební morálka</b> za 12 měsíců (průměrné zpoždění, kolik dluží). 📝 vytiskne <b>rámcovou smlouvu</b> s partnerským ceníkem (příloha č. 1) — partnerské ceny jen při včasném placení, bez zádržného a započtení, 1 200 Kč za upomínání, výpověď 1 měsíc; pro partnera pevné ceny potvrzených zakázek, pojištění a lhůty. Souhrnná měsíční faktura jedním klikem; v Plánu úkoly „poslat nabídku partnerovi v době reakce“ a „vyfakturovat měsíc“. Výběr partnera v kalkulaci přepne B2B ceník, ve vyklízení partnerskou marži; faktura dostane jeho splatnost.",
+    kde:"Přehled firmy → <b>🤝 Partneři a rámcové smlouvy</b>; výběr partnera v Kalkulaci (Stálý odběratel) a ve Vyklízení; úkoly v <b>📅 Plánu</b>. Smlouvu nechte jednou zkontrolovat advokátem."}
 };
 const rmHotova = x => !!RM_HOTOVO[x.id];
 const RM_JIZ = [
@@ -17054,7 +17310,7 @@ const NAPOVEDA = [
   ["h2:kalkulace:Zakázka", "Zakázka", "Hlavička zakázky: kdo, kde, kdy a za jakých podmínek. Z údajů se tiskne nabídka a faktura, termín se propíše do Plánu, zdroj do Přehledu firmy. <b>Uložit</b> zakázku najdeš dole — bez uložení se nedá fakturovat ani vyhodnocovat."],
   ["#jKlientId", "Klient z adresáře", "Vyber klienta z adresáře (Přehled firmy → Adresář klientů) — doplní se jméno, adresa a údaje na fakturu. U nového klienta stačí vyplnit jméno níž, do adresáře ho přidáš později. <b>🔍 Prověřit klienta</b> ukáže stav firmy v ARES (insolvence, zánik, stáří), historii plateb u vás a doporučenou zálohu."],
   ["#jZdroj", "Zdroj zakázky", "Odkud poptávka přišla (portál, doporučení, web, realitka…). Je povinný, protože z něj Přehled firmy počítá, <b>který kanál přináší zakázky a zisk</b> — a kam tedy dávat peníze a čas na marketing."],
-  ["#jOdberatel", "Stálý odběratel (B2B)", "Firma, se kterou spolupracujete pravidelně (stavební firma, správce). Jen stálým odběratelům je povolený B2B ceník (o 10 % levnější). Spravují se v Přehledu firmy → Stálí odběratelé."],
+  ["#jOdberatel", "Stálý odběratel (B2B)", "Firma, se kterou spolupracujete pravidelně (stavební firma, správce). Jen stálým odběratelům je povolený B2B ceník (o 10 % levnější). Spravují se v Přehledu firmy → 🤝 Partneři a rámcové smlouvy. Po výběru partnera se ceník přepne na B2B a faktura dostane jeho splatnost."],
   ["#jCenik", "Ceník B2C / B2B", "<b>B2C</b> = koncový zákazník (plné ceny). <b>B2B</b> = subdodávka pro firmu, ceny o 10 % nižší, protože firma přináší objem a méně starostí. B2B dávej jen stálým odběratelům — jinak zbytečně slevuješ."],
   ["#jDph", "Režim DPH", "<b>Neplátce</b>: k ceně se nic nepřičítá, cena je konečná (dokud nejste plátci). <b>12 %</b>: stavební práce na bydlení (byt do 120 m², RD do 350 m²). <b>21 %</b>: ostatní. <b>Reverse charge §92e</b>: stavební práce pro plátce DPH — fakturuješ bez daně, odvede ji odběratel. DPH není tvůj příjem, jen ho přeposíláš státu."],
   ["#jPatro", "Podlaží", "Patro, kde se bourá. Hlavně ovlivňuje <b>vynášku suti</b> — každé patro po schodech přidá čas na každou cestu. 0 = přízemí."],
@@ -17199,7 +17455,7 @@ const NAPOVEDA = [
   ["h2:prehled:🎯 Přesnost odhadů v čase", "Přesnost odhadů v čase", "Jak přesně odhadujete hodiny, po měsících. 100 % = skutečnost přesně podle plánu. Když se přesnost drží nad 85 %, můžete nacenit těsněji a vyhrát víc zakázek bez rizika."],
   ["h2:prehled:Adresář klientů", "Adresář klientů", "Klienti s kontakty a údaji na fakturu (IČO, DIČ). Při zakládání zakázky je vybereš a údaje se doplní. Tlačítko doplní adresář z uložených zakázek."],
   ["h2:prehled:Nářadí a revize", "Nářadí a revize", "Evidence nářadí a termíny revizí elektrického nářadí — povinnost, na kterou se zapomíná, a bez revize neplatí pojištění při úrazu."],
-  ["h2:prehled:Stálí odběratelé", "Stálí odběratelé", "Firmy, kterým je povolený B2B ceník (o 10 % levnější). Jen těm, kdo přinášejí pravidelný objem."],
+  ["h2:prehled:🤝 Partneři a rámcové smlouvy", "Partneři a rámcové smlouvy", "Firmy s pravidelným objemem — jen jim B2B ceník. U každého vidíš obrat, marži a jak platí (průměrné zpoždění, kolik dluží). ✏️ nastaví dobu reakce, splatnost a měsíční fakturaci; 📝 vytiskne rámcovou smlouvu s partnerským ceníkem (nechte ji jednou zkontrolovat advokátem). Kdo platí pozdě, bere si od vás úvěr — smlouva dovolí mu pak účtovat běžné ceny."],
   ["h2:prehled:Peníze na cestě", "Peníze na cestě", "Nezaplacené zálohy a doplatky se splatností. Co je po splatnosti, urgovat hned — upomínky jsou ve Fakturách."],
   ["h2:prehled:Proč prohráváme nabídky", "Proč prohráváme", "Důvody zamítnutých nabídek a o kolik byl levnější ten, kdo zakázku vzal. Když je to pořád cena, nabídka neumí vysvětlit hodnotu — ne vždy je řešení zlevnit."],
   ["h2:prehled:Růstový přehled", "Růstový přehled", "Pět čísel na každý týden: úspěšnost nabídek, vytížení, zisk na hodinu, peníze na cestě a nejlepší kanál — s cílem a radou, co dělat."],
