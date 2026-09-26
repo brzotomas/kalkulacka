@@ -574,6 +574,9 @@ details.gsec li{margin:3px 0}
 .br-verdikt.brat{background:var(--good-bg);border-color:var(--good)}
 .br-verdikt.drazsi{background:var(--warn-bg);border-color:var(--warn-line);color:var(--warn-ink)}
 .br-verdikt.odmitnout{background:var(--bad-bg);border-color:var(--bad)}
+.br-dia-tab input{width:70px}
+.br-dia-tab select{max-width:150px}
+.br-dia-rozm{white-space:nowrap}
 
 
 /* roadmapa */
@@ -872,6 +875,12 @@ body.zamceno{overflow:hidden}
       &nbsp;×&nbsp;tloušťka&nbsp;<input id="pvCm" type="number" min="0" step="any" placeholder="cm" style="width:64px;border:1px solid var(--line);border-radius:6px;padding:4px 6px;background:var(--ground);color:var(--ink);text-align:right"> cm
       &nbsp;=&nbsp;<b id="pvM3">—</b>&nbsp;m³
     </div>
+  </div>
+
+  <div class="card" id="brDiaCard">
+    <h2>💎 Řezání a vrtání diamantem</h2>
+    <div id="brDia"></div>
+    <div class="btnrow"><button class="b" id="brDiaRez">+ Řez</button><button class="b" id="brDiaVrt">+ Jádrový vrt</button></div>
   </div>
 
   <div class="card">
@@ -1526,6 +1535,23 @@ body.zamceno{overflow:hidden}
       <label class="f">Vyklízení<select data-hn="odpadRoleVyklizeni" data-txt="1"><option value="puvodce">Původce — věci přechází předáním na nás</option><option value="dopravce">Dopravce — vozíme odpad klienta</option><option value="nevime">Zatím neověřeno</option></select><span class="hint">věta o převodu věcí je v nabídce vyklízení</span></label>
       <label class="f">Ověřeno s odpadovým poradcem dne<input type="date" data-hn="odpadRoleOvereno" data-txt="1"><span class="hint">dokud je prázdné, visí úkol v Plánu</span></label>
       <label class="f">Ohlášení dopravce odpadů podáno dne<input type="date" data-hn="odpadDopravceOhlaseno" data-txt="1"><span class="hint">jen když vozíte cizí odpad (role Dopravce)</span></label>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>💎 Diamantové řezání a vrtání — sazby</h2>
+    <p class="hint" style="margin:0 0 10px">Sazby pro železobeton. Beton prostý se počítá za 80 % ceny a 75 % času, cihelné zdivo za 45 % ceny i času; opotřebení nástroje v betonu 60 %, v cihle 30 %.</p>
+    <div class="grid g3">
+      <label class="f">Řez: cena za bm a cm tloušťky (Kč)<input type="number" min="0" step="1" data-hn="diaRezKc"><span class="hint">15 cm × 78 Kč = 1 170 Kč za metr</span></label>
+      <label class="f">Řez: čas za bm a cm tloušťky (h)<input type="number" min="0" step="0.005" data-hn="diaRezHod"></label>
+      <label class="f">Kotouč: cena (Kč)<input type="number" min="0" step="100" data-hn="diaKotoucKc"></label>
+      <label class="f">Kotouč: životnost v železobetonu (m² řezu)<input type="number" min="0" step="1" data-hn="diaKotoucM2"></label>
+      <label class="f">Vrt: cena za cm hloubky při Ø 100 mm (Kč)<input type="number" min="0" step="1" data-hn="diaVrtKc"><span class="hint">větší průměr úměrně dráž</span></label>
+      <label class="f">Vrt: rychlost při Ø 100 mm (cm/h)<input type="number" min="1" step="5" data-hn="diaVrtCmH"></label>
+      <label class="f">Korunka Ø 100 mm: cena (Kč)<input type="number" min="0" step="100" data-hn="diaKorunkaKc"></label>
+      <label class="f">Korunka: životnost v železobetonu (cm)<input type="number" min="1" step="50" data-hn="diaKorunkaCm"></label>
+      <label class="f">Vrt: nejnižší cena za kus (Kč)<input type="number" min="0" step="50" data-hn="diaVrtMin"></label>
+      <label class="f">Vrt: příprava a ukotvení (h na kus)<input type="number" min="0" step="0.05" data-hn="diaVrtPriprava"></label>
     </div>
   </div>
 
@@ -4734,9 +4760,10 @@ function slevaSlozky(){
 function slevaPct(){return slevaSlozky().reduce((a,x)=>a+x.pct,0);}
 function vypocet(){
   const n=S.nastaveni;
-  const prace=J.prace.reduce((a,r)=>a+(r.mnozstvi||0)*(r.cena||0),0)*prirKoef();
+  const dia=typeof brDiamant==="function"?brDiamant(J):{P:0,N:0,hod:0,radky:[]};
+  const prace=(J.prace.reduce((a,r)=>a+(r.mnozstvi||0)*(r.cena||0),0)+dia.P)*prirKoef();
   const kv=n.koefVykon>0?n.koefVykon:1;
-  const hodinyPrace=J.prace.reduce((a,r)=>a+(r.mnozstvi||0)*(r.hod||0),0)*kv;
+  const hodinyPrace=(J.prace.reduce((a,r)=>a+(r.mnozstvi||0)*(r.hod||0),0)+dia.hod)*kv;
   const sut=sutCelkem();
   const odp=odpadRozpis(sut);
   const vyn=vynaskaVypocet(sut);
@@ -4772,7 +4799,7 @@ function vypocet(){
   const slevaP=slevaPct();
   const sleva=mezisoucet*slevaP/100;
   const trzba=mezisoucet-sleva+viceprace;
-  const naklady=matN+kontN+sklN+dopravaN+provize+najatiN+ostN+zaborN;
+  const naklady=matN+kontN+sklN+dopravaN+provize+najatiN+ostN+zaborN+dia.N;
   const zisk=trzba-naklady;
   const sazba=J.dph==="12"?0.12:J.dph==="21"?0.21:0;
   const dph=trzba*sazba;
@@ -4781,7 +4808,7 @@ function vypocet(){
   const majitele=Math.max(1,lide-(J.najati||0));
   const zaloha=J.zalohaCastka||0, doplatek=J.doplatekCastka||0;
   const neuhrazeno=(J.zalohaZaplaceno?0:zaloha)+(J.doplatekZaplaceno?0:doplatek);
-  return {zabor:zab,zaborP,zaborN,odp,prace,hodiny,hodinyPrace,hodinyVP,vynaskaHod,vyn,sut,rezerva,vynaska,vikend,expres,matP,matN,kontP,kontN,sklN,sklP,
+  return {dia,zabor:zab,zaborP,zaborN,odp,prace,hodiny,hodinyPrace,hodinyVP,vynaskaHod,vyn,sut,rezerva,vynaska,vikend,expres,matP,matN,kontP,kontN,sklN,sklP,
     dopravaN,dopravaP,ostP,ostN,provize,najatiN,dny,mezisoucet,sleva,slevaP,slevaSlozky:slevaSlozky(),viceprace,vicepraceCeka,trzba,naklady,zisk,
     ziskBezRezervy:zisk-rezerva,dph,dphInfo,celkem,majitele,sazba,zaloha,doplatek,neuhrazeno};
 }
@@ -4833,6 +4860,7 @@ function recalc(){
   if(typeof hnRenderPojisteni==="function")hnRenderPojisteni();
   if(typeof renderBrPrh==="function")renderBrPrh(v);
   if(typeof renderBrBid==="function")renderBrBid();
+  if(typeof renderBrDia==="function"&&!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest("#brDia")))renderBrDia();
   $("#dopravaHint").textContent=(J.dopravaUctovat&&(J.km||0)>0)?
     "klientovi "+kc(v.dopravaP)+" = max("+(J.km||0)+" km × "+fmt0.format(n.kmProdej)+" Kč; paušál "+fmt0.format(n.pausal)+"), náklad "+kc(v.dopravaN):
     ((J.km||0)>0?"náklad "+kc(v.dopravaN)+" (neúčtuje se)":"");
@@ -5480,7 +5508,7 @@ function sablonaPouzit(){
 /* ========== přenos zakázky textem (kód DK1|…) ========== */
 const ZAK_POLE=["nazev","klient","adresa","poznamka","zdroj","cenik","dph","patro","vytah","vytahNaSut",
   "vzdalenost","rucniNoseni","lide","najati","kmDopravce","dnyKontejneru","skladkovne","rezerva","provize",
-  "sleva","slevaDuvod","prirazka","platbaPredem","nabidnoutPredem","odpadModel","trideni","poplatky","zabor","zaborM2","zaborDny","zaborSazba","followup","smlouva","prohlidka","povoleni","bid",
+  "sleva","slevaDuvod","prirazka","platbaPredem","nabidnoutPredem","odpadModel","trideni","poplatky","zabor","zaborM2","zaborDny","zaborSazba","followup","smlouva","prohlidka","povoleni","bid","diamant",
   "km","dopravaUctovat","vikend","expres","terminOd","terminDo","prace","material","ostatni","kontejnery","odpady"];
 function zakDoTextu(z){
   const o={};
@@ -7507,6 +7535,7 @@ $("#protokol").addEventListener("click",()=>{
   J.prace.filter(r=>r.nazev&&(r.mnozstvi||0)>0).forEach(r=>{
     rows+="<tr><td>"+esc(r.nazev)+"</td><td class='r'>"+fmt1.format(r.mnozstvi)+" "+esc(r.mj)+"</td></tr>";
   });
+  (v.dia?v.dia.radky:[]).forEach(r=>{rows+="<tr><td>"+esc(r.popis)+"</td><td class='r'>"+fmt1.format(r.mnozstvi)+" "+r.mj+"</td></tr>"});
   J.viceprace.filter(r=>r.stav==="odsouhlaseno"&&r.nazev).forEach(r=>{
     rows+="<tr><td>Vícepráce: "+esc(r.nazev)+"</td><td class='r'>odsouhlaseno "+(r.datum?new Date(r.datum).toLocaleDateString("cs-CZ"):"")+"</td></tr>";
   });
@@ -7853,6 +7882,7 @@ $("#tisk").addEventListener("click",()=>{
   J.prace.filter(r=>r.nazev&&(r.mnozstvi||0)>0).forEach(r=>{
     rows+="<tr><td>"+esc(r.nazev)+"</td><td class='r'>"+fmt1.format(r.mnozstvi)+" "+esc(r.mj)+"</td><td class='r'>"+kc(cenaMJ(r))+"</td><td class='r'>"+kc(r.mnozstvi*cenaMJ(r))+"</td></tr>";
   });
+  (v.dia?v.dia.radky:[]).forEach(r=>{rows+="<tr><td>"+esc(r.popis)+"</td><td class='r'>"+fmt1.format(r.mnozstvi)+" "+r.mj+"</td><td class='r'>"+kc(r.cenaMJ*prirKoef())+"</td><td class='r'>"+kc(r.celkem*prirKoef())+"</td></tr>"});
   if(v.vynaska)rows+="<tr><td>Vynáška a přesun suti"+(J.patro?" ("+J.patro+". podlaží"+(v.vyn.vytahOK?" s výtahem":" po schodech")+")":"")+"</td><td class='r'>"+fmt1.format(v.sut.t)+" t</td><td class='r'>"+kc(v.vyn.cenaT)+"</td><td class='r'>"+kc(v.vynaska)+"</td></tr>";
   if(v.rezerva)rows+="<tr><td>Rezerva na skryté konstrukce ("+J.rezerva+" %)</td><td class='r'></td><td class='r'></td><td class='r'>"+kc(v.rezerva)+"</td></tr>";
   if(v.vikend)rows+="<tr><td>Příplatek za práci o víkendu / svátku</td><td class='r'></td><td class='r'></td><td class='r'>"+kc(v.vikend)+"</td></tr>";
@@ -7898,6 +7928,7 @@ $("#kopieNabidky").addEventListener("click",()=>{
   L.push("Vystaveno: "+new Date().toLocaleDateString("cs-CZ")+" · platnost do "+hnPlatnostText(J));
   L.push("——————————————");
   J.prace.filter(r=>r.nazev&&(r.mnozstvi||0)>0).forEach(r=>L.push("• "+r.nazev+": "+fmt1.format(r.mnozstvi)+" "+r.mj+" × "+fmt0.format(r.cena)+" Kč = "+kc(r.mnozstvi*r.cena)));
+  (v.dia?v.dia.radky:[]).forEach(r=>L.push("• "+r.popis+": "+fmt1.format(r.mnozstvi)+" "+r.mj+" × "+fmt0.format(r.cenaMJ*prirKoef())+" Kč = "+kc(r.celkem*prirKoef())));
   if(v.vynaska)L.push("• Vynáška a přesun suti: "+fmt1.format(v.sut.t)+" t × "+fmt0.format(v.vyn.cenaT)+" Kč/t = "+kc(v.vynaska));
   if(v.rezerva)L.push("• Rezerva na skryté konstrukce ("+J.rezerva+" %): "+kc(v.rezerva));
   if(v.vikend)L.push("• Příplatek za práci o víkendu / svátku: "+kc(v.vikend));
@@ -8860,6 +8891,7 @@ function faKonceptZeZakazky(z, typ){
     const puvodniJ2 = J; J = z; const c = cenaMJ(r); J = puvodniJ2;   /* interní přirážka v jednotkové ceně */
     P(r.nazev, r.mnozstvi, r.mj, c);
   });
+  { const puvJ = J; J = z; const kP = prirKoef(); J = puvJ; (v.dia ? v.dia.radky : []).forEach(r => P(r.popis, r.mnozstvi, r.mj, r.cenaMJ * kP)); }
   if (v.vynaska) P("Vynáška a přesun suti (" + t + ")", 1, "kpl", v.vynaska);
   if (v.rezerva) P("Rezerva na skryté konstrukce", 1, "kpl", v.rezerva);
   if (v.vikend)  P("Příplatek za práci o víkendu / svátku", 1, "kpl", v.vikend);
@@ -14373,7 +14405,7 @@ function ekVstupDemolice(z, e){
   const cestaH = (+z.km || 0) / (e.rychlostCesty || 50) * Math.max(1, z.lide || 1);
   const parta = ekPartaDemolice(z);
   return {v, inp:{trzba:v.trzba, osH:v.hodiny + cestaH, cestaH, lide:z.lide || 1, parta, naradiH:ekNaradiH(e, "demolice"),
-    prime:[["Materiál (nákup)", v.matN], ["Kontejnery (nákup)", v.kontN], ["Skládkovné", v.sklN], ["Auto a doprava " + (z.km || 0) + " km", v.dopravaN], ["Provize", v.provize], ["Zábor veřejného prostranství", v.zaborN || 0], ["Vlastní položky", v.ostN]].filter(x => x[1])}};
+    prime:[["Materiál (nákup)", v.matN], ["Kontejnery (nákup)", v.kontN], ["Skládkovné", v.sklN], ["Auto a doprava " + (z.km || 0) + " km", v.dopravaN], ["Provize", v.provize], ["Zábor veřejného prostranství", v.zaborN || 0], ["Opotřebení kotoučů a korunek", v.dia ? v.dia.N : 0], ["Vlastní položky", v.ostN]].filter(x => x[1])}};
 }
 function ekVstupVyklizeni(z, r, e){
   const hod = z.uctovani === "hodina", poloz = z.uctovani === "polozky", n = r.naklady;
@@ -15777,6 +15809,77 @@ if (typeof document !== "undefined" && document.addEventListener) {
   });
 }
 
+/* ---------- Diamantové řezání a jádrové vrtání ----------
+   Řez: bm × tloušťka (cm), vrt: Ø (mm) × hloubka (cm) × ks. Cena a čas podle materiálu, opotřebení kotouče
+   a korunky jde do nákladů (cena nástroje ÷ životnost). Řádky jdou do ceny, nabídky, faktury a protokolu. */
+const BR_DIA_MAT = {zb:{n:"železobeton", cena:1, cas:1, opotr:1}, beton:{n:"beton prostý", cena:0.8, cas:0.75, opotr:0.6}, cihla:{n:"cihelné zdivo", cena:0.45, cas:0.45, opotr:0.3}};
+function brDiaNast(){
+  const n = S.nastaveni || {}, g = (k, d) => n[k] != null && n[k] !== "" ? +n[k] : d;
+  return {rezKc:g("diaRezKc", 78), rezHod:g("diaRezHod", 0.078), kotoucKc:g("diaKotoucKc", 8000), kotoucM2:g("diaKotoucM2", 10),
+    vrtKc:g("diaVrtKc", 40), vrtCmH:g("diaVrtCmH", 120), korunkaKc:g("diaKorunkaKc", 4500), korunkaCm:g("diaKorunkaCm", 800), vrtMin:g("diaVrtMin", 600), vrtPriprava:g("diaVrtPriprava", 0.25)};
+}
+function brDiamant(z){
+  z = z || J; const s = brDiaNast(), radky = [];
+  let P = 0, N = 0, hod = 0;
+  (z.diamant || []).forEach(r => {
+    const m = BR_DIA_MAT[r.mat] || BR_DIA_MAT.zb;
+    if (r.typ === "vrt") {
+      const d = +r.prumer || 0, hl = +r.hloubka || 0, ks = Math.max(0, +r.ks || 0); if (!(d > 0 && hl > 0 && ks > 0)) return;
+      const cenaMJ = Math.max(s.vrtMin, s.vrtKc * (d / 100) * m.cena * hl);
+      const h = ks * (s.vrtPriprava + hl * (d / 100) / Math.max(1, s.vrtCmH) * m.cas);
+      const opotr = ks * hl * (s.korunkaKc * d / 100) / Math.max(1, s.korunkaCm) * m.opotr;
+      radky.push({popis:"Jádrové vrtání — " + m.n + ", Ø " + fmt0.format(d) + " mm, hloubka " + fmt0.format(hl) + " cm", mnozstvi:ks, mj:"ks", cenaMJ, celkem:cenaMJ * ks, hod:h, opotr});
+      P += cenaMJ * ks; hod += h; N += opotr;
+    } else {
+      const bm = +r.delka || 0, tl = +r.tloustka || 0; if (!(bm > 0 && tl > 0)) return;
+      const cenaMJ = s.rezKc * m.cena * tl, h = bm * tl * s.rezHod * m.cas, opotr = bm * tl / 100 * s.kotoucKc / Math.max(0.1, s.kotoucM2) * m.opotr;
+      radky.push({popis:"Diamantové řezání — " + m.n + ", tloušťka " + fmt0.format(tl) + " cm", mnozstvi:bm, mj:"bm", cenaMJ, celkem:cenaMJ * bm, hod:h, opotr});
+      P += cenaMJ * bm; hod += h; N += opotr;
+    }
+  });
+  return {P, N, hod, radky};
+}
+function renderBrDia(){
+  const el = $("#brDia"); if (!el) return;
+  const rows = J.diamant || [], x = brDiamant(J), k = typeof prirKoef === "function" ? prirKoef() : 1;
+  const mat = r => "<select data-brdia='mat' data-ix='" + r.ix + "'>" + Object.keys(BR_DIA_MAT).map(m => "<option value='" + m + "'" + ((r.r.mat || "zb") === m ? " selected" : "") + ">" + BR_DIA_MAT[m].n + "</option>").join("") + "</select>";
+  const pole = (r, key, ph, step) => "<input type='number' min='0' step='" + (step || 1) + "' data-brdia='" + key + "' data-ix='" + r.ix + "' value='" + (r.r[key] || "") + "' placeholder='" + ph + "'>";
+  el.innerHTML = rows.length ? "<div class='tscroll'><table class='odp-tab br-dia-tab'><thead><tr><th>Druh</th><th>Materiál</th><th>Rozměr</th><th class='r'>Cena</th><th class='r'>Čas</th><th></th></tr></thead><tbody>" +
+    rows.map((r, ix) => {
+      const o = {r, ix}, rad = x.radky[ix];
+      return "<tr><td>" + (r.typ === "vrt" ? "🕳 Vrt" : "💎 Řez") + "</td><td>" + mat(o) + "</td><td class='br-dia-rozm'>" +
+        (r.typ === "vrt" ? "Ø " + pole(o, "prumer", "mm", 10) + " mm × " + pole(o, "hloubka", "cm") + " cm × " + pole(o, "ks", "ks") + " ks" : pole(o, "delka", "bm", 0.1) + " bm × " + pole(o, "tloustka", "cm") + " cm") +
+        "</td><td class='r'>" + (rad ? kc(rad.celkem * k) : "—") + "</td><td class='r'>" + (rad ? fmt1.format(rad.hod) + " h" : "") + "</td><td><button type='button' class='mini' data-brdiadel='" + ix + "'>✕</button></td></tr>";
+    }).join("") + "</tbody></table></div><p class='hint' style='margin:6px 0 0'>Celkem <b>" + kc(x.P * k) + "</b>, " + fmt1.format(x.hod) + " h práce · opotřebení kotoučů a korunek " + kc(x.N) + " jde do nákladů.</p>"
+    : "<p class='hint' style='margin:0'>Otvory a prostupy řezané diamantem: řez se počítá podle délky a tloušťky, vrt podle průměru, hloubky a počtu. Opotřebení nástroje se započítá samo.</p>";
+}
+if (typeof document !== "undefined" && document.addEventListener) {
+  document.addEventListener("click", e => {
+    if (e.target.id === "brDiaRez" || e.target.id === "brDiaVrt") {
+      if (!Array.isArray(J.diamant)) J.diamant = [];
+      J.diamant.push(e.target.id === "brDiaVrt" ? {typ:"vrt", mat:"zb", prumer:100, hloubka:"", ks:1} : {typ:"rez", mat:"zb", delka:"", tloustka:""});
+      renderBrDia(); recalc(); save(); return;
+    }
+    const d = e.target.closest && e.target.closest("[data-brdiadel]");
+    if (d) { J.diamant.splice(+d.dataset.brdiadel, 1); renderBrDia(); recalc(); save(); }
+  });
+  const zmena = e => {
+    const el = e.target.closest && e.target.closest("[data-brdia]"); if (!el) return;
+    const r = (J.diamant || [])[+el.dataset.ix]; if (!r) return;
+    r[el.dataset.brdia] = el.dataset.brdia === "mat" ? el.value : (el.value === "" ? "" : num(el.value));
+    recalc(); save();
+    /* přepsat jen ceny a čas, ne pole (aby nezmizel kurzor) */
+    const x = brDiamant(J), k = prirKoef(), tr = el.closest("tr"), rad = x.radky[+el.dataset.ix];
+    if (tr) { tr.children[3].textContent = rad ? kc(rad.celkem * k) : "—"; tr.children[4].textContent = rad ? fmt1.format(rad.hod) + " h" : ""; }
+    const p = $("#brDia .hint"); if (p) p.innerHTML = "Celkem <b>" + kc(x.P * k) + "</b>, " + fmt1.format(x.hod) + " h práce · opotřebení kotoučů a korunek " + kc(x.N) + " jde do nákladů.";
+  };
+  document.addEventListener("input", zmena);
+  document.addEventListener("change", e => { if (e.target.closest && e.target.closest("select[data-brdia]")) zmena(e); });
+}
+
+(function(){ const n = S.nastaveni; if (!n) return; const d = {diaRezKc:78, diaRezHod:0.078, diaKotoucKc:8000, diaKotoucM2:10, diaVrtKc:40, diaVrtCmH:120, diaKorunkaKc:4500, diaKorunkaCm:800, diaVrtMin:600, diaVrtPriprava:0.25};
+  Object.keys(d).forEach(k => { if (n[k] == null) n[k] = d[k]; }); })();
+
 /* ================= ROADMAPA — co řeší velké firmy =================
    Samostatná záložka: seznam věcí, na kterých velké demoliční, dopravní a odpadové firmy dělají marži
    (nebo se chrání před ztrátou), rozdělený do fází. Nic z toho zatím není naprogramované v kalkulaci —
@@ -16142,7 +16245,10 @@ const RM_HOTOVO = {
     kde:"Kalkulace → Prohlídka a rizika → <b>Povolení a souhlasy</b>; úkoly v <b>📅 Plánu</b>."},
   "nac-bid":{datum:"2026-09-26",
     co:"Karta <b>🎯 Brát, nebo nebrat?</b>: šest otázek k poptávce (vzdálenost, klient, kolik firem poptává, vytížení, typ práce, přinese další práci) a k tomu, co kalkulačka už ví — <b>zisk na hodinu</b> proti minimu, klient v insolvenci z prověření, vážné riziko z prohlídky. Výsledek se skóre a důvody: <b>brát</b>, <b>nacenit dráž</b> (tlačítko nastaví interní přirážku +15 %), nebo <b>slušně odmítnout</b> (tlačítko zkopíruje text odmítnutí ze Zpráv).",
-    kde:"Kalkulace → karta <b>🎯 Brát, nebo nebrat?</b> nad Prohlídkou a riziky."}
+    kde:"Kalkulace → karta <b>🎯 Brát, nebo nebrat?</b> nad Prohlídkou a riziky."},
+  "nac-diamant":{datum:"2026-09-26",
+    co:"Karta <b>💎 Řezání a vrtání diamantem</b>: <b>řez</b> podle délky (bm) × tloušťky (cm) a <b>jádrový vrt</b> podle průměru × hloubky × kusů, pro železobeton, beton i cihlu (cihla 45 % ceny a času). U každého řádku cena a čas; <b>opotřebení kotoučů a korunek</b> (cena nástroje ÷ životnost) jde samo do nákladů a do skutečného zisku. Řádky se propíšou do nabídky, textu nabídky, faktury i předávacího protokolu. Sazby vychází z vašeho ceníku (řez ŽB 15 cm ≈ 1 170 Kč/m) a jdou upravit.",
+    kde:"Kalkulace → karta <b>💎 Řezání a vrtání diamantem</b> pod Bouracími pracemi (+ Řez, + Jádrový vrt). Sazby v Ceník a nastavení → <b>💎 Diamantové řezání a vrtání — sazby</b>."}
 };
 const rmHotova = x => !!RM_HOTOVO[x.id];
 const RM_JIZ = [
@@ -16269,6 +16375,7 @@ const NAPOVEDA = [
   ["h2:kalkulace:🎯 Brát, nebo nebrat?", "Brát, nebo nebrat?", "Než začneš nacenovat, klepni šest odpovědí k poptávce. Kalkulačka k nim přidá zisk na hodinu, prověření klienta a rizika z prohlídky a řekne: <b>brát</b>, <b>nacenit dráž</b> (jedním klikem interní přirážka), nebo <b>slušně odmítnout</b> (text jedním klikem). Nacenění stojí hodinu — dávej ji zakázkám, které za to stojí."],
   ["h2:kalkulace:🔎 Prohlídka a rizika", "Prohlídka a rizika", "Projdi na prohlídce otázky a klepni odpovědi. Kalkulačka nastaví výtah a zábor, upozorní na rizika (stoupačky, azbest, nosné bez posudku), spočítá <b>rizika v Kč a doporučenou rezervu</b> místo paušálu a připraví <b>seznam povolení</b> — nesplněné se před začátkem prací objeví jako úkoly v Plánu. Druhé klepnutí odpověď zruší."],
   ["h2:kalkulace:Bourací práce", "Bourací práce", "Seznam prací z ceníku. Začni psát do vyhledávání (otvor, příčka, beton, omítka…) a klikni na položku, pak zadej množství. U položky vidíš <b>Kč/h</b> (kolik ta práce vydělá za hodinu) a <b>★ až ★★★★★</b> — fyzickou dřinu a neoblíbenost práce (u dřiny je v ceně +10 až +30 %). Pod tabulkou je přepočet m² × tloušťka → m³ pro objemové položky. Nosné konstrukce jen se statickým posudkem od objednatele."],
+  ["h2:kalkulace:💎 Řezání a vrtání diamantem", "Řezání a vrtání diamantem", "Otvory a prostupy řezané diamantem. <b>Řez</b> se počítá podle délky a tloušťky, <b>jádrový vrt</b> podle průměru, hloubky a počtu kusů — v betonu a cihle levněji než v železobetonu. Opotřebení kotoučů a korunek se započítá do nákladů samo, řádky se objeví v nabídce i na faktuře."],
   ["h2:kalkulace:Odvoz suti a likvidace", "Odvoz suti a likvidace", "Kolik suti vznikne (z norem u každé práce), <b>jakého druhu</b> a v kolika kontejnerech ji odvezete. Čistá suť (beton, cihly, keramika) stojí na likvidaci zlomek ceny směsi (sádrokarton, izolace, PVC, dřevo) — kalkulačka porovná „tříděně vs. nevytříděně“ i s kontejnery a vybere levnější. Kovy jdou do výkupu. Vyber <b>dopravce</b> — nákupní ceny kontejnerů se spočítají z jeho paušálu, km a dní na stavbě. „Navrhnout podle suti“ navrhne kontejnery s rezervou místa (suť se nedá skládat jako kostky). Prodejní cena kontejneru je tvoje marže na odvozu."],
   ["#jDopravce", "Dopravce", "Firma, která přistaví a odveze kontejner. Jejich ceny zadáš v Nastavení → Dopravci. Nejlevnější dopravce se mění podle vzdálenosti a počtu dní — porovnání v Nastavení počítá pro konkrétní zakázku."],
   ["#jKmDopravce", "Vzdálenost dopravce → stavba", "Km od dopravce ke stavbě. Dopravci účtují dopravu kontejneru podle km — proto může být vzdálenější dopravce s levnějšími km výhodnější na dlouhé trasy."],
