@@ -1464,6 +1464,11 @@ body.zamceno{overflow:hidden}
       <label class="f">Sazba za vyřízení (Kč/h)<input type="number" min="0" step="50" data-hn="zaborHodSazba"><span class="hint">klient ji platí jako službu</span></label>
       <label class="f">Žádost podat předem (dní)<input type="number" min="0" step="1" data-hn="zaborPredstih"><span class="hint">úkol v Plánu se ukáže s tímhle předstihem</span></label>
     </div>
+    <div class="vybg" style="margin:14px 0 6px;font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent)">Prodlení s platbou</div>
+    <div class="grid g3" id="hnProdleniPole">
+      <label class="f">Repo sazba ČNB (%)<input type="number" min="0" step="0.05" data-hn="repoSazba"><span class="hint" id="hnUrokHint">úrok z prodlení = repo + 8 p. b. ročně · aktualizuj 1. 1. a 1. 7. (sazba k poslednímu dni předchozího pololetí)</span></label>
+      <div class="f" style="justify-content:flex-end"><span>&nbsp;</span><label class="chk"><input type="checkbox" data-hn="prodleniNaFakture"> Věta o úroku z prodlení na fakturách</label></div>
+    </div>
   </div>
 
   <div class="card">
@@ -9310,6 +9315,7 @@ function faPoznamkyText(f){
     : "Částku " + faKc(-f.kUhrade) + " vrátíme na účet, ze kterého byla platba odeslána.");
   if (f.storno && f.storno.duvod) t.push("Stornováno dokladem č. " + (f.storno.cislo || "—") + ": " + f.storno.duvod);
   if (faZpusob(f) === "prevod" && f.kUhrade > 0 && f.typ !== "storno" && f.stav !== "stornovana" && f.stav !== "zaplacena") t.push("Při platbě prosím uveďte variabilní symbol " + faVS(f.cislo) + ". Děkujeme za spolupráci.");
+  if (typeof hnProdleniVeta === "function") { const pv = hnProdleniVeta(f); if (pv) t.push(pv); }
   if (faZpusob(f) === "hotove" && f.stav === "zaplacena") t.push("Uhrazeno v hotovosti dne " + faDatum(f.zaplaceno) + ".");
   return t;
 }
@@ -10125,13 +10131,21 @@ function faTextUpominky(f, poradi){
       ". Pravděpodobně jen zapadla — pokud jste už platili, děkuji a tuto zprávu prosím ignorujte." + nl + nl + platba;
   } else if (poradi === 2) {
     predmet = "2. upomínka — faktura č. " + f.cislo;
+    const pr = typeof hnProdleni === "function" ? hnProdleni(f) : null;
     telo = "faktura č. " + f.cislo + " na " + castka + " je " + dni + " dní po splatnosti a platbu zatím neevidujeme. " +
-      "Prosím o úhradu do 7 dnů. Kdyby byl s platbou jakýkoliv problém, ozvěte se a domluvíme se." + nl + nl + platba;
+      "Prosím o úhradu do 7 dnů." +
+      (pr && pr.urok >= 1 ? " Od splatnosti běží zákonný úrok z prodlení " + fmt1.format(pr.sazba) + " % ročně — k dnešnímu dni " + faKc(pr.urok) + "." : "") +
+      (pr && pr.firma ? " Podle nařízení vlády č. 351/2013 Sb. vám jako podnikateli náleží k úhradě také náklady spojené s uplatněním pohledávky 1 200 Kč." : "") +
+      (pr && (pr.urok >= 1 || pr.firma) ? " Když jistinu uhradíte v této lhůtě, úrok ani náklady účtovat nebudeme." : "") +
+      " Kdyby byl s platbou jakýkoliv problém, ozvěte se a domluvíme se — třeba na splátkách." + nl + nl + platba;
   } else {
     predmet = "Poslední upomínka — faktura č. " + f.cislo;
-    telo = "přes předchozí upomínky zůstává faktura č. " + f.cislo + " na " + castka + " nezaplacená už " + dni + " dní. " +
-      "Prosím o úhradu nejpozději do 7 dnů. Po této lhůtě budeme nuceni uplatnit zákonný úrok z prodlení podle nařízení vlády " +
-      "č. 351/2013 Sb. a pohledávku předat k dalšímu vymáhání." + nl + nl + platba;
+    const pr = typeof hnProdleni === "function" ? hnProdleni(f) : null;
+    telo = "přes předchozí upomínky zůstává faktura č. " + f.cislo + " nezaplacená už " + dni + " dní." + (pr ? " K dnešnímu dni dlužíte:" + nl +
+      "• jistina: " + castka + nl + "• zákonný úrok z prodlení (" + fmt1.format(pr.sazba) + " % ročně za " + pr.dni + " dní): " + faKc(pr.urok) +
+      (pr.naklady ? nl + "• náklady spojené s uplatněním pohledávky (nařízení vlády č. 351/2013 Sb.): " + faKc(pr.naklady) : "") + nl + "• celkem: " + faKc(pr.celkem) : " Dlužná částka je " + castka + ".") + nl + nl +
+      "Prosím o úhradu nejpozději do 7 dnů. Po této lhůtě podáme bez dalšího upozornění návrh na vydání elektronického platebního rozkazu — soudní poplatek a náklady řízení pak ponesete vy a úrok poběží dál." + nl + nl +
+      (pr ? platba.replace("Částka: " + castka, "Částka: " + faKc(pr.celkem)) : platba);
   }
   return {predmet:predmet + " — " + (d.znacka || d.firma), text:"Dobrý den," + nl + nl + telo + nl + nl + "Faktura je znovu v příloze." + nl + nl + "Děkuji" + nl + podpis};
 }
@@ -14584,6 +14598,8 @@ function hnedVychozi(){
   if (n.zaborHod == null) n.zaborHod = 1.5;
   if (n.zaborHodSazba == null) n.zaborHodSazba = 450;
   if (n.zaborPredstih == null) n.zaborPredstih = 7;
+  if (n.repoSazba == null) n.repoSazba = 3.75;
+  if (n.prodleniNaFakture == null) n.prodleniNaFakture = true;
 }
 function odpNast(){
   const n = S.nastaveni || {};
@@ -14949,6 +14965,28 @@ if (typeof document !== "undefined" && document.addEventListener) {
     J[el.dataset.hnj] = el.value === "" ? "" : num(el.value); recalc(); save();
   });
 }
+
+/* ---------- 7) Úrok z prodlení a 1 200 Kč za uplatnění pohledávky ----------
+   Nařízení vlády č. 351/2013 Sb.: úrok z prodlení = repo sazba ČNB (k poslednímu dni předchozího pololetí) + 8 p. b. ročně;
+   mezi podnikateli navíc náklady spojené s uplatněním každé pohledávky nejméně 1 200 Kč. Věta na nových fakturách,
+   upomínky počítají úrok ke dni odeslání. */
+const HN_PRODLENI_OD = "2026-09-26";   /* věta se tiskne jen na fakturách vystavených od zavedení — starší doklady se nemění */
+function hnUrokSazba(){ const n = S.nastaveni || {}; return (n.repoSazba != null ? +n.repoSazba : 3.75) + 8; }
+function hnProdleni(f, datum){
+  const dnes = datum || faDnes(), jistina = Math.max(0, faZbyva(f));
+  const dni = f.splatnost ? Math.max(0, Math.round((new Date(dnes + "T12:00:00") - new Date(f.splatnost + "T12:00:00")) / 864e5)) : 0;
+  const sazba = hnUrokSazba(), urok = Math.round(jistina * sazba / 100 * dni / 365);
+  const firma = !!(f.odberatel && String(f.odberatel.ico || "").trim());
+  const naklady = firma && dni > 0 ? 1200 : 0;
+  return {jistina, dni, sazba, urok, firma, naklady, celkem:jistina + urok + naklady};
+}
+function hnProdleniVeta(f){
+  const n = S.nastaveni || {};
+  if (n.prodleniNaFakture === false || f.typ === "storno" || !(f.kUhrade > 0) || f.stav === "zaplacena" || String(f.vystaveno || "") < HN_PRODLENI_OD) return "";
+  const firma = !!(f.odberatel && String(f.odberatel.ico || "").trim());
+  return "Při prodlení s úhradou účtujeme zákonný úrok z prodlení podle nařízení vlády č. 351/2013 Sb." + (firma ? " a náklady spojené s uplatněním pohledávky 1 200 Kč." : "");
+}
+
 /* ---------- Úkoly v Plánu: zábor + připomínání nabídek (follow-up) ----------
    6) Follow-up: otevřená nabídka (demolice i vyklízení) se připomene 2., 7. a 14. den od vystavení.
    V Plánu je „komu dnes napsat“ s hotovým textem, zápisem „napsáno“ a odložením; pod tím všechny nabídky, které čekají na odpověď. */
@@ -15403,7 +15441,10 @@ const RM_HOTOVO = {
     kde:"Kalkulace → <b>Odvoz suti a likvidace</b> (pod tabulkou druhů odpadu). Výchozí sazby v Nastavení → Podmínky nabídky a poplatky → Zábor veřejného prostranství. Úkoly: záložka <b>Plán</b> nahoře."},
   "obch-followup":{datum:"2026-09-26",
     co:"Každá otevřená nabídka (demolice i vyklízení) se připomene <b>2., 7. a 14. den</b> od vystavení. V Plánu je „komu dnes napsat“: tlačítko <b>📋 Text</b> zkopíruje hotovou zprávu vyplněnou názvem a cenou zakázky, <b>✓ Napsáno</b> zapíše krok a posune na další termín, <b>Za 3 dny</b> odloží. Pod tím přehled <b>📨 Nabídky čekají na odpověď</b> — kolik dní, kolikrát připomenuto, kdy příště. Počet úkolů svítí u záložky Plán. Tři nové texty jsou ve Zprávách (2a, 2b, 2c) a jdou přepsat; poslední se zeptá, co rozhodlo — podklad pro „Proč prohráváme“.",
-    kde:"Záložka <b>📅 Plán</b> nahoře (Úkoly a Nabídky čekají na odpověď), texty v <b>✉ Zprávy</b> hned za „Odeslání nabídky“. Počítá se od tisku nebo kopie nabídky, u starších zakázek od uložení."}
+    kde:"Záložka <b>📅 Plán</b> nahoře (Úkoly a Nabídky čekají na odpověď), texty v <b>✉ Zprávy</b> hned za „Odeslání nabídky“. Počítá se od tisku nebo kopie nabídky, u starších zakázek od uložení."},
+  "pen-prodleni":{datum:"2026-09-26",
+    co:"Nové faktury mají větu o <b>zákonném úroku z prodlení</b> (nařízení vlády č. 351/2013 Sb.), u firem i o <b>nákladech 1 200 Kč</b> za uplatnění pohledávky. <b>2. upomínka</b> spočítá úrok ke dni odeslání (repo sazba ČNB + 8 p. b., teď 11,75 % ročně), firmě připomene 1 200 Kč a nabídne, že při zaplacení jistiny do 7 dnů se úrok ani náklady účtovat nebudou — to lidi rozhýbe nejvíc. <b>Poslední upomínka</b> vyčíslí jistinu, úrok, náklady a celkem a oznámí návrh na elektronický platební rozkaz. U spotřebitele jen úrok. Starší vystavené faktury se nemění.",
+    kde:"Faktury a daně → otevřená faktura → upomínky. Repo sazba a zapnutí věty v Nastavení → <b>📄 Podmínky nabídky a poplatky → Prodlení s platbou</b> (sazbu aktualizuj 1. 1. a 1. 7.)."}
 };
 const rmHotova = x => !!RM_HOTOVO[x.id];
 const RM_JIZ = [
@@ -15684,6 +15725,8 @@ const NAPOVEDA = [
   ["[data-hn='zaborSpravni']", "Správní poplatek", "Poplatek úřadu za povolení zvláštního užívání komunikace (kontejner na silnici nebo chodníku). Výši zjisti na úřadě, kde žádáš — jde do nákladů i do ceny."],
   ["[data-hn='zaborHod']", "Čas na vyřízení", "Kolik hodin stojí zábor vyřídit: žádost, cesta na úřad, značení. Klient ho platí jako službu podle sazby vedle."],
   ["[data-hn='zaborPredstih']", "Předstih žádosti", "Kolik dní před začátkem prací máš žádost podat. Úkol v Plánu se ukáže s tímhle termínem — obce obvykle chtějí ohlášení aspoň týden předem."],
+  ["[data-hn='repoSazba']", "Repo sazba ČNB", "Z ní se počítá zákonný úrok z prodlení: repo sazba + 8 procentních bodů ročně. Pro prodlení v pololetí platí sazba k poslednímu dni předchozího pololetí — přepiš ji 1. 1. a 1. 7. (najdeš na cnb.cz). Upomínky pak spočítají úrok samy."],
+  ["[data-hn='prodleniNaFakture']", "Věta o prodlení na faktuře", "Na nové faktury se přidá věta, že při prodlení účtujete zákonný úrok z prodlení a u firem i 1 200 Kč za uplatnění pohledávky. Klient to ví předem — a firmy platí dřív."],
   ["h2:cenik:Prahy rentability", "Prahy rentability", "Pod jaká čísla nejít: minimální zisk na osobu a hodinu (pod ním varování a tlačítko Dorovnat přes interní přirážku), minimální denní tržba party, minimální cena zakázky. K tomu prodejní sazba dopravy, paušál výjezdu, příplatky a <b>koeficient výkonu party</b>."],
   ["#nMinZisk", "Minimální zisk na osobu a hodinu", "Pod touto hodinovkou kalkulace zčervená a nabídne „Dorovnat“ — zvedne interní přirážku tak, aby zakázka držela minimum."],
   ["#nKoefVykon", "Koeficient výkonu party", "1,0 = pracujete rychlostí norem RTS; 1,3 = o 30 % pomaleji (na začátku normální). Násobí odhad hodin a dní. Po 5 zakázkách ho spočítá Přehled firmy z reálných dat."],
