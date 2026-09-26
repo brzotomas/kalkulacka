@@ -1,0 +1,20 @@
+Founder OS — ověření online verze, 25. 9. 2026
+
+Rozsah změny: pouze nové soubory founder/ a tests/ v repozitáři brzotomas/kalkulacka.
+Základ pro publikaci: aktuální main 059e1ae6bf6c26936b7fdcf82b9cdee2011e7d0f.
+Původní soubory kalkulačky nejsou součástí změny.
+
+Frontend: 70 úspěšných testů, 0 chyb.
+Backend: 5 úspěšných testů proti SQLite, 0 chyb.
+Izolační kontrola plánovaných hodin používá aktuální index.html z origin/main, pouze ke čtení.
+Ověřeno: ochrana původního localStorage, souběžné zápisy, zpožděné čtení při uložení,
+rozepsané formuláře během obnovení, náhled bez zápisu a záloha neúspěšného uložení.
+
+Samostatný backend: nasazení succeeded; skutečné API ověřilo CORS, přístup majitele,
+přístup náhledu, společnou databázi a zákaz zápisu náhledem.
+Při ověření se uložila pouze výchozí struktura s neznámými finančními údaji.
+Do produkce nebyly vloženy smyšlené zakázky ani finanční výsledky.
+
+Přenos kalkulačky vyžaduje otevřenou aktivní stránku a výslovné připojení v dané relaci.
+Novější evidence vyklízení zatím není namapovaná; neúplné firemní souhrny se neprezentují jako úplné.
+
