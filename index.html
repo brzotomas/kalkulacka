@@ -800,6 +800,7 @@ body.zamceno{overflow:hidden}
     <div id="dmProjekt" hidden></div>
     <div id="hnPlatnost" hidden></div>
     <div id="hnRiziko" class="hn-platnost ne" hidden></div>
+    <div id="hnPojist" class="hn-platnost" hidden></div>
     <div class="grid g2">
       <label class="f">Název zakázky<input id="jNazev" placeholder="např. Byt 3+1 Zábřeh – vybourání"></label>
       <label class="f">Klient z adresáře<select id="jKlientId"></select><span class="hint">spravuje se v Přehledu firmy · <button type="button" class="hn-odkaz" id="hnProveritBtn">🔍 Prověřit klienta</button></span></label>
@@ -1477,6 +1478,23 @@ body.zamceno{overflow:hidden}
     <div class="grid g3" id="hnProdleniPole">
       <label class="f">Repo sazba ČNB (%)<input type="number" min="0" step="0.05" data-hn="repoSazba"><span class="hint" id="hnUrokHint">úrok z prodlení = repo + 8 p. b. ročně · aktualizuj 1. 1. a 1. 7. (sazba k poslednímu dni předchozího pololetí)</span></label>
       <div class="f" style="justify-content:flex-end"><span>&nbsp;</span><label class="chk"><input type="checkbox" data-hn="prodleniNaFakture"> Věta o úroku z prodlení na fakturách</label></div>
+    </div>
+    <div class="vybg" style="margin:14px 0 6px;font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent)">🛡 Pojištění odpovědnosti</div>
+    <div class="grid g3" id="hnPojistPole">
+      <label class="f">Pojišťovna<input data-hn="pojPojistovna" data-txt="1" placeholder="např. Kooperativa"></label>
+      <label class="f">Číslo pojistné smlouvy<input data-hn="pojCislo" data-txt="1"></label>
+      <label class="f">Platí do<input type="date" data-hn="pojPlatnostDo" data-txt="1"><span class="hint">3 týdny předem se ukáže úkol v Plánu</span></label>
+      <label class="f">Limit pojistného plnění (Kč)<input type="number" min="0" step="100000" data-hn="pojLimit"><span class="hint">u bourání jader a nosných zdí aspoň miliony</span></label>
+      <label class="f">Spoluúčast (Kč)<input type="number" min="0" step="1000" data-hn="pojSpoluucast"></label>
+      <label class="f">Výluky a poznámky<input data-hn="pojVyluky" data-txt="1" placeholder="např. azbest, vibrace, převzaté věci"></label>
+      <div class="f" style="justify-content:flex-end"><span>&nbsp;</span><label class="chk"><input type="checkbox" data-hn="pojVNabidce"> Uvést pojištění v nabídce (buduje důvěru)</label></div>
+    </div>
+    <div class="vybg" style="margin:14px 0 6px;font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent)">♻️ Naše role u odpadu</div>
+    <div class="grid g3" id="hnOdpadRolePole">
+      <label class="f">Demolice<select data-hn="odpadRoleDemolice" data-txt="1"><option value="puvodce">Původce — odpad z našich prací je náš</option><option value="nevime">Zatím neověřeno</option></select><span class="hint">zhotovitel stavebních prací bývá původcem odpadu</span></label>
+      <label class="f">Vyklízení<select data-hn="odpadRoleVyklizeni" data-txt="1"><option value="puvodce">Původce — věci přechází předáním na nás</option><option value="dopravce">Dopravce — vozíme odpad klienta</option><option value="nevime">Zatím neověřeno</option></select><span class="hint">věta o převodu věcí je v nabídce vyklízení</span></label>
+      <label class="f">Ověřeno s odpadovým poradcem dne<input type="date" data-hn="odpadRoleOvereno" data-txt="1"><span class="hint">dokud je prázdné, visí úkol v Plánu</span></label>
+      <label class="f">Ohlášení dopravce odpadů podáno dne<input type="date" data-hn="odpadDopravceOhlaseno" data-txt="1"><span class="hint">jen když vozíte cizí odpad (role Dopravce)</span></label>
     </div>
   </div>
 
@@ -4781,6 +4799,7 @@ function recalc(){
   if(typeof hnRenderPlatnost==="function")hnRenderPlatnost();
   if(typeof hnRenderZabor==="function")hnRenderZabor();
   if(typeof hnRenderRiziko==="function")hnRenderRiziko();
+  if(typeof hnRenderPojisteni==="function")hnRenderPojisteni();
   $("#dopravaHint").textContent=(J.dopravaUctovat&&(J.km||0)>0)?
     "klientovi "+kc(v.dopravaP)+" = max("+(J.km||0)+" km × "+fmt0.format(n.kmProdej)+" Kč; paušál "+fmt0.format(n.pausal)+"), náklad "+kc(v.dopravaN):
     ((J.km||0)>0?"náklad "+kc(v.dopravaN)+" (neúčtuje se)":"");
@@ -7769,6 +7788,7 @@ function klauzule(){
   if(maNosne())k.push("Statické posouzení, projektovou dokumentaci a případné povolení zajišťuje objednatel. Bourání proběhne až po předání statického posudku.");
   k.push("Platební podmínky: záloha "+n.zaloha+" % před zahájením, doplatek se splatností 14 dní od předání.");
   if(typeof hnedPodminky==="function")hnedPodminky().forEach(x=>k.push(x));
+  if(typeof hnKlauzuleDemolice==="function")hnKlauzuleDemolice().forEach(x=>k.push(x));
   k.push("Nabídka platí do "+hnPlatnostText(J)+" ("+hnPlatnostDni()+" dní od vystavení).");
   if(J.dph==="rc")k.push("Daň odvede zákazník (přenesená daňová povinnost dle § 92e zákona o DPH).");
   if(J.dph==="ne")k.push("Dodavatel není plátcem DPH.");
@@ -12287,6 +12307,7 @@ function vykPrepocet(){
   const r = vykVypocet();
   if (r.ok && typeof hnKontrolaPlatnosti === "function") hnKontrolaPlatnosti(VK, "vyklizeni").forEach(w => r.varovani.push(w));
   if (r.ok && typeof hnRizikoKlienta === "function") hnRizikoKlienta(VK).forEach(w => r.varovani.push(w));
+  if (r.ok && typeof hnRoleOdpadu === "function" && hnRoleOdpadu().vyklizeni === "dopravce" && !hnRoleOdpadu().dopravceOhlaseno && vykSluzbaId(VK) !== "vynaska") r.varovani.push("Vozíte odpad klienta jako dopravce — bez ohlášení činnosti krajskému úřadu hrozí pokuta (Nastavení → Naše role u odpadu).");
   if (r.ok && r.viceprace.ceka.length) r.varovani.push("Vícepráce za " + kc(r.viceprace.kcCeka) + " čekají na odsouhlasení — do ceny se nepočítají, dokud je klient neodsouhlasí (tlačítko „Dodatek k odsouhlasení“).");
   const ph = $("#vkPrirazkaHint");
   if (ph) ph.textContent = !(+VK.prirazkaInt) ? "0 = ekonomická cena podle cílové marže. Klient přirážku nikde neuvidí."
@@ -14611,6 +14632,9 @@ function hnedVychozi(){
   if (n.zaborPredstih == null) n.zaborPredstih = 7;
   if (n.repoSazba == null) n.repoSazba = 3.75;
   if (n.prodleniNaFakture == null) n.prodleniNaFakture = true;
+  if (n.pojVNabidce == null) n.pojVNabidce = true;
+  if (n.odpadRoleDemolice == null) n.odpadRoleDemolice = "puvodce";
+  if (n.odpadRoleVyklizeni == null) n.odpadRoleVyklizeni = "puvodce";
 }
 function odpNast(){
   const n = S.nastaveni || {};
@@ -14780,6 +14804,7 @@ function hnedPodminky(){
   const n = S.nastaveni || {}, z = +n.zmarenyVyjezd || 0, c = +n.cekani15 || 0, tol = +n.cekaniTolerance || 0, k = [];
   if (z > 0) k.push("Zmařený výjezd — pracoviště nepřipravené k zahájení prací (nezpřístupněné, bez klíčů, bez souhlasu správce nebo nevyklizené, i když mělo být) — účtujeme paušálem " + kc(z) + ".");
   if (c > 0) k.push("Čekání na zpřístupnění pracoviště " + (tol > 0 ? "nad " + tol + " minut " : "") + "účtujeme " + kc(c) + " za každých započatých 15 minut.");
+  if (typeof hnPojisteniVeta === "function" && hnPojisteniVeta()) k.push(hnPojisteniVeta());
   if (n.valorizaceZapnuto !== false) k.push("Ceny platí pro realizaci v době platnosti nabídky. Uskuteční-li se práce později a ceny likvidace odpadu, pohonných hmot nebo kontejnerů mezitím prokazatelně vzrostou o více než " + (+n.valorizacePct || 0) + " %, můžeme cenu upravit o tento nárůst. Úpravu předem písemně oznámíme i s doložením; když s ní nebudete souhlasit, můžete od smlouvy bez jakékoliv sankce odstoupit.");
   return k;
 }
@@ -15107,6 +15132,68 @@ if (typeof document !== "undefined" && document.addEventListener) {
   document.addEventListener("keydown", e => { const m = document.getElementById("hnProvModal"); if (e.key === "Escape" && m && !m.hidden) m.hidden = true; });
 }
 
+
+/* ---------- 10) Pojištění odpovědnosti ----------
+   Údaje o pojistce v Nastavení, věta v nabídce (buduje důvěru) a varování u rizikových prací: bytové jádro a sanita
+   (stoupačky — zatopení bytů pod vámi), nosné konstrukce, stropy, azbest. */
+function hnPojisteni(){
+  const n = S.nastaveni || {};
+  return {pojistovna:String(n.pojPojistovna || "").trim(), cislo:String(n.pojCislo || "").trim(), limit:+n.pojLimit || 0, spoluucast:+n.pojSpoluucast || 0,
+    platnostDo:n.pojPlatnostDo || "", vyluky:String(n.pojVyluky || "").trim(), vNabidce:n.pojVNabidce !== false};
+}
+function hnPojisteniVeta(){
+  const p = hnPojisteni();
+  if (!p.vNabidce || !p.pojistovna || !(p.limit > 0) || (p.platnostDo && p.platnostDo < faDnes())) return "";
+  return "Jsme pojištěni pro případ škody způsobené při práci" + " (" + p.pojistovna + ", limit pojistného plnění " + kc(p.limit) + ").";
+}
+function hnRizikovePrace(z){
+  const t = (z.prace || []).filter(r => (r.mnozstvi || 0) > 0).map(r => bezDiakritiky(r.nazev || "")), rizika = [];
+  if (t.some(x => /jadro|sanit|vany|wc|umyvad|radiator/.test(x))) rizika.push("bytové jádro a rozvody (stoupačky — zatopení bytů pod vámi)");
+  if ((typeof maNosne === "function" && z === J && maNosne()) || t.some(x => /nosn|zdiva nadzakladov|pilir|pilíř|preklad|nosnik/.test(x))) rizika.push("nosné konstrukce a překlady");
+  if (t.some(x => /strop|klenb|schodist/.test(x))) rizika.push("stropy, klenby a schodiště");
+  if (/azbest|eternit/.test(bezDiakritiky((z.poznamka || "") + " " + (z.nazev || "")))) rizika.push("možný azbest");
+  return rizika;
+}
+function hnPojisteniVarovani(z){
+  if (!z || ["hotovo", "zamítnuto"].includes(z.status)) return [];
+  const rizika = hnRizikovePrace(z); if (!rizika.length) return [];
+  const p = hnPojisteni(), w = [];
+  if (!p.pojistovna || !(p.limit > 0)) w.push("Rizikové práce (" + rizika.join(", ") + ") a v Nastavení chybí pojištění odpovědnosti — zkontroluj pojistku dřív, než začneš.");
+  else {
+    if (p.platnostDo && (z.terminOd || faDnes()) > p.platnostDo) w.push("Pojistka platí jen do " + hnDatumCz(p.platnostDo) + " — zakázka je později. Prodluž ji.");
+    if (p.limit < 1000000) w.push("Rizikové práce (" + rizika.join(", ") + ") a limit pojištění jen " + kc(p.limit) + " — zatopení tří bytů umí stát víc. Zvaž vyšší limit.");
+    if (p.vyluky && rizika.some(r => /azbest/.test(r)) && /azbest/i.test(p.vyluky)) w.push("Pojistka má ve výlukách azbest — práci s azbestem nedělej sám, jen přes oprávněnou firmu.");
+    if (!w.length) w.push("Rizikové práce (" + rizika.join(", ") + ") — kryto pojištěním " + p.pojistovna + " do " + kc(p.limit) + (p.spoluucast ? ", spoluúčast " + kc(p.spoluucast) : "") + ". Před bouráním nafoť stav stoupaček a sousedních prostor.");
+  }
+  return w;
+}
+
+/* ---------- 11) Role u odpadu: původce, nebo dopravce ----------
+   Demolice: stavební odpad z našich prací vzniká nám — jsme jeho původce. Vyklízení: věci na nás přecházejí předáním
+   (věta je v nabídce), takže odpad z nich je náš a vezeme vlastní odpad. Kdo by vozil cizí odpad pro cizí potřebu,
+   je dopravce odpadů a musí to ohlásit krajskému úřadu. Jednorázově ověřit s odpadovým poradcem — do té doby úkol v Plánu. */
+function hnRoleOdpadu(){
+  const n = S.nastaveni || {};
+  return {demolice:n.odpadRoleDemolice || "puvodce", vyklizeni:n.odpadRoleVyklizeni || "puvodce", overeno:n.odpadRoleOvereno || "", dopravceOhlaseno:n.odpadDopravceOhlaseno || ""};
+}
+function hnKlauzuleDemolice(){
+  const r = hnRoleOdpadu();
+  return r.demolice === "puvodce" ? ["Stavební a demoliční odpad vzniklý při našich pracích převezmeme jako jeho původce a předáme do oprávněného zařízení; na požádání doložíme potvrzení o předání."] : [];
+}
+
+function hnRenderPojisteni(){
+  const el = $("#hnPojist"); if (!el) return;
+  const w = hnPojisteniVarovani(J), ok = w.length === 1 && /^Rizikové práce .* — kryto/.test(w[0]);
+  el.hidden = !w.length; el.className = "hn-platnost" + (ok ? "" : " ne");
+  el.innerHTML = w.length ? "<b>🛡 Pojištění</b><ul>" + w.map(x => "<li>" + esc(x) + "</li>").join("") + "</ul>" : "";
+}
+function hnFiremniUkoly(){
+  const u = [], dnes = faDnes(), role = hnRoleOdpadu(), p = hnPojisteni();
+  if (!role.overeno) u.push({id:"firma", typ:"odpad-role", datum:dnes, zbyva:0, text:"Ověřit s odpadovým poradcem naši roli u odpadu (původce, nebo dopravce)", pozn:"jednorázově — pak v Nastavení zapiš výsledek a datum"});
+  if (role.vyklizeni === "dopravce" && !role.dopravceOhlaseno) u.push({id:"firma", typ:"dopravce", datum:dnes, zbyva:0, text:"Ohlásit krajskému úřadu činnost dopravce odpadů", pozn:"vozíte odpad klientů — bez ohlášení hrozí pokuta; datum ohlášení zapiš v Nastavení"});
+  if (p.platnostDo) { const d = faPlusDni(p.platnostDo, -21), z = hnDnyMezi(dnes, d); if (z <= 14) u.push({id:"firma", typ:"pojisteni", datum:d, zbyva:z, text:"Prodloužit pojištění odpovědnosti (" + (p.pojistovna || "pojistka") + ")", pozn:"platí do " + hnDatumCz(p.platnostDo) + " — nové datum zapiš v Nastavení"}); }
+  return u;
+}
 /* ---------- Úkoly v Plánu: zábor + připomínání nabídek (follow-up) ----------
    6) Follow-up: otevřená nabídka (demolice i vyklízení) se připomene 2., 7. a 14. den od vystavení.
    V Plánu je „komu dnes napsat“ s hotovým textem, zápisem „napsáno“ a odložením; pod tím všechny nabídky, které čekají na odpověď. */
@@ -15156,6 +15243,7 @@ function hnUkoly(){
     const do_ = faPlusDni(z.terminOd, -predstih), zbyva = hnDnyMezi(dnes, do_);
     u.push({id:z.id || "", typ:"zabor", datum:do_, zbyva, text:"Podat žádost o zábor pro kontejner — " + (z.nazev || "zakázka") + (z.adresa ? ", " + z.adresa : ""), pozn:"práce od " + hnDatumCz(z.terminOd)});
   });
+  hnFiremniUkoly().forEach(x => u.push(x));
   hnNabidkyOtevrene().forEach(x => {
     if (!x.termin || x.termin > dnes) return;
     u.push({id:x.z.id, druh:x.druh, typ:"followup", datum:x.termin, zbyva:hnDnyMezi(dnes, x.termin),
@@ -15179,6 +15267,7 @@ function hnRenderUkoly(){
       (x.zbyva < 0 ? "<span class='ne'>" + (x.typ === "followup" ? "mělo být " + hnPred(-x.zbyva) : "zmeškáno o " + hnDni(-x.zbyva)) + "</span>" : x.zbyva === 0 ? "<b>dnes</b>" : "za " + hnDni(x.zbyva)) + "</div></div>" +
       "<div class='hn-uk-akce'>" + (x.typ === "followup"
         ? "<button type='button' class='b' data-hnfu='text' data-hnid='" + esc(x.id) + "' data-hndruh='" + x.druh + "'>📋 Text</button><button type='button' class='b prim' data-hnfu='napsano' data-hnid='" + esc(x.id) + "' data-hndruh='" + x.druh + "'>✓ Napsáno</button><button type='button' class='b' data-hnfu='odlozit' data-hnid='" + esc(x.id) + "' data-hndruh='" + x.druh + "'>Za 3 dny</button>"
+        : x.id === "firma" ? (x.typ === "odpad-role" ? "<button type='button' class='b' data-hnukol='odpad-role' data-hnid='firma'>✓ Ověřeno</button>" : "<button type='button' class='b' data-hnjdi='cenik'>Otevřít Nastavení</button>")
         : (x.id ? "<button type='button' class='b' data-hnukol='" + x.typ + "' data-hnid='" + esc(x.id) + "'>✓ Hotovo</button>" : "<span class='hint'>ulož zakázku</span>")) + "</div></li>").join("") + "</ul><p class='hint' id='hnUkolyStav' style='margin:6px 0 0'></p></div>";
   if (cek.length) h += "<details class='card hn-cekaji'><summary><h2 style='display:inline'>📨 Nabídky čekají na odpověď <span class='badge'>" + cek.length + "</span></h2></summary><div class='tscroll'><table class='hn-cek-tab'><thead><tr><th>Zakázka</th><th class='r'>Cena</th><th class='r'>Odesláno</th><th>Připomenuto</th><th>Další připomenutí</th></tr></thead><tbody>" +
     cek.map(x => "<tr><td><b>" + esc(x.z.nazev || "Zakázka") + "</b><div class='hint'>" + (x.druh === "vyklizeni" ? "vyklízení" : "demolice") + (x.z.klient ? " · " + esc(x.z.klient) : "") + "</div></td><td class='r'>" + (x.cena > 0 ? kc(x.cena) : "—") + "</td>" +
@@ -15213,7 +15302,10 @@ if (typeof document !== "undefined" && document.addEventListener) {
   document.addEventListener("click", e => {
     const f = e.target.closest && e.target.closest("[data-hnfu]");
     if (f) { hnFollowupAkce(f.dataset.hnfu, f.dataset.hnid, f.dataset.hndruh); return; }
+    const jdi = e.target.closest && e.target.closest("[data-hnjdi]");
+    if (jdi) { const nb = document.querySelector('nav button[data-tab="' + jdi.dataset.hnjdi + '"]'); if (nb) nb.click(); const c = document.getElementById("hnPojistPole"); if (c) setTimeout(() => c.scrollIntoView({block:"center"}), 50); return; }
     const b = e.target.closest && e.target.closest("[data-hnukol]"); if (!b) return;
+    if (b.dataset.hnukol === "odpad-role") { S.nastaveni.odpadRoleOvereno = faDnes(); save(); hnRenderUkoly(); if (typeof hnedFillNastaveni === "function") hnedFillNastaveni(); return; }
     if (b.dataset.hnukol === "zabor") {
       const dnes = faDnes(), z = (S.zakazky || []).find(x => x.id === b.dataset.hnid);
       if (z) z.zaborPodano = dnes; if (J && J.id === b.dataset.hnid) J.zaborPodano = dnes;
@@ -15567,7 +15659,13 @@ const RM_HOTOVO = {
     kde:"Faktury a daně → otevřená faktura → upomínky. Repo sazba a zapnutí věty v Nastavení → <b>📄 Podmínky nabídky a poplatky → Prodlení s platbou</b> (sazbu aktualizuj 1. 1. a 1. 7.)."},
   "pen-proverit":{datum:"2026-09-26",
     co:"Tlačítko <b>🔍 Prověřit klienta</b>: u firmy načte z ARES, jestli existuje, kdy vznikla (mladší než rok = pozor), jestli <b>nezanikla</b>, jestli je v <b>insolvenčním rejstříku</b> a jestli je plátce DPH, a dá odkazy na insolvenční rejstřík, obchodní rejstřík (účetní závěrky), registr plátců DPH (spolehlivost, účty) a ARES. U každého klienta ukáže <b>historii u vás</b> (zakázky, zaplacené faktury, platby pozdě, dluh po splatnosti) a <b>doporučenou zálohu</b> — 100 % při insolvenci nebo dluhu, 50–60 % u nového klienta, běžná u toho, kdo platí včas. Výsledek se uloží k adresáři. Nový klient bez historie a riziková zjištění se ukážou jako upozornění u zakázky.",
-    kde:"Kalkulace → karta Zakázka pod výběrem klienta; Vyklízení → tlačítka u nabídky; Přehled firmy → Adresář klientů (🔍 u řádku). Upozornění: nahoře v kartě Zakázka, ve vyklízení v „Zkontrolovat“."}
+    kde:"Kalkulace → karta Zakázka pod výběrem klienta; Vyklízení → tlačítka u nabídky; Přehled firmy → Adresář klientů (🔍 u řádku). Upozornění: nahoře v kartě Zakázka, ve vyklízení v „Zkontrolovat“."},
+  "riz-pojisteni":{datum:"2026-09-26",
+    co:"Údaje o <b>pojištění odpovědnosti</b> v Nastavení (pojišťovna, číslo smlouvy, limit, spoluúčast, platnost, výluky). Kalkulace pozná <b>rizikové práce</b> — bytové jádro a rozvody (stoupačky), nosné konstrukce a překlady, stropy a schodiště, zmínku o azbestu — a upozorní, když pojištění chybí, limit je pod milionem, pojistka vyprší před zakázkou nebo má azbest ve výlukách. Když je vše v pořádku, jen připomene nafotit stoupačky a sousední prostory. Nabídka demolice i vyklízení může uvést „Jsme pojištěni… limit …“ — klient to vnímá jako jistotu. 3 týdny před koncem pojistky je úkol v Plánu.",
+    kde:"Nastavení → <b>📄 Podmínky nabídky a poplatky → 🛡 Pojištění odpovědnosti</b>. Upozornění: Kalkulace → karta Zakázka nahoře (🛡 Pojištění)."},
+  "riz-dopravce":{datum:"2026-09-26",
+    co:"V Nastavení je <b>naše role u odpadu</b>: u demolic původce (odpad z našich prací je náš), u vyklízení původce — věci na nás přecházejí předáním (věta je v nabídce), nebo dopravce, když vozíte odpad klienta. Nabídka demolice nově říká, že odpad převezmete jako jeho původce a doložíte předání do oprávněného zařízení. Dokud roli neověříte s odpadovým poradcem, visí v Plánu úkol s tlačítkem <b>✓ Ověřeno</b>. Při roli dopravce bez ohlášení krajskému úřadu je úkol a upozornění ve vyklízení.",
+    kde:"Nastavení → <b>📄 Podmínky nabídky a poplatky → ♻️ Naše role u odpadu</b>. Úkol v <b>📅 Plánu</b>. Jednou to proberte s odpadovým poradcem (často zdarma na krajském úřadě nebo u svozové firmy) a zapište datum."}
 };
 const rmHotova = x => !!RM_HOTOVO[x.id];
 const RM_JIZ = [
@@ -15850,6 +15948,12 @@ const NAPOVEDA = [
   ["[data-hn='zaborPredstih']", "Předstih žádosti", "Kolik dní před začátkem prací máš žádost podat. Úkol v Plánu se ukáže s tímhle termínem — obce obvykle chtějí ohlášení aspoň týden předem."],
   ["[data-hn='repoSazba']", "Repo sazba ČNB", "Z ní se počítá zákonný úrok z prodlení: repo sazba + 8 procentních bodů ročně. Pro prodlení v pololetí platí sazba k poslednímu dni předchozího pololetí — přepiš ji 1. 1. a 1. 7. (najdeš na cnb.cz). Upomínky pak spočítají úrok samy."],
   ["[data-hn='prodleniNaFakture']", "Věta o prodlení na faktuře", "Na nové faktury se přidá věta, že při prodlení účtujete zákonný úrok z prodlení a u firem i 1 200 Kč za uplatnění pohledávky. Klient to ví předem — a firmy platí dřív."],
+  ["[data-hn='pojLimit']", "Limit pojištění", "Kolik pojišťovna nejvýš zaplatí za škodu, kterou způsobíte. Při bourání jádra v paneláku může proražená stoupačka zatopit několik bytů — počítej s miliony. Kalkulace upozorní, když je limit u rizikových prací nízký."],
+  ["[data-hn='pojPlatnostDo']", "Platnost pojistky", "Do kdy pojistka platí. Tři týdny předem se v Plánu ukáže úkol ji prodloužit a kalkulace upozorní, když je zakázka až po konci platnosti."],
+  ["[data-hn='pojVyluky']", "Výluky", "Co pojistka nekryje (často azbest, vibrace, věci převzaté do péče, práce na nosných konstrukcích). Přečti si to ve smlouvě — je to nejdůležitější odstavec."],
+  ["[data-hn='pojVNabidce']", "Pojištění v nabídce", "Do nabídky se přidá věta „Jsme pojištěni pro případ škody (pojišťovna, limit)“. Klient vidí, že je v bezpečí — levné firmy tohle napsat nemůžou."],
+  ["[data-hn='odpadRoleDemolice']", "Role u odpadu — demolice", "Zhotovitel stavebních prací bývá původcem odpadu, který při práci vznikne — odpad je váš, vy ho předáte do zařízení a vedete evidenci. Do nabídky se přidá věta, že odpad převezmete jako jeho původce."],
+  ["[data-hn='odpadRoleVyklizeni']", "Role u odpadu — vyklízení", "Když věci podle nabídky přecházejí předáním na vás, odpad z nich je váš a vezete vlastní odpad. Kdo by vozil cizí odpad pro cizí potřebu, je dopravce odpadů a musí činnost ohlásit krajskému úřadu. Ověřte si to jednou s odpadovým poradcem."],
   ["h2:cenik:Prahy rentability", "Prahy rentability", "Pod jaká čísla nejít: minimální zisk na osobu a hodinu (pod ním varování a tlačítko Dorovnat přes interní přirážku), minimální denní tržba party, minimální cena zakázky. K tomu prodejní sazba dopravy, paušál výjezdu, příplatky a <b>koeficient výkonu party</b>."],
   ["#nMinZisk", "Minimální zisk na osobu a hodinu", "Pod touto hodinovkou kalkulace zčervená a nabídne „Dorovnat“ — zvedne interní přirážku tak, aby zakázka držela minimum."],
   ["#nKoefVykon", "Koeficient výkonu party", "1,0 = pracujete rychlostí norem RTS; 1,3 = o 30 % pomaleji (na začátku normální). Násobí odhad hodin a dní. Po 5 zakázkách ho spočítá Přehled firmy z reálných dat."],
