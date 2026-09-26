@@ -1133,6 +1133,10 @@ body.zamceno{overflow:hidden}
   <div class="statgrid" id="planKpi"></div>
   <div id="hnUkoly"></div>
   <div class="card">
+    <h2>🚐 Plán jízd a kilometry</h2>
+    <div id="brJizdy"></div>
+  </div>
+  <div class="card">
     <h2>
       <span style="float:right;text-transform:none;letter-spacing:0">
         <button class="b" id="planPrev" style="padding:3px 10px">←</button>
@@ -7242,6 +7246,7 @@ function renderKalendar(){
 function renderPlan(){
   renderKalendar();
   if(typeof hnRenderUkoly==="function")hnRenderUkoly();
+  if(typeof renderBrJizdy==="function")renderBrJizdy();
   const zak=zakazkyStermin();
   const tb=$("#planTab tbody"); tb.innerHTML="";
   $("#planEmpty").style.display=zak.length?"none":"block";
@@ -16352,6 +16357,84 @@ function renderBrZarVybrane(){
 }
 if (typeof document !== "undefined" && document.addEventListener) document.addEventListener("click", e => { if (e.target.id === "brZarZrusit") { delete J.zarizeniId; recalc(); save(); } });
 
+/* ---------- Prázdné kilometry a plné auto ----------
+   Plán jízd dne: zakázky toho dne (demolice i vyklízení) → nejkratší okruh ze základny přes všechny (OSRM trip)
+   proti jízdám zvlášť; úspora km, Kč a hodin. Měsíční ukazatel: km na zakázku a podíl km s nákladem u vyklízení. */
+function brZakazkyDne(den){
+  const v = [];
+  const pridej = (z, druh) => { const od = z.terminOd, doo = z.terminDo || z.terminOd; if (od && od <= den && den <= doo && z.status !== "zamítnuto" && z.adresa) v.push({z, druh}); };
+  (S.zakazky || []).forEach(z => pridej(z, "demolice"));
+  if (J && J.terminOd && !(S.zakazky || []).some(z => z.id && z.id === J.id)) pridej(J, "demolice");
+  (S.vyklizeni || []).forEach(z => pridej(z, "vyklizeni"));
+  return v;
+}
+async function brPlanJizd(den){
+  const el = $("#brJizdyVysl"); if (!el) return;
+  const n = S.nastaveni || {}, zakl = String(n.zakladna || n.adresaFirmy || "").trim(), zak = brZakazkyDne(den);
+  if (!zakl) { el.innerHTML = "<p class='ne'>Vyplň adresu základny (odkud vyjíždíte).</p>"; return; }
+  if (zak.length < 2) { el.innerHTML = "<p class='hint'>Na " + hnDatumCz(den) + " " + (zak.length ? "je jen jedna zakázka" : "nejsou žádné zakázky s adresou") + " — není co spojovat.</p>"; return; }
+  el.innerHTML = "<p class='hint'>Hledám adresy a počítám trasu…</p>";
+  try {
+    const bodZ = n.zakladnaGps && n.zakladnaGps.adresa === zakl ? n.zakladnaGps : Object.assign(await brGeokod(zakl), {adresa:zakl}); n.zakladnaGps = bodZ;
+    const body = [];
+    for (const x of zak) { const g = x.z.gps && x.z.gps.adresa === x.z.adresa ? x.z.gps : Object.assign(await brGeokod(x.z.adresa), {adresa:x.z.adresa}); x.z.gps = g; body.push(g); }
+    const vse = [bodZ].concat(body), coord = vse.map(p => p.lon.toFixed(5) + "," + p.lat.toFixed(5)).join(";");
+    let okruh = null, zvlast = null, poradi = zak.map((x, i) => i + 1), silnice = true;
+    try {
+      const t = await (await fetch("https://router.project-osrm.org/trip/v1/driving/" + coord + "?source=first&roundtrip=true&overview=false")).json();
+      const tb = await (await fetch("https://router.project-osrm.org/table/v1/driving/" + coord + "?sources=0&annotations=distance,duration")).json();
+      if (t.code !== "Ok" || tb.code !== "Ok") throw new Error("osrm");
+      okruh = {km:t.trips[0].distance / 1000, h:t.trips[0].duration / 3600};
+      poradi = t.waypoints.map((w, i) => [w.waypoint_index, i]).filter(x => x[1] > 0).sort((a, b) => a[0] - b[0]).map(x => x[1]);
+      zvlast = {km:tb.distances[0].slice(1).reduce((a, m) => a + 2 * m / 1000, 0), h:tb.durations[0].slice(1).reduce((a, s) => a + 2 * s / 3600, 0)};
+    } catch (e) {
+      silnice = false;
+      const d = (a, b) => brVzdusne(a, b) * 1.3;
+      zvlast = {km:body.reduce((a, b) => a + 2 * d(bodZ, b), 0)}; zvlast.h = zvlast.km / 50;
+      const zbyva = body.map((b, i) => i); let akt = bodZ, km = 0; poradi = [];
+      while (zbyva.length) { zbyva.sort((a, b) => d(akt, body[a]) - d(akt, body[b])); const i = zbyva.shift(); km += d(akt, body[i]); akt = body[i]; poradi.push(i + 1); }
+      km += d(akt, bodZ); okruh = {km, h:km / 50};
+    }
+    const kcKm = +n.km || 0, lide = 2, sazbaH = +n.sazbaNajaty || 250;
+    const uspKm = zvlast.km - okruh.km, uspKc = uspKm * kcKm + (zvlast.h - okruh.h) * lide * sazbaH;
+    el.innerHTML = "<div class='tscroll'><table class='odp-tab'><thead><tr><th>Pořadí</th><th>Zakázka</th><th>Adresa</th></tr></thead><tbody>" +
+      poradi.map((i, k) => { const x = zak[i - 1]; return "<tr><td>" + (k + 1) + ".</td><td><b>" + esc(x.z.nazev || "Zakázka") + "</b> <span class='hint'>" + (x.druh === "vyklizeni" ? "vyklízení" : "demolice") + "</span></td><td>" + esc(x.z.adresa) + "</td></tr>"; }).join("") +
+      "</tbody></table></div><div class='br-rez' style='margin-top:8px'>Okruh ze základny přes všechny zakázky: <b>" + fmt0.format(okruh.km) + " km</b>, " + fmt1.format(okruh.h) + " h jízdy · každá zvlášť tam a zpět: " + fmt0.format(zvlast.km) + " km, " + fmt1.format(zvlast.h) + " h." +
+      (uspKm > 1 ? "<br><b class='ok'>Spojením ušetříte " + fmt0.format(uspKm) + " km a " + fmt1.format(zvlast.h - okruh.h) + " h — asi " + kc(uspKc) + "</b> (auto " + fmt0.format(kcKm) + " Kč/km, 2 lidé)." : "<br>Spojení tady moc neušetří.") +
+      (silnice ? "" : "<br><span class='hint'>Trasu se nepodařilo spočítat po silnici — odhad vzdušně × 1,3.</span>") + "</div>";
+    save();
+  } catch (e) { el.innerHTML = "<p class='ne'>Nepovedlo se: " + esc(e.message || "chyba") + ". Zkontroluj adresy zakázek a základny.</p>"; }
+}
+function brKmMesic(mes){
+  let km = 0, zak = 0, vykKm = 0, vykPlne = 0;
+  (S.zakazky || []).forEach(z => { if (!["hotovo", "probíhá", "domluveno"].includes(z.status) || !String(z.terminOd || "").startsWith(mes)) return; zak++; km += +z.skutKm > 0 ? +z.skutKm : (+z.km || 0); });
+  (S.vyklizeni || []).forEach(z => {
+    if (!["hotovo", "probíhá", "domluveno"].includes(z.status) || !String(z.terminOd || "").startsWith(mes)) return;
+    const r = vykVypocet(z); if (!r.ok) return; zak++;
+    const c = r.cas, celk = +((z.skut || {}).km) > 0 ? +z.skut.km : c.kmCelkem, plne = (c.jizdy || 0) * (c.kmZar || 0);
+    km += celk; vykKm += celk; vykPlne += Math.min(plne, celk);
+  });
+  return {km, zak, naZak:zak ? km / zak : 0, vykKm, vykPlne, prazdne:vykKm > 0 ? 1 - vykPlne / vykKm : null};
+}
+function renderBrJizdy(){
+  const el = $("#brJizdy"); if (!el) return;
+  if (!el.dataset.hotovo) {
+    const zitra = faPlusDni(faDnes(), 1), n = S.nastaveni || {};
+    el.innerHTML = "<div class='grid g3'><label class='f'>Základna (odkud vyjíždíte)<input id='brZakladna' value='" + esc(n.zakladna || n.adresaFirmy || "") + "'></label>" +
+      "<label class='f'>Den<input type='date' id='brJizdyDen' value='" + zitra + "'></label><div class='f' style='justify-content:flex-end'><span>&nbsp;</span><button type='button' class='b' id='brJizdyPocitej'>Spočítat trasu dne</button></div></div>" +
+      "<div id='brJizdyVysl' style='margin-top:8px'></div><div id='brKmMesic' style='margin-top:10px'></div>";
+    el.dataset.hotovo = "1";
+  }
+  const mes = faDnes().slice(0, 7), k = brKmMesic(mes), m = $("#brKmMesic");
+  if (m) m.innerHTML = k.zak ? "<b>Tento měsíc:</b> " + fmt0.format(k.km) + " km na " + k.zak + " zakázek = " + fmt0.format(k.naZak) + " km na zakázku." +
+    (k.prazdne != null ? " U vyklízení jezdí auto s nákladem jen " + fmt0.format((1 - k.prazdne) * 100) + " % km — zbytek jsou jízdy bez nákladu (" + fmt0.format(k.vykKm - k.vykPlne) + " km). Spojuj zakázky ve stejném směru a cestou zpět nakupuj." : "")
+    : "<span class='hint'>Tento měsíc zatím žádné domluvené zakázky s termínem.</span>";
+}
+if (typeof document !== "undefined" && document.addEventListener) {
+  document.addEventListener("click", e => { if (e.target.id === "brJizdyPocitej") brPlanJizd(($("#brJizdyDen") || {}).value || faDnes()); });
+  document.addEventListener("input", e => { if (e.target.id === "brZakladna") { S.nastaveni.zakladna = e.target.value; save(); } });
+}
+
 /* ================= ROADMAPA — co řeší velké firmy =================
    Samostatná záložka: seznam věcí, na kterých velké demoliční, dopravní a odpadové firmy dělají marži
    (nebo se chrání před ztrátou), rozdělený do fází. Nic z toho zatím není naprogramované v kalkulaci —
@@ -16741,7 +16824,10 @@ const RM_HOTOVO = {
     kde:"Přehled firmy → <b>Evidence odpadů — roční souhrn</b>; úkol v <b>📅 Plánu</b> (leden–únor)."},
   "odp-zarizeni":{datum:"2026-09-26",
     co:"Seznam <b>zařízení na odpad</b> s adresou, polohou (📍 Najít) a ceníkem za tunu (čistá suť, stavební směs, objemný, komunální, dřevo). U zakázky tlačítko <b>🧭 Nejlevnější zařízení</b> najde adresu, spočítá vzdálenost po silnici ke každému zařízení, likvidaci podle druhů odpadu a — když vozíte sami — cestu tam a zpět (km i čas lidí). Seřadí od nejlevnějšího a ukáže rozdíl. <b>Použít</b> zařízení přiřadí: demolice pak počítá likvidaci jeho cenami, vyklízení jeho cenami a km do zařízení.",
-    kde:"Ceník a nastavení → <b>♻️ Zařízení na odpad</b>; Kalkulace → Odvoz suti a likvidace → 🧭 Nejlevnější zařízení; Vyklízení → 🧭 Kam s odpadem."}
+    kde:"Ceník a nastavení → <b>♻️ Zařízení na odpad</b>; Kalkulace → Odvoz suti a likvidace → 🧭 Nejlevnější zařízení; Vyklízení → 🧭 Kam s odpadem."},
+  "dop-prazdne":{datum:"2026-09-26",
+    co:"V Plánu karta <b>🚐 Plán jízd a kilometry</b>: vybereš den, kalkulačka najde všechny zakázky toho dne (demolice i vyklízení), spočítá <b>nejkratší okruh</b> ze základny přes všechny a zpět (po silnici) a porovná ho s jízdami na každou zakázku zvlášť — pořadí zastávek, ušetřené km, hodiny a Kč. Pod tím <b>kilometry tohoto měsíce</b>: km na zakázku a u vyklízení, jakou část km jezdí auto s nákladem a kolik je prázdných jízd.",
+    kde:"<b>📅 Plán → 🚐 Plán jízd a kilometry</b>. Adresa základny se vyplní z firmy, jde přepsat."}
 };
 const rmHotova = x => !!RM_HOTOVO[x.id];
 const RM_JIZ = [
@@ -16912,6 +16998,7 @@ const NAPOVEDA = [
   /* ---------------- ZAKÁZKY, PLÁN, ZPRÁVY, RŮST ---------------- */
   ["h2:zakazky:Uložené zakázky", "Uložené zakázky demolic", "Všechny uložené demolice s cenou, ziskem a stavem. Stav (nabídka → domluveno → probíhá → hotovo, nebo zamítnuto) si přepínej průběžně — z něj se počítá úspěšnost nabídek, Plán a Přehled. „Otevřít“ nahraje zakázku do Kalkulace, „Kopie“ udělá novou podle staré."],
   ["h2:plan:Nasmlouvané zakázky", "Plán", "Kalendář všech zakázek s termínem (demolice i vyklízení) a čísla: <b>nasmlouváno dopředu</b> (pod 5 dní = sháněj práci, nad 10 dní = klid), <b>vytížení měsíce</b> (ideál 75–90 %; nad 95 % prodáváte levně) a kolize termínů. Termín se zadává v Kalkulaci nebo u vyklízení. Nahoře se ukáže karta <b>📋 Úkoly</b>, když je před zakázkou co zařídit (třeba žádost o zábor pro kontejner) — s termínem do kdy — a „komu dnes napsat“: otevřené nabídky se připomenou 2., 7. a 14. den (text zprávy jedním klikem, pak ✓ Napsáno). Pod tím seznam nabídek, které čekají na odpověď."],
+  ["h2:plan:🚐 Plán jízd a kilometry", "Plán jízd a kilometry", "Vyber den a kalkulačka spočítá nejkratší okruh ze základny přes všechny zakázky toho dne — a kolik km, hodin a korun to ušetří proti jízdám zvlášť. Dole kilometry měsíce a u vyklízení podíl prázdných jízd. Auto jezdí stejně — jednou vydělává a jednou ne."],
   ["h2:zpravy:Zprávy klientovi", "Zprávy klientovi", "Hotové texty pro situace, které se opakují (odpověď na poptávku, potvrzení termínu, připomínka zálohy, dokončení…). Značky ve {závorkách} se vyplní z otevřené kalkulace. Klikni Kopírovat a vlož do SMS nebo mailu. Texty si můžeš přepsat."],
   ["h2:zpravy:Připomínka: požádat o hodnocení", "Žádost o hodnocení", "Seznam hotových zakázek, u kterých jste ještě nepožádali o recenzi. Hodnocení na Googlu a portálech je pro malou firmu nejlevnější reklama — žádej hned po dokončení, dokud je klient spokojený."],
   ["h2:rust:Na co šetřit", "Na co šetřit", "Milníky, na které firma šetří (auto, nářadí, rezerva…) v rozumném pořadí — každá fáze staví na předchozí. Z každého zisku odkládáš nastavené procento a milníky se plní. Částky uprav podle skutečných nabídek."],
