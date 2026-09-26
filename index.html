@@ -662,6 +662,19 @@ tr.br-nejl td{background:var(--good-bg)}
 .sml-kontrola li.pozor{color:var(--warn-ink)}
 .sml-kontrola li.ok{color:var(--good)}
 .sml-mil{margin-top:4px}
+.plat-tab input[type=date]{width:138px;padding:4px 6px}
+.plat-tab td{font-size:13.5px}
+.plat .sml-volby{margin-bottom:6px}
+@media (max-width:640px){
+.plat .tscroll{overflow:visible}
+.plat-tab thead{display:none}
+.plat-tab,.plat-tab tbody{display:block}
+.plat-tab tr{display:grid;grid-template-columns:1fr auto;gap:4px 10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.plat-tab td{border:0 !important;padding:0 !important}
+.plat-tab td.plat-kdy,.plat-tab td.plat-akce{grid-column:1/-1}
+.plat-tab td[data-l]::before{content:attr(data-l);display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.plat-tab input[type=date]{width:100%}
+}
 button[data-sml='tisk']:disabled{opacity:.45;cursor:not-allowed}
 .br-maj-t.pozor{border-left-color:var(--warn-line)}
 .br-maj-t.ne{border-left-color:var(--bad)}
@@ -1070,7 +1083,9 @@ body.zamceno{overflow:hidden}
 
   <div class="card">
     <h2>Platby a splatnost <span class="badge" id="platbyBadge"></span></h2>
-    <div class="platby">
+    <p class="hint" style="margin:0 0 8px">Jeden plán pro nabídku, smlouvu, faktury, cashflow i přehled peněz. Klient volí celou cenu předem se slevou, nebo platby po etapách podle délky zakázky.</p>
+    <div id="platPlan"></div>
+    <div class="platby" style="display:none">
       <div class="platbox">
         <h4>Záloha <span id="zalohaStav"></span></h4>
         <div class="grid g2">
@@ -4982,6 +4997,7 @@ function renderPredem(v){
       (s.zisk>0&&s.hodiny>0?" = "+fmt0.format(s.zisk/s.hodiny)+" Kč na osobohodinu.":".");
 }
 function recalc(){
+  if(typeof platSync==="function")platSync("demolice",J);
   const v=vypocet(); const n=S.nastaveni;
   $("#praceBadge").textContent=fmt1.format(v.hodiny)+" hod práce";
   /* suť */
@@ -5011,6 +5027,7 @@ function recalc(){
   if(typeof renderBrStroje==="function")renderBrStroje();
   if(typeof renderBrZarVybrane==="function")renderBrZarVybrane();
   if(typeof brRenderPredaniStav==="function")brRenderPredaniStav();
+  if(typeof platRender==="function")platRender("demolice");
   if(typeof renderBrDia==="function"&&!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest("#brDia")))renderBrDia();
   $("#dopravaHint").textContent=(J.dopravaUctovat&&(J.km||0)>0)?
     "klientovi "+kc(v.dopravaP)+" = max("+(J.km||0)+" km × "+fmt0.format(n.kmProdej)+" Kč; paušál "+fmt0.format(n.pausal)+"), náklad "+kc(v.dopravaN):
@@ -5031,11 +5048,10 @@ function recalc(){
   $("#zalohaHint").textContent="doporučeno "+kc(v.celkem*n.zaloha/100)+" ("+n.zaloha+" %)";
   $("#doplatekHint").textContent="do celkové ceny zbývá "+kc(Math.max(0,v.celkem-(J.zalohaCastka||0)));
   const pb=$("#platbyBadge");
-  const rozdil=Math.round(v.celkem-v.zaloha-v.doplatek);
-  if(v.zaloha+v.doplatek<=0){pb.textContent="nevyplněno";pb.className="badge";}
-  else if(Math.abs(rozdil)>1){pb.textContent="rozdíl proti ceně "+kc(rozdil);pb.className="badge bad";}
-  else if(v.neuhrazeno<=0){pb.textContent="vše zaplaceno";pb.className="badge good";}
-  else{pb.textContent="neuhrazeno "+kc(v.neuhrazeno);pb.className="badge";}
+  const splB=typeof platSplatky==="function"?platSplatky("demolice",J):[], neuhrB=splB.filter(s=>!s.zaplaceno).reduce((a,s)=>a+s.castka,0);
+  if(!splB.length){pb.textContent="nevyplněno";pb.className="badge";}
+  else if(neuhrB<=0){pb.textContent="vše zaplaceno";pb.className="badge good";}
+  else{pb.textContent=(J.platbaPredem?"předem · ":splB.length+" platby · ")+"neuhrazeno "+kc(neuhrB);pb.className="badge";}
   pb.style.display="";
   /* souhrn */
   let t="<div class='sumline'><span>Bourací práce"+((J.prirazka||0)!==0?" <span class='hint'>(vč. interní přirážky "+(J.prirazka>0?"+":"")+J.prirazka+" %)</span>":"")+"</span><b>"+kc(v.prace)+"</b></div>";
@@ -5101,13 +5117,11 @@ function recalc(){
   if(J.cenik==="b2c"&&v.prace>0&&v.trzba<n.minCenaB2C)
     w+="<div class='warnbox'>⚠️<span><b>Malá zakázka ("+kc(v.trzba)+" bez DPH, minimum "+kc(n.minCenaB2C)+").</b> Naceň paušálem, ne položkově — režie výjezdu sežere marži.</span></div>";
   if(v.zisk<0)w+="<div class='warnbox'>⚠️<span><b>Zakázka je ztrátová.</b> Náklady převyšují tržbu.</span></div>";
-  if(v.celkem>100000)w+="<div class='warnbox'>💡<span>Zakázka nad 100 tis. — chtěj zálohu "+n.zaloha+" % ("+kc(v.celkem*n.zaloha/100)+") před začátkem prací.</span></div>";
   if(v.sut.m3>0&&!J.kontejnery.length)w+="<div class='warnbox'>💡<span>Máš "+fmt1.format(v.sut.m3)+" m³ suti, ale žádný kontejner. Klikni na „Navrhnout podle suti“.</span></div>";
   if(v.vicepraceCeka>0)w+="<div class='warnbox'>📄<span><b>Vícepráce za "+kc(v.vicepraceCeka)+" čekají na souhlas.</b> Dokud je klient neodsouhlasí písemně, do ceny se nepočítají — vygeneruj dodatek a nech podepsat, než je uděláš.</span></div>";
   if((J.zalohaCastka||0)>0&&!J.zalohaZaplaceno&&["domluveno","probíhá"].includes(J.status))
     w+="<div class='warnbox'>💰<span><b>Záloha "+kc(J.zalohaCastka)+" není zaplacená</b> a zakázka už běží. Materiál a kontejnery jdou zatím z tvé kapsy.</span></div>";
-  if((J.zalohaCastka||0)+(J.doplatekCastka||0)>0&&Math.abs(v.celkem-v.zaloha-v.doplatek)>1)
-    w+="<div class='warnbox'>⚠️<span>Záloha + doplatek ("+kc(v.zaloha+v.doplatek)+") <b>nesedí na celkovou cenu</b> ("+kc(v.celkem)+"). Klikni na „Dopočítat zbytek“ u doplatku.</span></div>";
+  if(typeof platSplatky==="function")platSplatky("demolice",J).filter(s=>s.druh==="milnik"&&!s.zaplaceno&&s.splatnost&&s.splatnost<faDnes()).forEach(s=>{w+="<div class='warnbox'>✋<span><b>"+s.nazev+" ("+kc(s.castka)+") je po splatnosti.</b> Podle smlouvy nemusíš pokračovat další etapou, dokud nezaplatí — pošli upomínku.</span></div>";});
   $("#varovani").innerHTML=w;
 }
 $("#varovani").addEventListener("click",e=>{if(e.target.id==="dorovnat")dorovnat();});
@@ -7430,9 +7444,7 @@ function renderRust(){
   }
   /* pohledávky */
   let pohl=0;
-  zak.filter(z=>z.status!=="zamítnuto").forEach(z=>{
-    [[z.zalohaCastka,z.zalohaZaplaceno],[z.doplatekCastka,z.doplatekZaplaceno]].forEach(([c,p])=>{if((c||0)>0&&!p)pohl+=c});
-  });
+  if(typeof platPohledavky==="function")platPohledavky().forEach(x=>{pohl+=x.s.castka;});
   /* nejlepší kanál */
   const m={}; hot.forEach(z=>{const k=z.zdroj||"—"; m[k]=(m[k]||0)+(z.vysZisk||0)});
   const nej=Object.keys(m).sort((a,b)=>m[b]-m[a])[0];
@@ -7715,7 +7727,7 @@ $("#protokol").addEventListener("click",()=>{
     "<p>&nbsp;&nbsp;&nbsp;&nbsp;...........................................................................................................................<br><br>"+
     "&nbsp;&nbsp;&nbsp;&nbsp;...........................................................................................................................</p>")+
     "<p style='margin-top:14px'><b>Prostor byl předán uklizený, suť odvezena.</b> Objednatel potvrzuje, že si dílo prohlédl a k jeho rozsahu a provedení nemá jiných výhrad než výše uvedených.</p>"+
-    "<p><b>Objednatel potvrzuje převzetí díla a uznává, že ke dni podpisu tohoto protokolu dluží zhotoviteli "+kc((typeof hnNeuhrazeno==="function"&&hnNeuhrazeno(J,"demolice")!=null)?hnNeuhrazeno(J,"demolice"):dopl)+"</b> (zbývající část ceny díla; práva z vad díla tím nejsou dotčena), splatných do "+(J.smlouva&&J.smlouva.volby&&J.smlouva.volby.splatDopl!=null?J.smlouva.volby.splatDopl:14)+" dnů od podpisu tohoto protokolu"+
+    "<p><b>Objednatel potvrzuje převzetí díla a uznává, že ke dni podpisu tohoto protokolu dluží zhotoviteli "+kc((typeof hnNeuhrazeno==="function"&&hnNeuhrazeno(J,"demolice")!=null)?hnNeuhrazeno(J,"demolice"):dopl)+"</b> (zbývající část ceny díla; práva z vad díla tím nejsou dotčena), splatných do "+(J.platby&&!J.platby.legacy&&J.platby.splatDopl!=null?J.platby.splatDopl:14)+" dnů od podpisu tohoto protokolu"+
       (J.doplatekSplatnost?", tj. do "+new Date(J.doplatekSplatnost).toLocaleDateString("cs-CZ"):"")+".</p>"+
     "<div class='kl'>Záruka na provedené bourací práce se sjednává v délce 24 měsíců a vztahuje se na rozsah díla dle této zakázky. Nevztahuje se na konstrukce a instalace, které nebyly předmětem díla, ani na následné práce jiných dodavatelů.<br><br><br>"+
     (J.predani&&J.predani.podpisKlient&&typeof brPodpisBlok==="function"?brPodpisBlok(J.predani):"V ................................ dne ......................<br><br><br>"+
@@ -8019,15 +8031,16 @@ function klauzule(){
    nabídnout, ukáže se druhá, levnější cena — je to nejúčinnější způsob, jak si
    zlepšit cash flow, protože klient dostane hmatatelný důvod zaplatit dopředu. */
 function platebniPodminky(v){
+  if(typeof platNabidkaHTML==="function")return platNabidkaHTML("demolice",J);
   const n=S.nastaveni, pct=n.slevaPredemPct||0;
   if(J.platbaPredem)
     return "<p><b>Platba: celá částka "+kc(v.celkem)+" před zahájením prací.</b> "+
       "Cena už zahrnuje slevu "+pct+" % za platbu předem.</p>";
-  let t=typeof smlPlanNabidkaText==="function"?smlPlanNabidkaText(v):"<p><b>Záloha: "+kc(v.celkem*n.zaloha/100)+" ("+n.zaloha+" %)</b> před zahájením prací; doplatek se splatností 14 dní od předání.</p>";
+  let t="<p><b>Záloha: "+kc(v.celkem*n.zaloha/100)+" ("+n.zaloha+" %)</b> před zahájením prací; doplatek se splatností 14 dní od předání.</p>";
   if(J.nabidnoutPredem!==false&&pct>0){
     const bylo=J.platbaPredem; J.platbaPredem=true; const s=vypocet(); J.platbaPredem=bylo;
     t+="<table style='margin-top:10px'><tbody>"+
-      "<tr><td><b>Varianta A</b> — platby po etapách podle postupu prací</td><td class='r'><b>"+kc(v.celkem)+"</b></td></tr>"+
+      "<tr><td><b>Varianta A</b> — záloha "+n.zaloha+" % a doplatek do 14 dní</td><td class='r'><b>"+kc(v.celkem)+"</b></td></tr>"+
       "<tr><td><b>Varianta B</b> — celá částka před zahájením prací, <b>sleva "+pct+" %</b></td><td class='r'><b>"+kc(s.celkem)+"</b></td></tr>"+
       "<tr><td colspan='2' style='font-size:12px'>Při variantě B ušetříte "+kc(v.celkem-s.celkem)+". Stačí dát vědět, kterou variantu volíte — fakturu vystavíme podle toho.</td></tr>"+
       "</tbody></table>";
@@ -8134,10 +8147,7 @@ function pStats(){
   const vysledek=ziskHot-vyd;
   const kpi=(l,v,cls)=>"<div class='stat'><div class='v"+(cls?" "+cls:"")+"'>"+v+"</div><div class='l'>"+l+"</div></div>";
   let pohl=0,poSplat=0;
-  S.zakazky.filter(z=>z.status!=="zamítnuto").forEach(z=>{
-    [[z.zalohaCastka,z.zalohaSplatnost,z.zalohaZaplaceno],[z.doplatekCastka,z.doplatekSplatnost,z.doplatekZaplaceno]]
-      .forEach(([c,s,zap])=>{if((c||0)>0&&!zap){pohl+=c; if(s&&new Date(s).getTime()<Date.now())poSplat+=c;}});
-  });
+  platPohledavky().forEach(x=>{pohl+=x.s.castka; if(x.s.splatnost&&x.s.splatnost<faDnes())poSplat+=x.s.castka;});
   $("#pKpi").innerHTML=
     kpi("Čekající nabídky ("+nab.length+")",kc(nab.reduce((a,z)=>a+(z.vysCelkem||0),0)))+
     kpi("Domluveno / probíhá ("+beh.length+")",kc(beh.reduce((a,z)=>a+(z.vysCelkem||0),0)))+
@@ -8372,12 +8382,7 @@ $("#narZVybavy").addEventListener("click",()=>{
 function renderPohledavky(){
   const tb=$("#pohlTab tbody"); tb.innerHTML="";
   const rady=[];
-  S.zakazky.filter(z=>z.status!=="zamítnuto").forEach(z=>{
-    [["Záloha",z.zalohaCastka,z.zalohaSplatnost,z.zalohaZaplaceno],
-     ["Doplatek",z.doplatekCastka,z.doplatekSplatnost,z.doplatekZaplaceno]].forEach(([lbl,c,s,zap])=>{
-      if((c||0)>0&&!zap)rady.push({zak:z.nazev,lbl,c,s});
-    });
-  });
+  platPohledavky().forEach(x=>rady.push({zak:(x.zdroj==="vyklizeni"?"🏠 ":"")+(x.z.nazev||""),lbl:x.s.nazev+(x.s.faktura?" · "+x.s.faktura.cislo:""),c:x.s.castka,s:x.s.splatnost}));
   rady.sort((a,b)=>(a.s||"9999").localeCompare(b.s||"9999"));
   $("#pohlEmpty").style.display=rady.length?"none":"block";
   rady.forEach(r=>{
@@ -8478,10 +8483,7 @@ function renderPripominky(){
   if(bez.length&&!prop.length)p.push({t:"warn",ikona:"📋",txt:"U "+bez.length+" kusů nářadí <b>není vyplněné datum revize</b>. Doplň je, ať máš přehled."});
   /* pohledávky po splatnosti */
   let poSplat=0,poSplatKc=0;
-  S.zakazky.filter(z=>z.status!=="zamítnuto").forEach(z=>{
-    [[z.zalohaCastka,z.zalohaSplatnost,z.zalohaZaplaceno],[z.doplatekCastka,z.doplatekSplatnost,z.doplatekZaplaceno]]
-      .forEach(([c,s,zap])=>{if((c||0)>0&&!zap&&s&&new Date(s).getTime()<Date.now()){poSplat++;poSplatKc+=c;}});
-  });
+  platPohledavky().forEach(x=>{if(x.s.splatnost&&x.s.splatnost<faDnes()){poSplat++;poSplatKc+=x.s.castka;}});
   if(poSplat)p.push({t:"bad",ikona:"💰",txt:"<b>"+poSplat+"× platba po splatnosti</b> v celkové výši "+kc(poSplatKc)+
     ". Šablona upomínky je v záložce Zprávy."});
   /* recenze */
@@ -9021,7 +9023,7 @@ function faKonceptZeZakazky(z, typ){
     polozky:[], slevy:[], mezisoucet:0, zaokrouhleni:0, odpocty:[], celkem:0, kUhrade:0,
     zakazkaId:z.id || "", zakazkaNazev:z.nazev || "", mistoPlneni:z.adresa || "", poznamka:""}, faNovaMetadata());
   if (typ !== "zal" && typeof brPartnerSplatnost === "function" && brPartnerSplatnost(z)) f.splatnost = faPlusDni(dnes, brPartnerSplatnost(z));
-  else if (z.smlouva && z.smlouva.volby && z.smlouva.podepsano) { const sv = z.smlouva.volby, dn = typ === "zal" ? +sv.splatZal : +sv.splatDopl; if (dn >= 0 && sv[typ === "zal" ? "splatZal" : "splatDopl"] != null) f.splatnost = faPlusDni(dnes, dn); }
+  else if (z.platby && !z.platby.legacy) { const dn = typ === "zal" ? +z.platby.splatZal : +z.platby.splatDopl; if (dn >= 0) f.splatnost = faPlusDni(dnes, dn); }
 
   if (typ === "zal") {
     const castka = (z.zalohaCastka || 0) > 0 ? z.zalohaCastka : Math.round(v.celkem * (n.zaloha || 0) / 100);
@@ -9761,7 +9763,9 @@ function faOznacZaplaceno(id, datum){
   if (f.typ === "storno") { faZmena(f); renderFaktury(); if (faOtevrena && faOtevrena.id === id) faOtevri(JSON.parse(JSON.stringify(f))); return; }
   /* propsat do platby u zakázky, ať sedí přehled pohledávek */
   const z = S.zakazky.find(x => x.id === f.zakazkaId) || (S.vyklizeni || []).find(x => x.id === f.zakazkaId);
-  if (z) { if (f.typ === "zal") z.zalohaZaplaceno = d; else z.doplatekZaplaceno = d; if (J && J.id === z.id) { if (f.typ === "zal") J.zalohaZaplaceno = d; else J.doplatekZaplaceno = d; } }
+  const oznac = t => { if (!t) return; if (f.typ === "zal" && f.milnik != null) { const m = t.platby && t.platby.milniky && t.platby.milniky[f.milnik]; if (m) m.zaplaceno = d; } else if (f.typ === "zal") t.zalohaZaplaceno = d; else t.doplatekZaplaceno = d; };
+  oznac(z); if (z && J && J.id === z.id) oznac(J);
+  const vzZ = (S.vyklizeni || []).find(x => x.id === f.zakazkaId); oznac(vzZ); if (typeof VK !== "undefined" && VK && VK.id === f.zakazkaId && VK !== vzZ) oznac(VK);
   if (typeof VK !== "undefined" && VK && VK.id === f.zakazkaId) { if (f.typ === "zal") VK.zalohaZaplaceno = d; else VK.doplatekZaplaceno = d; }
   faZmena(f); renderFaktury(); if (faOtevrena && faOtevrena.id === id) faOtevri(JSON.parse(JSON.stringify(f)));
 }
@@ -10316,9 +10320,11 @@ async function faVystavit(){
   /* propojit se zakázkou — částky a splatnost pro přehled pohledávek */
   const z = S.zakazky.find(x => x.id === f.zakazkaId) || (S.vyklizeni || []).find(x => x.id === f.zakazkaId);
   const propoj = t => { if (!t) return;
-    if (f.typ === "zal") { t.cisloFakZal = f.cislo; t.zalohaCastka = f.kUhrade; t.zalohaSplatnost = f.splatnost; }
+    if (f.typ === "zal" && f.milnik != null) { const m = t.platby && t.platby.milniky && t.platby.milniky[f.milnik]; if (m) { m.splatnost = f.splatnost; m.cisloFak = f.cislo; if (!m.hotovo) m.hotovo = f.vystaveno; } }
+    else if (f.typ === "zal") { t.cisloFakZal = f.cislo; t.zalohaCastka = f.kUhrade; t.zalohaSplatnost = f.splatnost; }
     else { t.cisloFakKon = f.cislo; t.doplatekCastka = f.kUhrade; t.doplatekSplatnost = f.splatnost; } };
   propoj(z); if (J && J.id && J.id === f.zakazkaId) propoj(J);
+  const vzProp = (S.vyklizeni || []).find(x => x.id === f.zakazkaId); propoj(vzProp); if (typeof VK !== "undefined" && VK && VK.id && VK.id === f.zakazkaId && VK !== vzProp) propoj(VK);
   if (typeof VK !== "undefined" && VK && VK.id && VK.id === f.zakazkaId) { VK.cisloFakZal = VK.cisloFakZal || (f.typ === "zal" ? f.cislo : ""); if (f.typ !== "zal") VK.cisloFakKon = f.cislo; if ($("#tab-vyklizeni").classList.contains("on")) renderVkSeznam(); }
   save(); renderFaktury();
   faOtevri(JSON.parse(JSON.stringify(S.faktury.find(x => x.id === f.id) || f)));
@@ -12271,7 +12277,6 @@ function renderVyklizeni(){
     "<div class='grid g3' style='margin-top:8px'>" +
       "<label class='f'>Sleva (%)<input type='number' min='0' max='90' step='0.5' data-vkp='sleva' value='" + vykPct(v.sleva) + "'" + (v.predem ? " disabled" : "") + "><span class='hint' id='vkSlevaHint'></span></label>" +
       "<label class='f'>Důvod slevy <span class='hint'>uvidí ho klient</span><input data-vkt='slevaDuvod' list='vkSlevaDuvody' value='" + esc(v.slevaDuvod || "") + "' placeholder='např. vyklízíme i sousední sklep'></label>" +
-      "<label class='f'>Záloha (%)<input type='number' min='0' max='100' step='5' data-vkp='zaloha' value='" + vykPct(v.zaloha) + "'" + (v.predem ? " disabled" : "") + "></label>" +
       "<label class='f'>Provize za dohození (%)<input type='number' min='0' max='50' step='0.5' data-vkp='provize' value='" + vykPct(v.provize) + "'></label>" +
       cislo("jine", "Jiné náklady", "Kč", "10", "parkování, zábor, půjčovné") +
       "<label class='f'>Interní poznámka<input data-vkt='poznamka' value='" + esc(v.poznamka) + "'></label>" +
@@ -12292,6 +12297,7 @@ function renderVyklizeni(){
     (v.prirazkaInt ? "<div class='btnrow' style='margin-top:0'><button class='b' type='button' id='vkPrirazkaNula'>Zrušit přirážku</button></div>" : "") +
     "<label class='chk' style='margin-top:8px'><input type='checkbox' data-vkb='predem'" + (v.predem ? " checked" : "") + "> Klient platí celou částku předem — sleva 5 %, záloha 100 %</label>" +
     (!v.predem ? "<label class='chk'><input type='checkbox' data-vkb='nabidnoutPredem'" + (v.nabidnoutPredem !== false ? " checked" : "") + "> Nabídnout v nabídce i druhou, levnější cenu při platbě předem</label>" : "") +
+    "<div class='vk3-lbl' style='margin-top:12px'>Platby</div><div id='vkPlatPlan'></div>" +
     "<div class='btnrow'><button class='b prim' type='button' id='vkUlozit'>💾 Uložit</button><button class='b' type='button' id='vkTisk'>🖨 Nabídka</button>" +
       "<button class='b' type='button' id='vkFakZal'>🧾 Zálohová faktura</button><button class='b' type='button' id='vkFakKon'>🧾 Konečná faktura</button><button class='b' type='button' id='vkZmareny'>⏱ Zmařený výjezd / čekání</button><button class='b' type='button' id='vkProverit'>🔍 Prověřit klienta</button><button class='b' type='button' id='vkSmlouva'>📝 Smlouva</button><button class='b' type='button' id='vkZarizeni'>🧭 Kam s odpadem</button>" +
       "<button class='b' type='button' id='vkNova'>Nová zakázka</button><button class='b' type='button' id='vkModel'>Modelový příklad</button></div>" +
@@ -12521,6 +12527,7 @@ function vkCistoNaHod(r){
   return x.naHodMajitele;
 }
 function vykPrepocet(){
+  if (typeof platSync === "function") { platSync("vyklizeni", VK); platRender("vyklizeni"); }
   const s = S.vykSazby, el = $("#vkVysledek");
   const r = vykVypocet();
   if (r.ok && typeof hnKontrolaPlatnosti === "function") hnKontrolaPlatnosti(VK, "vyklizeni").forEach(w => r.varovani.push(w));
@@ -12847,8 +12854,7 @@ $("#vkForm").addEventListener("change", e => {
   if (t.dataset.vkb) {
     VK[t.dataset.vkb] = t.checked;
     if (t.dataset.vkb === "predem") {
-      if (t.checked) { VK._predPredem = {sleva:VK.sleva, zaloha:VK.zaloha}; VK.sleva = 0.05; VK.zaloha = 1; }
-      else { const p = VK._predPredem || {sleva:0, zaloha:S.vykSazby.zaloha}; VK.sleva = p.sleva; VK.zaloha = p.zaloha; delete VK._predPredem; }
+      VK.predem = !t.checked; platNastavPredem("vyklizeni", VK, t.checked);
       vykUloz(); renderVyklizeni(); return;
     }
     vykUloz(); vykPrepocet(); return;
@@ -13190,7 +13196,7 @@ function vykProjektNabidkaHTML(v, r, p){
     "</div><div>" +
       "<table class='fa-soucty'>" + radek("Vyklizení" + (vykPredat(v) ? " a předání" : ""), faKc(p.grossV)) + radek("Demontáže a bourací práce", faKc(p.grossD)) + "</table>" +
       "<div class='fa-kuhrade'><span>Celkem</span><b>" + faKc(p.celkemGross).replace(" Kč", "") + " <i>Kč</i></b></div>" +
-      "<table class='fa-soucty' style='margin-top:2mm'>" + radek(v.predem ? "Platba předem" : "Záloha před zahájením (" + faMn(vykPct(v.zaloha)) + " %)", faKc(zaloha)) + "</table>" +
+      "<table class='fa-soucty' style='margin-top:2mm'>" + (typeof platRadkyVk === "function" ? platRadkyVk(v, p.celkemGross, radek) : radek(v.predem ? "Platba předem" : "Záloha před zahájením (" + faMn(vykPct(v.zaloha)) + " %)", faKc(zaloha))) + "</table>" +
     "</div></div>" +
     "<div class='fa-pozn' style='margin-top:6mm'>" + (!d.platceDPH ? "<div class='fa-dph'>Nejsme plátci DPH — cena je konečná</div>" : "") +
       "<p><b>Jeden tým, jedna domluva.</b> Byt vyklidíme a rovnou připravíme pro řemeslníky — demontáže, bourání, odvoz suti a úklid. Nemusíte koordinovat dvě firmy ani hlídat, kdo po kom uklízí.</p>" +
@@ -14186,7 +14192,7 @@ function vykNabidkaHTML(v, r){
     const p = r.polozkove;
     cena = "<table class='fa-soucty'>" + p.polozky.map(x => radek(esc(x.popis) + (x.mj !== "kpl" ? " <span style='color:#6B665C'>(" + faMn(x.mnozstvi) + " " + x.mj + " × " + faKc(x.cenaMJ) + ")</span>" : ""), faKc(x.celkem))).join("") +
       "</table><div class='fa-kuhrade'><span>Odhad celkem</span><b>" + faKc(vykPlatce() ? p.gross : p.net).replace(" Kč", "") + " <i>Kč</i></b></div>" +
-      "<table class='fa-soucty' style='margin-top:2mm'>" + radek("Záloha před zahájením (" + faMn(vykPct(v.zaloha)) + " %)", faKc((vykPlatce() ? p.gross : p.net) * v.zaloha)) + "</table>";
+      "<table class='fa-soucty' style='margin-top:2mm'>" + (typeof platRadkyVk === "function" ? platRadkyVk(v, vykPlatce() ? p.gross : p.net, radek) : radek("Záloha před zahájením (" + faMn(vykPct(v.zaloha)) + " %)", faKc((vykPlatce() ? p.gross : p.net) * v.zaloha))) + "</table>";
   } else if (hod) {
     const h = r.hodinove;
     cena = "<table class='fa-soucty'>" + radek(sl === "vynaska" ? "Vynáška — " + r.cas.lide + " lidé" : "Posádka " + r.cas.lide + " lidé s dodávkou", faKc(h.sazba) + " / h") + radek("Nejméně", faMn(s.hMin) + " h, dál po 15 minutách") +
@@ -14205,7 +14211,7 @@ function vykNabidkaHTML(v, r){
       (r.slevaKc ? radek((v.predem ? "Sleva za platbu předem " : "Sleva ") + faMn(vykPct(v.sleva)) + " %" + (v.slevaDuvod ? " — " + esc(v.slevaDuvod) : ""), "−" + faKc(r.slevaKc), "sl") : "") +
       r.viceprace.ok.map(p => radek("Vícepráce — " + esc(p.nazev) + (p.duvod ? " (" + esc(p.duvod) + ")" : ""), "+" + faKc(+p.cena || 0))).join("") +
       (r.dph ? radek("DPH " + faMn(Math.round(r.dphSazba * 100)) + " %", faKc(r.dph)) : "") + "</table><div class='fa-kuhrade'><span>" + (r.likvZvlast ? "Celkem s odhadem likvidace" : "Pevná cena") + "</span><b>" + faKc(r.gross).replace(" Kč", "") + " <i>Kč</i></b></div>" +
-      "<table class='fa-soucty' style='margin-top:2mm'>" + radek(v.predem ? "Platba předem" : "Záloha před zahájením (" + faMn(vykPct(v.zaloha)) + " %)", faKc(r.gross * (v.predem ? 1 : v.zaloha))) + vykPredemRadek(v, r, radek) + "</table>";
+      "<table class='fa-soucty' style='margin-top:2mm'>" + (typeof platRadkyVk === "function" ? platRadkyVk(v, r.gross, radek) : radek(v.predem ? "Platba předem" : "Záloha před zahájením (" + faMn(vykPct(v.zaloha)) + " %)", faKc(r.gross * (v.predem ? 1 : v.zaloha)))) + vykPredemRadek(v, r, radek) + "</table>";
   }
   const podtitul = (sl === "vynaska" ? "Vynáška" : sl === "kusy" ? "Odvoz věcí" : vykPredat(v) ? "Vyklizení a předání bez starostí" : "Vyklízení") + (hod ? " v hodinové sazbě" : poloz ? " po položkách" : " za pevnou cenu");
   const termin = v.terminOd ? faDatum(v.terminOd) + (v.terminDo && v.terminDo !== v.terminOd ? " – " + faDatum(v.terminDo) : "") : "dle dohody";
@@ -14312,7 +14318,7 @@ function faKonceptZVyklizeni(v, typ){
     polozky:[], slevy:[], mezisoucet:0, zaokrouhleni:0, odpocty:[], celkem:0, kUhrade:0,
     zakazkaId:v.id, zakazkaNazev:v.nazev || "", mistoPlneni:v.adresa || "", poznamka:"", zaplaceno:"", storno:null, vytvoril:n.jednatel || "", vytvoreno:new Date().toISOString()});
   if (typ !== "zal" && typeof brPartnerSplatnost === "function" && brPartnerSplatnost(v)) f.splatnost = faPlusDni(dnes, brPartnerSplatnost(v));
-  else if (v.smlouva && v.smlouva.volby && v.smlouva.podepsano) { const sv = v.smlouva.volby, dn = typ === "zal" ? +sv.splatZal : +sv.splatDopl; if (dn >= 0 && sv[typ === "zal" ? "splatZal" : "splatDopl"] != null) f.splatnost = faPlusDni(dnes, dn); }
+  else if (v.platby && !v.platby.legacy) { const dn = typ === "zal" ? +v.platby.splatZal : +v.platby.splatDopl; if (dn >= 0) f.splatnost = faPlusDni(dnes, dn); }
   if (typ === "zal") {
     const zaklad = r.ok ? (vkRozpisovy(v) ? vkRozpis(r, v).gross : r.gross) : 0;
     const castka = Math.round(zaklad * (v.predem ? 1 : v.zaloha));
@@ -15319,7 +15325,7 @@ async function hnProverit(zdroj, klientIx){
         : "<p class='hint' style='margin:0 0 8px'>Soukromá osoba nebo chybí IČO — v ARES se neověřuje. Insolvenci jde dohledat podle jména a data narození.</p>") +
       "<div class='hn-prov-blok'><b>Historie u vás</b><br>" + (h.zakazek ? h.zakazek + " zakázek (" + h.hotovych + " hotových), faktur " + h.faktur + ", zaplaceno " + h.zaplaceno + (h.pozde ? ", <span class='ne'>pozdě " + h.pozde + "×</span>" : "") +
         (h.poSplatnosti ? ", <span class='ne'>po splatnosti " + h.poSplatnosti + " za " + kc(h.dluh) + "</span>" : "") : "Nový klient — zatím žádná zakázka ani faktura.") + "</div>" +
-      "<div class='hn-prov-dop " + (riziko || dop.pct >= 100 ? "ne" : dop.pct > (+(S.nastaveni || {}).zaloha || 40) ? "pozor" : "ok") + "'>Doporučená záloha: <b>" + dop.pct + " %</b> — " + esc(dop.proc) + ".</div>" +
+      "<div class='hn-prov-dop " + (riziko || dop.pct >= 100 ? "ne" : dop.pct > (+(S.nastaveni || {}).zaloha || 40) ? "pozor" : "ok") + "'>Doporučená záloha: <b>" + dop.pct + " %</b> — " + esc(dop.proc) + ". <span class='hint'>Nastavíš ji v platebním plánu zakázky (Platby a splatnost → ⚙️ Upravit plán); při insolvenci nebo dluhu přepni na platbu předem.</span></div>" +
       "<div class='hn-prov-odkazy'>" + hnOdkazy(ico).map(([l, u]) => "<a class='b' href='" + u + "' target='_blank' rel='noopener'>" + esc(l) + " ↗</a>").join("") + "</div>" +
       (ares && !ares.nenalezen && !chyba && k ? "<p class='hint' style='margin:8px 0 0'>Výsledek je uložený u klienta v adresáři (" + hnDatumCz(faDnes()) + ").</p>" : "") +
     "</div>";
@@ -15579,24 +15585,24 @@ function smlZaplacenoZaloh(z){
 /* cena podle zvolené varianty: platba předem = se slevou, po etapách = bez ní (dočasně přepne příznak zakázky) */
 function smlCena(zdroj, z, predem){
   const pct = +((S.nastaveni || {}).slevaPredemPct) || 0;
+  if (!z) return null;
   if (zdroj === "vyklizeni") {
-    const bylo = z.predem; if (predem !== undefined) z.predem = !!predem;
-    let r; try { r = vykVypocet(z); } finally { z.predem = bylo; }
-    if (!r.ok) return null;
-    return {celkem:r.gross, bezDph:r.net != null ? r.net : r.gross, dph:r.dph || 0, dny:r.cas.dny, predemPct:pct, objem:(r.rozsah || {}).V || 0};
+    const puv = {predem:z.predem, sleva:z.sleva, zaloha:z.zaloha, p:z._predPredem, mel:Object.prototype.hasOwnProperty.call(z, "_predPredem")};
+    if (predem !== undefined && !!predem !== !!z.predem) platNastavPredem("vyklizeni", z, !!predem);
+    let r; try { r = vykVypocet(z); } catch (e) { r = null; } finally { z.predem = puv.predem; z.sleva = puv.sleva; z.zaloha = puv.zaloha; if (puv.mel) z._predPredem = puv.p; else delete z._predPredem; }
+    if (!r || !r.ok) return null;
+    return {celkem:r.gross, bezDph:r.net != null ? r.net : r.gross, dph:r.dph || 0, dny:Math.max(1, Math.ceil(r.cas.dny || 1)), predemPct:pct, objem:(r.rozsah || {}).V || 0};
   }
   const puv = J, bylo = z.platbaPredem; J = z; if (predem !== undefined) z.platbaPredem = !!predem;
-  let v; try { v = vypocet(); } finally { z.platbaPredem = bylo; J = puv; }
+  let v; try { v = vypocet(); } catch (e) { v = null; } finally { z.platbaPredem = bylo; J = puv; }
+  if (!v) return null;
   return {celkem:v.celkem, bezDph:v.trzba, dph:v.dph, dny:Math.max(1, Math.ceil(v.dny || 1)), predemPct:pct};
 }
 /* co ještě zbývá uhradit — pro uznání dluhu v předávacím protokolu */
 function hnNeuhrazeno(z, zdroj){
-  const c = smlCena(zdroj, z); if (!c) return null;
-  let zaplaceno = smlZaplacenoZaloh(z);
-  if (!zaplaceno && zdroj !== "vyklizeni" && z.zalohaZaplaceno) zaplaceno = +z.zalohaCastka || 0;
-  return Math.max(0, Math.round(c.celkem - zaplaceno));
+  const spl = platSplatky(zdroj, z); if (!spl.length) return null;
+  return Math.max(0, Math.round(spl.filter(s => !s.zaplaceno).reduce((a, s) => a + s.castka, 0)));
 }
-
 /* ---------- SHA-256 (synchronně, bez knihoven) — otisk přílohy a smlouvy ---------- */
 const SML_K = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
   0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
@@ -15645,33 +15651,31 @@ function smlPracDen(od, n){
 
 /* ---------- platební plán: navrhne se podle délky zakázky, etapy se popíšou věcně (položky a množství) ---------- */
 function smlPlanNavrh(zdroj, z, c){
-  const n = S.nastaveni || {}, dny = c ? c.dny : 1, cena = c ? c.celkem : 0, zal = +n.zaloha || 40;
-  if (zdroj === "vyklizeni" || dny <= 2) return {zaloha:Math.max(zal, 50), milniky:[]};
-  if (dny <= 7 && cena <= 300000) return {zaloha:zal, milniky:[{pct:40, text:""}]};
+  const dny = c ? Math.max(1, Math.ceil(c.dny || 1)) : 1, cena = c ? c.celkem : 0;
+  if (dny <= 2) return {zaloha:50, milniky:[]};
+  if (dny <= 7 && cena <= 300000) return {zaloha:40, milniky:[{pct:40, text:""}]};
   return {zaloha:30, milniky:[{pct:30, text:""}, {pct:30, text:""}]};
 }
 function smlVychozi(zdroj){
-  const z = smlZakazka(zdroj), k = z ? smlKlient(z) : null, n = S.nastaveni || {}, c = z ? smlCena(zdroj, z) : null;
+  const z = smlZakazka(zdroj), k = z ? smlKlient(z) : null, c = z ? smlCena(zdroj, z) : null;
   const firma = !!(k && String(k.ico || "").trim()) || (zdroj !== "vyklizeni" && z && (z.cenik === "b2b" || z.odberatelId));
-  const predem = zdroj === "vyklizeni" ? !!(z && z.predem) : !!(z && z.platbaPredem);
-  const plan = smlPlanNavrh(zdroj, z, c);
-  const o = {typ:predem ? "predem" : "etapy", strana:firma ? "firma" : "spotrebitel", kanal:"pozvani", podpis:faDnes(), vlastnik:"vlastnik",
-    zaloha:plan.zaloha, milniky:plan.milniky, splatZal:3, splatMil:3, splatDopl:n.smlSplatDopl != null ? +n.smlSplatDopl : 3,
-    garance:true, dobaDni:c ? c.dny : 1, pokutaDen:firma ? 0.1 : 0.05, drivejsi:false};
+  const o = Object.assign({strana:firma ? "firma" : "spotrebitel", kanal:"pozvani", podpis:faDnes(), vlastnik:"vlastnik", garance:true, dobaDni:c ? c.dny : 1, pokutaDen:firma ? 0.1 : 0.05, drivejsi:false},
+    z ? platVolby(zdroj, z, c) : {typ:"etapy", zaloha:50, milniky:[], splatZal:3, splatMil:3, splatDopl:3});
   o.drivejsi = smlPotrebaZadosti(o, z);
   return o;
 }
+const SML_PLAN_POLE = ["typ", "zaloha", "milniky", "splatZal", "splatMil", "splatDopl", "prubezna", "legacy"];
+function smlBezPlanu(v){ const o = Object.assign({}, v || {}); SML_PLAN_POLE.forEach(k => delete o[k]); return o; }
 /* staré uložené volby (průběžná 30 % „v půlce“, splatnost 14 dní) převést na nový tvar */
 function smlNormVolby(o, zdroj, z){
-  if (o.prubezna && !Array.isArray(o.milniky)) o.milniky = [{pct:30, text:""}];
-  delete o.prubezna;
-  if (!Array.isArray(o.milniky)) o.milniky = [];
   if (!o.kanal) o.kanal = "pozvani";
   if (!o.podpis) o.podpis = faDnes();
   if (!o.vlastnik) o.vlastnik = "vlastnik";
-  if (o.splatMil == null) o.splatMil = 3;
   if (o.garance == null) o.garance = true;
   if (!(o.dobaDni > 0)) { const c = smlCena(zdroj, z); o.dobaDni = c ? c.dny : 1; }
+  const pv = z ? platVolby(zdroj, z) : {};
+  ["typ", "zaloha", "milniky", "splatZal", "splatMil", "splatDopl", "legacy"].forEach(k => { if (o[k] == null) o[k] = pv[k]; });
+  if (!Array.isArray(o.milniky)) o.milniky = [];
   o.pokutaDen = o.strana === "firma" ? 0.1 : 0.05;
   return o;
 }
@@ -15701,30 +15705,40 @@ function smlEtapaText(zdroj, z, odPodil, doPodil, c){
   return casti.join("; ");
 }
 function smlPlan(zdroj, z, o, c){
-  const celkem = Math.round(c ? c.celkem : 0);
-  if (o.typ === "predem") return {celkem, splatky:[{druh:"predem", nazev:"Celá cena předem", castka:celkem, pct:100}], expozicePct:0, expoziceKc:0, chyba:""};
-  const ms = (o.milniky || []).filter(m => +m.pct > 0), zalPct = Math.max(0, +o.zaloha || 0);
-  const sumPct = zalPct + ms.reduce((a, m) => a + +m.pct, 0), doplPct = 100 - sumPct;
+  o = o || {};
+  const pv = z && (o.typ == null || o.zaloha == null || o.milniky == null) ? platVolby(zdroj, z, c) : {};
+  const typ = o.typ || pv.typ || "etapy", celkem = Math.round(c ? c.celkem : 0);
+  if (typ === "predem") return {typ, celkem, splatky:[{druh:"predem", nazev:"Celá cena předem", castka:celkem, pct:100}], expozicePct:0, expoziceKc:0, chyba:""};
+  if (o.legacy || (o.zaloha == null && pv.legacy)) {
+    const zal = zdroj === "vyklizeni" ? Math.round(celkem * (+z.zaloha || 0)) : Math.min(celkem, Math.round(+z.zalohaCastka || 0));
+    const dopl = zdroj === "vyklizeni" ? celkem - zal : (+z.doplatekCastka > 0 ? Math.round(+z.doplatekCastka) : zal > 0 ? celkem - zal : 0);
+    const pctZ = x => celkem ? Math.round(x / celkem * 1000) / 10 : 0, spl = [];
+    if (zal > 0) spl.push({druh:"zaloha", nazev:"Záloha", castka:zal, pct:pctZ(zal)});
+    if (dopl > 0) spl.push({druh:"doplatek", nazev:"Doplatek", castka:dopl, pct:pctZ(dopl)});
+    return {typ, legacy:true, celkem, splatky:spl, expozicePct:100 - pctZ(zal), expoziceKc:celkem - zal, chyba:""};
+  }
+  const zalPct = Math.max(0, +(o.zaloha != null ? o.zaloha : pv.zaloha) || 0);
+  const ms = ((o.milniky != null ? o.milniky : pv.milniky) || []).map((m, i) => ({m, i})).filter(x => +x.m.pct > 0);
+  const sumPct = zalPct + ms.reduce((a, x) => a + +x.m.pct, 0), doplPct = 100 - sumPct;
   const splatky = [], zal = Math.round(celkem * zalPct / 100);
   if (zal > 0) splatky.push({druh:"zaloha", nazev:"Záloha", castka:zal, pct:zalPct});
   let kumPct = zalPct, predchozi = 0, soucet = zal, expozice = 0;
-  ms.forEach((m, i) => {
+  ms.forEach(({m, i}, k) => {
     kumPct += +m.pct;
     const hranice = Math.min(0.95, Math.max(predchozi + 0.05, (kumPct - doplPct) / 100));
     const castka = Math.round(celkem * m.pct / 100); soucet += castka;
-    const pismeno = String.fromCharCode(65 + i);
+    const pismeno = String.fromCharCode(65 + k);
     const text = String(m.text || "").trim() || smlEtapaText(zdroj, z, predchozi, hranice, c);
     expozice = Math.max(expozice, hranice * 100 - (kumPct - m.pct));
     splatky.push({druh:"milnik", nazev:"Průběžná platba po etapě " + pismeno, pismeno, castka, pct:+m.pct, etapa:text, podil:hranice, i});
     predchozi = hranice;
   });
   const dopl = celkem - soucet;
-  expozice = Math.max(expozice, 100 - kumPct, zalPct ? 0 : 100 - kumPct);
+  expozice = Math.max(expozice, 100 - kumPct);
   splatky.push({druh:"doplatek", nazev:"Doplatek", castka:dopl, pct:Math.round(doplPct * 10) / 10});
-  return {celkem, splatky, expozicePct:Math.max(0, expozice), expoziceKc:Math.round(celkem * Math.max(0, expozice) / 100),
+  return {typ, celkem, splatky, expozicePct:Math.max(0, expozice), expoziceKc:Math.round(celkem * Math.max(0, expozice) / 100),
     chyba:doplPct < 0 || dopl < 0 ? "Záloha a průběžné platby dohromady přesahují 100 % ceny." : ""};
 }
-
 /* ---------- příloha č. 1: rozsah a cena (skutečná nabídka), verze a otisk ---------- */
 function smlPrilohaHTML(zdroj, z, o, cislo){
   if (zdroj === "vyklizeni") {
@@ -15824,7 +15838,11 @@ function smlText(zdroj, o, ctx){
     "Objednatel zajistí včas a na své náklady: " + souc.join("; ") + ".",
     "Neposkytne-li objednatel součinnost v dohodnutém čase, prodlužuje se termín o dobu jeho prodlení a zhotovitel je oprávněn účtovat zmařený výjezd a čekání podle čl. VI. Neposkytne-li ji ani v přiměřené dodatečné lhůtě, kterou mu zhotovitel určí, může zhotovitel od smlouvy odstoupit (§ 2591 občanského zákoníku).",
     "Termín se přiměřeně prodlužuje o dobu, po kterou nelze práce provádět z důvodů, které zhotovitel nezpůsobil (zejména vyšší moc, zákaz správce, zjištění azbestu nebo ohrožení statiky, čekání na souhlas objednatele se změnou díla nebo na úhradu splatné platby)."];
-  term.push(o.garance ? "Dostane-li se zhotovitel z důvodů na své straně do prodlení s dokončením díla o více než 3 pracovní dny, zaplatí objednateli smluvní pokutu 0,05 % z ceny díla za každý další den prodlení" + (vykl && +(S.vykSazby || {}).garanceTerminKc > 0 ? ", nejméně však " + kc0(+S.vykSazby.garanceTerminKc) + " za den" : "") + "."
+  const garVk = vykl && +(S.vykSazby || {}).garanceTerminKc > 0;
+  term.push(o.garance
+    ? "Zhotovitel se zavazuje dílo předat nejpozději v termínu podle odstavce 1, prodlouženém podle odstavců 3 a 4. " + (garVk
+      ? "Nepředá-li dílo v tomto termínu z důvodů výlučně na své straně, zaplatí objednateli smluvní pokutu " + kc0(+S.vykSazby.garanceTerminKc) + " za každý další den prodlení, celkem nejvýše za 5 dnů."
+      : "Dostane-li se zhotovitel z důvodů výlučně na své straně do prodlení s předáním díla o více než 5 pracovních dnů, zaplatí objednateli za každý další pracovní den prodlení smluvní pokutu 0,05 % z ceny dosud nedokončené části díla, celkem nejvýše 5 % ceny díla.")
     : "Doba provádění je předpokládaná; zhotovitel ji dodrží s odbornou péčí a zaručuje termín zahájení prací.");
   clanky.push(["Termín a součinnost", term]);
   /* V. změny, vícepráce, méněpráce, skryté překážky */
@@ -15857,16 +15875,17 @@ function smlText(zdroj, o, ctx){
   /* X. ukončení */
   const konec = [];
   if (spotr && lhuta > 0) konec.push("Objednatel jako spotřebitel má právo odstoupit od smlouvy bez udání důvodu do <b>" + lhuta + " dnů</b> ode dne jejího uzavření" + (konecLh ? " (při podpisu " + smlDatum(o.podpis) + " do " + smlDatum(konecLh) + ")" : "") + "; poučení a formulář jsou přílohou č. 2. Požádá-li objednatel výslovně o zahájení prací před uplynutím této lhůty a od smlouvy poté odstoupí, uhradí poměrnou část ceny za plnění poskytnuté do okamžiku odstoupení (§ 1834 občanského zákoníku). Po úplném provedení díla právo na odstoupení zaniká. Zákonné odstoupení spotřebitele není porušením smlouvy a nevzniká za ně smluvní pokuta.");
-  if (predem) {
-    konec.push("<b>Záruka vrácení peněz.</b> Nezahájí-li zhotovitel práce do 5 pracovních dnů od sjednaného termínu z důvodů na své straně, může objednatel od smlouvy odstoupit a zhotovitel mu vrátí celou uhrazenou částku do 5 pracovních dnů.");
-    konec.push("Poruší-li zhotovitel smlouvu podstatným způsobem a nezjedná nápravu ani v přiměřené lhůtě, nejméně 3 pracovních dnů od písemného upozornění, může objednatel od smlouvy odstoupit; zhotovitel vrátí uhrazenou cenu sníženou o hodnotu řádně provedené části díla (v cenách po slevě) do 10 dnů.");
-    konec.push("Ukončí-li objednatel smlouvu z jiného důvodu, který není na straně zhotovitele, vrátí zhotovitel do 14 dnů uhrazenou cenu sníženou o (a) hodnotu provedené části díla podle jednotkových cen přílohy č. 1 <b>bez slevy za platbu předem</b> a (b) náklady, které zhotovitel na dílo účelně vynaložil (zejména objednané kontejnery, doprava, materiál, zábor).");
-    konec.push("Rozsah provedené části díla se určí společným zápisem s fotodokumentací. Nedostaví-li se objednatel k zápisu, určí se rozsah podle fotodokumentace a denního zápisu zhotovitele.");
-  } else {
-    konec.push("Poruší-li zhotovitel smlouvu podstatným způsobem a nezjedná nápravu ani v přiměřené lhůtě, nejméně 3 pracovních dnů od písemného upozornění, může objednatel od smlouvy odstoupit.");
-    konec.push("Zmaří-li objednatel provedení nebo dokončení díla z důvodu, za který odpovídá (zejména zakáže pokračovat v pracích, neumožní přístup nebo trvale neposkytne součinnost), náleží zhotoviteli podle § 2613 občanského zákoníku cena díla snížená o to, co zhotovitel neprovedením díla ušetřil. Přijaté platby se započtou a zhotovitel objednateli do 14 dnů předloží vyúčtování.");
-  }
-  konec.push("Zhotovitel může od smlouvy odstoupit, je-li objednatel v prodlení s úhradou kterékoliv platby déle než 14 dnů nebo neposkytuje-li součinnost ani v dodatečné přiměřené lhůtě; nárok na cenu provedené části díla a vynaložené náklady tím není dotčen.");
+  konec.push((spotr && lhuta > 0 ? "Mimo případ podle předchozího odstavce může objednatel" : "Objednatel může") + " od smlouvy odstoupit jen z těchto důvodů na straně zhotovitele:<ol type='a' style='margin:1mm 0 0'>" +
+    "<li>zhotovitel nezahájí práce ani do 5 pracovních dnů po sjednaném termínu zahájení, a to z důvodů výlučně na své straně;</li>" +
+    "<li>zhotovitel bez důvodu uvedeného v této smlouvě přeruší práce na více než 5 po sobě jdoucích pracovních dnů a nepokračuje v nich ani do 3 pracovních dnů od písemné výzvy objednatele;</li>" +
+    "<li>zhotovitel je z důvodů výlučně na své straně v prodlení s předáním díla o více než 15 pracovních dnů po termínu prodlouženém podle čl. IV;</li>" +
+    "<li>zhotovitel hrubě porušuje odbornou péči tak, že ohrožuje statiku stavby, bezpečnost osob nebo majetek třetích osob, nebo bourá mimo rozsah díla bez souhlasu objednatele, a nezjedná nápravu ani do 3 pracovních dnů od písemné výzvy (hrozí-li bezprostředně škoda, do 24 hodin);</li>" +
+    "<li>bylo rozhodnuto o úpadku zhotovitele, nebo zhotovitel pozbyl oprávnění, bez něhož dílo nemůže dokončit.</li></ol>Odstoupení musí mít textovou podobu a musí v něm být uveden důvod.");
+  konec.push("Důvodem k odstoupení nejsou zejména: prach, hluk a přechodný nepořádek obvyklé pro bourací práce v povolenou dobu; drobné vady, které zhotovitel odstraní v průběhu prací nebo při předání; postup prací odlišný od představ objednatele, dodržuje-li zhotovitel smlouvu a termín; změna záměru objednatele nebo jeho rozhodnutí dokončit práce sám či s jiným dodavatelem; okolnosti, které podle smlouvy prodlužují termín (skryté překážky, čekání na platbu, součinnost nebo souhlas se změnou, vyšší moc). Ukončí-li objednatel smlouvu z takového důvodu, postupuje se podle odstavce " + (spotr && lhuta > 0 ? 5 : 4) + ". Práva objednatele z vadného plnění a další práva, která mu zákon přiznává a která nelze smluvně omezit, tím nejsou dotčena.");
+  konec.push("Odstoupí-li objednatel z důvodu podle odstavce " + (spotr && lhuta > 0 ? 2 : 1) + ": (a) v případě písm. a) " + (predem ? "platí <b>Záruka vrácení peněz</b>: zhotovitel mu vrátí" : "mu zhotovitel vrátí") + " všechny přijaté platby do 5 pracovních dnů; (b) v ostatních případech uhradí objednatel jen řádně provedenou část díla podle jednotkových cen přílohy č. 1" + (predem ? " (v cenách po slevě za platbu předem)" : "") + ", nehradí žádné náklady na neprovedenou část a zhotovitel mu případný přeplatek vrátí do 10 dnů od odstoupení.");
+  konec.push("Ukončí-li objednatel smlouvu, zakáže-li pokračovat v pracích nebo jinak zmaří provedení díla z jiného důvodu, než je uveden v odstavci " + (spotr && lhuta > 0 ? 2 : 1) + ", náleží zhotoviteli podle § 2613 občanského zákoníku sjednaná cena díla" + (predem ? " <b>bez slevy za platbu předem</b>" : "") + " snížená o to, co zhotovitel neprovedením díla ušetřil (zejména neobjednané kontejnery, neprovedená likvidace odpadu a doprava). Přijaté platby se započtou; zhotovitel do 14 dnů předloží vyúčtování a přeplatek vrátí, nedoplatek objednatel uhradí do 7 dnů od doručení vyúčtování.");
+  konec.push("Rozsah řádně provedené části díla se určí společným zápisem s fotodokumentací. Nedostaví-li se objednatel k zápisu ani v náhradním termínu, určí se rozsah podle fotodokumentace a denního zápisu zhotovitele.");
+  konec.push("Zhotovitel může od smlouvy odstoupit, je-li objednatel v prodlení s úhradou kterékoliv platby déle než 14 dnů, neposkytuje-li součinnost ani v dodatečné přiměřené lhůtě, nebo trvá-li na postupu, který ohrožuje statiku, bezpečnost osob nebo je v rozporu s předpisy (např. bourání azbestu bez oprávněné firmy). V takovém případě mu náleží vypořádání podle odstavce " + (spotr && lhuta > 0 ? 5 : 4) + ".");
   konec.push("Případné výhrady řeší strany nejprve dohodou, a to společnou prohlídkou do 3 pracovních dnů od oznámení.");
   clanky.push(["Ukončení smlouvy" + (predem ? " a záruka vrácení peněz" : ""), konec]);
   /* XI. závěr */
@@ -15914,12 +15933,14 @@ function smlVopTelo(){
     ["Úvod", ["Tyto obchodní podmínky upravují provádění bouracích prací, demontáží a vyklízení zhotovitelem " + esc(d.firma) + ", IČO " + esc(d.ico) + ", " + esc(d.adresa) + ". Odchylná ujednání ve smlouvě o dílo a v jejích dodatcích mají přednost."]],
     ["Cena a rozsah", ["Cena v nabídce je pevná za popsaný rozsah a za předpokladů v nabídce uvedených; vychází ze stavu zjištěného při prohlídce. Mění se jen o změny rozsahu odsouhlasené objednatelem v textové podobě (každá změna má číslo, cenu a dopad na termín) a z důvodů uvedených níže.",
       "Skryté konstrukce, materiály a rozvody, které nebyly při prohlídce zřejmé, zhotovitel objednateli bez odkladu oznámí s fotodokumentací a navrhne postup; do jeho vyjádření může práce v dotčené části přerušit."]],
-    ["Platby", ["Platby probíhají podle platebního kalendáře ve smlouvě: záloha před zahájením, u delších zakázek průběžná platba po dokončení věcně popsané etapy a doplatek po předání. Zhotovitel nezahajuje práce před připsáním zálohy a nepokračuje další etapou před zaplacením předchozí.",
+    ["Platby", ["Klient si vybere platbu celé ceny předem se slevou, nebo platby po etapách podle délky zakázky: záloha před zahájením, u delších zakázek průběžná platba po dokončení věcně popsané etapy a doplatek do několika dnů od předání. Zhotovitel nezahajuje práce před připsáním zálohy a nepokračuje další etapou před zaplacením předchozí.",
       "Při prodlení s platbou se účtuje zákonný úrok z prodlení a smluvní pokuta 0,05 % denně z dlužné částky (u podnikatelů 0,1 % a náklady spojené s uplatněním pohledávky 1 200 Kč); zhotovitel může do úhrady přerušit práce a termín se o dobu přerušení prodlužuje."]],
     ["Součinnost objednatele", ["Objednatel zajistí přístup a klíče v dohodnutý čas, souhlas vlastníka, spoluvlastníků, správce nebo SVJ, odpojení rozvodů v místě prací a pravdivé informace o rozvodech, statice a materiálech s možným obsahem azbestu."]],
     ["Zmařený výjezd, čekání a změna ceny", smlPodminky()],
     ["Provádění a předání", ["Zhotovitel pracuje s odbornou péčí, pořizuje fotodokumentaci stavu a průběžně uklízí dotčené společné prostory. Odpad přebírá a předává do oprávněného zařízení.",
       "O předání díla se sepíše protokol. Převzetí nelze odmítnout pro ojedinělé drobné vady nebránící užívání; ty se zapíší se lhůtou k odstranění. Nedostaví-li se objednatel bez vážného důvodu ani ke druhému termínu předání, sepíše zhotovitel jednostranný protokol s fotodokumentací; práva objednatele z vad tím nejsou dotčena."]],
+    ["Termín a ukončení smlouvy", ["Termín předání se prodlužuje o skryté překážky, čekání na platby, součinnost nebo souhlas se změnou a o vyšší moc. Je-li termín ve smlouvě závazný, platí zhotovitel při prodlení z vlastní viny delším než 5 pracovních dnů smluvní pokutu 0,05 % z ceny nedokončené části za den, nejvýše 5 % ceny.",
+      "Objednatel může odstoupit z důvodů uvedených ve smlouvě (nezahájení prací, přerušení bez důvodu, podstatné prodlení, hrubé porušení odborné péče, úpadek zhotovitele) a zaplatí pak jen řádně provedenou část. Ukončí-li smlouvu z jiného důvodu, náleží zhotoviteli cena snížená o to, co ušetřil (§ 2613 občanského zákoníku). Zákonné právo spotřebitele na odstoupení tím není dotčeno."]],
     ["Reklamace", ["Vady díla lze reklamovat v sídle zhotovitele nebo e-mailem na " + esc(d.email || "…") + ". Zhotovitel vydá potvrzení o uplatnění reklamace a vyřídí ji nejpozději do 30 dnů, nedohodne-li se se spotřebitelem na delší lhůtě; o vyřízení vydá písemné potvrzení."]],
     ["Spotřebitelé", ["Spotřebitel může od smlouvy uzavřené mimo obchodní prostory nebo na dálku odstoupit do 14 dnů bez udání důvodu (při nevyžádané návštěvě nebo prodejní akci do 30 dnů). Požádá-li o zahájení prací dříve, uhradí při odstoupení poměrnou část ceny za provedené práce. Mimosoudní řešení sporů: Česká obchodní inspekce, adr.coi.cz."]]
   ];
@@ -15942,6 +15963,7 @@ function smlKontrola(zdroj, z, o, c, plan){
   if (!String(z.adresa || "").trim()) r.cervene.push("Chybí adresa místa plnění.");
   if (!c || !(c.celkem > 0)) r.cervene.push("Zakázka nemá cenu — doplň práce v kalkulaci.");
   if (plan.chyba) r.cervene.push(plan.chyba);
+  if (c && c.celkem > 0 && !plan.splatky.some(s => s.castka > 0)) r.cervene.push("Starší zakázka nemá zadané platby — v části Platby klikni na „Převést na plán podle délky zakázky“.");
   const konecLh = smlKonecLhuty(o);
   if (spotr && konecLh && z.terminOd && z.terminOd <= konecLh && !o.drivejsi)
     r.cervene.push("Zahájení " + smlDatum(z.terminOd) + " je před koncem lhůty pro odstoupení (" + smlDatum(konecLh) + "). Buď zaškrtni výslovnou žádost klienta o dřívější zahájení, nebo posuň zahájení.");
@@ -15970,61 +15992,38 @@ function smlKontrola(zdroj, z, o, c, plan){
 
 /* ---------- okno smlouvy ---------- */
 function smlVolbyZOkna(zdroj){
-  const z = smlZakazka(zdroj), m = document.getElementById("smlModal");
-  const v = s => (document.querySelector("#smlModal input[name=" + s + "]:checked") || {}).value;
+  const z = smlZakazka(zdroj);
   const val = id => (document.getElementById(id) || {}).value;
-  const puv = smlNormVolby(Object.assign(smlVychozi(zdroj), (z.smlouva && z.smlouva.volby) || {}), zdroj, z);
-  const pocet = m && document.getElementById("smlMilPocet") ? +val("smlMilPocet") : puv.milniky.length;
-  const mil = [];
-  for (let i = 0; i < pocet; i++) mil.push({pct:num(val("smlMil" + i) != null ? val("smlMil" + i) : ((puv.milniky[i] || {}).pct || 30)), text:(val("smlMilT" + i) != null ? val("smlMilT" + i) : (puv.milniky[i] || {}).text || "")});
-  const o = {typ:v("smlTyp") || puv.typ, strana:v("smlStrana") || puv.strana, kanal:val("smlKanal") || puv.kanal, podpis:val("smlPodpis") || puv.podpis,
-    vlastnik:val("smlVlastnik") || puv.vlastnik, zaloha:val("smlZaloha") != null ? num(val("smlZaloha")) : puv.zaloha, milniky:mil,
-    splatZal:num(val("smlSplatZal")) || puv.splatZal, splatMil:num(val("smlSplatMil")) || puv.splatMil, splatDopl:num(val("smlSplatDopl")) || puv.splatDopl,
+  const puv = smlNormVolby(Object.assign(smlVychozi(zdroj), smlBezPlanu(z.smlouva && z.smlouva.volby)), zdroj, z);
+  const v = s => (document.querySelector("#smlModal input[name=" + s + "]:checked") || {}).value;
+  const o = {strana:v("smlStrana") || puv.strana, kanal:val("smlKanal") || puv.kanal, podpis:val("smlPodpis") || puv.podpis, vlastnik:val("smlVlastnik") || puv.vlastnik,
     garance:document.getElementById("smlGarance") ? !!document.getElementById("smlGarance").checked : puv.garance,
     dobaDni:Math.max(1, Math.round(num(val("smlDoba")) || puv.dobaDni)), drivejsi:document.getElementById("smlDrivejsi") ? !!document.getElementById("smlDrivejsi").checked : puv.drivejsi};
   o.pokutaDen = o.strana === "firma" ? 0.1 : 0.05;
   return o;
 }
 function smlVolby(){ const m = document.getElementById("smlModal"); return smlVolbyZOkna(m ? m.dataset.zdroj : "demolice"); }
-function smlStavPlateb(zdroj, z, plan){
-  const fak = (S.faktury || []).filter(f => f.zakazkaId === z.id && f.stav !== "stornovana" && f.typ !== "storno");
-  return plan.splatky.filter(s => s.castka > 0).map(s => {
-    let f = null;
-    if (s.druh === "zaloha" || s.druh === "predem") f = fak.find(x => x.typ === "zal" && x.milnik == null);
-    else if (s.druh === "milnik") f = fak.find(x => x.typ === "zal" && x.milnik === s.i);
-    else f = fak.find(x => x.typ === "kon" || x.typ === "vlastni");
-    const zapl = f && f.stav === "zaplacena", hot = s.druh === "milnik" && ((z.smlouva || {}).etapy || {})[s.i];
-    return Object.assign({}, s, {faktura:f, zaplaceno:zapl, etapaHotovo:hot});
-  });
-}
+function smlStavPlateb(zdroj, z){ return platSplatky(zdroj, z); }
 function smlRenderDyn(){
   const m = document.getElementById("smlModal"); if (!m || m.hidden) return;
-  const zdroj = m.dataset.zdroj, z = smlZakazka(zdroj), o = smlVolbyZOkna(zdroj), c = smlCena(zdroj, z, o.typ === "predem"), plan = smlPlan(zdroj, z, o, c);
+  const zdroj = m.dataset.zdroj, z = smlZakazka(zdroj), o = smlNormVolby(smlVolbyZOkna(zdroj), zdroj, z), c = smlCena(zdroj, z, o.typ === "predem"), plan = smlPlan(zdroj, z, o, c || {celkem:0, dny:1});
   const lh = smlLhuta(o), kl = smlKonecLhuty(o), el = id => document.getElementById(id);
   if (el("smlLhutaInfo")) el("smlLhutaInfo").innerHTML = o.strana === "firma" ? "Firma: bez spotřebitelského odstoupení." : lh ? "Lhůta pro odstoupení <b>" + lh + " dní</b> — do <b>" + smlDatum(kl) + "</b>." + (z.terminOd ? (z.terminOd <= kl ? " Zahájení " + smlDatum(z.terminOd) + " je dřív → je potřeba výslovná žádost klienta (přiloží se k podpisu)." : " Zahájení " + smlDatum(z.terminOd) + " je až po lhůtě → žádost není potřeba.") : "") : "V provozovně spotřebitel právo na odstoupení nemá — poučení se nepřikládá.";
   if (el("smlDrivejsiBox")) el("smlDrivejsiBox").hidden = !(o.strana !== "firma" && lh > 0);
-  if (el("smlEtapyBox")) el("smlEtapyBox").hidden = o.typ === "predem";
-  if (el("smlPlanInfo")) el("smlPlanInfo").innerHTML = c ? "<table class='sml-plan'><tbody>" + plan.splatky.filter(s => s.castka > 0 || s.druh === "doplatek").map(s => "<tr><td>" + esc(s.nazev) + (s.etapa ? "<div class='hint'>" + esc(s.etapa) + "</div>" : "") + "</td><td class='r'><b>" + kc(s.castka) + "</b></td><td class='r hint'>" + s.pct + " %</td></tr>").join("") + "</tbody></table>" +
-    (o.typ === "predem" ? "" : "<div class='sml-expo " + (plan.expozicePct > 40 ? "ne" : plan.expozicePct > 25 ? "pozor" : "ok") + "'>Nejvíc peněz venku (práce hotová, ale nezaplacená): <b>" + kc(plan.expoziceKc) + "</b> · " + Math.round(plan.expozicePct) + " % ceny</div>") : "";
+  const pp = el("smlPlatPlan"); if (pp && !pp.contains(document.activeElement)) pp.innerHTML = platHTML(zdroj, z);
   const kon = smlKontrola(zdroj, z, o, c || {celkem:0}, plan);
   if (el("smlKontrola")) el("smlKontrola").innerHTML = kon.cervene.map(x => "<li class='ne'>⛔ " + esc(x) + "</li>").join("") + kon.oranzove.map(x => "<li class='pozor'>⚠️ " + esc(x) + "</li>").join("") + kon.zelene.map(x => "<li class='ok'>✓ " + esc(x) + "</li>").join("");
   const tl = m.querySelector("[data-sml='tisk']"); if (tl) { tl.disabled = kon.cervene.length > 0; tl.title = kon.cervene.length ? "Nejdřív oprav červené body" : ""; }
-  const pl = el("smlKalendar");
-  if (pl) {
-    const st = smlStavPlateb(zdroj, z, plan);
-    pl.innerHTML = st.map(s => "<tr><td>" + esc(s.nazev) + "</td><td class='r'>" + kc(s.castka) + "</td><td>" +
-      (s.zaplaceno ? "<span class='ok'>✓ zaplaceno</span>" : s.faktura ? "faktura " + esc(s.faktura.cislo || "koncept") : s.druh === "milnik" ? (s.etapaHotovo ? "etapa hotová " + smlDatum(s.etapaHotovo) : "<button type='button' class='mini' data-sml='etapa' data-i='" + s.i + "'>✅ Etapa " + s.pismeno + " hotová → faktura</button>")
-        : s.druh === "doplatek" ? "<span class='hint'>konečná faktura po předání</span>" : "<button type='button' class='mini' data-sml='zalfak'>🧾 Zálohová faktura</button>") + "</td></tr>").join("");
-  }
 }
 function smlDialog(zdroj){
   const z = smlZakazka(zdroj); if (!z) return;
-  const o = smlNormVolby(Object.assign(smlVychozi(zdroj), z.smlouva && z.smlouva.volby ? z.smlouva.volby : {}), zdroj, z);
-  if (!(z.smlouva && z.smlouva.volby && z.smlouva.volby.drivejsi != null)) o.drivejsi = smlPotrebaZadosti(o, z);
+  platSync(zdroj, z);
+  const ulozene = smlBezPlanu(z.smlouva && z.smlouva.volby);
+  const o = smlNormVolby(Object.assign(smlVychozi(zdroj), ulozene), zdroj, z);
+  if (ulozene.drivejsi == null) o.drivejsi = smlPotrebaZadosti(o, z);
   let m = document.getElementById("smlModal");
   if (!m) { m = document.createElement("div"); m.id = "smlModal"; m.className = "hn-modal"; document.body.appendChild(m); }
   const pod = z.smlouva && z.smlouva.podepsano, hist = (z.smlouva && z.smlouva.prilohy) || [];
-  const a = smlCena(zdroj, z, false), b = smlCena(zdroj, z, true);
   const radio = (nm, hodnoty, akt) => hodnoty.map(([k, t]) => "<label class='chk'><input type='radio' name='" + nm + "' value='" + k + "'" + (akt === k ? " checked" : "") + "> " + t + "</label>").join("");
   m.dataset.zdroj = zdroj;
   m.innerHTML = "<div class='hn-okno sml-okno' role='dialog' aria-label='Smlouva s klientem'><div class='hn-hl'><b>📝 Smlouva s klientem — " + esc(z.nazev || "zakázka") + "</b><button type='button' class='hn-x' data-sml='zavrit' aria-label='Zavřít'>×</button></div>" +
@@ -16036,24 +16035,14 @@ function smlDialog(zdroj){
       "<label class='f'>Datum podpisu<input type='date' id='smlPodpis' value='" + esc(o.podpis) + "'></label></div>" +
     "<p class='hint' id='smlLhutaInfo' style='margin:4px 0'></p>" +
     "<label class='chk' id='smlDrivejsiBox'><input type='checkbox' id='smlDrivejsi'" + (o.drivejsi ? " checked" : "") + "> Klient výslovně žádá o zahájení prací před koncem lhůty pro odstoupení — ke smlouvě se přiloží jeho samostatná žádost s poučením</label>" +
-    "<h4 class='sml-h'>3 · Platby</h4>" + (a && b ? "<p class='hint' style='margin:0 0 4px'>Cena: po etapách <b>" + kc(a.celkem) + "</b> · předem se slevou <b>" + kc(b.celkem) + "</b> — do smlouvy jde jen zvolená varianta.</p>" : "") +
-    "<div class='sml-volby'>" + radio("smlTyp", [["etapy", "Po etapách"], ["predem", "Celá cena předem se slevou"]], o.typ) + "</div>" +
-    "<div id='smlEtapyBox'><div class='grid g3'><label class='f'>Záloha (%)<input type='number' min='0' max='100' step='5' id='smlZaloha' value='" + o.zaloha + "'></label>" +
-      "<label class='f'>Průběžných plateb<select id='smlMilPocet'>" + [0, 1, 2].map(x => "<option" + (o.milniky.length === x ? " selected" : "") + ">" + x + "</option>").join("") + "</select></label>" +
-      "<div class='f' style='justify-content:flex-end'><span>&nbsp;</span><button type='button' class='b' data-sml='navrh'>Doporučit podle zakázky</button></div></div>" +
-      "<div id='smlMilBox'>" + o.milniky.map((mm, i) => "<div class='grid g3 sml-mil'><label class='f'>Etapa " + String.fromCharCode(65 + i) + " — platba (%)<input type='number' min='0' max='100' step='5' id='smlMil" + i + "' value='" + mm.pct + "'></label>" +
-        "<label class='f' style='grid-column:span 2'>Co musí být hotové <span class='hint'>prázdné = spočítá se z položek</span><input id='smlMilT" + i + "' value='" + esc(mm.text || "") + "' placeholder='automaticky z položek kalkulace'></label></div>").join("") + "</div>" +
-      "<div class='grid g3'><label class='f'>Záloha splatná (dní)<input type='number' min='1' id='smlSplatZal' value='" + o.splatZal + "'></label><label class='f'>Průběžná splatná (dní)<input type='number' min='1' id='smlSplatMil' value='" + o.splatMil + "'></label>" +
-      "<label class='f'>Doplatek splatný (dní po předání)<input type='number' min='0' id='smlSplatDopl' value='" + o.splatDopl + "'></label></div></div>" +
-    "<div id='smlPlanInfo'></div>" +
+    "<h4 class='sml-h'>3 · Platby</h4><div id='smlPlatPlan'>" + platHTML(zdroj, z) + "</div>" +
     "<h4 class='sml-h'>4 · Termín</h4><div class='grid g2'><label class='f'>Doba provádění (pracovních dní)<input type='number' min='1' id='smlDoba' value='" + o.dobaDni + "'></label>" +
-      "<label class='chk' style='align-self:end'><input type='checkbox' id='smlGarance'" + (o.garance ? " checked" : "") + "> Ručíme za termín dokončení (pokuta 0,05 %/den pro nás)</label></div>" +
-    "<p class='hint' style='margin:4px 0'>Zahájení: <b>" + smlDatum(z.terminOd) + "</b> (mění se u zakázky). Termín se sám prodlužuje o skryté překážky, čekání na platby a součinnost.</p>" +
+      "<label class='chk' style='align-self:end'><input type='checkbox' id='smlGarance'" + (o.garance ? " checked" : "") + "> Závazný termín předání (pokuta pro nás až po " + (zdroj === "vyklizeni" && +(S.vykSazby || {}).garanceTerminKc > 0 ? "dni zpoždění, max. za 5 dní" : "5 prac. dnech zpoždění, max. 5 % ceny") + ")</label></div>" +
+    "<p class='hint' style='margin:4px 0'>Zahájení: <b>" + smlDatum(z.terminOd) + "</b> (mění se u zakázky). Termín se sám prodlužuje o skryté překážky, čekání na platby, součinnost a souhlas se změnami.</p>" +
     "<h4 class='sml-h'>5 · Kontrola</h4><ul class='sml-kontrola' id='smlKontrola'></ul>" +
     "<div class='btnrow'><button type='button' class='b prim' data-sml='tisk'>🖨 Smlouva k podpisu</button><button type='button' class='b' data-sml='vop'>🖨 Obchodní podmínky</button>" +
       "<button type='button' class='b' data-sml='podepsano'>" + (pod ? "Změnit datum podpisu" : "✓ Podepsáno") + "</button>" +
       (hist.length ? "<button type='button' class='b' data-sml='archiv'>📄 Vytištěná verze " + hist[hist.length - 1].verze + "</button>" : "") + "</div>" +
-    "<h4 class='sml-h'>6 · Platební kalendář</h4><div class='tscroll'><table class='sml-plan'><tbody id='smlKalendar'></tbody></table></div>" +
     "<p class='hint' style='margin:8px 0 0'>Šablona vychází z občanského zákoníku a zákona o ochraně spotřebitele. Než ji začneš používat, nech ji jednou zkontrolovat advokátem — je to pár hodin práce a pak ji používáš roky.</p></div>";
   m.hidden = false;
   smlRenderDyn();
@@ -16069,34 +16058,18 @@ function smlUloz(zdroj, zmena){
 function smlTisk(zdroj){
   const z = smlZakazka(zdroj), o = smlVolbyZOkna(zdroj);
   if (zdroj !== "vyklizeni" && !z.cisloNab && typeof cisloNabidky === "function") cisloNabidky();
+  platSync(zdroj, z);
   const s = smlText(zdroj, o), dnes = faDnes();
   const hist = ((z.smlouva && z.smlouva.prilohy) || []).slice();
   if (s.novaVerze) hist.push({verze:s.verze, otisk:s.otiskPrilohy, datum:dnes, cena:Math.round(s.c.celkem)});
   const zmena = {volby:o, vytisteno:dnes, cislo:s.cislo, otisk:s.otisk, prilohy:hist};
   if (s.novaVerze && z.smlouva && z.smlouva.podepsano) zmena.podepsano = "";
   smlUloz(zdroj, zmena);
-  /* platební kalendář zpátky do zakázky: záloha a zbytek (přehled plateb, cashflow, pohledávky) */
-  const pr = s.plan.splatky.find(x => x.druh === "zaloha" || x.druh === "predem");
-  if (zdroj === "vyklizeni") { if (!z.zalohaZaplaceno) { z.zaloha = o.typ === "predem" ? 1 : (+o.zaloha || 0) / 100; z.predem = o.typ === "predem"; } }
-  else if (!z.zalohaZaplaceno) { z.platbaPredem = o.typ === "predem"; z.zalohaCastka = pr ? pr.castka : 0; z.doplatekCastka = Math.max(0, Math.round(s.c.celkem) - (pr ? pr.castka : 0)); }
   save();
   try { if (typeof IDB !== "undefined" && z.id) IDB.put("sml|" + z.id + "|" + s.verze, s.html); } catch (e) {}
   smlTiskni(s.html, s.nazev + " " + s.cislo);
 }
-function smlEtapaHotova(zdroj, i){
-  const z = smlZakazka(zdroj), o = smlVolbyZOkna(zdroj), c = smlCena(zdroj, z, o.typ === "predem"), plan = smlPlan(zdroj, z, o, c), s = plan.splatky.find(x => x.druh === "milnik" && x.i === i);
-  if (!s) return;
-  const fot = (z.fotky || []).some(f => f.skupina === "prubeh" || f.skupina === "po");
-  if (!fot && !confirm("K etapě nejsou fotky z průběhu. Nafoť dokončenou etapu (Fotky → V průběhu) — je to důkaz pro klienta i pro případný spor.\n\nPokračovat bez fotek?")) return;
-  const etapy = Object.assign({}, (z.smlouva || {}).etapy || {}); etapy[i] = faDnes();
-  smlUloz(zdroj, {etapy});
-  const f = zdroj === "vyklizeni" ? faKonceptZVyklizeni(z, "zal") : faKonceptZeZakazky(z, "zal");
-  f.polozky = [{popis:"Průběžná platba — dokončení etapy " + s.pismeno + " podle smlouvy o dílo č. " + ((z.smlouva || {}).cislo || smlCisloSmlouvy(z)) + " (" + s.etapa + ")", mnozstvi:1, mj:"", cenaMJ:s.castka, celkem:s.castka}];
-  f.mezisoucet = f.celkem = f.kUhrade = s.castka; f.milnik = i;
-  f.splatnost = faPlusDni(faDnes(), +o.splatMil || 3);
-  const m = document.getElementById("smlModal"); if (m) m.hidden = true;
-  faOtevri(f);
-}
+function smlEtapaHotova(zdroj, i){ platEtapaHotova(zdroj, smlZakazka(zdroj), i); }
 if (typeof document !== "undefined" && document.addEventListener) {
   document.addEventListener("click", async e => {
     if (e.target.id === "smlBtn") { smlDialog("demolice"); return; }
@@ -16109,9 +16082,6 @@ if (typeof document !== "undefined" && document.addEventListener) {
       if (a === "tisk") { if (b.disabled) return; m.hidden = true; smlTisk(zdroj); }
       if (a === "vop") { m.hidden = true; smlTiskni(smlVopHTML(), "Obchodní podmínky"); }
       if (a === "podepsano") { const dat = prompt("Datum podpisu (RRRR-MM-DD):", o.podpis || faDnes()); if (dat && /^\d{4}-\d{2}-\d{2}$/.test(dat)) { o.podpis = dat; smlUloz(zdroj, {volby:o, podepsano:dat}); smlDialog(zdroj); if (typeof recalc === "function" && zdroj !== "vyklizeni") recalc(); } }
-      if (a === "navrh") { const c = smlCena(zdroj, z, false), p = smlPlanNavrh(zdroj, z, c); smlUloz(zdroj, {volby:Object.assign(o, {zaloha:p.zaloha, milniky:p.milniky})}); smlDialog(zdroj); }
-      if (a === "zalfak") { m.hidden = true; faOtevri(zdroj === "vyklizeni" ? faKonceptZVyklizeni(z, "zal") : faKonceptZeZakazky(z, "zal")); }
-      if (a === "etapa") smlEtapaHotova(zdroj, +b.dataset.i);
       if (a === "archiv") {
         const hist = (z.smlouva && z.smlouva.prilohy) || [], v = hist.length ? hist[hist.length - 1].verze : 1;
         let html = null; try { html = await IDB.get("sml|" + z.id + "|" + v); } catch (err) {}
@@ -16125,7 +16095,7 @@ if (typeof document !== "undefined" && document.addEventListener) {
   const zmena = e => {
     const m = document.getElementById("smlModal"); if (!m || m.hidden || !m.contains(e.target)) return;
     const zdroj = m.dataset.zdroj;
-    if (e.target.id === "smlMilPocet") { const o = smlVolbyZOkna(zdroj); smlUloz(zdroj, {volby:o}); smlDialog(zdroj); return; }
+    if (e.target.dataset && e.target.dataset.plat) return;
     if (e.type === "change") smlUloz(zdroj, {volby:smlVolbyZOkna(zdroj)});
     smlRenderDyn();
   };
@@ -16161,12 +16131,256 @@ if (typeof document !== "undefined" && document.addEventListener) {
   });
 }
 /* platby v nabídce: stejný plán, jaký půjde do smlouvy */
-function smlPlanNabidkaText(v){
-  const o = smlNormVolby(Object.assign(smlVychozi("demolice"), (J.smlouva && J.smlouva.volby) || {}), "demolice", J); o.typ = "etapy";
-  const plan = smlPlan("demolice", J, o, {celkem:v.celkem, dny:Math.max(1, Math.ceil(v.dny || 1))});
-  const t = plan.splatky.filter(s => s.castka > 0).map(s => s.druh === "zaloha" ? "záloha <b>" + kc(s.castka) + "</b> před zahájením" :
-    s.druh === "milnik" ? "průběžná platba <b>" + kc(s.castka) + "</b> po dokončení etapy " + s.pismeno + " (asi " + Math.round(s.podil * 100) + " % prací)" : "doplatek <b>" + kc(s.castka) + "</b> do " + o.splatDopl + " dnů od předání");
-  return "<p><b>Platby po etapách:</b> " + t.join(", ") + ". Přesné vymezení etap bude ve smlouvě.</p>";
+/* (nahrazeno funkcí v platebním plánu) */
+
+/* ================= PLATEBNÍ PLÁN ZAKÁZKY =================
+   Jeden plán pro kalkulaci, vyklízení, nabídku, smlouvu, faktury, cashflow a přehled pohledávek.
+   Klient volí: celá cena předem se slevou, nebo po etapách podle délky zakázky (1–2 dny 50/50, do týdne 40/40/20,
+   delší nebo nad 300 tis. 30/30/30/10). Plán se sám přepočítá se zakázkou, dokud ho neupravíš ručně, dokud není
+   podepsaná smlouva nebo dokud není hotová či zaplacená některá etapa. Starší zakázky (domluvené před plánem) zůstávají
+   jako záloha + doplatek, dokud je nepřevedeš. */
+const PLAT_AKTIVNI = ["domluveno", "probíhá", "hotovo"];
+function platZak(zdroj){ return zdroj === "vyklizeni" ? VK : J; }
+function platPredem(zdroj, z){ return zdroj === "vyklizeni" ? !!z.predem : !!z.platbaPredem; }
+function platNastavPredem(zdroj, z, on){
+  if (zdroj !== "vyklizeni") { z.platbaPredem = !!on; return; }
+  if (!!z.predem === !!on) return;
+  const pct = +(S.nastaveni || {}).slevaPredemPct || 5;
+  if (on) { z._predPredem = {sleva:z.sleva, zaloha:z.zaloha}; z.predem = true; z.sleva = pct / 100; z.zaloha = 1; }
+  else { const p = z._predPredem || {sleva:0, zaloha:(S.vykSazby || {}).zaloha != null ? S.vykSazby.zaloha : 0.4}; z.predem = false; z.sleva = p.sleva; z.zaloha = p.zaloha; delete z._predPredem; }
+}
+/* návrh podle délky + úprava podle rizika klienta */
+function platNavrh(zdroj, z, c){
+  const p = smlPlanNavrh(zdroj, z, c), dny = c ? Math.max(1, Math.ceil(c.dny || 1)) : 1, cena = c ? c.celkem : 0;
+  p.duvod = dny <= 2 ? "krátká zakázka — polovina předem, zbytek při předání" : p.milniky.length === 1 ? "zakázka do týdne — záloha, průběžná platba po etapě A a malý doplatek" : "delší nebo větší zakázka — záloha, dvě průběžné platby a doplatek 10 %";
+  const k = smlKlient(z), h = typeof hnHistorie === "function" && z ? hnHistorie(z) : null, pr = k && k.provereno;
+  if (pr && (pr.insolvence || pr.zanik)) p.varovani = "Klient " + (pr.insolvence ? "je v insolvenčním rejstříku" : "— firma zanikla") + ": ber zakázku jen s platbou celé ceny předem.";
+  else if (h && h.poSplatnosti) p.varovani = "Klient u vás má " + h.poSplatnosti + " neuhrazené faktury po splatnosti (" + kc(h.dluh) + "): chtěj platbu předem.";
+  else if (h && h.pozde >= 2 && p.zaloha < 60) { const o = 60 - p.zaloha; p.zaloha = 60; if (p.milniky[0]) p.milniky[0].pct = Math.max(10, p.milniky[0].pct - o); p.duvod += "; klient už " + h.pozde + "× platil pozdě → záloha 60 %"; }
+  else if (h && !h.hotovych && cena > 150000 && p.zaloha < 60) { p.zaloha += 10; if (p.milniky[0]) p.milniky[0].pct -= 10; p.duvod += "; nový klient a velká zakázka → záloha o 10 % vyšší"; }
+  return p;
+}
+function platNorm(zdroj, z, c, prepocet){
+  if (!z) return {milniky:[]};
+  if (!z.platby || typeof z.platby !== "object") {
+    const sv = z.smlouva && z.smlouva.volby, n = S.nastaveni || {};
+    if (sv && (sv.zaloha != null || Array.isArray(sv.milniky) || sv.prubezna))
+      z.platby = {rucne:true, zaloha:+sv.zaloha || 0, milniky:Array.isArray(sv.milniky) ? sv.milniky.map(m => ({pct:+m.pct || 0, text:m.text || ""})) : (sv.prubezna ? [{pct:30, text:""}] : []),
+        splatZal:+sv.splatZal || 3, splatMil:+sv.splatMil || 3, splatDopl:sv.splatDopl != null ? +sv.splatDopl : 3};
+    else if (z.status && z.status !== "nabídka")
+      z.platby = {legacy:true, milniky:[], splatZal:3, splatMil:3, splatDopl:+n.fakSplatnost || 14};
+    else z.platby = {rucne:false, milniky:[], splatZal:3, splatMil:3, splatDopl:n.smlSplatDopl != null ? +n.smlSplatDopl : 3};
+    prepocet = true;
+  }
+  const p = z.platby;
+  if (!Array.isArray(p.milniky)) p.milniky = [];
+  if (p.splatZal == null) p.splatZal = 3; if (p.splatMil == null) p.splatMil = 3; if (p.splatDopl == null) p.splatDopl = 3;
+  const zamceno = !!(z.smlouva && z.smlouva.podepsano) || p.milniky.some(m => m.hotovo || m.zaplaceno);
+  if (prepocet && !p.rucne && !p.legacy && !zamceno) {
+    if (!c || c.castecne) c = smlCena(zdroj, z);
+    if (c) { const nv = platNavrh(zdroj, z, c); p.zaloha = nv.zaloha; p.milniky = nv.milniky.map((m, i) => Object.assign({}, p.milniky[i] || {}, {pct:m.pct, text:(p.milniky[i] || {}).text || ""})); }
+  }
+  if (p.zaloha == null) p.zaloha = 50;
+  return p;
+}
+function platVolby(zdroj, z, c){
+  const p = platNorm(zdroj, z, c);
+  return {typ:platPredem(zdroj, z) ? "predem" : "etapy", legacy:!!p.legacy, zaloha:p.zaloha, milniky:p.milniky.map(m => ({pct:+m.pct || 0, text:m.text || ""})), splatZal:p.splatZal, splatMil:p.splatMil, splatDopl:p.splatDopl};
+}
+function platPlan(zdroj, z, c){ c = c || smlCena(zdroj, z) || {celkem:0, dny:1}; return smlPlan(zdroj, z, {}, c); }
+function platFaktury(z){ return z && z.id ? (S.faktury || []).filter(f => f.cislo && f.typ !== "storno" && f.stav !== "stornovana" && (f.zakazkaId === z.id || (f.zakazkyIds || []).includes(z.id))) : []; }
+/* platby zakázky se stavem: částka, splatnost, zaplaceno, faktura (zaplaceno z pole u zakázky nebo z faktury) */
+function platSplatky(zdroj, z, c){
+  if (!z) return [];
+  c = c || smlCena(zdroj, z); if (!c || !(c.celkem > 0)) return [];
+  const p = platNorm(zdroj, z, c), pl = smlPlan(zdroj, z, {}, c), fak = platFaktury(z);
+  const zalF = fak.find(f => f.typ === "zal" && f.milnik == null), konF = fak.find(f => f.typ === "kon" || f.typ === "vlastni");
+  const zap = f => f && f.stav === "zaplacena" ? (f.zaplaceno || f.vystaveno || "ano") : "";
+  const out = pl.splatky.map(s => {
+    const o = Object.assign({}, s, {faktura:null, splatnost:"", zaplaceno:"", hotovo:""});
+    if (s.druh === "zaloha" || s.druh === "predem") { o.faktura = zalF || null; if (zalF && zalF.kUhrade > 0) o.castka = zalF.kUhrade; o.splatnost = (zalF && zalF.splatnost) || z.zalohaSplatnost || ""; o.zaplaceno = z.zalohaZaplaceno || zap(zalF); }
+    else if (s.druh === "milnik") { const m = p.milniky[s.i] || {}, f = fak.find(x => x.typ === "zal" && x.milnik === s.i); o.faktura = f || null; if (f && f.kUhrade > 0) o.castka = f.kUhrade; o.splatnost = (f && f.splatnost) || m.splatnost || ""; o.zaplaceno = m.zaplaceno || zap(f); o.hotovo = m.hotovo || ""; }
+    else { o.faktura = konF || null; o.splatnost = (konF && konF.splatnost) || z.doplatekSplatnost || ""; o.zaplaceno = z.doplatekZaplaceno || zap(konF); }
+    return o;
+  });
+  const dop = out.find(s => s.druh === "doplatek");
+  if (dop) dop.castka = dop.faktura && dop.faktura.zakazkaId === z.id && dop.faktura.kUhrade >= 0 ? dop.faktura.kUhrade : pl.legacy ? dop.castka : Math.max(0, Math.round(c.celkem) - out.filter(s => s !== dop).reduce((a, s) => a + s.castka, 0));
+  return out.filter(s => s.castka > 0);
+}
+function platNeuhrazeno(zdroj, z, c){ return platSplatky(zdroj, z, c).filter(s => !s.zaplaceno).reduce((a, s) => a + s.castka, 0); }
+/* plán → pole zakázky, se kterými počítají faktury, upomínky a starší přehledy */
+function platSync(zdroj, z){
+  if (!z) return;
+  const c = smlCena(zdroj, z); if (!c || !(c.celkem > 0)) return;
+  const p = platNorm(zdroj, z, c, true); if (p.legacy) return;
+  const spl = platSplatky(zdroj, z, c), zal = spl.find(s => s.druh === "zaloha" || s.druh === "predem"), dop = spl.find(s => s.druh === "doplatek");
+  p.milniky.forEach((m, i) => { const s = spl.find(x => x.druh === "milnik" && x.i === i); m.castka = s ? s.castka : 0; });
+  if (zdroj === "vyklizeni") { if (!z.zalohaZaplaceno && !z.cisloFakZal) z.zaloha = platPredem(zdroj, z) ? 1 : Math.round((+p.zaloha || 0)) / 100; return; }
+  if (!z.zalohaZaplaceno && !z.cisloFakZal) z.zalohaCastka = zal ? zal.castka : 0;
+  if (!z.doplatekZaplaceno && !z.cisloFakKon) z.doplatekCastka = dop ? dop.castka : 0;
+}
+/* kdy platbu čekat, když ještě není splatnost (cashflow, úkoly) */
+function platOcekavano(zdroj, z, s, dnes, c){
+  dnes = dnes || faDnes();
+  const p = z.platby || {}, n = S.nastaveni || {}, o = typeof brPartner === "function" ? brPartner(z.odberatelId) : null;
+  const doba = (z.smlouva && z.smlouva.volby && +z.smlouva.volby.dobaDni) || (c && c.dny) || Math.max(1, Math.ceil(+z.dny || 1));
+  if (s.druh === "zaloha" || s.druh === "predem") return z.terminOd ? faPlusDni(z.terminOd, -3) : faPlusDni(dnes, 7);
+  if (s.druh === "milnik") {
+    if (s.hotovo) return faPlusDni(s.hotovo, +p.splatMil || 3);
+    return z.terminOd ? faPlusDni(smlPracDen(z.terminOd, Math.max(1, Math.ceil((s.podil || 0.5) * doba))), +p.splatMil || 3) : "";
+  }
+  const konec = zdroj === "vyklizeni" && typeof brZakKonec === "function" ? brZakKonec({druh:"vyklizeni", z}) : (z.terminDo || (z.terminOd ? smlPracDen(z.terminOd, doba) : ""));
+  const spl = (o && +o.splatnost) || (p.legacy ? (+n.fakSplatnost || 14) : (+p.splatDopl >= 0 ? +p.splatDopl : 3));
+  let d = (z.predani && z.predani.datum) || konec || dnes; if (d < dnes) d = dnes;
+  if (o && o.fakturace === "mesic") { const x = new Date(d.slice(0, 8) + "01T12:00:00"); x.setMonth(x.getMonth() + 1); d = x.toISOString().slice(0, 8) + "10"; }
+  return faPlusDni(d, spl);
+}
+/* všechny nezaplacené platby domluvených zakázek (přehled pohledávek, KPI, připomínky) */
+let platCachePohl = null;
+function platCenaUlozena(zdroj, z){
+  if (zdroj === "vyklizeni") { const r = z.vysledek || {}; return {celkem:+(r.skutCena != null ? r.skutCena : r.cena) || 0, dny:Math.max(1, Math.ceil(+r.dny || 1)), castecne:true}; }
+  return {celkem:+z.vysCelkem || 0, dny:0, castecne:true};
+}
+function platPohledavky(){
+  const v = [];
+  [["demolice", S.zakazky || []], ["vyklizeni", S.vyklizeni || []]].forEach(([zdroj, pole]) => pole.forEach(z => {
+    if (!PLAT_AKTIVNI.includes(z.status)) return;
+    if (zdroj === "vyklizeni" && platNorm(zdroj, z, platCenaUlozena(zdroj, z)).legacy) return;
+    platSplatky(zdroj, z, platCenaUlozena(zdroj, z)).forEach(s => { if (!s.zaplaceno) v.push({zdroj, z, s}); });
+  }));
+  return v;
+}
+/* ---------- plán v kalkulaci, ve vyklízení a ve smlouvě ---------- */
+function platKdy(s, p){
+  return s.druh === "zaloha" ? "před zahájením, do " + p.splatZal + " dnů od podpisu" : s.druh === "predem" ? "do " + p.splatZal + " dnů od podpisu, nejpozději před zahájením"
+    : s.druh === "milnik" ? "po etapě " + s.pismeno + ": " + esc(s.etapa) + " · do " + p.splatMil + " dnů" : "do " + p.splatDopl + " dnů od předání";
+}
+function platHTML(zdroj, z){
+  const c = smlCena(zdroj, z);
+  if (!c || !(c.celkem > 0)) return "<p class='hint' style='margin:0'>Plán plateb se ukáže, až bude mít zakázka cenu.</p>";
+  const p = platNorm(zdroj, z, c), predem = platPredem(zdroj, z), spl = platSplatky(zdroj, z, c), pl = smlPlan(zdroj, z, {}, c), nv = platNavrh(zdroj, z, c);
+  const pct = +(S.nastaveni || {}).slevaPredemPct || 0, cA = smlCena(zdroj, z, false), cB = pct > 0 ? smlCena(zdroj, z, true) : null, zd = " data-platz='" + zdroj + "'";
+  let h = "<div class='plat'" + zd + "><div class='sml-volby'><span>Klient platí</span><label class='chk'><input type='radio' name='platTyp_" + zdroj + "' data-plat='typ' value='etapy'" + (!predem ? " checked" : "") + zd + "> po etapách — " + (cA ? kc(cA.celkem) : "—") + "</label>" +
+    (cB ? "<label class='chk'><input type='radio' name='platTyp_" + zdroj + "' data-plat='typ' value='predem'" + (predem ? " checked" : "") + zd + "> celou cenu předem se slevou " + pct + " % — " + kc(cB.celkem) + "</label>" : "") + "</div>";
+  if (p.legacy && !predem) h += "<p class='hint' style='margin:4px 0'>Starší zakázka: záloha a doplatek zadané ručně. <button type='button' class='mini' data-plat='prevest'" + zd + ">Převést na plán podle délky zakázky</button></p>";
+  h += "<div class='tscroll'><table class='sml-plan plat-tab'><thead><tr><th>Platba</th><th class='r'>Kč</th><th>Kdy</th><th>Splatnost</th><th>Zaplaceno</th><th></th></tr></thead><tbody>" +
+    spl.map(s => {
+      const klic = s.druh === "milnik" ? "m" + s.i : s.druh === "doplatek" ? "dopl" : "zal";
+      const akce = s.zaplaceno ? "<span class='ok'>✓</span>" : s.druh === "milnik" ? (s.faktura ? "<span class='hint'>faktura " + esc(s.faktura.cislo) + "</span>" : "<button type='button' class='mini' data-plat='etapa' data-i='" + s.i + "'" + zd + ">✅ Etapa " + s.pismeno + " hotová → faktura</button>")
+        : s.druh === "doplatek" ? (s.faktura ? "<span class='hint'>faktura " + esc(s.faktura.cislo) + "</span>" : "<span class='hint'>faktura po předání</span>")
+        : (s.faktura ? "<span class='hint'>ZF " + esc(s.faktura.cislo) + "</span>" : "<button type='button' class='mini' data-plat='zalfak'" + zd + ">🧾 Zálohová faktura</button>");
+      const dat = v => /^\d{4}-\d{2}-\d{2}$/.test(v || "") ? v : "";
+      return "<tr><td><b>" + esc(s.nazev) + "</b> <span class='hint'>" + s.pct + " %</span></td><td class='r'><b>" + kc(s.castka) + "</b></td><td class='hint plat-kdy'>" + platKdy(s, p) + "</td>" +
+        "<td data-l='Splatnost'><input type='date' data-plat='splat' data-k='" + klic + "' value='" + dat(s.splatnost) + "'" + zd + "></td><td data-l='Zaplaceno'><input type='date' data-plat='zapl' data-k='" + klic + "' value='" + dat(s.zaplaceno) + "'" + zd + "></td><td class='plat-akce'>" + akce + "</td></tr>";
+    }).join("") + "</tbody></table></div>";
+  if (!predem) h += "<div class='sml-expo " + (pl.expozicePct > 40 ? "ne" : pl.expozicePct > 25 ? "pozor" : "ok") + "'>Nejvíc peněz venku (hotová, ale ještě nezaplacená práce): <b>" + kc(pl.expoziceKc) + "</b> · " + Math.round(pl.expozicePct) + " % ceny</div>";
+  if (nv.varovani && !predem) h += "<div class='warnbox' style='margin:6px 0'>⚠️<span>" + esc(nv.varovani) + "</span></div>";
+  if (!predem && !p.legacy) {
+    h += "<details class='br-det'><summary>⚙️ Upravit plán <span class='hint'>" + (p.rucne ? "(upravený ručně)" : "(podle délky zakázky: " + esc(nv.duvod) + ")") + "</span></summary>" +
+      "<div class='grid g3'><label class='f'>Záloha (%)<input type='number' min='0' max='100' step='5' data-plat='zaloha' value='" + p.zaloha + "'" + zd + "></label>" +
+      "<label class='f'>Průběžných plateb<select data-plat='pocet'" + zd + ">" + [0, 1, 2].map(x => "<option" + (p.milniky.length === x ? " selected" : "") + ">" + x + "</option>").join("") + "</select></label>" +
+      "<div class='f' style='justify-content:flex-end'><span>&nbsp;</span><button type='button' class='b' data-plat='navrh'" + zd + ">Doporučit podle délky zakázky</button></div></div>" +
+      p.milniky.map((m, i) => "<div class='grid g3 sml-mil'><label class='f'>Etapa " + String.fromCharCode(65 + i) + " — platba (%)<input type='number' min='0' max='100' step='5' data-plat='mpct' data-i='" + i + "' value='" + (+m.pct || 0) + "'" + zd + "></label>" +
+        "<label class='f' style='grid-column:span 2'>Co musí být hotové <span class='hint'>prázdné = spočítá se z položek</span><input data-plat='mtext' data-i='" + i + "' value='" + esc(m.text || "") + "' placeholder='automaticky z položek zakázky'" + zd + "></label></div>").join("") +
+      "<div class='grid g3'><label class='f'>Záloha splatná (dní od podpisu)<input type='number' min='0' data-plat='splZal' value='" + p.splatZal + "'" + zd + "></label><label class='f'>Průběžná splatná (dní)<input type='number' min='0' data-plat='splMil' value='" + p.splatMil + "'" + zd + "></label>" +
+      "<label class='f'>Doplatek splatný (dní od předání)<input type='number' min='0' data-plat='splDopl' value='" + p.splatDopl + "'" + zd + "></label></div>" +
+      "<p class='hint' style='margin:4px 0 0'>Plán platí pro nabídku, smlouvu, faktury, cashflow i přehled peněz. Po podpisu smlouvy se už sám nemění.</p></details>";
+  }
+  return h + "</div>";
+}
+function platRender(zdroj){
+  const z = platZak(zdroj); if (!z) return;
+  const ids = [zdroj === "vyklizeni" ? "vkPlatPlan" : "platPlan"], m = document.getElementById("smlModal");
+  if (m && !m.hidden && m.dataset.zdroj === zdroj) ids.push("smlPlatPlan");
+  ids.forEach(id => { const el = document.getElementById(id); if (!el || el.contains(document.activeElement)) return; el.innerHTML = platHTML(zdroj, z); });
+}
+function platPoZmene(zdroj, prekreslit){
+  const z = platZak(zdroj);
+  platSync(zdroj, z); platCachePohl = null; save();
+  if (zdroj === "vyklizeni") { if (typeof vykUloz === "function") vykUloz(); if (typeof vkUlozitTise === "function") vkUlozitTise(); if (prekreslit && typeof renderVyklizeni === "function") renderVyklizeni(); else if (typeof vykPrepocet === "function") vykPrepocet(); }
+  else { const cb = document.getElementById("jPlatbaPredem"); if (cb) cb.checked = !!J.platbaPredem; if (typeof recalc === "function") recalc(); }
+  platRender(zdroj);
+  const m = document.getElementById("smlModal"); if (m && !m.hidden && typeof smlRenderDyn === "function") smlRenderDyn();
+}
+/* etapa hotová → průběžná (zálohová) faktura; z = otevřená zakázka nebo uložená */
+function platEtapaHotova(zdroj, z, i){
+  const c = smlCena(zdroj, z), s = platSplatky(zdroj, z, c).find(x => x.druh === "milnik" && x.i === i); if (!s) return;
+  const fot = (z.fotky || []).some(f => f.skupina === "prubeh" || f.skupina === "po");
+  if (!fot && !confirm("K etapě nejsou fotky z průběhu. Nafoť dokončenou etapu (Fotky → V průběhu) — je to důkaz pro klienta i pro případný spor.\n\nPokračovat bez fotek?")) return;
+  const p = platNorm(zdroj, z, c), dnes = faDnes();
+  Object.assign(p.milniky[i], {hotovo:dnes, splatnost:faPlusDni(dnes, +p.splatMil || 3)});
+  z.smlouva = Object.assign({}, z.smlouva || {}); z.smlouva.etapy = Object.assign({}, z.smlouva.etapy || {}, {[i]:dnes});
+  const f = zdroj === "vyklizeni" ? faKonceptZVyklizeni(z, "zal") : faKonceptZeZakazky(z, "zal");
+  f.polozky = [{popis:"Průběžná platba — dokončení etapy " + s.pismeno + " podle smlouvy o dílo č. " + ((z.smlouva || {}).cislo || smlCisloSmlouvy(z)) + " (" + s.etapa + ")", mnozstvi:1, mj:"", cenaMJ:s.castka, celkem:s.castka}];
+  f.mezisoucet = f.celkem = f.kUhrade = s.castka; f.milnik = i; f.splatnost = faPlusDni(dnes, +p.splatMil || 3);
+  const pole = zdroj === "vyklizeni" ? (S.vyklizeni || []) : (S.zakazky || []), ul = pole.find(x => x.id === z.id);
+  if (ul && ul !== z) { ul.platby = JSON.parse(JSON.stringify(z.platby)); ul.smlouva = JSON.parse(JSON.stringify(z.smlouva)); }
+  const otevrena = platZak(zdroj); if (otevrena && otevrena !== z && otevrena.id === z.id) { otevrena.platby = JSON.parse(JSON.stringify(z.platby)); otevrena.smlouva = JSON.parse(JSON.stringify(z.smlouva)); }
+  save();
+  const m = document.getElementById("smlModal"); if (m) m.hidden = true;
+  faOtevri(f);
+}
+/* platby do nabídky */
+function platNabidkaText(zdroj, z, c){
+  c = c || smlCena(zdroj, z); if (!c) return "";
+  const p = platNorm(zdroj, z, c);
+  if (platPredem(zdroj, z)) return "Platba: celá cena " + kc(c.celkem) + " předem, do " + p.splatZal + " dnů od podpisu smlouvy, nejpozději před zahájením prací.";
+  const spl = smlPlan(zdroj, z, {}, c).splatky.filter(s => s.castka > 0);
+  return "Platby po etapách: " + spl.map(s => s.druh === "zaloha" ? "záloha " + kc(s.castka) + " před zahájením" :
+    s.druh === "milnik" ? "průběžná platba " + kc(s.castka) + " po dokončení etapy " + s.pismeno + " (asi " + Math.round(s.podil * 100) + " % prací)" : "doplatek " + kc(s.castka) + " do " + p.splatDopl + " dnů od předání").join(", ") + ". Přesné vymezení etap bude ve smlouvě o dílo.";
+}
+function platNabidkaHTML(zdroj, z){
+  const c = smlCena(zdroj, z); if (!c) return "";
+  const pct = +(S.nastaveni || {}).slevaPredemPct || 0, nabidnout = z.nabidnoutPredem !== false;
+  let t = "<p><b>" + esc(platNabidkaText(zdroj, z, c)).replace(/^([^:]+:)/, "$1</b>") + (platPredem(zdroj, z) ? " Cena už zahrnuje slevu " + pct + " % za platbu předem." : "") + "</p>";
+  if (!/<\/b>/.test(t)) t = t.replace("<p><b>", "<p>");
+  if (!platPredem(zdroj, z) && nabidnout && pct > 0) {
+    const b = smlCena(zdroj, z, true);
+    if (b && b.celkem < c.celkem - 1) t += "<table style='margin-top:10px'><tbody><tr><td><b>Varianta A</b> — platby po etapách podle postupu prací</td><td class='r'><b>" + kc(c.celkem) + "</b></td></tr>" +
+      "<tr><td><b>Varianta B</b> — celá částka předem, <b>sleva " + pct + " %</b></td><td class='r'><b>" + kc(b.celkem) + "</b></td></tr>" +
+      "<tr><td colspan='2' style='font-size:12px'>Při variantě B ušetříte " + kc(c.celkem - b.celkem) + ". Stačí dát vědět, kterou variantu volíte — smlouvu a fakturu připravíme podle toho.</td></tr></tbody></table>";
+  }
+  return t;
+}
+function smlPlanNabidkaText(v){ return "<p>" + esc(platNabidkaText("demolice", J, v ? {celkem:v.celkem, dny:Math.max(1, Math.ceil(v.dny || 1))} : null)) + "</p>"; }
+/* řádky plateb v nabídce vyklízení (tabulka součtů); celkem = částka, ke které se plán vztahuje */
+function platRadkyVk(v, celkem, radek){
+  celkem = Math.round(celkem || 0);
+  if (v.predem) return radek("Platba předem", faKc(celkem));
+  const p = platNorm("vyklizeni", v);
+  if (p.legacy) return radek("Záloha před zahájením (" + faMn(vykPct(v.zaloha)) + " %)", faKc(celkem * (v.zaloha || 0)));
+  const pl = smlPlan("vyklizeni", v, {}, {celkem, dny:1, objem:0, castecne:true}), out = [];
+  pl.splatky.filter(s => s.castka > 0).forEach(s => out.push(radek(s.druh === "zaloha" ? "Záloha před zahájením (" + faMn(s.pct) + " %)" : s.druh === "milnik" ? "Průběžná platba po etapě " + s.pismeno + " (" + faMn(s.pct) + " %)" : "Doplatek do " + p.splatDopl + " dnů od předání (" + faMn(s.pct) + " %)", faKc(s.castka))));
+  return out.join("");
+}
+if (typeof document !== "undefined" && document.addEventListener) {
+  document.addEventListener("change", e => {
+    const t = e.target; if (!t.dataset || !t.dataset.plat) return;
+    const zdroj = t.dataset.platz || "demolice", z = platZak(zdroj); if (!z) return;
+    const p = platNorm(zdroj, z), a = t.dataset.plat, i = +t.dataset.i;
+    if (a === "typ") platNastavPredem(zdroj, z, t.value === "predem");
+    else if (a === "zaloha") { p.rucne = true; p.zaloha = Math.max(0, Math.min(100, num(t.value))); }
+    else if (a === "pocet") { p.rucne = true; const k = +t.value; while (p.milniky.length < k) p.milniky.push({pct:p.milniky.length ? 20 : 30, text:""}); p.milniky.length = k; }
+    else if (a === "mpct" && p.milniky[i]) { p.rucne = true; p.milniky[i].pct = Math.max(0, Math.min(100, num(t.value))); }
+    else if (a === "mtext" && p.milniky[i]) { p.rucne = true; p.milniky[i].text = t.value; }
+    else if (a === "splZal" || a === "splMil" || a === "splDopl") p[{splZal:"splatZal", splMil:"splatMil", splDopl:"splatDopl"}[a]] = Math.max(0, Math.round(num(t.value)));
+    else if (a === "splat" || a === "zapl") {
+      const k = t.dataset.k, v = t.value, pole = a === "splat" ? "splatnost" : "zaplaceno";
+      if (k === "zal") z[a === "splat" ? "zalohaSplatnost" : "zalohaZaplaceno"] = v;
+      else if (k === "dopl") z[a === "splat" ? "doplatekSplatnost" : "doplatekZaplaceno"] = v;
+      else { const m = p.milniky[+k.slice(1)]; if (m) m[pole] = v; }
+    }
+    platPoZmene(zdroj, a === "typ");
+  });
+  document.addEventListener("click", e => {
+    const b = e.target.closest && e.target.closest("[data-plat]"); if (!b || b.tagName !== "BUTTON") return;
+    const zdroj = b.dataset.platz || "demolice", z = platZak(zdroj); if (!z) return;
+    const a = b.dataset.plat;
+    if (a === "navrh") { const p = platNorm(zdroj, z); p.rucne = false; platNorm(zdroj, z, null, true); platPoZmene(zdroj); }
+    else if (a === "prevest") { z.platby = {rucne:false, milniky:[], splatZal:3, splatMil:3, splatDopl:3}; platPoZmene(zdroj); }
+    else if (a === "etapa") platEtapaHotova(zdroj, z, +b.dataset.i);
+    else if (a === "zalfak") { const m = document.getElementById("smlModal"); if (m) m.hidden = true; platSync(zdroj, z); faOtevri(zdroj === "vyklizeni" ? faKonceptZVyklizeni(z, "zal") : faKonceptZeZakazky(z, "zal")); }
+  });
 }
 
 
@@ -17296,16 +17510,14 @@ function brCashflow(dnes){
   /* domluvené zakázky: záloha před začátkem, doplatek po předání + splatnost, přímé náklady v týdnu práce */
   const zakazka = (z, druh, celkem, zalohaPct, prime) => {
     if (!z.id || !["domluveno", "probíhá", "hotovo"].includes(z.status) || !(celkem > 0)) return;
-    const o = brPartner(z.odberatelId), spl = (o && +o.splatnost) || +n.fakSplatnost || 14, nazev = z.nazev || "zakázka";
-    const konec = druh === "vyklizeni" ? brZakKonec({druh, z}) : (z.terminDo || z.terminOd || "");
-    let zal = druh === "demolice" ? (z.platbaPredem ? celkem : +z.zalohaCastka || 0) : Math.round(celkem * zalohaPct);
-    if (druh === "demolice" && !zal && !o && z.status === "domluveno") zal = Math.round(celkem * (+n.zaloha || 0) / 100);
-    const zalZap = !!z.zalohaZaplaceno || (S.faktury || []).some(f => f.zakazkaId === z.id && f.typ === "zal" && f.stav === "zaplacena");
-    if (zal > 0 && !zalZap && !vyst("zal", z.id) && z.status !== "hotovo")
-      pridej(z.zalohaSplatnost || (z.terminOd ? faPlusDni(z.terminOd, -3) : faPlusDni(dnes, 7)), "prijmy", "Záloha — " + nazev, zal, true);
-    const dopl = druh === "demolice" && +z.doplatekCastka > 0 ? +z.doplatekCastka : celkem - zal;
-    if (dopl > 0 && !z.doplatekZaplaceno && !brMaFakturu(z.id))
-      pridej(z.doplatekSplatnost || faPlusDni(vyfakturovat(o, konec), spl), "prijmy", (zal > 0 ? "Doplatek — " : "Platba — ") + nazev, dopl, true);
+    const nazev = z.nazev || "zakázka", zdroj = druh === "vyklizeni" ? "vyklizeni" : "demolice";
+    const spl = platSplatky(zdroj, z, {celkem, dny:0, castecne:true}), konecnaVystavena = spl.some(s => s.druh === "doplatek" && s.faktura && s.faktura.cislo);
+    const doba = {dny:(z.smlouva && z.smlouva.volby && +z.smlouva.volby.dobaDni) || 1};
+    spl.forEach(s => {
+      if (s.zaplaceno || !(s.castka > 0) || (s.faktura && s.faktura.cislo)) return;
+      if (konecnaVystavena && s.druh !== "doplatek") return;
+      pridej(s.splatnost || platOcekavano(zdroj, z, s, dnes, doba), "prijmy", s.nazev + " — " + nazev, s.castka, !s.splatnost);
+    });
     if (z.status !== "hotovo" && prime > 0) pridej(z.terminOd || dnes, "vydaje", "Přímé náklady — " + nazev + " (odpad, kontejnery, doprava, materiál)", prime, true);
   };
   (S.zakazky || []).forEach(z => {
@@ -17835,7 +18047,8 @@ function brVymOkno(id){
     "<h4 class='sml-h'>2 · Dlužník uzná dluh a chce splácet</h4><div class='grid g3'><label class='f'>Počet splátek<input type='number' min='1' max='24' id='brVymPocet' value='3'></label><label class='f'>První splátka<input type='date' id='brVymPrvni' value='" + faPlusDni(faDnes(), 14) + "'></label>" +
       "<div class='f' style='justify-content:flex-end'><span>&nbsp;</span><button type='button' class='b' data-brvym='uznani'>🖨 Uznání dluhu</button></div></div>" +
     (c.celkem >= 100000 ? "<p class='hint' style='margin:6px 0 0'>U dluhu nad 100 000 Kč zvaž místo toho <b>notářský zápis se svolením k vykonatelnosti</b> — stojí jednotky tisíc a při nezaplacení splátky jde rovnou exekuce bez soudu.</p>" : "") +
-    "<h4 class='sml-h'>3 · Soud</h4><p class='hint' style='margin:0'>Do 1 000 000 Kč stačí <b>elektronický platební rozkaz</b> (formulář na justice.cz, podpis datovou schránkou nebo uznávaným podpisem). Přilož smlouvu, přílohu č. 1, předávací protokol, fakturu, upomínky a tuto výzvu s dokladem o odeslání.</p></div>";
+    "<h4 class='sml-h'>3 · Soud</h4><p class='hint' style='margin:0'>Do 1 000 000 Kč stačí <b>elektronický platební rozkaz</b> (formulář na justice.cz, podpis datovou schránkou nebo uznávaným podpisem). Přilož smlouvu, přílohu č. 1, předávací protokol, fakturu, upomínky a tuto výzvu s dokladem o odeslání.</p>" +
+    "<div class='btnrow'><button type='button' class='b' data-brvym='balik'>📦 Podklady pro soud (ZIP)</button></div></div>";
   m.hidden = false;
 }
 HN_UKOLY_EXT.push(dnes => {
@@ -17858,8 +18071,85 @@ if (typeof document !== "undefined" && document.addEventListener) {
     if (a === "text") { const t = brVyzvaText(f); try { await navigator.clipboard.writeText(t); b.textContent = "✓ Zkopírováno"; } catch (err) { prompt("Zkopíruj text výzvy:", t); } }
     if (a === "tisk") { m.hidden = true; smlTiskni("<style>" + SML_CSS + "</style><div class='sml' style='white-space:pre-wrap'>" + esc(brVyzvaText(f)) + "<br><br><br>……………………………………<br>podpis</div>", "Predzalobni-vyzva-" + f.cislo); }
     if (a === "odeslano") { f.vyzva142a = {datum:faDnes(), zpusob:($("#brVymZpusob") || {}).value || "email"}; save(); brVymOkno(f.id); if (typeof hnRenderUkoly === "function") hnRenderUkoly(); }
+    if (a === "balik") { b.disabled = true; b.textContent = "balím…"; try { await brDukazniBalik(f); b.textContent = "✓ Staženo"; } catch (err) { b.textContent = "Nepovedlo se: " + err.message; } b.disabled = false; }
     if (a === "uznani") { m.hidden = true; smlTiskni(brUznaniHTML(f, +($("#brVymPocet") || {}).value || 1, ($("#brVymPrvni") || {}).value || faPlusDni(faDnes(), 14)), "Uznani-dluhu-" + f.cislo); }
   }, true);
+}
+
+/* ---------- úkoly v Plánu: etapy a průběžné platby ---------- */
+HN_UKOLY_EXT.push(dnes => {
+  const u = [];
+  const proZak = (zdroj, z) => {
+    if (!["domluveno", "probíhá"].includes(z.status) || !z.platby || !(z.platby.milniky || []).length || platPredem(zdroj, z) || z.platby.legacy) return;
+    const doba = (z.smlouva && z.smlouva.volby && +z.smlouva.volby.dobaDni) || 1;
+    platSplatky(zdroj, z, platCenaUlozena(zdroj, z)).filter(s => s.druh === "milnik" && !s.zaplaceno).forEach(s => {
+      if (s.faktura) {
+        if (s.faktura.splatnost && s.faktura.splatnost < dnes) u.push({id:"firma", typ:"etapa-platba", datum:s.faktura.splatnost, zbyva:hnDnyMezi(dnes, s.faktura.splatnost),
+          text:"Nepokračuj další etapou — " + s.nazev.toLowerCase() + " (" + kc(s.castka) + ") u zakázky " + (z.nazev || "") + " je po splatnosti", pozn:"faktura " + s.faktura.cislo + " · smlouva dovoluje do zaplacení práce přerušit",
+          akce:"<button type='button' class='b' data-brvymfa='" + s.faktura.id + "'>⚖️ Upomínka a výzva</button>"});
+        return;
+      }
+      if (s.hotovo || !z.terminOd) return;
+      const etapaDo = smlPracDen(z.terminOd, Math.max(1, Math.ceil(s.podil * doba)));
+      if (dnes < faPlusDni(etapaDo, -1)) return;
+      u.push({id:"firma", typ:"etapa", datum:etapaDo, zbyva:hnDnyMezi(dnes, etapaDo), text:"Etapa " + s.pismeno + " — " + (z.nazev || "") + ": po dokončení vystav průběžnou fakturu " + kc(s.castka),
+        pozn:s.etapa + " · bez zaplacení nepokračuj další etapou", akce:"<button type='button' class='b prim' data-platetapa='" + zdroj + "|" + z.id + "|" + s.i + "'>✅ Etapa hotová → faktura</button>"});
+    });
+  };
+  (S.zakazky || []).forEach(z => proZak("demolice", z)); (S.vyklizeni || []).forEach(z => proZak("vyklizeni", z));
+  return u;
+});
+/* ---------- podklady pro soud: jeden ZIP se vším, co soudce potřebuje ---------- */
+async function brDukazniBalik(f){
+  const z = brVymZakazka(f), zdroj = z && (S.vyklizeni || []).includes(z) ? "vyklizeni" : "demolice", d = f.dodavatel || faDodavatel(), enc = new TextEncoder(), soubory = [], chron = [];
+  const pridej = (nazev, text) => soubory.push({nazev, bajty:enc.encode(text)});
+  const html = (titul, telo) => "<!doctype html><html lang='cs'><head><meta charset='utf-8'><title>" + esc(titul) + "</title></head><body style='margin:12mm;font-family:Georgia,serif'>" + telo + "</body></html>";
+  const udalost = (datum, text) => { if (datum) chron.push(String(datum).slice(0, 10) + "  " + text); };
+  if (z) {
+    const hist = (z.smlouva && z.smlouva.prilohy) || [], ver = hist.length ? hist[hist.length - 1].verze : 1;
+    let sml = null; try { sml = await IDB.get("sml|" + z.id + "|" + ver); } catch (e) {}
+    if (sml) pridej("01-smlouva-verze-" + ver + ".html", html("Smlouva o dílo " + ((z.smlouva || {}).cislo || ""), sml));
+    if (z.predani && z.predani.podpisKlient) pridej("02-predani-s-podpisem.html", html("Předání díla", "<h2>Záznam o předání díla — " + esc(z.nazev || "") + "</h2>" + brPredaniStavHTML(z.predani) + brPodpisBlok(z.predani)));
+    const zd = (z.viceprace || []).map(r => [r.zd || "", r.nazev || "", r.duvod || "", kc(+r.cena || 0), (+r.dny || 0) + " dní", r.stav || "", r.datum || ""].join(" | "));
+    if (zd.length) pridej("05-zmeny-dila.txt", "Číslo | Popis | Důvod | Cena | Dopad na termín | Stav | Datum\n" + zd.join("\n"));
+    const spl = platSplatky(zdroj, z, platCenaUlozena(zdroj, z));
+    pridej("06-platebni-kalendar.txt", spl.map(s => s.nazev + ": " + kc(s.castka) + " · splatnost " + (s.splatnost ? smlDatum(s.splatnost) : "—") + " · zaplaceno " + (s.zaplaceno ? smlDatum(String(s.zaplaceno).slice(0, 10)) : "NE") + (s.faktura ? " · faktura " + s.faktura.cislo : "")).join("\n"));
+    udalost(z.nabVystaveno, "Vystavena cenová nabídka " + (z.cisloNab || ""));
+    udalost(z.smlouva && z.smlouva.podepsano, "Podepsána smlouva o dílo " + ((z.smlouva || {}).cislo || ""));
+    spl.forEach(s => { if (s.zaplaceno && /^d{4}/.test(s.zaplaceno)) udalost(s.zaplaceno, "Zaplaceno: " + s.nazev + " " + kc(s.castka)); if (s.hotovo) udalost(s.hotovo, "Dokončena etapa " + s.pismeno + " (" + s.etapa + ")"); });
+    (z.viceprace || []).filter(r => r.stav === "odsouhlaseno").forEach(r => udalost(r.datum, "Odsouhlasena změna " + (r.zd || "") + ": " + (r.nazev || "") + " " + kc(+r.cena || 0)));
+    udalost(z.predani && z.predani.datum, "Dílo předáno" + (z.predani && z.predani.jmeno ? " — převzal(a) " + z.predani.jmeno : "") + (z.predani && z.predani.vady ? " s výhradami: " + z.predani.vady : " bez vad"));
+    let foto = 0;
+    for (const fo of (z.fotky || [])) {
+      let src = null; try { src = await IDB.get(z.id + "|" + fo.id); } catch (e) {}
+      if (src && typeof dataUriNaBajty === "function") { soubory.push({nazev:"07-fotky/" + (fo.skupina || "foto") + "-" + (fo.datum || "") + "-" + fo.id + ".jpg", bajty:dataUriNaBajty(src)}); foto++; }
+    }
+  }
+  for (const x of (z ? platFaktury(z) : [f])) {
+    try { const doc = await faPdfDokument(x); soubory.push({nazev:"03-faktury/" + faPdfJmeno(x), bajty:new Uint8Array(doc.output("arraybuffer"))}); }
+    catch (e) { pridej("03-faktury/" + faPdfJmeno(x).replace(/\.pdf$/i, ".html"), html("Faktura " + x.cislo, faHTML(x))); }
+    udalost(x.vystaveno, "Vystavena faktura " + x.cislo + " (" + kc(x.kUhrade) + ", splatnost " + smlDatum(x.splatnost) + ")");
+    (x.upominky || []).forEach(u => udalost(u.datum, u.poradi + ". upomínka k faktuře " + x.cislo));
+  }
+  if (f.vyzva142a) udalost(f.vyzva142a.datum, "Odeslána předžalobní výzva (§ 142a o. s. ř.) — " + ({email:"e-mailem", ds:"datovou schránkou", dopis:"doporučeně"}[f.vyzva142a.zpusob] || f.vyzva142a.zpusob));
+  pridej("04-predzalobni-vyzva.txt", (f.vyzva142a ? "Odesláno " + smlDatum(f.vyzva142a.datum) + "\n\n" : "Zatím neodesláno — pošli ji nejméně 7 dní před podáním návrhu.\n\n") + brVyzvaText(f));
+  const c = brVymCastky(f);
+  pridej("00-PREHLED.txt", "﻿PODKLADY K POHLEDÁVCE — " + d.firma + ", IČO " + d.ico + "\r\nDlužník: " + ((f.odberatel || {}).jmeno || "") + "\r\nFaktura " + f.cislo + ", splatná " + smlDatum(f.splatnost) + "\r\n" +
+    "Dluh ke dni " + smlDatum(faDnes()) + ": jistina " + kc(c.jistina) + ", úrok z prodlení " + kc(c.urok) + (c.pokuta ? ", smluvní pokuta " + kc(c.pokuta) : "") + (c.naklady ? ", náklady uplatnění " + kc(c.naklady) : "") + " — celkem " + kc(c.celkem) + "\r\n\r\nChronologie:\r\n" + chron.sort().join("\r\n") +
+    "\r\n\r\nObsah balíku: 01 smlouva (přesně vytištěná verze, pokud je uložená v tomto zařízení), 02 předání s podpisem, 03 faktury, 04 předžalobní výzva, 05 změny díla, 06 platební kalendář, 07 fotodokumentace." +
+    "\r\nPostup: návrh na (elektronický) platební rozkaz do 1 000 000 Kč na justice.cz — přiložte smlouvu, přílohu č. 1, protokol o předání, faktury, upomínky a výzvu s dokladem o odeslání.\r\n");
+  const blob = ZIP.vytvor(soubory);
+  stahniBlob(blob, "podklady-pohledavka-" + String(f.cislo).replace(/[^\w-]+/g, "-") + ".zip");
+  return {soubory:soubory.map(s => s.nazev), chronologie:chron};
+}
+if (typeof document !== "undefined" && document.addEventListener) {
+  document.addEventListener("click", e => {
+    const b = e.target.closest && e.target.closest("[data-platetapa]"); if (!b) return;
+    const [zdroj, id, i] = b.dataset.platetapa.split("|"), otevrena = platZak(zdroj);
+    const z = otevrena && otevrena.id === id ? otevrena : (zdroj === "vyklizeni" ? S.vyklizeni || [] : S.zakazky || []).find(x => x.id === id);
+    if (z) platEtapaHotova(zdroj, z, +i);
+    if (typeof hnRenderUkoly === "function") hnRenderUkoly();
+  });
 }
 
 /* ================= ROADMAPA — co řeší velké firmy =================
@@ -18214,7 +18504,7 @@ const RM_HOTOVO = {
     co:"<b>Obchodní podmínky</b> jako samostatný dokument k tisku (cena a rozsah, platby a prodlení, součinnost, zmařený výjezd, čekání a změna ceny, provádění a předání, práva spotřebitele). Nabídka demolice i vyklízení nově říká, že před zahájením prací se uzavře smlouva o dílo a platí obchodní podmínky. Podrobně je vše ve smlouvě (bod Smlouvy s klientem).",
     kde:"Kalkulace nebo Vyklízení → <b>📝 Smlouva</b> → 🖨 Obchodní podmínky."},
   "riz-smlouvy":{datum:"2026-09-26",
-    co:"<b>Redesign 26. 9. 2026 podle právního rozboru:</b> platby podle délky zakázky (záloha → průběžná platba po věcně popsané etapě → malý doplatek splatný do 3 dnů), ukazatel „nejvíc peněz venku“, nepokračovat bez zaplacené etapy, přerušení s remobilizací; příloha č. 1 = skutečná nabídka s verzí a otiskem SHA-256 (změna rozsahu = nová verze), pevná cena za popsaný rozsah, méněpráce bez ztráty na vynaložených nákladech, skryté překážky podle § 2627, zmaření podle § 2613, fikce předání bez fikce bezvadnosti, samostatný článek o reklamacích, prohlášení o vlastnictví, pořadí dokumentů, verze obchodních podmínek. Spotřebitel: lhůta 14 / 30 / 0 dní podle způsobu uzavření a žádost o dřívější zahájení jen když je potřeba. Kontrola před tiskem (červené blokuje), průběžná faktura po etapě, čísla změn ZD-001 s textem žádosti o souhlas, ⚖️ předžalobní výzva (§ 142a o. s. ř.) a uznání dluhu se splátkami. — Původně: Tlačítko <b>📝 Smlouva</b> u demolice i vyklízení vytiskne <b>smlouvu o dílo</b> vyplněnou ze zakázky — <b>po etapách</b> (záloha, volitelně průběžná platba, doplatek) nebo <b>s platbou předem</b> (cena se slevou a záruka vrácení: když nezačneme včas, vše zpět do 5 pracovních dnů; když klient skončí, vrátí se nevyčerpaná část, odečte se provedená práce <b>bez slevy</b> a vynaložené náklady). Pro spotřebitele i pro firmu. Páky pro nás: nezahájíme bez zálohy, při neplacení smíme přerušit práce, úrok z prodlení + smluvní pokuta 0,05 % denně (firmy 0,1 % a 1 200 Kč, soud podle našeho sídla), převzetí nejde odmítnout pro drobné vady, náhradní termín předání, e-mail/SMS jako textová forma. Klient má jistotu: pevná cena, vícepráce jen s jeho souhlasem, pojištění, oboustranná pokuta za naše zpoždění. U spotřebitele poučení o odstoupení s formulářem a jeho <b>žádost o dřívější zahájení</b> (bez ní by mohl po práci odstoupit a nic nezaplatit). <b>Předávací protokoly</b> nově obsahují uznání dluhu — nejsilnější podklad pro platební rozkaz. Upozornění, když je zakázka domluvená bez podpisu, a úkol v Plánu 2 dny před začátkem.",
+    co:"<b>Platební plán v celé aplikaci (26. 9. 2026):</b> klient volí celou cenu předem se slevou, nebo platby po etapách podle délky zakázky (1–2 dny 50 + 50 %, do týdne 40 / 40 / 20 %, delší 30 / 30 / 30 / 10 %; při riziku klienta vyšší záloha nebo doporučení platby předem). Plán je v Kalkulaci i ve Vyklízení (splatnosti, zaplaceno, ✅ etapa hotová → průběžná faktura, ruční úprava) a propisuje se do nabídky, zpráv, smlouvy, faktur, cashflow, Peněz na cestě, KPI a připomínek; úkoly v Plánu „vystav průběžnou fakturu“ a „nepokračuj, etapa nezaplacená“. Starší zakázky zůstávají jako záloha + doplatek. Ve smlouvě střední cesta u termínu (závazný termín, pokuta až po 5 prac. dnech, z nedokončené části, max. 5 %) a konkrétní důvody odstoupení s vypořádáním (co důvodem není, jinak § 2613). ⚖️ Podklady pro soud jedním ZIPem. <b>Redesign 26. 9. 2026 podle právního rozboru:</b> platby podle délky zakázky (záloha → průběžná platba po věcně popsané etapě → malý doplatek splatný do 3 dnů), ukazatel „nejvíc peněz venku“, nepokračovat bez zaplacené etapy, přerušení s remobilizací; příloha č. 1 = skutečná nabídka s verzí a otiskem SHA-256 (změna rozsahu = nová verze), pevná cena za popsaný rozsah, méněpráce bez ztráty na vynaložených nákladech, skryté překážky podle § 2627, zmaření podle § 2613, fikce předání bez fikce bezvadnosti, samostatný článek o reklamacích, prohlášení o vlastnictví, pořadí dokumentů, verze obchodních podmínek. Spotřebitel: lhůta 14 / 30 / 0 dní podle způsobu uzavření a žádost o dřívější zahájení jen když je potřeba. Kontrola před tiskem (červené blokuje), průběžná faktura po etapě, čísla změn ZD-001 s textem žádosti o souhlas, ⚖️ předžalobní výzva (§ 142a o. s. ř.) a uznání dluhu se splátkami. — Původně: Tlačítko <b>📝 Smlouva</b> u demolice i vyklízení vytiskne <b>smlouvu o dílo</b> vyplněnou ze zakázky — <b>po etapách</b> (záloha, volitelně průběžná platba, doplatek) nebo <b>s platbou předem</b> (cena se slevou a záruka vrácení: když nezačneme včas, vše zpět do 5 pracovních dnů; když klient skončí, vrátí se nevyčerpaná část, odečte se provedená práce <b>bez slevy</b> a vynaložené náklady). Pro spotřebitele i pro firmu. Páky pro nás: nezahájíme bez zálohy, při neplacení smíme přerušit práce, úrok z prodlení + smluvní pokuta 0,05 % denně (firmy 0,1 % a 1 200 Kč, soud podle našeho sídla), převzetí nejde odmítnout pro drobné vady, náhradní termín předání, e-mail/SMS jako textová forma. Klient má jistotu: pevná cena, vícepráce jen s jeho souhlasem, pojištění, oboustranná pokuta za naše zpoždění. U spotřebitele poučení o odstoupení s formulářem a jeho <b>žádost o dřívější zahájení</b> (bez ní by mohl po práci odstoupit a nic nezaplatit). <b>Předávací protokoly</b> nově obsahují uznání dluhu — nejsilnější podklad pro platební rozkaz. Upozornění, když je zakázka domluvená bez podpisu, a úkol v Plánu 2 dny před začátkem.",
     kde:"Kalkulace → tlačítka dole (<b>📝 Smlouva</b>), Vyklízení → tlačítka u nabídky. Datum podpisu tlačítkem <b>✓ Podepsáno</b> v okně smlouvy nebo v Úkolech. <b>Než ji začneš používat, nech šablonu jednou zkontrolovat advokátem</b> — pár hodin práce a pak slouží roky."},
   "nac-prohlidka":{datum:"2026-09-26",
     co:"Karta <b>🔎 Prohlídka a rizika</b> v Kalkulaci: 12 otázek s odpověďmi na klepnutí (auto a kontejner, výtah, souhlas SVJ, hluk, stoupačky, konstrukce, nosné, azbest, prostor, sousedé, voda a elektřina, termín). Odpovědi rovnou nastaví výtah a zábor, ukážou varování (staré stoupačky, možný azbest, nosné bez posudku, plný prostor → nabídni vyklizení) a připraví rizika a povolení. Na mobilu se dá projít přímo na prohlídce.",
@@ -18430,7 +18720,7 @@ const NAPOVEDA = [
   ["#jNabidnoutPredem", "Nabídnout platbu předem", "Do nabídky se přidá druhá, levnější cena při platbě celé částky předem — klient si vybere."],
   ["h2:kalkulace:Vlastní položky", "Vlastní položky", "Cokoliv, co není v ceníku: pronájem lešení, statik, úklid, subdodávka. Vyplň náš náklad, prodejní cenu, nebo obojí — prodej jde do ceny, náklad do nákladů."],
   ["h2:kalkulace:Vícepráce", "Vícepráce", "Práce, které se ukážou až při bourání (skrytý beton, horší stav). <b>Nic nedělej, dokud to klient písemně neodsouhlasí</b>: přidej vícepráci s důvodem a cenou → Vygenerovat dodatek → pošli nebo dej podepsat → přepni na „odsouhlaseno“. Do ceny a faktury jdou jen odsouhlasené. Každá změna dostane číslo (ZD-001…): uveď dopad na termín a tlačítkem 📋 zkopíruj zprávu pro klienta s cenou a termínem — ať odpoví „ANO ZD-001“. Taková odpověď je u soudu mnohem silnější než „ok, udělejte to“."],
-  ["h2:kalkulace:Platby a splatnost", "Platby a splatnost", "Záloha před zahájením a doplatek po dokončení — částka, splatnost a datum zaplacení. Doporučenou zálohu doplní tlačítko. Nezaplacené částky vidíš v Přehledu firmy → Peníze na cestě. Faktury se vystavují tlačítky dole."],
+  ["h2:kalkulace:Platby a splatnost", "Platby a splatnost", "Platební plán zakázky: klient volí celou cenu předem se slevou, nebo po etapách podle délky — 1–2 dny 50 + 50 %, do týdne 40 / 40 / 20 %, delší 30 / 30 / 30 / 10 %. Etapa je popsaná věcně z položek (např. „Bourání příček v rozsahu 6,3 m² z 28 m²“). <b>Nejvíc peněz venku</b> ukazuje, kolik hotové práce může být nezaplacené. U každé platby zapíšeš splatnost a zaplacení; ✅ Etapa hotová vystaví průběžnou fakturu. Bez zaplacené etapy nepokračuj — smlouva to dovoluje."],
   ["h2:kalkulace:Fotodokumentace", "Fotodokumentace", "Fotky před, během a po. <b>Před bouráním foť vždy</b> (praskliny, podlahy, společné prostory) — jedna reklamace „vy jste to rozbili“ sežere zisk celé zakázky. Fotky po dokončení jsou nejlepší reklama. Ukládají se jen do tohoto zařízení."],
   ["h2:kalkulace:Denní zápis ze stavby", "Denní zápis", "Každý večer minutu: kdo, kolik hodin, co se udělalo, komplikace. Tlačítkem přepíšeš skutečné hodiny do „Po dokončení“ — z toho se zpřesňují odhady. Zápis je i důkaz při sporu o termín."],
   ["h2:kalkulace:Evidence odpadů", "Evidence odpadů", "Zákonná povinnost: kolik tun jakého odpadu (kód) a kam jste předali. Čísla ber z vážních lístků, ne z odhadu. Roční souhrn je v Přehledu firmy. Azbest (17 06 05*) je nebezpečný odpad."],
@@ -18481,7 +18771,7 @@ const NAPOVEDA = [
   ["[data-vkb='likvidaceZvlast']", "Likvidace podle vážních lístků", "Cena za práci a odvoz + skutečná likvidace s přirážkou 15 %. Riziko váhy nese klient, marže zakázky zůstane stejná. Hodí se u nejasného rozsahu a těžkého odpadu."],
   ["[data-vkp='sleva']", "Sleva", "Viditelná sleva v nabídce. Pod polem vidíš, kolik % ještě jde, aby marže nespadla pod spodní hranici. Řekni vysokou cenu a slevu dej vědomě, s důvodem."],
   ["[data-vkt='slevaDuvod']", "Důvod slevy", "Vytiskne se klientovi v nabídce i na faktuře — sleva pak nevypadá jako samozřejmost."],
-  ["[data-vkp='zaloha']", "Záloha", "Kolik procent chcete předem. Zálohovou fakturu vystavíš tlačítkem dole. Záloha drží termín a chrání před nezaplacením."],
+  ["css:#vkForm .vk3-lbl:Platby", "Platby", "Klient si vybere: celou cenu předem se slevou, nebo platby po etapách podle délky zakázky (1–2 dny záloha 50 % a zbytek při předání; delší zakázky i průběžná platba po věcně popsané etapě). Plán jde do nabídky, smlouvy, faktur i do přehledu peněz. Ručně ho upravíš v ⚙️."],
   ["[data-vkp='provize']", "Provize za dohození", "Když zakázku dohodil někdo jiný (realitka). Je to náklad — cena ho sama zahrne, aby marže zůstala."],
   ["[data-vk='jine']", "Jiné náklady", "Parkování, zábor chodníku, půjčovné — cokoliv, co zaplatíte a klientovi to zvlášť neukazujete."],
   ["[data-vkt='okno']", "Příjezd", "Časové okno příjezdu (např. 7:30–8:00). Použije se ve zprávě „SMS den před příjezdem“."],
