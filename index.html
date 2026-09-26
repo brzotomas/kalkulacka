@@ -536,6 +536,14 @@ details.gsec li{margin:3px 0}
 .hn-ukoly li:last-child{border-bottom:0}
 .hn-ukoly li.brzy b{color:var(--warn-ink)}
 .hn-ukoly li.po{background:var(--bad-bg);padding:8px;border-radius:8px}
+.hn-uk-akce{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.hn-cekaji summary{padding:12px 16px}
+.hn-cek-tab{width:100%;border-collapse:collapse;font-size:13px}
+.hn-cek-tab th,.hn-cek-tab td{padding:6px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.hn-cek-tab th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.hn-cek-tab th.r,.hn-cek-tab td.r{text-align:right;white-space:nowrap}
+.hn-nav-n{margin-left:5px;background:var(--accent);color:#fff}
+@media (max-width:600px){.hn-ukoly li{flex-direction:column;align-items:stretch}.hn-uk-akce{justify-content:flex-start}}
 .hn-hist{margin-top:10px;font-size:12.5px;color:var(--muted);border-top:1px dashed var(--line);padding-top:8px}
 @media (max-width:600px){.odp-tab .odp-co{display:none}.odp-tab th,.odp-tab td{padding:5px 5px}}
 
@@ -5405,7 +5413,7 @@ function sablonaPouzit(){
 /* ========== přenos zakázky textem (kód DK1|…) ========== */
 const ZAK_POLE=["nazev","klient","adresa","poznamka","zdroj","cenik","dph","patro","vytah","vytahNaSut",
   "vzdalenost","rucniNoseni","lide","najati","kmDopravce","dnyKontejneru","skladkovne","rezerva","provize",
-  "sleva","slevaDuvod","prirazka","platbaPredem","nabidnoutPredem","odpadModel","trideni","poplatky","zabor","zaborM2","zaborDny","zaborSazba",
+  "sleva","slevaDuvod","prirazka","platbaPredem","nabidnoutPredem","odpadModel","trideni","poplatky","zabor","zaborM2","zaborDny","zaborSazba","followup",
   "km","dopravaUctovat","vikend","expres","terminOd","terminDo","prace","material","ostatni","kontejnery","odpady"];
 function zakDoTextu(z){
   const o={};
@@ -7526,7 +7534,7 @@ $("#sablonySeznam").addEventListener("click",e=>{
 });
 $("#sablonyReset").addEventListener("click",()=>{
   if(!confirm("Obnovit původní znění všech šablon? Tvoje úpravy se ztratí."))return;
-  S.sablony=defSablony(); renderSablony(); save();
+  S.sablony=defSablony(); if(typeof hnDoplnSablony==="function")hnDoplnSablony(); renderSablony(); save();
 });
 function renderRecenze(){
   const el=$("#recenzeSeznam");
@@ -14724,7 +14732,7 @@ function kontNavrhRadky(){ const n = kontNavrh(); return n ? n.radky : []; }
 
 /* ---------- nastavení: karta Podmínky nabídky a poplatky (pole data-hn) ---------- */
 function hnedFillNastaveni(){
-  hnedVychozi();
+  hnedVychozi(); if (typeof hnDoplnSablony === "function") hnDoplnSablony();
   document.querySelectorAll("[data-hn]").forEach(el => { const v = S.nastaveni[el.dataset.hn]; if (el.type === "checkbox") el.checked = !!v; else el.value = v == null ? "" : v; });
 }
 if (typeof document !== "undefined" && document.addEventListener) {
@@ -14941,28 +14949,112 @@ if (typeof document !== "undefined" && document.addEventListener) {
     J[el.dataset.hnj] = el.value === "" ? "" : num(el.value); recalc(); save();
   });
 }
-/* ---------- Úkoly v Plánu (zábor; další body roadmapy sem přidávají svoje) ---------- */
+/* ---------- Úkoly v Plánu: zábor + připomínání nabídek (follow-up) ----------
+   6) Follow-up: otevřená nabídka (demolice i vyklízení) se připomene 2., 7. a 14. den od vystavení.
+   V Plánu je „komu dnes napsat“ s hotovým textem, zápisem „napsáno“ a odložením; pod tím všechny nabídky, které čekají na odpověď. */
+const HN_FOLLOWUP = [[2, "followup1"], [7, "followup2"], [14, "followup3"]];
+const HN_FOLLOWUP_SABLONY = [
+  {id:"followup1", nazev:"2a · Připomenutí nabídky (2. den)", kdy:"2 dny po odeslání nabídky, když se klient neozval", text:
+    "Dobrý den,\n\nposílal jsem vám nabídku na {zakazka} ({cena}). Dorazila v pořádku? Kdyby bylo cokoliv nejasné nebo jste chtěli něco v rozsahu upravit, stačí napsat — rád to s vámi projdu.\n\nS pozdravem\n{firma}"},
+  {id:"followup2", nazev:"2b · Připomenutí nabídky (7. den)", kdy:"týden po odeslání nabídky", text:
+    "Dobrý den,\n\nještě se ozývám k nabídce na {zakazka}. Termíny na další týdny se nám plní — pokud vám nabídka vyhovuje, rád vám podržím volný termín. Stačí krátce potvrdit a pošlu zálohovou fakturu.\n\nDěkuji\n{firma}"},
+  {id:"followup3", nazev:"2c · Poslední připomenutí (14. den)", kdy:"dva týdny po odeslání — naposledy", text:
+    "Dobrý den,\n\nnabídka na {zakazka} brzy vyprší, tak se chci jen zeptat, jestli je ještě aktuální. Pokud jste se rozhodli jinak, je to úplně v pořádku — stačí krátká zpráva a nebudu vás dál zdržovat. A kdyby rozhodla cena, budu rád, když napíšete, u které položky — ať vím, co příště udělat lépe.\n\nDěkuji a přeji hezký den\n{firma}"}
+];
+/* doplnit šablony follow-upu za „Odeslání nabídky“ — i u uložených dat, nic nepřepisuje */
+function hnDoplnSablony(){
+  if (!Array.isArray(S.sablony)) return;
+  const ix = S.sablony.findIndex(s => s && s.id === "nabidka");
+  HN_FOLLOWUP_SABLONY.slice().reverse().forEach(sb => { if (!S.sablony.some(s => s && s.id === sb.id)) S.sablony.splice(ix >= 0 ? ix + 1 : S.sablony.length, 0, JSON.parse(JSON.stringify(sb))); });
+}
+function hnDni(n){ return n === 1 ? "1 den" : n >= 2 && n <= 4 ? n + " dny" : n + " dní"; }
+function hnPred(n){ return n <= 0 ? "dnes" : n === 1 ? "včera" : "před " + n + " dny"; }
+function hnDnyMezi(a, b){ return Math.round((new Date(b + "T12:00:00") - new Date(a + "T12:00:00")) / 864e5); }
+function hnNabidkyOtevrene(){
+  const out = [];
+  (S.zakazky || []).forEach(z => { if ((z.status || "nabídka") === "nabídka" && z.id) out.push({z, druh:"demolice", cena:z.vysCelkem || 0}); });
+  (S.vyklizeni || []).forEach(z => { if ((z.status || "nabídka") === "nabídka" && z.id) out.push({z, druh:"vyklizeni", cena:(z.vysledek && z.vysledek.cena) || 0}); });
+  return out.map(x => {
+    const z = x.z, od = z.nabVystaveno || String(z.ulozeno || "").slice(0, 10);
+    if (!od) return null;
+    const k = (z.followup || []).length, dalsi = HN_FOLLOWUP[k];
+    let termin = dalsi ? faPlusDni(od, dalsi[0]) : "";
+    if (termin && z.pripomenoutOd && z.pripomenoutOd > termin) termin = z.pripomenoutOd;
+    return Object.assign(x, {od, dni:hnDnyMezi(od, faDnes()), krok:k, termin, sablona:dalsi ? dalsi[1] : ""});
+  }).filter(Boolean).sort((a, b) => a.od.localeCompare(b.od));
+}
+function hnTextFollowup(x){
+  const sb = (S.sablony || []).find(s => s && s.id === x.sablona) || HN_FOLLOWUP_SABLONY.find(s => s.id === x.sablona);
+  if (!sb) return "";
+  const z = x.z, hodnoty = {"{klient}":z.klient || "…", "{zakazka}":z.nazev || "…", "{adresa}":z.adresa || "…", "{cena}":x.cena > 0 ? kc(x.cena) : "…",
+    "{terminOd}":z.terminOd ? hnDatumCz(z.terminOd) : "…", "{terminDo}":z.terminDo ? hnDatumCz(z.terminDo) : "…", "{firma}":(S.nastaveni || {}).firma || "…"};
+  return sb.text.replace(/\{\w+\}/g, m => hodnoty[m] !== undefined ? hodnoty[m] : m);
+}
 function hnUkoly(){
   const u = [], dnes = faDnes(), n = S.nastaveni || {}, predstih = n.zaborPredstih != null ? +n.zaborPredstih : 7;
   const vse = (S.zakazky || []).slice(); if (J && J.zabor && J.terminOd && !vse.some(z => z.id && z.id === J.id)) vse.push(J);
   vse.forEach(z => {
     if (!z.zabor || !z.terminOd || z.zaborPodano || ["hotovo", "zamítnuto"].includes(z.status)) return;
-    const do_ = faPlusDni(z.terminOd, -predstih), zbyva = Math.round((new Date(do_ + "T12:00:00") - new Date(dnes + "T12:00:00")) / 864e5);
+    const do_ = faPlusDni(z.terminOd, -predstih), zbyva = hnDnyMezi(dnes, do_);
     u.push({id:z.id || "", typ:"zabor", datum:do_, zbyva, text:"Podat žádost o zábor pro kontejner — " + (z.nazev || "zakázka") + (z.adresa ? ", " + z.adresa : ""), pozn:"práce od " + hnDatumCz(z.terminOd)});
+  });
+  hnNabidkyOtevrene().forEach(x => {
+    if (!x.termin || x.termin > dnes) return;
+    u.push({id:x.z.id, druh:x.druh, typ:"followup", datum:x.termin, zbyva:hnDnyMezi(dnes, x.termin),
+      text:(x.krok === 2 ? "Naposledy připomenout nabídku — " : "Připomenout nabídku — ") + (x.z.nazev || "zakázka") + (x.z.klient ? ", " + x.z.klient : ""),
+      pozn:(x.druh === "vyklizeni" ? "vyklízení · " : "demolice · ") + (x.cena > 0 ? kc(x.cena) + " · " : "") + "odesláno " + hnPred(x.dni) + " · " + (x.krok + 1) + ". připomenutí"});
   });
   return u.sort((a, b) => a.datum.localeCompare(b.datum));
 }
+function hnNavBadge(){
+  const b = document.querySelector('nav button[data-tab="plan"]'); if (!b) return;
+  let s = b.querySelector(".hn-nav-n"); const dnes = faDnes(), n = hnUkoly().filter(x => x.datum <= dnes).length;
+  if (!s) { s = document.createElement("span"); s.className = "badge hn-nav-n"; b.appendChild(s); }
+  s.textContent = n ? String(n) : ""; s.style.display = n ? "" : "none";
+}
 function hnRenderUkoly(){
   const el = $("#hnUkoly"); if (!el) return;
-  const u = hnUkoly();
-  if (!u.length) { el.innerHTML = ""; return; }
-  el.innerHTML = "<div class='card'><h2>📋 Úkoly k zakázkám <span class='badge'>" + u.length + "</span></h2><ul class='hn-ukoly'>" + u.map(x =>
-    "<li class='" + (x.zbyva < 0 ? "po" : x.zbyva <= 2 ? "brzy" : "") + "'><div><b>" + esc(x.text) + "</b><div class='hint'>" + esc(x.pozn) + " · nejpozději " + hnDatumCz(x.datum) + " — " +
-      (x.zbyva < 0 ? "<span class='ne'>zmeškáno o " + (-x.zbyva) + " dní</span>" : x.zbyva === 0 ? "<b>dnes</b>" : "za " + x.zbyva + " dní") + "</div></div>" +
-      (x.id ? "<button type='button' class='b' data-hnukol='" + x.typ + "' data-hnid='" + esc(x.id) + "'>✓ Hotovo</button>" : "<span class='hint'>ulož zakázku</span>") + "</li>").join("") + "</ul></div>";
+  const u = hnUkoly(), cek = hnNabidkyOtevrene();
+  let h = "";
+  if (u.length) h += "<div class='card'><h2>📋 Úkoly — co dnes zařídit <span class='badge'>" + u.length + "</span></h2><ul class='hn-ukoly'>" + u.map(x =>
+    "<li class='" + (x.zbyva < 0 ? "po" : x.zbyva <= 2 ? "brzy" : "") + "'><div><b>" + esc(x.text) + "</b><div class='hint'>" + esc(x.pozn) + " · " + (x.typ === "followup" ? "" : "nejpozději ") + hnDatumCz(x.datum) + " — " +
+      (x.zbyva < 0 ? "<span class='ne'>" + (x.typ === "followup" ? "mělo být " + hnPred(-x.zbyva) : "zmeškáno o " + hnDni(-x.zbyva)) + "</span>" : x.zbyva === 0 ? "<b>dnes</b>" : "za " + hnDni(x.zbyva)) + "</div></div>" +
+      "<div class='hn-uk-akce'>" + (x.typ === "followup"
+        ? "<button type='button' class='b' data-hnfu='text' data-hnid='" + esc(x.id) + "' data-hndruh='" + x.druh + "'>📋 Text</button><button type='button' class='b prim' data-hnfu='napsano' data-hnid='" + esc(x.id) + "' data-hndruh='" + x.druh + "'>✓ Napsáno</button><button type='button' class='b' data-hnfu='odlozit' data-hnid='" + esc(x.id) + "' data-hndruh='" + x.druh + "'>Za 3 dny</button>"
+        : (x.id ? "<button type='button' class='b' data-hnukol='" + x.typ + "' data-hnid='" + esc(x.id) + "'>✓ Hotovo</button>" : "<span class='hint'>ulož zakázku</span>")) + "</div></li>").join("") + "</ul><p class='hint' id='hnUkolyStav' style='margin:6px 0 0'></p></div>";
+  if (cek.length) h += "<details class='card hn-cekaji'><summary><h2 style='display:inline'>📨 Nabídky čekají na odpověď <span class='badge'>" + cek.length + "</span></h2></summary><div class='tscroll'><table class='hn-cek-tab'><thead><tr><th>Zakázka</th><th class='r'>Cena</th><th class='r'>Odesláno</th><th>Připomenuto</th><th>Další připomenutí</th></tr></thead><tbody>" +
+    cek.map(x => "<tr><td><b>" + esc(x.z.nazev || "Zakázka") + "</b><div class='hint'>" + (x.druh === "vyklizeni" ? "vyklízení" : "demolice") + (x.z.klient ? " · " + esc(x.z.klient) : "") + "</div></td><td class='r'>" + (x.cena > 0 ? kc(x.cena) : "—") + "</td>" +
+      "<td class='r'>" + hnPred(x.dni) + "</td><td>" + (x.krok ? x.krok + "× (" + (x.z.followup || []).map(f => hnDatumCz(f.datum)).join(", ") + ")" : "zatím ne") + "</td>" +
+      "<td>" + (x.termin ? hnDatumCz(x.termin) : "<span class='hint'>3× připomenuto — když se neozve, dej stav „zamítnuto“ s důvodem</span>") + "</td></tr>").join("") +
+    "</tbody></table></div><p class='hint' style='margin:6px 16px 12px'>Počítá se od vystavení nabídky (tisk nebo kopie textu), u starších od uložení. Klient se ozval? Přepni stav zakázky — z tohohle seznamu zmizí.</p></details>";
+  el.innerHTML = h;
+  hnNavBadge();
+}
+function hnNajdi(id, druh){
+  const pole = druh === "vyklizeni" ? (S.vyklizeni || []) : (S.zakazky || []), z = pole.find(x => x.id === id);
+  const otevrena = druh === "vyklizeni" ? (VK && VK.id === id ? VK : null) : (J && J.id === id ? J : null);
+  return {z, otevrena};
+}
+function hnFollowupAkce(akce, id, druh){
+  const {z, otevrena} = hnNajdi(id, druh); if (!z) return;
+  const x = hnNabidkyOtevrene().find(y => y.z === z); if (!x) return;
+  const st = $("#hnUkolyStav");
+  if (akce === "text") {
+    const t = hnTextFollowup(x);
+    const hotovo = () => { if (st) st.innerHTML = "<span class='ok'>✓ Text pro " + esc(z.klient || z.nazev || "klienta") + " je ve schránce. Po odeslání dej ✓ Napsáno.</span>"; };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(hotovo, () => prompt("Zkopíruj zprávu:", t)); else prompt("Zkopíruj zprávu:", t);
+    return;
+  }
+  [z, otevrena].filter(Boolean).forEach(o => {
+    if (akce === "napsano") { if (!Array.isArray(o.followup)) o.followup = []; o.followup.push({krok:x.krok + 1, datum:faDnes()}); o.pripomenoutOd = ""; }
+    if (akce === "odlozit") o.pripomenoutOd = faPlusDni(faDnes(), 3);
+  });
+  save(); hnRenderUkoly();
 }
 if (typeof document !== "undefined" && document.addEventListener) {
   document.addEventListener("click", e => {
+    const f = e.target.closest && e.target.closest("[data-hnfu]");
+    if (f) { hnFollowupAkce(f.dataset.hnfu, f.dataset.hnid, f.dataset.hndruh); return; }
     const b = e.target.closest && e.target.closest("[data-hnukol]"); if (!b) return;
     if (b.dataset.hnukol === "zabor") {
       const dnes = faDnes(), z = (S.zakazky || []).find(x => x.id === b.dataset.hnid);
@@ -14973,6 +15065,8 @@ if (typeof document !== "undefined" && document.addEventListener) {
 }
 
 hnedVychozi();
+hnDoplnSablony();
+if (typeof document !== "undefined" && document.querySelector) hnNavBadge();
 
 /* ================= ROADMAPA — co řeší velké firmy =================
    Samostatná záložka: seznam věcí, na kterých velké demoliční, dopravní a odpadové firmy dělají marži
@@ -15306,7 +15400,10 @@ const RM_HOTOVO = {
     kde:"Nastavení → <b>📄 Podmínky nabídky a poplatky</b> (platnost, práh, doložka). Upozornění: Kalkulace → karta <b>Zakázka</b> nahoře, ve Vyklízení v kartě <b>Zkontrolovat</b>."},
   "dop-zabor":{datum:"2026-09-26",
     co:"Zaškrtávátko <b>kontejner na veřejném prostranství</b>: poplatek obci (m² × dny × sazba z vyhlášky, plocha a dny se doplní samy z kontejnerů) a správní poplatek jdou do nákladů, klient platí poplatky + čas na vyřízení povolení. Zábor je samostatný řádek v nabídce, textu nabídky, faktuře, souhrnu i ve skutečném zisku. V <b>Plánu</b> je nová karta <b>📋 Úkoly</b> — „podat žádost o zábor“ s termínem 7 dní před začátkem prací, zmeškaný termín svítí červeně, tlačítkem Hotovo se odškrtne.",
-    kde:"Kalkulace → <b>Odvoz suti a likvidace</b> (pod tabulkou druhů odpadu). Výchozí sazby v Nastavení → Podmínky nabídky a poplatky → Zábor veřejného prostranství. Úkoly: záložka <b>Plán</b> nahoře."}
+    kde:"Kalkulace → <b>Odvoz suti a likvidace</b> (pod tabulkou druhů odpadu). Výchozí sazby v Nastavení → Podmínky nabídky a poplatky → Zábor veřejného prostranství. Úkoly: záložka <b>Plán</b> nahoře."},
+  "obch-followup":{datum:"2026-09-26",
+    co:"Každá otevřená nabídka (demolice i vyklízení) se připomene <b>2., 7. a 14. den</b> od vystavení. V Plánu je „komu dnes napsat“: tlačítko <b>📋 Text</b> zkopíruje hotovou zprávu vyplněnou názvem a cenou zakázky, <b>✓ Napsáno</b> zapíše krok a posune na další termín, <b>Za 3 dny</b> odloží. Pod tím přehled <b>📨 Nabídky čekají na odpověď</b> — kolik dní, kolikrát připomenuto, kdy příště. Počet úkolů svítí u záložky Plán. Tři nové texty jsou ve Zprávách (2a, 2b, 2c) a jdou přepsat; poslední se zeptá, co rozhodlo — podklad pro „Proč prohráváme“.",
+    kde:"Záložka <b>📅 Plán</b> nahoře (Úkoly a Nabídky čekají na odpověď), texty v <b>✉ Zprávy</b> hned za „Odeslání nabídky“. Počítá se od tisku nebo kopie nabídky, u starších zakázek od uložení."}
 };
 const rmHotova = x => !!RM_HOTOVO[x.id];
 const RM_JIZ = [
@@ -15471,7 +15568,7 @@ const NAPOVEDA = [
 
   /* ---------------- ZAKÁZKY, PLÁN, ZPRÁVY, RŮST ---------------- */
   ["h2:zakazky:Uložené zakázky", "Uložené zakázky demolic", "Všechny uložené demolice s cenou, ziskem a stavem. Stav (nabídka → domluveno → probíhá → hotovo, nebo zamítnuto) si přepínej průběžně — z něj se počítá úspěšnost nabídek, Plán a Přehled. „Otevřít“ nahraje zakázku do Kalkulace, „Kopie“ udělá novou podle staré."],
-  ["h2:plan:Nasmlouvané zakázky", "Plán", "Kalendář všech zakázek s termínem (demolice i vyklízení) a čísla: <b>nasmlouváno dopředu</b> (pod 5 dní = sháněj práci, nad 10 dní = klid), <b>vytížení měsíce</b> (ideál 75–90 %; nad 95 % prodáváte levně) a kolize termínů. Termín se zadává v Kalkulaci nebo u vyklízení. Nahoře se ukáže karta <b>📋 Úkoly</b>, když je před zakázkou co zařídit (třeba žádost o zábor pro kontejner) — s termínem do kdy."],
+  ["h2:plan:Nasmlouvané zakázky", "Plán", "Kalendář všech zakázek s termínem (demolice i vyklízení) a čísla: <b>nasmlouváno dopředu</b> (pod 5 dní = sháněj práci, nad 10 dní = klid), <b>vytížení měsíce</b> (ideál 75–90 %; nad 95 % prodáváte levně) a kolize termínů. Termín se zadává v Kalkulaci nebo u vyklízení. Nahoře se ukáže karta <b>📋 Úkoly</b>, když je před zakázkou co zařídit (třeba žádost o zábor pro kontejner) — s termínem do kdy — a „komu dnes napsat“: otevřené nabídky se připomenou 2., 7. a 14. den (text zprávy jedním klikem, pak ✓ Napsáno). Pod tím seznam nabídek, které čekají na odpověď."],
   ["h2:zpravy:Zprávy klientovi", "Zprávy klientovi", "Hotové texty pro situace, které se opakují (odpověď na poptávku, potvrzení termínu, připomínka zálohy, dokončení…). Značky ve {závorkách} se vyplní z otevřené kalkulace. Klikni Kopírovat a vlož do SMS nebo mailu. Texty si můžeš přepsat."],
   ["h2:zpravy:Připomínka: požádat o hodnocení", "Žádost o hodnocení", "Seznam hotových zakázek, u kterých jste ještě nepožádali o recenzi. Hodnocení na Googlu a portálech je pro malou firmu nejlevnější reklama — žádej hned po dokončení, dokud je klient spokojený."],
   ["h2:rust:Na co šetřit", "Na co šetřit", "Milníky, na které firma šetří (auto, nářadí, rezerva…) v rozumném pořadí — každá fáze staví na předchozí. Z každého zisku odkládáš nastavené procento a milníky se plní. Částky uprav podle skutečných nabídek."],
