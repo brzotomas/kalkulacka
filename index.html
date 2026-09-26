@@ -584,6 +584,8 @@ details.gsec li{margin:3px 0}
 .br-graf rect.ok{fill:var(--good)}
 .br-graf rect.st{fill:var(--warn-line)}
 .br-graf rect.ne{fill:var(--bad)}
+.br-str-tab input{width:76px}
+.br-str-tab select{max-width:190px}
 
 
 /* roadmapa */
@@ -1036,6 +1038,11 @@ body.zamceno{overflow:hidden}
     <div class="btnrow"><button class="b" id="addOdp">+ Přidat odpad</button><button class="b" id="odpZeSuti">Předvyplnit z odhadu suti</button></div>
   </div>
 
+  <div class="card" id="brStrojeCard">
+    <h2>🛠 Stroje na zakázce</h2>
+    <div id="brStroje"></div>
+  </div>
+
   <div class="card" id="brSkutCard">
     <h2>⏱ Skutečnost po pracích</h2>
     <div id="brSkut"></div>
@@ -1184,6 +1191,11 @@ body.zamceno{overflow:hidden}
     </div>
     <p class="hint" id="invPozn" style="margin:10px 0 0"></p>
     <div id="invVysledek"></div>
+  </div>
+
+  <div class="card">
+    <h2>🛠 Stroje — strojhodina a půjčit, nebo koupit</h2>
+    <div id="brStrojeKarta"></div>
   </div>
 </section>
 
@@ -4334,7 +4346,7 @@ document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()
   if(b.dataset.tab==="plan")renderPlan();
   if(b.dataset.tab==="zpravy"){renderSablony();renderRecenze();}
   if(b.dataset.tab==="cenik")renderDopravciNejlepsi();
-  if(b.dataset.tab==="rust"){renderMilniky();renderInvestice();}
+  if(b.dataset.tab==="rust"){renderMilniky();renderInvestice();if(typeof renderBrStrojePrehled==="function")renderBrStrojePrehled();}
 }));
 
 /* ---------- kalkulace: hlavička ---------- */
@@ -4883,6 +4895,7 @@ function recalc(){
   if(typeof renderBrPrh==="function")renderBrPrh(v);
   if(typeof renderBrBid==="function")renderBrBid();
   if(typeof renderBrSkut==="function")renderBrSkut(v);
+  if(typeof renderBrStroje==="function")renderBrStroje();
   if(typeof renderBrDia==="function"&&!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest("#brDia")))renderBrDia();
   $("#dopravaHint").textContent=(J.dopravaUctovat&&(J.km||0)>0)?
     "klientovi "+kc(v.dopravaP)+" = max("+(J.km||0)+" km × "+fmt0.format(n.kmProdej)+" Kč; paušál "+fmt0.format(n.pausal)+"), náklad "+kc(v.dopravaN):
@@ -5531,7 +5544,7 @@ function sablonaPouzit(){
 /* ========== přenos zakázky textem (kód DK1|…) ========== */
 const ZAK_POLE=["nazev","klient","adresa","poznamka","zdroj","cenik","dph","patro","vytah","vytahNaSut",
   "vzdalenost","rucniNoseni","lide","najati","kmDopravce","dnyKontejneru","skladkovne","rezerva","provize",
-  "sleva","slevaDuvod","prirazka","platbaPredem","nabidnoutPredem","odpadModel","trideni","poplatky","zabor","zaborM2","zaborDny","zaborSazba","followup","smlouva","prohlidka","povoleni","bid","diamant","neprod","skutVynaskaH",
+  "sleva","slevaDuvod","prirazka","platbaPredem","nabidnoutPredem","odpadModel","trideni","poplatky","zabor","zaborM2","zaborDny","zaborSazba","followup","smlouva","prohlidka","povoleni","bid","diamant","neprod","skutVynaskaH","strojeHod",
   "km","dopravaUctovat","vikend","expres","terminOd","terminDo","prace","material","ostatni","kontejnery","odpady"];
 function zakDoTextu(z){
   const o={};
@@ -14427,7 +14440,7 @@ function ekVstupDemolice(z, e){
   let v; try { v = vypocet(); } finally { J = puvodni; }
   const cestaH = (+z.km || 0) / (e.rychlostCesty || 50) * Math.max(1, z.lide || 1);
   const parta = ekPartaDemolice(z);
-  return {v, inp:{trzba:v.trzba, osH:v.hodiny + cestaH, cestaH, lide:z.lide || 1, parta, naradiH:ekNaradiH(e, "demolice"),
+  return {v, inp:{trzba:v.trzba, osH:v.hodiny + cestaH, cestaH, lide:z.lide || 1, parta, naradiH:(typeof brStrojeNaHod === "function" ? brStrojeNaHod(z, v.hodiny + cestaH) : ekNaradiH(e, "demolice")),
     prime:[["Materiál (nákup)", v.matN], ["Kontejnery (nákup)", v.kontN], ["Skládkovné", v.sklN], ["Auto a doprava " + (z.km || 0) + " km", v.dopravaN], ["Provize", v.provize], ["Zábor veřejného prostranství", v.zaborN || 0], ["Opotřebení kotoučů a korunek", v.dia ? v.dia.N : 0], ["Vlastní položky", v.ostN]].filter(x => x[1])}};
 }
 function ekVstupVyklizeni(z, r, e){
@@ -16048,6 +16061,88 @@ function renderBrPresnost(){
     "Přesnost = 100 % − průměrná odchylka skutečných hodin od plánu. Nad 85 % můžete nacenit těsněji.</p>";
 }
 
+/* ---------- Strojhodina u každého stroje + Půjčit, nebo koupit ----------
+   Stroje = seznam nářadí z Ekonomiky firmy, doplněný o druh práce, podíl času, servis, hodiny ročně a půjčovné.
+   Opotřebení zakázky = hodiny strojů podle skutečných prací × strojhodina (místo paušálu za každou hodinu).
+   Půjčit, nebo koupit: roční náklad vlastnictví vs. půjčovné × dny použití z vašich zakázek. */
+const BR_STROJ_DRUHY = {bourani:"bourání zdiva, betonu, podlah", obklady:"otloukání obkladů a dlažeb, vrtání", rezani:"řezání, broušení, drážky", vse:"všechna práce i vynáška"};
+function brStrojVychozi(x){
+  const t = bezDiakritiky(x.nazev || "");
+  const d = /bouraci kladivo/.test(t) ? ["bourani", 50, 3000, 400, 900] : /sds|vrtaci kladivo/.test(t) ? ["obklady", 60, 1500, 300, 600]
+    : /bruska|rezack/.test(t) ? ["rezani", 40, 500, 150, 350] : /vysavac|odsav/.test(t) ? ["vse", 20, 1000, 300, 500]
+    : /kolec|rudl|zebrik|lese/.test(t) ? ["vse", 100, 0, 1200, 0] : ["vse", 30, 0, 300, 0];
+  if (!x.druh) x.druh = d[0]; if (x.podil == null) x.podil = d[1]; if (x.servisRok == null) x.servisRok = d[2]; if (x.hodRok == null) x.hodRok = d[3]; if (x.pujcovnaDen == null) x.pujcovnaDen = d[4];
+  return x;
+}
+function brStroje(){ const e = typeof ekNastaveni === "function" ? ekNastaveni() : {naradi:[]}; (e.naradi || []).forEach(brStrojVychozi); return e.naradi || []; }
+function brStrojKcH(x){ return (x.hodin > 0 ? (+x.cena || 0) / x.hodin : 0) + (+x.servisRok || 0) / Math.max(1, +x.hodRok || 1); }
+function brPraceDruh(r){
+  const t = bezDiakritiky(r.nazev || "");
+  if (/obklad|dlazb|soklik|lepidl|vrtani/.test(t)) return "obklady";
+  if (/frezov|brouse|rezani|drazk|ryh/.test(t)) return "rezani";
+  if (/sdk|sdvk|podhled|podkrovi|koberc|pvc|lina|plovouc|dverni|kridl|kuchyn|zarubn|obloz|elektroinstal|sanit|vany|radiator|ochrana|zakryti|uklid/.test(t)) return "demontaz";
+  return "bourani";
+}
+function brStrojeZakazka(z){
+  z = z || J; const kv = brKv(), h = {bourani:0, obklady:0, rezani:0, demontaz:0};
+  (z.prace || []).forEach(r => { if ((r.mnozstvi || 0) > 0) h[brPraceDruh(r)] += (r.hod || 0) * r.mnozstvi * kv; });
+  let vyn = 0; { const puv = J; J = z; try { vyn = vynaskaVypocet().hodiny || 0; } catch (e) {} finally { J = puv; } }
+  const praceH = h.bourani + h.obklady + h.rezani + h.demontaz, o = z.strojeHod || {};
+  const radky = brStroje().map(x => {
+    const auto = (x.druh === "vse" ? praceH + vyn : (h[x.druh] || 0)) * (+x.podil || 0) / 100;
+    const hod = o[x.nazev] != null && o[x.nazev] !== "" ? +o[x.nazev] : auto, kcH = brStrojKcH(x);
+    return {nazev:x.nazev, auto, hod, rucne:o[x.nazev] != null && o[x.nazev] !== "", kcH, kc:hod * kcH};
+  });
+  const e = typeof ekNastaveni === "function" ? ekNastaveni() : {};
+  const spotrebni = (+e.spotrebniH || 0) * praceH;
+  return {radky, kc:radky.reduce((a, x) => a + x.kc, 0), spotrebni, praceH};
+}
+function brStrojeNaHod(z, osH){ const x = brStrojeZakazka(z); return osH > 0 ? (x.kc + x.spotrebni) / osH : 0; }
+function renderBrStroje(){
+  const el = $("#brStroje"); if (!el) return;
+  if (document.activeElement && document.activeElement.closest && document.activeElement.closest("#brStroje")) return;
+  const x = brStrojeZakazka(J);
+  if (!(x.praceH > 0)) { el.innerHTML = "<p class='hint' style='margin:0'>Až budou v kalkulaci práce, spočítá se, kolik hodin který stroj poběží a kolik stojí jeho opotřebení.</p>"; return; }
+  el.innerHTML = "<div class='tscroll'><table class='odp-tab br-str-tab'><thead><tr><th>Stroj</th><th>Hodin</th><th class='r'>Kč/h</th><th class='r'>Opotřebení</th></tr></thead><tbody>" +
+    x.radky.filter(r => r.auto > 0 || r.rucne).map(r => "<tr><td>" + esc(r.nazev) + "</td><td><input type='number' min='0' step='0.5' data-brstr='" + esc(r.nazev) + "' value='" + (r.rucne ? r.hod : "") + "' placeholder='" + fmt1.format(r.auto) + "'></td><td class='r'>" + fmt0.format(r.kcH) + "</td><td class='r'>" + kc(r.kc) + "</td></tr>").join("") +
+    "</tbody></table></div><p class='hint' style='margin:6px 0 0'>Opotřebení strojů <b>" + kc(x.kc) + "</b>" + (x.spotrebni ? " + spotřební " + kc(x.spotrebni) : "") + " — počítá se do skutečného zisku místo paušálu. Hodiny se odhadnou z prací (prázdné pole), jde je přepsat. Stroje a jejich sazby: Růst a investice → 🛠 Stroje.</p>";
+}
+function renderBrStrojePrehled(){
+  const el = $("#brStrojeKarta"); if (!el) return;
+  const st = brStroje(), hodDen = +(S.nastaveni || {}).hodDen || 8, rok = faPlusDni(faDnes(), -365);
+  const pouziti = {}; st.forEach(x => pouziti[x.nazev] = 0);
+  (S.zakazky || []).filter(z => ["hotovo", "probíhá", "domluveno"].includes(z.status) && String(z.terminOd || z.ulozeno || "").slice(0, 10) >= rok)
+    .forEach(z => brStrojeZakazka(z).radky.forEach(r => { pouziti[r.nazev] = (pouziti[r.nazev] || 0) + r.hod; }));
+  const opt = v => Object.keys(BR_STROJ_DRUHY).map(k => "<option value='" + k + "'" + (v === k ? " selected" : "") + ">" + BR_STROJ_DRUHY[k] + "</option>").join("");
+  el.innerHTML = "<div class='tscroll'><table class='odp-tab br-str-tab'><thead><tr><th>Stroj</th><th>Použití</th><th>Podíl času</th><th>Servis Kč/rok</th><th>Hodin ročně</th><th>Půjčovna Kč/den</th><th class='r'>Strojhodina</th><th>Půjčit, nebo koupit</th></tr></thead><tbody>" +
+    st.map((x, i) => {
+      const kcH = brStrojKcH(x), let_ = x.hodin > 0 && x.hodRok > 0 ? x.hodin / x.hodRok : 5, rocne = (+x.cena || 0) / Math.max(0.5, let_) + (+x.servisRok || 0);
+      const dnyZvrat = x.pujcovnaDen > 0 ? rocne / x.pujcovnaDen : null, dny = (pouziti[x.nazev] || 0) / hodDen;
+      const verdikt = dnyZvrat == null ? "<span class='hint'>půjčovna nezadaná</span>" : dny >= dnyZvrat ? "<span class='ok'>✓ Vlastnit</span> — " + fmt0.format(dny) + " dní ročně, vyplatí se od " + fmt0.format(dnyZvrat)
+        : "<span class='ne'>Půjčovat</span> — jen " + fmt0.format(dny) + " dní ročně, vlastnit se vyplatí od " + fmt0.format(dnyZvrat);
+      const inp = (k, step) => "<input type='number' min='0' step='" + step + "' data-brstrn='" + i + "' data-k='" + k + "' value='" + (x[k] != null ? x[k] : "") + "'>";
+      return "<tr><td><b>" + esc(x.nazev || "Stroj") + "</b><div class='hint'>" + kc(+x.cena || 0) + " · " + fmt0.format(+x.hodin || 0) + " h životnost</div></td><td><select data-brstrn='" + i + "' data-k='druh'>" + opt(x.druh) + "</select></td><td>" + inp("podil", 5) + " %</td><td>" + inp("servisRok", 100) + "</td><td>" + inp("hodRok", 10) + "</td><td>" + inp("pujcovnaDen", 50) + "</td>" +
+        "<td class='r'><b>" + fmt0.format(kcH) + " Kč/h</b></td><td>" + verdikt + "</td></tr>";
+    }).join("") + "</tbody></table></div><p class='hint' style='margin:6px 0 0'>Strojhodina = cena ÷ hodiny životnosti + servis ÷ hodiny ročně. „Podíl času“ = kolik z hodin dané práce stroj opravdu běží. Použití za poslední rok se bere z domluvených a hotových zakázek. Cenu a životnost strojů upravíš v Ekonomice firmy → Nářadí.</p>";
+}
+if (typeof document !== "undefined" && document.addEventListener) {
+  document.addEventListener("input", e => {
+    const s = e.target.closest && e.target.closest("[data-brstr]");
+    if (s) {
+      if (!J.strojeHod) J.strojeHod = {};
+      if (s.value === "") delete J.strojeHod[s.dataset.brstr]; else J.strojeHod[s.dataset.brstr] = num(s.value);
+      save(); recalc(); return;
+    }
+    const n = e.target.closest && e.target.closest("[data-brstrn]");
+    if (n && n.tagName !== "SELECT") { const x = brStroje()[+n.dataset.brstrn]; if (x) { x[n.dataset.k] = num(n.value); save(); } }
+  });
+  document.addEventListener("change", e => {
+    const n = e.target.closest && e.target.closest("[data-brstrn]"); if (!n) return;
+    const x = brStroje()[+n.dataset.brstrn]; if (!x) return;
+    x[n.dataset.k] = n.tagName === "SELECT" ? n.value : num(n.value); save(); renderBrStrojePrehled();
+  });
+}
+
 /* ================= ROADMAPA — co řeší velké firmy =================
    Samostatná záložka: seznam věcí, na kterých velké demoliční, dopravní a odpadové firmy dělají marži
    (nebo se chrání před ztrátou), rozdělený do fází. Nic z toho zatím není naprogramované v kalkulaci —
@@ -16425,7 +16520,13 @@ const RM_HOTOVO = {
     kde:"Kalkulace → ⏱ Skutečnost po pracích → Neproduktivní čas; Vyklízení → Den zakázky → stopky ⏸ Čekání; souhrn v Přehledu firmy."},
   "data-presnost":{datum:"2026-09-26",
     co:"Karta <b>🎯 Přesnost odhadů v čase</b>: po měsících z hotových zakázek demolic i vyklízení — přesnost (100 % − průměrná odchylka hodin), jestli podceňujete, nebo nadhodnocujete, graf za 12 měsíců a trend (zlepšujete se / zhoršujete). Nad 85 % můžete nacenit těsněji.",
-    kde:"Přehled firmy → <b>🎯 Přesnost odhadů v čase</b>."}
+    kde:"Přehled firmy → <b>🎯 Přesnost odhadů v čase</b>."},
+  "tech-strojhodina":{datum:"2026-09-26",
+    co:"Každý stroj z nářadí má <b>strojhodinu</b> (cena ÷ hodiny životnosti + servis ÷ hodiny ročně), druh práce, na který se používá, a podíl času, kdy opravdu běží. Karta <b>🛠 Stroje na zakázce</b> odhadne hodiny každého stroje z prací (kladivo = polovina hodin bourání, vysavač pětina všeho…), jdou přepsat, a opotřebení jde do skutečného zisku <b>místo paušálu</b> za každou hodinu (dřív ~51 Kč/h, jako by běželo všechno pořád).",
+    kde:"Kalkulace → karta <b>🛠 Stroje na zakázce</b>; sazby strojů v <b>💰 Růst a investice → 🛠 Stroje</b>, ceny a životnost v Ekonomice firmy → Nářadí."},
+  "tech-pujcit":{datum:"2026-09-26",
+    co:"U každého stroje <b>půjčit, nebo koupit</b>: roční náklad vlastnictví (odpis + servis) proti půjčovnému × dnům, kdy jste stroj za poslední rok opravdu potřebovali (spočítáno ze zakázek). Verdikt „Vlastnit“ nebo „Půjčovat“ i s počtem dní, od kdy se vlastnictví vyplatí.",
+    kde:"<b>💰 Růst a investice → 🛠 Stroje — strojhodina a půjčit, nebo koupit</b>. Nový stroj přidáš v Ekonomice firmy → Nářadí."}
 };
 const rmHotova = x => !!RM_HOTOVO[x.id];
 const RM_JIZ = [
@@ -16586,6 +16687,7 @@ const NAPOVEDA = [
   ["h2:kalkulace:Fotodokumentace", "Fotodokumentace", "Fotky před, během a po. <b>Před bouráním foť vždy</b> (praskliny, podlahy, společné prostory) — jedna reklamace „vy jste to rozbili“ sežere zisk celé zakázky. Fotky po dokončení jsou nejlepší reklama. Ukládají se jen do tohoto zařízení."],
   ["h2:kalkulace:Denní zápis ze stavby", "Denní zápis", "Každý večer minutu: kdo, kolik hodin, co se udělalo, komplikace. Tlačítkem přepíšeš skutečné hodiny do „Po dokončení“ — z toho se zpřesňují odhady. Zápis je i důkaz při sporu o termín."],
   ["h2:kalkulace:Evidence odpadů", "Evidence odpadů", "Zákonná povinnost: kolik tun jakého odpadu (kód) a kam jste předali. Čísla ber z vážních lístků, ne z odhadu. Roční souhrn je v Přehledu firmy. Azbest (17 06 05*) je nebezpečný odpad."],
+  ["h2:kalkulace:🛠 Stroje na zakázce", "Stroje na zakázce", "Kolik hodin který stroj na zakázce poběží (odhad z prací, jde přepsat) a kolik stojí jeho opotřebení a servis. Počítá se do skutečného zisku místo paušálu za každou hodinu práce."],
   ["h2:kalkulace:⏱ Skutečnost po pracích", "Skutečnost po pracích", "Kolik která práce opravdu trvala proti plánu z normy — stačí vyplnit ty, které znáš. Neproduktivní čas (čekání, přesuny, nákupy, úklid) se nenaceňuje, ale platí se; když ho zapisuješ, uvidíš, kolik tě stojí. Součet přeneseš do „Po dokončení“. Z více zakázek pak Přehled firmy ukáže, které práce máš v ceníku levně."],
   ["h2:kalkulace:Po dokončení", "Po dokončení — skutečnost", "Skutečné hodiny, kontejnery a km po zakázce. Přehled firmy z nich porovná plán s realitou a po 5 zakázkách nabídne přepočet norem — odhady budou čím dál přesnější."],
   ["h2:kalkulace:Ekonomika zakázky", "Ekonomika zakázky", "Souhrn vpravo: tržba, náklady, cena pro klienta s DPH, záloha a <b>čistý zisk firmy bez rezervy</b>. Dole tržba a zisk na hodinu party a na osobu, odhad dní. Varování upozorní na nízký zisk, malou zakázku nebo kolizi termínu."],
@@ -16599,6 +16701,7 @@ const NAPOVEDA = [
   ["h2:zpravy:Připomínka: požádat o hodnocení", "Žádost o hodnocení", "Seznam hotových zakázek, u kterých jste ještě nepožádali o recenzi. Hodnocení na Googlu a portálech je pro malou firmu nejlevnější reklama — žádej hned po dokončení, dokud je klient spokojený."],
   ["h2:rust:Na co šetřit", "Na co šetřit", "Milníky, na které firma šetří (auto, nářadí, rezerva…) v rozumném pořadí — každá fáze staví na předchozí. Z každého zisku odkládáš nastavené procento a milníky se plní. Částky uprav podle skutečných nabídek."],
   ["#nOdkladPct", "Kolik % ze zisku odkládáte", "Část zisku, která nejde na výplatu, ale na růst firmy (doporučeno 25 %). Z ní se plní milníky výše."],
+  ["h2:rust:🛠 Stroje", "Stroje — strojhodina a půjčit, nebo koupit", "Pro každý stroj: na jakou práci se používá, jaký podíl času běží, servis a půjčovné. Z toho strojhodina a verdikt, jestli se ho vyplatí vlastnit — podle toho, kolik dní ročně jste ho na zakázkách opravdu potřebovali."],
   ["h2:rust:Vyplatí se to koupit?", "Investiční kalkulačka", "Než koupíš stroj, auto nebo najmeš člověka: zadej cenu, měsíční náklady, kolik ti to ušetří nebo vydělá na jedné zakázce a kolik zakázek měsíčně. Kalkulačka řekne, za jak dlouho se to zaplatí."],
 
   /* ---------------- VYKLÍZENÍ ---------------- */
