@@ -501,6 +501,26 @@ details.gsec li{margin:3px 0}
 @media (max-width:560px){.ek-fix-r.ek-nar{grid-template-columns:1fr 1fr}.ek-fix-r.ek-nar>input:first-child{grid-column:1/-1}}
 
 
+/* roadmapa hned — odpad podle druhů */
+.odp-box{margin:0 0 12px}
+.odp-box:empty{display:none}
+.odp-stary{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--warn-ink);border-radius:9px;padding:9px 12px;font-size:13.5px}
+.odp-rezim{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:0 0 8px}
+.odp-rezim>span{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;margin-right:4px}
+.odp-chip{min-height:32px;padding:5px 12px;font-size:13px}
+.odp-tab{width:100%;border-collapse:collapse;font-size:13px}
+.odp-tab th,.odp-tab td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.odp-tab th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.odp-tab th.r,.odp-tab td.r{text-align:right;white-space:nowrap}
+.odp-tab select{max-width:220px}
+.odp-verdikt{margin:8px 0 0;padding:9px 12px;border-radius:9px;font-size:13px;line-height:1.55;border:1px solid var(--line);background:var(--surface2)}
+.odp-verdikt.ano{border-color:var(--good);background:var(--good-bg)}
+.odp-zaver{margin-top:4px}
+.odp-det{margin-top:8px}
+.odp-det summary{font-size:13px}
+@media (max-width:600px){.odp-tab .odp-co{display:none}.odp-tab th,.odp-tab td{padding:5px 5px}}
+
+
 /* roadmapa */
 .rm-uvod p{margin:0 0 6px;font-size:14px;line-height:1.55;max-width:900px}
 .rm-akce{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:12px}
@@ -528,6 +548,13 @@ details.gsec li{margin:3px 0}
 .rm-pol.rm-hned{border-left-color:var(--accent)}
 .rm-pol.rm-pozdeji{border-left-color:var(--warn-line)}
 .rm-pol.rm-ne{opacity:.6}
+.rm-pol.rm-hotovo{border-left-color:var(--good);background:var(--good-bg)}
+.rm-st.rm-ok{background:var(--good);color:#fff}
+.rm-fc.rm-fc-ok{background:var(--good)}
+.rm-bloky2{grid-template-columns:1fr 1fr}
+@media (max-width:900px){.rm-bloky2{grid-template-columns:1fr}}
+.rm-puvodni{margin-top:8px;font-size:13px}
+.rm-puvodni summary{color:var(--muted)}
 .rm-hl{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start}
 .rm-hl h3{margin:0;font-size:15.5px;line-height:1.35}
 .rm-stitky{display:flex;gap:5px;flex-wrap:wrap}
@@ -782,6 +809,7 @@ body.zamceno{overflow:hidden}
   <div class="card">
     <h2>Odvoz suti a likvidace</h2>
     <div class="sut" id="sutInfo"></div>
+    <div id="odpDruhy" class="odp-box"></div>
     <div class="grid g4" style="margin-bottom:10px">
       <label class="f">Dopravce<select id="jDopravce"></select></label>
       <label class="f">Vzdálenost dopravce → stavba (km)<input id="jKmDopravce" type="number" min="0" step="1"><span class="hint" id="kmDopHint"></span></label>
@@ -1370,7 +1398,11 @@ body.zamceno{overflow:hidden}
       <label class="f">Pracovních hodin / den<input id="nHodDen" type="number" min="1" step="0.5"></label>
       <label class="f">Náklad na najatého pracovníka (Kč/hod)<input id="nSazbaNajaty" type="number" min="0" step="10"></label>
       <label class="f">Marže na odvozu (%) — pro návrh prodejní ceny<input id="nOdvozMarze" type="number" min="0" step="1"></label>
-      <label class="f">Skládkovné / likvidace (Kč/t bez DPH)<input id="nSkladkovne" type="number" min="0" step="10"></label>
+      <label class="f">Likvidace čisté suti — beton, cihly, keramika 17 01 07 (Kč/t bez DPH)<input id="nSkladkovne" type="number" min="0" step="10"></label>
+      <label class="f">Likvidace směsi — SDK, izolace, PVC, dřevo 17 09 04 (Kč/t bez DPH)<input id="nSkladkovneSmes" type="number" min="0" step="10"><span class="hint">nevytříděná suť jde celá za tuhle cenu</span></label>
+      <label class="f">Výkup kovů (Kč/kg)<input id="nVykupKov" type="number" min="0" step="0.5"><span class="hint">vany, radiátory, zárubně, nosníky</span></label>
+      <label class="f">Třídění suti na místě (hodin na tunu)<input id="nTrideniHodT" type="number" min="0" step="0.05"><span class="hint">čas navíc, když se suť dělí do dvou kontejnerů</span></label>
+      <div class="f" style="justify-content:flex-end"><span>&nbsp;</span><label class="chk"><input id="nLikvidaceJakoSmes" type="checkbox"> Klientovi účtovat likvidaci jako nevytříděnou (úspora z třídění zůstane firmě)</label></div>
       <label class="f">Výchozí sazba dopravy kontejneru (Kč/km)<input id="nKontCenaKm" type="number" min="0" step="1"><span class="hint">použije se, když dopravce nemá vlastní</span></label>
       <label class="f">Dní v ceně kontejneru zdarma<input id="nKontDnyZdarma" type="number" min="0" step="1"></label>
       <label class="f">Cena za každý další den (Kč)<input id="nKontCenaDen" type="number" min="0" step="10"></label>
@@ -3520,7 +3552,7 @@ function defKontejnery(){return [
  {id:"k6", nazev:"6 m³ – směsný odpad",  objem:6, nosnost:2,   nakup:4600, prodej:5800},
  {id:"k9", nazev:"9 m³ – směsný odpad",  objem:9, nosnost:3,   nakup:5800, prodej:7200},
 ];}
-function defNastaveni(){return {firma:"", lide:2, hodDen:9, sazbaNajaty:250, odvozMarze:20, skladkovne:610, km:15, kmProdej:25, pausal:600, rezerva:12, zaloha:40,
+function defNastaveni(){return {firma:"", lide:2, hodDen:9, sazbaNajaty:250, odvozMarze:20, skladkovne:610, skladkovneSmes:2250, vykupKov:4, trideniHodT:0.25, likvidaceJakoSmes:false, km:15, kmProdej:25, pausal:600, rezerva:12, zaloha:40,
   vynSazba:715, vynKolecko:65, vynKoleckoM3:0.065, vynCyklusSek:240,
   vynKbelik:40, vynKbelikM3:0.040, vynPatroSek:35, vynVzdalenostSek:25,
   vynVytahKoef:0.25, vynRucniKoef:1.35, koefVykon:1.0,
@@ -3533,7 +3565,7 @@ function defJob(n){return {id:null, nazev:"", klient:"", adresa:"", poznamka:"",
   prace:[], kontejnery:[], material:[], ostatni:[], viceprace:[], fotky:[], denniZapis:[], odpady:[],
   terminOd:"", terminDo:"", dopravceId:"", vzdalenost:10, rucniNoseni:false, vytahNaSut:true,
   kmDopravce:15, dnyKontejneru:3,
-  skladkovne:true, rezerva:n.rezerva, provize:0, sleva:0, slevaDuvod:"", km:0,
+  skladkovne:true, odpadModel:2, trideni:"auto", rezerva:n.rezerva, provize:0, sleva:0, slevaDuvod:"", km:0,
   prirazka:0, platbaPredem:false, nabidnoutPredem:true, dopravaUctovat:true, vikend:false, expres:false,
   zalohaCastka:0, zalohaSplatnost:"", zalohaZaplaceno:"", doplatekCastka:0, doplatekSplatnost:"", doplatekZaplaceno:"",
   duvodProhry:"", cenaViteze:0, poznProhry:"",
@@ -3832,6 +3864,8 @@ function normJob(j){ if(!j)return;
   if(j.vytahNaSut===undefined)j.vytahNaSut=true;
   if(j.kmDopravce===undefined)j.kmDopravce=15;
   if(j.dnyKontejneru===undefined)j.dnyKontejneru=3;
+  if(j.odpadModel===undefined)j.odpadModel=1;
+  if(j.trideni===undefined||j.trideni===true)j.trideni="auto"; else if(j.trideni===false)j.trideni="ne";
   delete j.vynaska;
 }
 function migrate(){
@@ -4258,7 +4292,7 @@ $("#praceTab").addEventListener("change",e=>{
   if(e.target.classList.contains("pSel")){
     const it=S.cenik.find(i=>i.id===e.target.value);
     const r=J.prace[ix];
-    if(it){r.polozkaId=it.id; r.nazev=it.nazev; r.mj=it.mj; r.kat=it.kat; r.cena=it[J.cenik]; r.sutT=it.sutT; r.sutM3=it.sutM3; r.hod=it.hod; r.hvezd=it.hvezd;}
+    if(it){r.polozkaId=it.id; r.nazev=it.nazev; r.mj=it.mj; r.kat=it.kat; r.cena=it[J.cenik]; r.sutT=it.sutT; r.sutM3=it.sutM3; r.hod=it.hod; r.hvezd=it.hvezd; delete r.odpad;}
     renderPrace();save();
   }
 });
@@ -4337,17 +4371,10 @@ function kontVarianty(m3syr,tsyr){
 }
 $("#navrhKont").addEventListener("click",()=>{
   const s=sutCelkem(); if(s.t<=0&&s.m3<=0){alert("Nejdřív zadej bourací práce — z nich se suť počítá.");return}
-  const vars=kontVarianty(s.m3,s.t);
-  if(!vars.length){alert("V nastavení chybí použitelné typy kontejnerů (objem, nosnost, nákupní cena).");return}
-  const rez=S.nastaveni.kontRezerva||0;
-  let txt="Suť: "+fmt1.format(s.m3)+" m³ / "+fmt1.format(s.t)+" t\n"+
-    "Návrh počítá s rezervou "+rez+" % → nutno pokrýt "+fmt1.format(s.m3*(1+rez/100))+" m³ / "+fmt1.format(s.t*(1+rez/100))+" t\n\n"+
-    "Varianty podle nákladu ("+(J.kmDopravce||0)+" km, "+(J.dnyKontejneru||0)+" dní):\n\n";
-  vars.forEach((v,i)=>{txt+=(i+1)+") "+v.label+" — nákup "+kc(v.cost)+"\n"});
-  txt+="\nPoužít variantu 1 (nejlevnější)?";
-  if(!confirm(txt))return;
-  const v=vars[0];
-  J.kontejnery=v.types.map((k,i)=>v.counts[i]>0?kontRow(k,v.counts[i]):null).filter(Boolean);
+  const n=kontNavrh();
+  if(!n||!n.radky.length){alert("V nastavení chybí použitelné typy kontejnerů (objem, nosnost, nákupní cena).");return}
+  if(!confirm(n.text+"\n\nPoužít tento návrh?"))return;
+  J.kontejnery=n.radky;
   renderKont();save();
 });
 function sutCelkem(){let t=0,m3=0;J.prace.forEach(r=>{t+=(r.mnozstvi||0)*(r.sutT||0);m3+=(r.mnozstvi||0)*(r.sutM3||0)});return{t,m3}}
@@ -4439,7 +4466,7 @@ function renderKontRozpis(v){
       " <b style='color:var(--good)'>(marže "+kc(v.kontP-v.kontN)+")</b>"+
       (r?"<br>Cena za kontejner = paušál "+kc(r.pausal)+" + doprava "+kc(r.km)+" + "+(r.dnyNavic>0?"pronájem "+r.dnyNavic+" dní "+kc(r.dny):"dny v ceně")
         +(sz.dopravce?" &nbsp;·&nbsp; dle ceníku „"+esc(sz.dopravce.nazev)+"“":" &nbsp;·&nbsp; výchozí sazby"):"")+
-      (v.sklN?"<br>Likvidace: "+fmt1.format(v.sut.t)+" t × "+fmt0.format(S.nastaveni.skladkovne)+" Kč/t = nákup "+kc(v.sklN)+", klientovi "+kc(v.sklP):
+      (J.skladkovne?likvidaceRadek(v):
         "<br><span class='ne'>Likvidace se neúčtuje</span> — zapni ji, pokud skládkovné není v ceně kontejneru")+
     "</div>";
 }
@@ -4595,11 +4622,12 @@ function vypocet(){
   const kv=n.koefVykon>0?n.koefVykon:1;
   const hodinyPrace=J.prace.reduce((a,r)=>a+(r.mnozstvi||0)*(r.hod||0),0)*kv;
   const sut=sutCelkem();
+  const odp=odpadRozpis(sut);
   const vyn=vynaskaVypocet(sut);
   const vynaskaHod=vyn.hodiny;
   const vynaska=vyn.cena;
   const hodinyVP=J.viceprace.filter(r=>r.stav==="odsouhlaseno").reduce((a,r)=>a+(r.hod||0),0);
-  const hodiny=hodinyPrace+vynaskaHod+hodinyVP;
+  const hodiny=hodinyPrace+vynaskaHod+hodinyVP+(odp.trideniHod||0);
   const rezerva=prace*(J.rezerva||0)/100;
   const vikend=J.vikend? prace*(n.vikendPct||0)/100 : 0;
   const expres=J.expres? prace*(n.expresPct||0)/100 : 0;
@@ -4607,8 +4635,8 @@ function vypocet(){
   const matN=J.material.reduce((a,r)=>a+(r.nakup||0),0);
   const kontP=J.kontejnery.reduce((a,r)=>a+(r.prodej||0)*(r.pocet||0),0);
   const kontN=J.kontejnery.reduce((a,r)=>a+(r.nakup||0)*(r.pocet||0),0);
-  const sklN=J.skladkovne?sut.t*n.skladkovne:0;
-  const sklP=J.skladkovne?sklN*(1+n.odvozMarze/100):0;
+  const sklN=J.skladkovne?odp.naklad:0;
+  const sklP=J.skladkovne?odp.prodej:0;
   const dopravaN=(J.km||0)*n.km;
   const dopravaP=(J.dopravaUctovat&&(J.km||0)>0)? Math.max((J.km||0)*(n.kmProdej||0), n.pausal||0) : 0;
   const ostP=J.ostatni.reduce((a,r)=>a+(r.prodej||0),0);
@@ -4635,7 +4663,7 @@ function vypocet(){
   const majitele=Math.max(1,lide-(J.najati||0));
   const zaloha=J.zalohaCastka||0, doplatek=J.doplatekCastka||0;
   const neuhrazeno=(J.zalohaZaplaceno?0:zaloha)+(J.doplatekZaplaceno?0:doplatek);
-  return {prace,hodiny,hodinyPrace,hodinyVP,vynaskaHod,vyn,sut,rezerva,vynaska,vikend,expres,matP,matN,kontP,kontN,sklN,sklP,
+  return {odp,prace,hodiny,hodinyPrace,hodinyVP,vynaskaHod,vyn,sut,rezerva,vynaska,vikend,expres,matP,matN,kontP,kontN,sklN,sklP,
     dopravaN,dopravaP,ostP,ostN,provize,najatiN,dny,mezisoucet,sleva,slevaP,slevaSlozky:slevaSlozky(),viceprace,vicepraceCeka,trzba,naklady,zisk,
     ziskBezRezervy:zisk-rezerva,dph,dphInfo,celkem,majitele,sazba,zaloha,doplatek,neuhrazeno};
 }
@@ -4680,6 +4708,7 @@ function recalc(){
   const dnyNavic=Math.max(0,(J.dnyKontejneru||0)-sz.dnyZdarma);
   $("#dnyKontHint").textContent=dnyNavic>0?(sz.dnyZdarma+" zdarma, "+dnyNavic+" navíc × "+fmt0.format(sz.cenaDen)+" Kč = "+kc(dnyNavic*sz.cenaDen)):(sz.dnyZdarma+" dní v ceně — bez příplatku");
   renderKontRozpis(v);
+  if(typeof renderOdpadDruhy==="function")renderOdpadDruhy(v);
   $("#dopravaHint").textContent=(J.dopravaUctovat&&(J.km||0)>0)?
     "klientovi "+kc(v.dopravaP)+" = max("+(J.km||0)+" km × "+fmt0.format(n.kmProdej)+" Kč; paušál "+fmt0.format(n.pausal)+"), náklad "+kc(v.dopravaN):
     ((J.km||0)>0?"náklad "+kc(v.dopravaN)+" (neúčtuje se)":"");
@@ -5313,9 +5342,7 @@ function sablonaPouzit(){
     mnozstvi:r.mnozstvi,cena:r.cena,sutT:r.sutT,sutM3:r.sutM3,hod:r.hod,hvezd:r.hvezd}));
   J.material=(d.v.material||[]).filter(m=>m.prodej>0).map(m=>({nazev:m.nazev,nakup:m.nakup||0,prodej:m.prodej||0}));
   /* kontejnery podle spočtené suti, včetně rezervy místa */
-  const sut=sutCelkem();
-  const vars=kontVarianty(sut.m3,sut.t);
-  if(vars.length)J.kontejnery=vars[0].types.map((k,i)=>vars[0].counts[i]>0?kontRow(k,vars[0].counts[i]):null).filter(Boolean);
+  {const kr=kontNavrhRadky(); if(kr.length)J.kontejnery=kr;}
   /* předpoklady do poznámky, ať se neztratí */
   const pred=d.v.predpoklady||[];
   if(pred.length)J.skutPozn="Předpoklady šablony „"+d.s.nazev+"“:\n• "+pred.join("\n• ");
@@ -5328,15 +5355,15 @@ function sablonaPouzit(){
 /* ========== přenos zakázky textem (kód DK1|…) ========== */
 const ZAK_POLE=["nazev","klient","adresa","poznamka","zdroj","cenik","dph","patro","vytah","vytahNaSut",
   "vzdalenost","rucniNoseni","lide","najati","kmDopravce","dnyKontejneru","skladkovne","rezerva","provize",
-  "sleva","slevaDuvod","prirazka","platbaPredem","nabidnoutPredem",
+  "sleva","slevaDuvod","prirazka","platbaPredem","nabidnoutPredem","odpadModel","trideni",
   "km","dopravaUctovat","vikend","expres","terminOd","terminDo","prace","material","ostatni","kontejnery","odpady"];
 function zakDoTextu(z){
   const o={};
   ZAK_POLE.forEach(k=>{if(z[k]!==undefined&&z[k]!==""&&!(Array.isArray(z[k])&&!z[k].length))o[k]=z[k]});
   /* u položek z ceníku stačí ID a množství — název, cenu i normy si druhá strana dopočítá ze svého ceníku */
   if(o.prace)o.prace=o.prace.map(r=>r.polozkaId
-    ?{polozkaId:r.polozkaId,mnozstvi:r.mnozstvi}
-    :{nazev:r.nazev,mj:r.mj,mnozstvi:r.mnozstvi,cena:r.cena,sutT:r.sutT,sutM3:r.sutM3,hod:r.hod});
+    ?Object.assign({polozkaId:r.polozkaId,mnozstvi:r.mnozstvi},r.odpad?{odpad:r.odpad}:{})
+    :{nazev:r.nazev,mj:r.mj,mnozstvi:r.mnozstvi,cena:r.cena,sutT:r.sutT,sutM3:r.sutM3,hod:r.hod,odpad:r.odpad});
   return "DK1|"+btoa(unescape(encodeURIComponent(JSON.stringify(o))));
 }
 
@@ -5714,11 +5741,16 @@ potřebný_objem = suť_m³ × ${bc(1+(n.kontRezerva||0)/100)}
 potřebná_nosnost = suť_t × ${bc(1+(n.kontRezerva||0)/100)}
 \`\`\`
 
-### Skládkovné
+### Likvidace podle druhů odpadu
+Každá práce má druh odpadu: **čistá suť** (beton, cihly, tvárnice, keramika, obklady, omítky — 17 01 07), **směs** (sádrokarton, sádra, izolace, PVC, koberce, dřevo, okna, dveře, umakart — 17 09 04) a **kovy** (vany, radiátory, ocelové zárubně, nosníky — výkup).
 \`\`\`
-skládkovné_náklad = tuny × ${bc(n.skladkovne)} Kč
-skládkovné_klientovi = náklad × ${bc(1+(n.odvozMarze||0)/100)}
+čistá_suť = tuny × ${bc(n.skladkovne)} Kč   (jen když se třídí do vlastního kontejneru)
+směs = tuny × ${bc(n.skladkovneSmes!=null?n.skladkovneSmes:2250)} Kč
+nevytříděno = (čistá + směs) × ${bc(n.skladkovneSmes!=null?n.skladkovneSmes:2250)} Kč
+kovy = kg × ${bc(n.vykupKov!=null?n.vykupKov:4)} Kč výkup (snižuje náš náklad, cenu pro klienta ne; do kontejneru nejdou)
+likvidace_klientovi = náklad likvidace × ${bc(1+(n.odvozMarze||0)/100)}
 \`\`\`
+Kalkulačka sama porovná „tříděně (2 kontejnery) vs. nevytříděně (1 kontejner)“ a vybere levnější.
 
 Marže na odvozu a likvidaci je **${bc(n.odvozMarze)} %**.
 
@@ -6130,8 +6162,7 @@ function prikladVypocet(polozky, opt){
       cena:it.b2c,sutT:it.sutT,sutM3:it.sutM3,hod:it.hod,hvezd:it.hvezd};
   }).filter(Boolean);
   J=t;
-  const sut=sutCelkem(), vars=kontVarianty(sut.m3,sut.t);
-  if(vars.length)t.kontejnery=vars[0].types.map((k,i)=>vars[0].counts[i]>0?kontRow(k,vars[0].counts[i]):null).filter(Boolean);
+  {const kr=kontNavrhRadky(); if(kr.length)t.kontejnery=kr;}
   const v=vypocet();
   J=zaloha;
 
@@ -6466,7 +6497,7 @@ function brief(uplny){
   p("Rezerva na skryté konstrukce: "+(n.rezerva||0)+" % z ceny práce (dávej ji vždy).");
   p("Minimální zisk, pod který nesmím jít: "+(n.minZiskOsHod||0)+" Kč na osobu a hodinu.");
   p("Vynáška se účtuje sazbou "+(n.vynSazba||0)+" Kč/h.");
-  p("Skládkovné (likvidace): "+(n.skladkovne||0)+" Kč/t, marže na odvozu "+(n.odvozMarze||0)+" %.");
+  p("Likvidace: čistá suť "+(n.skladkovne||0)+" Kč/t, směs (SDK, izolace, PVC, dřevo) "+(n.skladkovneSmes!=null?n.skladkovneSmes:2250)+" Kč/t, výkup kovů "+(n.vykupKov!=null?n.vykupKov:4)+" Kč/kg, marže na odvozu "+(n.odvozMarze||0)+" %.");
   p("");
   p("=== JAK SE POČÍTÁ VYNÁŠKA SUTI (tohle se plete nejčastěji) ===");
   p("Vynáška NENÍ podle váhy. Je podle POČTU CEST, a cesty určuje váha NEBO objem — podle toho, co dojde dřív.");
@@ -6722,14 +6753,13 @@ $("#importZakBtn").addEventListener("click",()=>{
     dopocteno++;
     return {polozkaId:it.id,nazev:it.nazev,mj:it.mj,kat:it.kat,mnozstvi:r.mnozstvi,
       cena:J.cenik==="b2b"?(it.b2b||it.b2c):it.b2c,
-      sutT:it.sutT,sutM3:it.sutM3,hod:it.hod,hvezd:it.hvezd};
+      sutT:it.sutT,sutM3:it.sutM3,hod:it.hod,hvezd:it.hvezd,odpad:r.odpad};
   });
   ["material","ostatni","kontejnery","odpady"].forEach(k=>{if(!Array.isArray(J[k])) J[k]=[]});
   J.id=null; J.status="nabídka"; J.cisloNab="";
   /* kontejnery navrhnout podle suti, pokud v textu nepřišly */
   if(!J.kontejnery.length){
-    const sut=sutCelkem(), vars=kontVarianty(sut.m3,sut.t);
-    if(vars.length)J.kontejnery=vars[0].types.map((k,i)=>vars[0].counts[i]>0?kontRow(k,vars[0].counts[i]):null).filter(Boolean);
+    const kr=kontNavrhRadky(); if(kr.length)J.kontejnery=kr;
   }
   $("#importZak").value="";
   fillAll(); save();
@@ -8201,11 +8231,12 @@ const nMap=[["nFirma","firma",1],["nIco","ico",1],["nDic","dic",1],["nAdresaFirm
   ["nVynKbelik","vynKbelik"],["nVynKbelikM3","vynKbelikM3"],["nVynPatroSek","vynPatroSek"],
   ["nVynVzdalenostSek","vynVzdalenostSek"],["nVynVytahKoef","vynVytahKoef"],["nVynRucniKoef","vynRucniKoef"],
   ["nKontCenaKm","kontCenaKm"],["nKontDnyZdarma","kontDnyZdarma"],["nKontCenaDen","kontCenaDen"],["nKontRezerva","kontRezerva"],
-  ["nDphLimit","dphLimit"],["nSlevaPredem","slevaPredemPct"],["nFakSplatnostZal","fakSplatnostZal"],
+  ["nDphLimit","dphLimit"],["nSlevaPredem","slevaPredemPct"],["nSkladkovneSmes","skladkovneSmes"],["nVykupKov","vykupKov"],["nTrideniHodT","trideniHodT"],["nFakSplatnostZal","fakSplatnostZal"],
   ["nZnacka","znacka",1],["nSpisZn","spisZn",1],["nJednatel","jednatel",1],["nTelefon","telefon",1],["nEmail","email",1],["nWeb","web",1],["nSwift","swift",1]];
 nMap.forEach(([id,k,txt])=>{$( "#"+id).addEventListener("input",e=>{S.nastaveni[k]=txt?e.target.value:num(e.target.value);recalc();vynUkazka();save();})});
+$("#nLikvidaceJakoSmes").addEventListener("change",e=>{S.nastaveni.likvidaceJakoSmes=e.target.checked;recalc();save();});
 $("#nPlatceDPH").addEventListener("change",e=>{S.nastaveni.platceDPH=e.target.checked;dphHint();renderPripominky();recalc();save();});
-function fillNastaveni(){nMap.forEach(([id,k])=>{$("#"+id).value=S.nastaveni[k]});$("#nPlatceDPH").checked=!!S.nastaveni.platceDPH;vynUkazka();}
+function fillNastaveni(){if(typeof hnedVychozi==="function")hnedVychozi();if($("#nLikvidaceJakoSmes"))$("#nLikvidaceJakoSmes").checked=!!S.nastaveni.likvidaceJakoSmes;nMap.forEach(([id,k])=>{$("#"+id).value=S.nastaveni[k]});$("#nPlatceDPH").checked=!!S.nastaveni.platceDPH;vynUkazka();}
 /* názorná tabulka, jak sazby dopadnou na typické situace */
 function vynUkazka(){
   const n=S.nastaveni, el=$("#vynUkazka"); if(!el)return;
@@ -14455,6 +14486,172 @@ function renderEkFirmyVse(){
 });
 ["#dmEkonDet", "#vkEkonDet"].forEach(sel => { const d = $(sel); if (d) d.addEventListener("toggle", () => { if (d.open) renderEkFirma($(sel === "#dmEkonDet" ? "#dmEkon" : "#vkEkon"), sel === "#dmEkonDet" ? "demolice" : "vyklizeni"); }); });
 
+/* ================= ROADMAPA — HNED =================
+   Body z fáze „Hned“ zapracované do kalkulace. Každý blok je samostatný. */
+
+/* ---------- 1 + 2) Odpad podle druhů: čistá suť zvlášť od směsi, kovy do výkupu ----------
+   Každá práce má druh odpadu (automaticky podle názvu, jde přepsat). Likvidace se počítá po druzích.
+   Tříděně = dva proudy (čistá suť a směs) → dva kontejnery; nevytříděně = všechno kromě kovů jako směs.
+   Režim „auto“ porovná likvidaci + kontejnery (+ čas na třídění) a vybere levnější. Kovy jdou vždy do výkupu:
+   výkup snižuje náš náklad, cenu pro klienta ne. Starší uložené zakázky (odpadModel 1) počítají po staru. */
+const ODPAD_DRUHY = {
+  cista:{nazev:"Čistá suť", kod:"17 01 07", co:"beton, cihly, tvárnice, keramika, obklady, dlažba, omítky, potěry"},
+  smes:{nazev:"Směs", kod:"17 09 04", co:"sádrokarton, sádra, izolace, PVC, koberce, lepidla, umakart, dřevo, okna, dveře"},
+  kov:{nazev:"Kovy do výkupu", kod:"17 04 05", co:"vany, radiátory, ocelové zárubně, nosníky, zábradlí"}
+};
+function hnedVychozi(){
+  const n = S.nastaveni; if (!n) return;
+  if (n.skladkovneSmes == null) n.skladkovneSmes = 2250;
+  if (n.vykupKov == null) n.vykupKov = 4;
+  if (n.trideniHodT == null) n.trideniHodT = 0.25;
+  if (n.likvidaceJakoSmes == null) n.likvidaceJakoSmes = false;
+}
+function odpNast(){
+  const n = S.nastaveni || {};
+  return {cista:+n.skladkovne || 0, smes:n.skladkovneSmes != null ? +n.skladkovneSmes : 2250, kov:n.vykupKov != null ? +n.vykupKov : 4,
+    hodT:n.trideniHodT != null ? +n.trideniHodT : 0.25, jakoSmes:!!n.likvidaceJakoSmes, marze:1 + (+n.odvozMarze || 0) / 100};
+}
+function odpadDruhAuto(r){
+  const t = bezDiakritiky(r.nazev || "");
+  if (/demontaz vany|radiator|ocelove zarubn|ocelova zarubn|zabradl|kovovych sloupu|vybourani nosniku|schodnic z ocel|nosniku,? ?zed|nosniku\.ze zdi/.test(t)) return "kov";
+  if (/sdk|sdvk|sadr|rabic|podhled|podkrovi|kazet|izolac|polystyren|pvc|lina|koberc|lepidl|umakart|lepenk|asfalt|xylolit|plovouc|drev|parket|palubk|kuchyn|elektroinstal|okn[ao]\b|okno|dverni|nasyp/.test(t)) return "smes";
+  return "cista";
+}
+function odpadDruh(r){ return ODPAD_DRUHY[r.odpad] ? r.odpad : odpadDruhAuto(r); }
+/* kontejnery pro proud odpadu: čistá suť do typů „čistá suť“, směs do typů „směsný odpad“ (podle názvu v Nastavení).
+   Když takový typ není, bere se kterýkoliv. Nevytříděná suť může do jakéhokoliv. */
+function kontVariantyDruh(m3, t, druh){
+  const vse = S.kontejnery || [];
+  const vyber = druh === "cista" ? vse.filter(k => /čist|cist/i.test(k.nazev || "") && !/směs|smes/i.test(k.nazev || ""))
+    : druh === "smes" ? vse.filter(k => /směs|smes/i.test(k.nazev || "")) : vse;
+  if (!vyber.length || vyber.length === vse.length) return kontVarianty(m3, t);
+  S.kontejnery = vyber;
+  try { const v = kontVarianty(m3, t); return v.length ? v : (S.kontejnery = vse, kontVarianty(m3, t)); } finally { S.kontejnery = vse; }
+}
+/* nejlevnější kombinace kontejnerů pro jeden proud (nákup) — jen pro rozhodnutí, jestli třídit */
+const odpKontCache = new Map();
+function odpKontOdhad(m3, t, druh){
+  if (!(m3 > 0 || t > 0)) return 0;
+  const k = [druh || "", m3.toFixed(3), t.toFixed(3), J.dopravceId, J.kmDopravce, J.dnyKontejneru, S.nastaveni.kontRezerva,
+    JSON.stringify(S.kontejnery || []).length, JSON.stringify(S.dopravci || []).length].join("|");
+  if (!odpKontCache.has(k)) {
+    if (odpKontCache.size > 400) odpKontCache.clear();
+    const v = kontVariantyDruh(m3, t, druh); odpKontCache.set(k, v.length ? v[0].cost : 0);
+  }
+  return odpKontCache.get(k);
+}
+function odpadRozpis(sut){
+  const o = odpNast(), d = {cista:{t:0, m3:0}, smes:{t:0, m3:0}, kov:{t:0, m3:0}};
+  (J.prace || []).forEach(r => { const x = d[odpadDruh(r)]; x.t += (r.mnozstvi || 0) * (r.sutT || 0); x.m3 += (r.mnozstvi || 0) * (r.sutM3 || 0); });
+  if (J.odpadModel !== 2) {
+    const naklad = (sut.t || 0) * o.cista;
+    return {model:1, druhy:d, naklad, prodej:naklad * o.marze, likvidace:naklad, vykup:0, trideniHod:0};
+  }
+  const tNe = d.cista.t + d.smes.t, m3Ne = d.cista.m3 + d.smes.m3;
+  const vykup = d.kov.t * 1000 * o.kov;
+  const likvSmes = tNe * o.smes, likvTrid = d.cista.t * o.cista + d.smes.t * o.smes;
+  const obaProudy = d.cista.t > 0.0005 && d.smes.t > 0.0005;
+  const hodTrid = obaProudy ? tNe * o.hodT : 0;
+  const kontSmes = odpKontOdhad(m3Ne, tNe);
+  const kontTrid = obaProudy ? odpKontOdhad(d.cista.m3, d.cista.t, "cista") + odpKontOdhad(d.smes.m3, d.smes.t, "smes") : kontSmes;
+  const celkSmes = likvSmes + kontSmes, celkTrid = likvTrid + kontTrid + hodTrid * (+S.nastaveni.sazbaNajaty || 0);
+  const vyplatiSe = obaProudy && celkTrid < celkSmes - 1;
+  const rezim = J.trideni === "ano" || J.trideni === "ne" ? J.trideni : "auto";
+  const tridit = obaProudy && (rezim === "ano" || (rezim === "auto" && vyplatiSe));
+  /* jen jeden druh = suť je „čistá sama od sebe“ (nebo celá směs) — nic se netřídí */
+  const likv = obaProudy ? (tridit ? likvTrid : likvSmes) : likvTrid;
+  const prodej = (o.jakoSmes && tridit ? likvSmes : likv) * o.marze;
+  return {model:2, druhy:d, rezim, tridit, obaProudy, vyplatiSe, likvidace:likv, likvSmes, likvTrid, vykup, naklad:likv - vykup, prodej,
+    kontSmes, kontTrid, celkSmes, celkTrid, uspora:celkSmes - celkTrid, trideniHod:tridit ? hodTrid : 0, hodTrid, tNe, m3Ne};
+}
+function likvidaceRadek(v){
+  const o = v.odp, n = odpNast();
+  if (!o || o.model !== 2) return "<br>Likvidace: " + fmt1.format(v.sut.t) + " t × " + fmt0.format(n.cista) + " Kč/t = nákup " + kc(v.sklN) + ", klientovi " + kc(v.sklP);
+  const d = o.druhy, casti = [];
+  if (o.obaProudy && !o.tridit) casti.push(fmt1.format(o.tNe) + " t nevytříděné × " + fmt0.format(n.smes));
+  else {
+    if (d.cista.t > 0) casti.push("čistá suť " + fmt1.format(d.cista.t) + " t × " + fmt0.format(n.cista));
+    if (d.smes.t > 0) casti.push("směs " + fmt1.format(d.smes.t) + " t × " + fmt0.format(n.smes));
+  }
+  return "<br>Likvidace: " + (casti.join(" + ") || "0 t") + " = " + kc(o.likvidace) + (o.vykup ? ", výkup kovů −" + kc(o.vykup) : "") +
+    " → nákup " + kc(v.sklN) + ", klientovi " + kc(v.sklP);
+}
+let odpDetOtevreno = false;
+function renderOdpadDruhy(v){
+  const el = $("#odpDruhy"); if (!el) return;
+  const o = v.odp, n = odpNast();
+  if (!o || !(v.sut.t > 0)) { el.innerHTML = ""; return; }
+  if (o.model !== 2) {
+    el.innerHTML = "<div class='odp-stary'><span>Tahle zakázka počítá likvidaci po staru — všechna suť za " + fmt0.format(n.cista) + " Kč/t, i sádrokarton, izolace nebo PVC.</span>" +
+      "<button type='button' class='b' id='odpNovy'>Počítat podle druhů odpadu</button></div>";
+    return;
+  }
+  const d = o.druhy, nevytr = o.obaProudy && !o.tridit;
+  const radek = (k, t, m3, sazba, naklad) => "<tr><td><b>" + ODPAD_DRUHY[k].nazev + "</b> <span class='hint'>" + ODPAD_DRUHY[k].kod + "</span><div class='hint odp-co'>" + ODPAD_DRUHY[k].co + "</div></td>" +
+    "<td class='r'>" + (k === "kov" ? fmt0.format(t * 1000) + " kg" : fmt1.format(t) + " t") + "</td><td class='r'>" + fmt1.format(m3) + " m³</td><td class='r'>" + sazba + "</td><td class='r'>" + naklad + "</td></tr>";
+  let h = "<div class='odp-rezim'><span>Třídit suť na místě</span>" +
+    [["auto", "Automaticky"], ["ano", "Ano"], ["ne", "Ne"]].map(([k, t]) => "<button type='button' class='vk3-chip odp-chip" + (o.rezim === k ? " on" : "") + "' data-odprez='" + k + "'>" + t + "</button>").join("") + "</div>";
+  h += "<div class='tscroll'><table class='odp-tab'><thead><tr><th>Druh odpadu</th><th class='r'>Množství</th><th class='r'>Objem</th><th class='r'>Sazba</th><th class='r'>Náklad</th></tr></thead><tbody>";
+  if (d.cista.t > 0) h += radek("cista", d.cista.t, d.cista.m3, fmt0.format(nevytr ? n.smes : n.cista) + " Kč/t" + (nevytr ? " <span class='hint'>(jako směs)</span>" : ""), kc(d.cista.t * (nevytr ? n.smes : n.cista)));
+  if (d.smes.t > 0) h += radek("smes", d.smes.t, d.smes.m3, fmt0.format(n.smes) + " Kč/t", kc(d.smes.t * n.smes));
+  if (d.kov.t > 0) h += radek("kov", d.kov.t, d.kov.m3, "výkup " + fmt1.format(n.kov) + " Kč/kg", "<span class='ok'>−" + kc(o.vykup) + "</span>");
+  h += "</tbody></table></div>";
+  if (o.obaProudy) {
+    h += "<div class='odp-verdikt " + (o.vyplatiSe ? "ano" : "ne") + "'>" +
+      "<div><b>Tříděně</b> (2 kontejnery): likvidace " + kc(o.likvTrid) + " + kontejnery ≈ " + kc(o.kontTrid) + (o.hodTrid ? " + třídění ~" + fmt1.format(o.hodTrid) + " h" : "") + " ≈ <b>" + kc(o.celkTrid) + "</b></div>" +
+      "<div><b>Nevytříděně</b> (1 kontejner): likvidace " + kc(o.likvSmes) + " + kontejnery ≈ " + kc(o.kontSmes) + " ≈ <b>" + kc(o.celkSmes) + "</b></div>" +
+      "<div class='odp-zaver'>" + (o.vyplatiSe ? "✓ Třídit se vyplatí — ušetří kolem <b>" + kc(o.uspora) + "</b>." : "Tady se třídění nevyplatí — kontejner navíc stojí víc, než kolik se ušetří na likvidaci.") +
+        " Počítá se <b>" + (o.tridit ? "tříděně" : "jako směs") + "</b>" + (o.rezim === "auto" ? " (automaticky)." : " (ručně).") + "</div>" +
+      (o.tridit && n.jakoSmes ? "<div class='hint'>Klientovi se likvidace účtuje jako nevytříděná — úspora z třídění zůstává firmě (Nastavení).</div>" : "") +
+    "</div>";
+  } else h += "<p class='hint' style='margin:6px 0 0'>" + (d.cista.t > 0 ? "Všechna suť je čistá — jde celá za cenu čisté suti, třídit není co." : "Všechna suť je směs — čistá suť tu není.") + "</p>";
+  if (d.kov.t > 0) h += "<p class='hint' style='margin:4px 0 0'>Kovy do kontejneru nedávej — odvez je do výkupu (" + fmt0.format(d.kov.t * 1000) + " kg ≈ " + kc(o.vykup) + "). Výkup snižuje náš náklad, cena pro klienta zůstává.</p>";
+  const prace = (J.prace || []).map((r, ix) => [r, ix]).filter(([r]) => (r.sutT || 0) * (r.mnozstvi || 0) > 0);
+  h += "<details class='odp-det'" + (odpDetOtevreno ? " open" : "") + "><summary>Druh odpadu u jednotlivých prací (" + prace.length + ")</summary>" +
+    "<div class='tscroll'><table class='odp-tab'><tbody>" + prace.map(([r, ix]) => {
+      const auto = odpadDruhAuto(r);
+      return "<tr><td>" + esc(r.nazev || "Položka") + "</td><td class='r'>" + fmt1.format((r.sutT || 0) * (r.mnozstvi || 0)) + " t</td><td><select data-odpix='" + ix + "'>" +
+        "<option value=''" + (!ODPAD_DRUHY[r.odpad] ? " selected" : "") + ">automaticky: " + ODPAD_DRUHY[auto].nazev.toLowerCase() + "</option>" +
+        Object.keys(ODPAD_DRUHY).map(k => "<option value='" + k + "'" + (r.odpad === k ? " selected" : "") + ">" + ODPAD_DRUHY[k].nazev + "</option>").join("") + "</select></td></tr>";
+    }).join("") + "</tbody></table></div><p class='hint' style='margin:6px 0 0'>Druh se odhadne z názvu práce. Když je jádro nebo podlaha jinak (třeba plastová vana, čistý beton pod PVC), přepni ho tady.</p></details>";
+  el.innerHTML = h;
+}
+if ($("#odpDruhy")) {
+  $("#odpDruhy").addEventListener("click", e => {
+    const b = e.target.closest("[data-odprez]");
+    if (b) { J.trideni = b.dataset.odprez; recalc(); save(); return; }
+    if (e.target.id === "odpNovy") { J.odpadModel = 2; J.trideni = "auto"; recalc(); save(); }
+  });
+  $("#odpDruhy").addEventListener("change", e => {
+    const s = e.target.closest("[data-odpix]"); if (!s) return;
+    const r = J.prace[+s.dataset.odpix]; if (!r) return;
+    if (s.value) r.odpad = s.value; else delete r.odpad;
+    recalc(); save();
+  });
+  $("#odpDruhy").addEventListener("toggle", e => { if (e.target.classList && e.target.classList.contains("odp-det")) odpDetOtevreno = e.target.open; }, true);
+}
+/* návrh kontejnerů po proudech odpadu */
+function kontNavrh(){
+  const s = sutCelkem(), o = odpadRozpis(s), rez = S.nastaveni.kontRezerva || 0;
+  let proudy;
+  if (o.model !== 2) proudy = [{nazev:"Suť", t:s.t, m3:s.m3}];
+  else if (o.obaProudy && o.tridit) proudy = [{nazev:"Čistá suť", druh:"cista", t:o.druhy.cista.t, m3:o.druhy.cista.m3}, {nazev:"Směs", druh:"smes", t:o.druhy.smes.t, m3:o.druhy.smes.m3}];
+  else proudy = [{nazev:o.obaProudy ? "Suť (netřídí se)" : (o.druhy.smes.t > 0 ? "Směs" : "Čistá suť"), t:o.tNe, m3:o.m3Ne}];
+  let txt = "Návrh počítá s rezervou místa " + rez + " % (" + (J.kmDopravce || 0) + " km, " + (J.dnyKontejneru || 0) + " dní).\n\n", radky = [], cena = 0;
+  for (const p of proudy) {
+    if (!(p.t > 0 || p.m3 > 0)) continue;
+    const vars = kontVariantyDruh(p.m3, p.t, p.druh); if (!vars.length) return null;
+    const v = vars[0]; cena += v.cost;
+    txt += p.nazev + ": " + fmt1.format(p.m3) + " m³ / " + fmt1.format(p.t) + " t → " + v.label + " — nákup " + kc(v.cost) + "\n";
+    v.types.forEach((k, i) => { if (v.counts[i] > 0) { const r = kontRow(k, v.counts[i]); if (p.druh) r.druh = p.druh; radky.push(r); } });
+  }
+  if (o.model === 2 && o.druhy.kov.t > 0) txt += "Kovy " + fmt0.format(o.druhy.kov.t * 1000) + " kg jedou do výkupu, do kontejneru ne.\n";
+  if (o.model === 2 && o.obaProudy) txt += "\n" + (o.tridit ? "Třídí se (" + (o.rezim === "auto" ? "vyplatí se" : "ručně") + ")." : "Netřídí se — " + (o.rezim === "auto" ? "druhý kontejner by se nevyplatil." : "ručně vypnuto."));
+  return {radky, cena, text:txt};
+}
+function kontNavrhRadky(){ const n = kontNavrh(); return n ? n.radky : []; }
+hnedVychozi();
+
 /* ================= ROADMAPA — co řeší velké firmy =================
    Samostatná záložka: seznam věcí, na kterých velké demoliční, dopravní a odpadové firmy dělají marži
    (nebo se chrání před ztrátou), rozdělený do fází. Nic z toho zatím není naprogramované v kalkulaci —
@@ -14764,6 +14961,17 @@ const ROADMAPA = [
     p:"Méně telefonátů, profesionální dojem u B2B klientů.",
     k:"Sdílený odkaz na zakázku jen pro čtení (vyžaduje synchronizaci)."}
 ];
+/* HOTOVO — co už je v kalkulačce zapracované. Hotová položka zmizí ze své fáze a ukáže se v sekci ✅ Hotovo.
+   datum, co (co přesně umí), kde (kde to najdeš). Nové hotové body se přidávají sem. */
+const RM_HOTOVO = {
+  "odp-trideni":{datum:"2026-09-26",
+    co:"Každá bourací práce má druh odpadu — <b>čistá suť</b> (beton, cihly, keramika), <b>směs</b> (sádrokarton, izolace, PVC, dřevo, okna, dveře) nebo <b>kovy</b>. Druh se odhadne z názvu a jde přepsat. Likvidace se počítá po druzích (čistá suť 610 Kč/t, směs 2 250 Kč/t). Kalkulačka porovná <b>tříděně (2 kontejnery) vs. nevytříděně (1 kontejner)</b> včetně ceny kontejnerů a času na třídění a sama vybere levnější — nebo to přepneš ručně. „Navrhnout podle suti“ navrhne kontejnery zvlášť pro čistou suť a směs. V Nastavení jde zapnout, aby klient platil likvidaci jako nevytříděnou a úspora z třídění zůstala firmě.",
+    kde:"Kalkulace → <b>Odvoz suti a likvidace</b> (tabulka druhů, srovnání a volba Automaticky / Ano / Ne, pod ní „Druh odpadu u jednotlivých prací“). Sazby v Ceník a nastavení → Výchozí hodnoty. Nové zakázky počítají po druzích, starší uložené zakázky po staru s tlačítkem „Počítat podle druhů odpadu“."},
+  "odp-kovy":{datum:"2026-09-26",
+    co:"Vany, radiátory, ocelové zárubně, nosníky a zábradlí se poznají z názvu práce jako <b>kovy do výkupu</b>. Výkup (4 Kč/kg) se odečte od nákladů zakázky, cena pro klienta zůstává. Kovy se nepočítají do kontejnerů — návrh připomene odvézt je do výkupu.",
+    kde:"Kalkulace → Odvoz suti a likvidace → řádek <b>Kovy do výkupu</b>. Výkupní cena v Ceník a nastavení → Výchozí hodnoty → Výkup kovů."}
+};
+const rmHotova = x => !!RM_HOTOVO[x.id];
 const RM_JIZ = [
   "Normy prací podle RTS a kalibrace podle skutečnosti (Kč/h a ★ u každé práce)",
   "Vynáška počítaná z tonáže, pater a vzdálenosti — to má málokterá malá firma",
@@ -14794,30 +15002,41 @@ function rmPolozkaHTML(x){
     "<div class='rm-pr'><span class='hint'>Moje priorita:</span>" + RM_PRIORITY.map(([k, t]) => "<button type='button' class='rm-pb" + (pr === k ? " on" : "") + "' data-rmp='" + k + "'>" + t + "</button>").join("") + "</div>" +
   "</article>";
 }
+function rmHotovoHTML(x){
+  const h = RM_HOTOVO[x.id], dat = h.datum ? h.datum.split("-").reverse().map(Number).join(". ") : "";
+  return "<article class='rm-pol rm-hotovo' data-rm='" + x.id + "'>" +
+    "<div class='rm-hl'><h3>✅ " + x.n + "</h3><div class='rm-stitky'><span class='rm-st'>" + RM_OBLASTI[x.o] + "</span><span class='rm-st rm-ok'>hotovo " + dat + "</span></div></div>" +
+    "<div class='rm-bloky rm-bloky2'><div><b class='rm-t'>Co kalkulačka teď umí</b><p>" + h.co + "</p></div><div><b class='rm-t'>Kde to najdeš</b><p>" + h.kde + "</p></div></div>" +
+    "<details class='rm-puvodni'><summary>Původní popis z roadmapy</summary><div class='rm-bloky'><div><b class='rm-t'>Co dělají velké firmy</b><p>" + x.v + "</p></div><div><b class='rm-t'>Proč a kolik to dělá</b><p>" + x.p + "</p></div><div><b class='rm-t'>Zadání</b><p>" + x.k + "</p></div></div></details>" +
+  "</article>";
+}
 function renderRoadmapa(){
   const el = $("#rmSeznam"); if (!el) return;
   const st = rmStav(), q = rmFiltr.q.trim().toLowerCase();
-  const vyber = ROADMAPA.filter(x => (rmFiltr.f === "vse" || String(x.f) === rmFiltr.f) && (rmFiltr.o === "vse" || x.o === rmFiltr.o) &&
-    (rmFiltr.p === "vse" || (rmFiltr.p === "bez" ? !st[x.id] : st[x.id] === rmFiltr.p)) &&
-    (!q || (x.n + " " + x.v + " " + x.p + " " + x.k).toLowerCase().includes(q)));
+  const odpovida = x => (rmFiltr.o === "vse" || x.o === rmFiltr.o) && (!q || (x.n + " " + x.v + " " + x.p + " " + x.k + " " + (RM_HOTOVO[x.id] ? RM_HOTOVO[x.id].co : "")).toLowerCase().includes(q));
+  const hotove = rmFiltr.p !== "vse" || !(rmFiltr.f === "vse" || rmFiltr.f === "hotovo") ? [] : ROADMAPA.filter(x => rmHotova(x) && odpovida(x));
+  const vyber = rmFiltr.f === "hotovo" ? [] : ROADMAPA.filter(x => !rmHotova(x) && (rmFiltr.f === "vse" || String(x.f) === rmFiltr.f) && odpovida(x) &&
+    (rmFiltr.p === "vse" || (rmFiltr.p === "bez" ? !st[x.id] : st[x.id] === rmFiltr.p)));
   const chip = (typ, k, t, n) => "<button type='button' class='vk3-chip rm-chip" + (rmFiltr[typ] === k ? " on" : "") + "' data-rmf='" + typ + "' data-rmv='" + k + "'>" + t + (n != null ? " <span class='rm-n'>" + n + "</span>" : "") + "</button>";
-  const pocet = fn => ROADMAPA.filter(fn).length;
+  const pocet = fn => ROADMAPA.filter(x => !rmHotova(x) && fn(x)).length, nHotovo = ROADMAPA.filter(rmHotova).length;
   $("#rmFiltry").innerHTML =
-    "<div class='rm-fr'><span class='rm-fl'>Fáze</span>" + chip("f", "vse", "Vše", ROADMAPA.length) + RM_FAZE.map((z, i) => chip("f", String(i), (i + 1) + ". " + z[0], pocet(x => x.f === i))).join("") + "</div>" +
+    "<div class='rm-fr'><span class='rm-fl'>Fáze</span>" + chip("f", "vse", "Vše", ROADMAPA.length) + chip("f", "hotovo", "✅ Hotovo", nHotovo) + RM_FAZE.map((z, i) => chip("f", String(i), (i + 1) + ". " + z[0], pocet(x => x.f === i))).join("") + "</div>" +
     "<div class='rm-fr'><span class='rm-fl'>Oblast</span>" + chip("o", "vse", "Vše") + Object.keys(RM_OBLASTI).map(k => chip("o", k, RM_OBLASTI[k], pocet(x => x.o === k))).join("") + "</div>" +
     "<div class='rm-fr'><span class='rm-fl'>Priorita</span>" + chip("p", "vse", "Vše") + RM_PRIORITY.map(([k, t]) => chip("p", k, t, pocet(x => st[x.id] === k))).join("") + chip("p", "bez", "Neoznačené", pocet(x => !st[x.id])) + "</div>";
   const skupiny = RM_FAZE.map((z, i) => [i, z, vyber.filter(x => x.f === i)]).filter(g => g[2].length);
-  el.innerHTML = skupiny.length ? skupiny.map(([i, z, pol]) =>
+  const hotovoHTML = hotove.length ? "<div class='rm-faze rm-faze-hotovo'><div class='rm-fh'><span class='rm-fc rm-fc-ok'>✓</span><div><b>Hotovo</b><span class='hint'> — už je v kalkulačce, zmizelo ze své fáze</span></div><span class='badge'>" + hotove.length + "</span></div>" +
+    hotove.sort((a, b) => String(RM_HOTOVO[b.id].datum).localeCompare(String(RM_HOTOVO[a.id].datum))).map(rmHotovoHTML).join("") + "</div>" : "";
+  el.innerHTML = hotovoHTML + (skupiny.length ? skupiny.map(([i, z, pol]) =>
     "<div class='rm-faze'><div class='rm-fh'><span class='rm-fc'>" + (i + 1) + "</span><div><b>" + z[0] + "</b><span class='hint'> — " + z[1] + "</span></div><span class='badge'>" + pol.length + "</span></div>" +
     pol.sort((a, b) => b.d - a.d).map(rmPolozkaHTML).join("") + "</div>").join("")
-    : "<p class='hint' style='padding:12px 0'>Nic neodpovídá filtru.</p>";
-  const hned = ROADMAPA.filter(x => st[x.id] === "hned");
-  $("#rmSouhrn").innerHTML = "<b>" + hned.length + "</b> chci brzy · <b>" + pocet(x => st[x.id] === "pozdeji") + "</b> později · <b>" + pocet(x => st[x.id] === "ne") + "</b> nezajímá · <b>" + pocet(x => !st[x.id]) + "</b> neoznačeno";
+    : (hotovoHTML ? "" : "<p class='hint' style='padding:12px 0'>Nic neodpovídá filtru.</p>"));
+  const hned = ROADMAPA.filter(x => !rmHotova(x) && st[x.id] === "hned");
+  $("#rmSouhrn").innerHTML = "<b>" + nHotovo + "</b> hotovo · <b>" + hned.length + "</b> chci brzy · <b>" + pocet(x => st[x.id] === "pozdeji") + "</b> později · <b>" + pocet(x => st[x.id] === "ne") + "</b> nezajímá · <b>" + pocet(x => !st[x.id]) + "</b> neoznačeno";
 }
 function rmTextPriorit(){
   const st = rmStav(), radky = [];
   RM_PRIORITY.forEach(([k, t]) => {
-    const pol = ROADMAPA.filter(x => st[x.id] === k); if (!pol.length) return;
+    const pol = ROADMAPA.filter(x => !rmHotova(x) && st[x.id] === k); if (!pol.length) return;
     radky.push(t.toUpperCase() + ":"); pol.forEach(x => radky.push("- " + x.n + " (" + RM_OBLASTI[x.o].replace(/^\S+\s/, "") + ", fáze " + (x.f + 1) + ")")); radky.push("");
   });
   return radky.length ? "Moje priority z Roadmapy kalkulačky:\n\n" + radky.join("\n") : "";
@@ -14875,10 +15094,15 @@ const NAPOVEDA = [
   ["#jNajati", "Z toho najatých", "Kolik z lidí nejsou majitelé (brigádník, pomocník, člověk na IČO). Jejich hodiny jsou <b>náklad</b> (Nastavení → náklad na najatého), zisk se pak dělí jen mezi majitele. V kartě „Skutečný zisk zakázky“ můžeš rozlišit zaměstnance, DPP a IČO."],
   ["#jTerminOd", "Termín", "Termín od–do se propíše do Plánu. Kalkulačka porovná, kolik dní zakázka potřebuje, a upozorní, když se nevejde nebo koliduje s jinou zakázkou (i s vyklízením)."],
   ["h2:kalkulace:Bourací práce", "Bourací práce", "Seznam prací z ceníku. Začni psát do vyhledávání (otvor, příčka, beton, omítka…) a klikni na položku, pak zadej množství. U položky vidíš <b>Kč/h</b> (kolik ta práce vydělá za hodinu) a <b>★ až ★★★★★</b> — fyzickou dřinu a neoblíbenost práce (u dřiny je v ceně +10 až +30 %). Pod tabulkou je přepočet m² × tloušťka → m³ pro objemové položky. Nosné konstrukce jen se statickým posudkem od objednatele."],
-  ["h2:kalkulace:Odvoz suti a likvidace", "Odvoz suti a likvidace", "Kolik suti vznikne (z norem u každé práce) a v kolika kontejnerech ji odvezete. Vyber <b>dopravce</b> — nákupní ceny kontejnerů se spočítají z jeho paušálu, km a dní na stavbě. „Navrhnout podle suti“ navrhne kontejnery s rezervou místa (suť se nedá skládat jako kostky). Prodejní cena kontejneru je tvoje marže na odvozu."],
+  ["h2:kalkulace:Odvoz suti a likvidace", "Odvoz suti a likvidace", "Kolik suti vznikne (z norem u každé práce), <b>jakého druhu</b> a v kolika kontejnerech ji odvezete. Čistá suť (beton, cihly, keramika) stojí na likvidaci zlomek ceny směsi (sádrokarton, izolace, PVC, dřevo) — kalkulačka porovná „tříděně vs. nevytříděně“ i s kontejnery a vybere levnější. Kovy jdou do výkupu. Vyber <b>dopravce</b> — nákupní ceny kontejnerů se spočítají z jeho paušálu, km a dní na stavbě. „Navrhnout podle suti“ navrhne kontejnery s rezervou místa (suť se nedá skládat jako kostky). Prodejní cena kontejneru je tvoje marže na odvozu."],
   ["#jDopravce", "Dopravce", "Firma, která přistaví a odveze kontejner. Jejich ceny zadáš v Nastavení → Dopravci. Nejlevnější dopravce se mění podle vzdálenosti a počtu dní — porovnání v Nastavení počítá pro konkrétní zakázku."],
   ["#jKmDopravce", "Vzdálenost dopravce → stavba", "Km od dopravce ke stavbě. Dopravci účtují dopravu kontejneru podle km — proto může být vzdálenější dopravce s levnějšími km výhodnější na dlouhé trasy."],
   ["#jDnyKontejneru", "Dní na stavbě", "Jak dlouho kontejner stojí u stavby. Pár dní bývá v ceně, každý další den se platí pronájem. Plánuj odvoz tak, aby kontejner nestál zbytečně."],
+  ["#nSkladkovne", "Likvidace čisté suti", "Kolik stojí tuna čisté suti (beton, cihly, tvárnice, keramika, omítky) v zařízení, kam vozíte. Čistá = bez sádry, izolací, dřeva a plastů. Recyklační střediska ji berou levně, protože z ní dělají recyklát."],
+  ["#nSkladkovneSmes", "Likvidace směsi", "Cena za tunu <b>směsného stavebního odpadu</b> (17 09 04) — sádrokarton, izolace, PVC, koberce, dřevo, okna. Nevytříděná suť jde <b>celá</b> za tuhle cenu, i když je z většiny beton. Proto se vyplatí čistou suť dávat zvlášť."],
+  ["#nVykupKov", "Výkup kovů", "Kolik dostanete za kilo kovu ve výkupu (vany, radiátory, zárubně, nosníky). Výkup snižuje náklady zakázky — cena pro klienta se nemění."],
+  ["#nTrideniHodT", "Čas na třídění", "Kolik hodin navíc na tunu suti stojí házet čistou suť a směs do dvou kontejnerů. Započítá se do dnů a zisku na hodinu, když kalkulačka třídění zvolí."],
+  ["#nLikvidaceJakoSmes", "Úspora z třídění pro firmu", "Zapnuto: klient platí likvidaci jako nevytříděnou, i když třídíte — rozdíl zůstane vám jako marže. Vypnuto: klient platí skutečnou (levnější) likvidaci a vaše nabídka je levnější."],
   ["#jSkladkovne", "Účtovat likvidaci", "Skládkovné (poplatek za uložení suti podle tonáže) se klientovi účtuje s marží z Nastavení. Vypni jen tehdy, když si likvidaci zajišťuje klient sám."],
   ["h2:kalkulace:Vynáška a přesun suti", "Vynáška suti", "Nejpodceňovanější položka rozpočtu. Počítá se <b>z tonáže suti</b>: kolik cest s kolečkem nebo kbelíky, kolik pater po schodech, jak daleko ke kontejneru. Hodiny × sazba vynášky = cena. Sazby a časy cest jsou v Nastavení → Vynáška suti."],
   ["#jVzdalenost", "Vzdálenost ke kontejneru", "Metry od místa bourání ke kontejneru nebo autu. Každých 10 m navíc přidá čas na každou cestu tam a zpět."],
