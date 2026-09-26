@@ -525,6 +525,10 @@ details.gsec li{margin:3px 0}
 .hn-hl{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:15px}
 .hn-x{background:none;border:0;color:var(--muted);font-size:24px;cursor:pointer;line-height:1}
 .hn-castka{margin:10px 0 4px;font-size:14px}
+.hn-platnost{margin:0 0 10px;padding:8px 12px;border-radius:9px;font-size:13px;background:var(--surface2);border:1px solid var(--line)}
+.hn-platnost[hidden]{display:none}
+.hn-platnost.ne{background:var(--warn-bg);border-color:var(--warn-line);color:var(--warn-ink)}
+.hn-platnost ul{margin:4px 0 0;padding-left:18px}
 .hn-hist{margin-top:10px;font-size:12.5px;color:var(--muted);border-top:1px dashed var(--line);padding-top:8px}
 @media (max-width:600px){.odp-tab .odp-co{display:none}.odp-tab th,.odp-tab td{padding:5px 5px}}
 
@@ -771,6 +775,7 @@ body.zamceno{overflow:hidden}
   <div class="card">
     <h2>Zakázka</h2>
     <div id="dmProjekt" hidden></div>
+    <div id="hnPlatnost" hidden></div>
     <div class="grid g2">
       <label class="f">Název zakázky<input id="jNazev" placeholder="např. Byt 3+1 Zábřeh – vybourání"></label>
       <label class="f">Klient z adresáře<select id="jKlientId"></select><span class="hint">spravuje se v Přehledu firmy</span></label>
@@ -1429,6 +1434,9 @@ body.zamceno{overflow:hidden}
       <label class="f">Zmařený výjezd (Kč)<input type="number" min="0" step="100" data-hn="zmarenyVyjezd"><span class="hint">nepřipravené pracoviště, chybějící klíče, nepustí správce · 0 = neuvádět</span></label>
       <label class="f">Čekání — za započatých 15 minut (Kč)<input type="number" min="0" step="10" data-hn="cekani15"><span class="hint">parta stojí, i když nepracuje · 0 = neuvádět</span></label>
       <label class="f">Čekání zdarma (minut)<input type="number" min="0" step="5" data-hn="cekaniTolerance"><span class="hint">tolerance, než se začne účtovat</span></label>
+      <label class="f">Platnost nabídky (dní)<input type="number" min="1" step="1" data-hn="platnostDni"><span class="hint">v nabídce bude konkrétní datum „platí do“</span></label>
+      <label class="f">Práh valorizace (%)<input type="number" min="0" step="1" data-hn="valorizacePct"><span class="hint">od jakého zdražení (odpad, nafta, kontejnery) upozornit</span></label>
+      <div class="f" style="justify-content:flex-end"><span>&nbsp;</span><label class="chk"><input type="checkbox" data-hn="valorizaceZapnuto"> Doložka o valorizaci v nabídce</label></div>
     </div>
   </div>
 
@@ -4728,6 +4736,7 @@ function recalc(){
   $("#dnyKontHint").textContent=dnyNavic>0?(sz.dnyZdarma+" zdarma, "+dnyNavic+" navíc × "+fmt0.format(sz.cenaDen)+" Kč = "+kc(dnyNavic*sz.cenaDen)):(sz.dnyZdarma+" dní v ceně — bez příplatku");
   renderKontRozpis(v);
   if(typeof renderOdpadDruhy==="function")renderOdpadDruhy(v);
+  if(typeof hnRenderPlatnost==="function")hnRenderPlatnost();
   $("#dopravaHint").textContent=(J.dopravaUctovat&&(J.km||0)>0)?
     "klientovi "+kc(v.dopravaP)+" = max("+(J.km||0)+" km × "+fmt0.format(n.kmProdej)+" Kč; paušál "+fmt0.format(n.pausal)+"), náklad "+kc(v.dopravaN):
     ((J.km||0)>0?"náklad "+kc(v.dopravaN)+" (neúčtuje se)":"");
@@ -7697,7 +7706,7 @@ $("#invPreset").addEventListener("change",e=>{
 });
 
 /* ---------- nabídka: číslo a klauzule ---------- */
-function cisloNabidky(){
+function cisloNabidky(){if(typeof hnZaznamNabidky==="function")hnZaznamNabidky(J,"demolice");
   if(!J.cisloNab){
     const y=new Date().getFullYear();
     if(S.nastaveni.nabRok!==y){S.nastaveni.nabRok=y;S.nastaveni.nabPoradi=0;}
@@ -7714,7 +7723,7 @@ function klauzule(){
   if(maNosne())k.push("Statické posouzení, projektovou dokumentaci a případné povolení zajišťuje objednatel. Bourání proběhne až po předání statického posudku.");
   k.push("Platební podmínky: záloha "+n.zaloha+" % před zahájením, doplatek se splatností 14 dní od předání.");
   if(typeof hnedPodminky==="function")hnedPodminky().forEach(x=>k.push(x));
-  k.push("Nabídka platí 14 dní od data vystavení.");
+  k.push("Nabídka platí do "+hnPlatnostText(J)+" ("+hnPlatnostDni()+" dní od vystavení).");
   if(J.dph==="rc")k.push("Daň odvede zákazník (přenesená daňová povinnost dle § 92e zákona o DPH).");
   if(J.dph==="ne")k.push("Dodavatel není plátcem DPH.");
   return k;
@@ -7762,7 +7771,7 @@ $("#tisk").addEventListener("click",()=>{
     rows+="<tr><td>Vícepráce: "+esc(r.nazev)+(r.duvod?" ("+esc(r.duvod)+")":"")+"</td><td class='r'></td><td class='r'></td><td class='r'>"+kc(r.cena)+"</td></tr>"});
   $("#tiskArea").innerHTML=
     "<h1>Cenová nabídka č. "+esc(cislo)+" — bourací práce</h1>"+
-    "<div class='meta'>"+esc(n.firma||"")+(n.firma?" · ":"")+"vystaveno "+new Date().toLocaleDateString("cs-CZ")+" · platnost 14 dní"+
+    "<div class='meta'>"+esc(n.firma||"")+(n.firma?" · ":"")+"vystaveno "+new Date().toLocaleDateString("cs-CZ")+" · platnost do "+hnPlatnostText(J)+
     (J.nazev?" · "+esc(J.nazev):"")+(J.klient?"<br>Objednatel: "+esc(J.klient):"")+(J.adresa?" · Místo: "+esc(J.adresa):"")+"</div>"+
     "<table><thead><tr><th>Položka</th><th class='r'>Množství</th><th class='r'>Kč/MJ</th><th class='r'>Celkem</th></tr></thead><tbody>"+rows+
     (J.dph==="ne"
@@ -7786,7 +7795,7 @@ $("#kopieNabidky").addEventListener("click",()=>{
   if(J.nazev)L.push("Zakázka: "+J.nazev);
   if(J.klient)L.push("Objednatel: "+J.klient);
   if(J.adresa)L.push("Místo: "+J.adresa);
-  L.push("Vystaveno: "+new Date().toLocaleDateString("cs-CZ")+" · platnost 14 dní");
+  L.push("Vystaveno: "+new Date().toLocaleDateString("cs-CZ")+" · platnost do "+hnPlatnostText(J));
   L.push("——————————————");
   J.prace.filter(r=>r.nazev&&(r.mnozstvi||0)>0).forEach(r=>L.push("• "+r.nazev+": "+fmt1.format(r.mnozstvi)+" "+r.mj+" × "+fmt0.format(r.cena)+" Kč = "+kc(r.mnozstvi*r.cena)));
   if(v.vynaska)L.push("• Vynáška a přesun suti: "+fmt1.format(v.sut.t)+" t × "+fmt0.format(v.vyn.cenaT)+" Kč/t = "+kc(v.vynaska));
@@ -12218,6 +12227,7 @@ function vkCistoNaHod(r){
 function vykPrepocet(){
   const s = S.vykSazby, el = $("#vkVysledek");
   const r = vykVypocet();
+  if (r.ok && typeof hnKontrolaPlatnosti === "function") hnKontrolaPlatnosti(VK, "vyklizeni").forEach(w => r.varovani.push(w));
   if (r.ok && r.viceprace.ceka.length) r.varovani.push("Vícepráce za " + kc(r.viceprace.kcCeka) + " čekají na odsouhlasení — do ceny se nepočítají, dokud je klient neodsouhlasí (tlačítko „Dodatek k odsouhlasení“).");
   const ph = $("#vkPrirazkaHint");
   if (ph) ph.textContent = !(+VK.prirazkaInt) ? "0 = ekonomická cena podle cílové marže. Klient přirážku nikde neuvidí."
@@ -12846,6 +12856,7 @@ function vykTiskProjektu(){
   if (!VK.klient) { alert("Doplň jméno klienta."); return; }
   const p = vkProjekt(VK, r); if (!p || p.chyba || !p.praci) { alert("V navázaném bourání zatím nejsou práce."); return; }
   if (p.gm + 1e-9 < p.cilCelek && !confirm("Projekt celkem má marži " + fmt0.format(p.gm * 100) + " % — pod " + fmt0.format(p.cilCelek * 100) + " %. Přesto vytisknout?")) return;
+  if (typeof hnZaznamNabidky === "function") hnZaznamNabidky(VK, "vyklizeni");
   if (!VK.cisloNab) {
     const y = new Date().getFullYear(), n = S.nastaveni;
     if (n.vykNabRok !== y) { n.vykNabRok = y; n.vykNabPoradi = 0; }
@@ -12868,7 +12879,7 @@ function vykProjektNabidkaHTML(v, r, p){
   const zaloha = Math.round(p.celkemGross * (v.predem ? 1 : (v.zaloha || 0)));
   return "<style>" + FA_CSS + ".fa .vk-roz{margin-top:5mm;display:grid;grid-template-columns:1.25fr 1fr;gap:7mm}.fa .vk-roz div{font-size:9pt;line-height:1.5}.fa .vk-roz ul{margin:1mm 0 0;padding-left:4.5mm}</style><div class='fa'>" +
     vykHlavickaHTML(v, "Cenová nabídka", v.cisloNab, "Příprava k rekonstrukci — vyklizení a bourací práce") +
-    "<div class='fa-udaje'><div><span>Vystaveno</span><b>" + faDatum(dnes) + "</b></div><div><span>Platnost do</span><b>" + faDatum(faPlusDni(dnes, 14)) + "</b></div>" +
+    "<div class='fa-udaje'><div><span>Vystaveno</span><b>" + faDatum(dnes) + "</b></div><div><span>Platnost do</span><b>" + faDatum(faPlusDni(dnes, hnPlatnostDni())) + "</b></div>" +
       "<div><span>Termín</span><b>" + termin + "</b></div><div><span>Doba práce</span><b>cca " + (p.dnyV + p.dnyD) + " " + ((p.dnyV + p.dnyD) < 5 ? "dny" : "dní") + "</b></div></div>" +
     "<div class='vk-roz'><div>" +
       "<div class='fa-lbl'>1. Vyklizení</div><div>" + esc(vkPopisRozsahu(v)) + ".</div>" + (v.rozsahText ? "<div style='margin-top:1mm'><b>Upřesnění:</b> " + esc(v.rozsahText) + "</div>" : "") +
@@ -13839,6 +13850,7 @@ function vykTiskNabidky(){
   const gmN = vkRozpisovy() ? vkRozpis(r).gmPct : r.gmPct;
   if (gmN + 1e-9 < r.ekon.gmMin && !confirm("Marže podle nabídky vychází " + fmt0.format(gmN * 100) + " % — pod hranicí " + fmt0.format(r.ekon.gmMin * 100) + " %. Po zaplacení lidí, odpadu a auta zbude firmě málo. Přesto vytisknout?")) return;
   if (r.rozsah.zdroj === "rychly" && VK.uctovani === "pevna" && !confirm("Nabídka je jen z rychlého odhadu podle dispozice. Pevnou cenu doporučuji až po soupisu věcí. Přesto vytisknout jako pevnou cenu?")) return;
+  if (typeof hnZaznamNabidky === "function") hnZaznamNabidky(VK, "vyklizeni");
   if (!VK.cisloNab) {
     const y = new Date().getFullYear(), n = S.nastaveni;
     if (n.vykNabRok !== y) { n.vykNabRok = y; n.vykNabPoradi = 0; }
@@ -13899,7 +13911,7 @@ function vykNabidkaHTML(v, r){
   const termin = v.terminOd ? faDatum(v.terminOd) + (v.terminDo && v.terminDo !== v.terminOd ? " – " + faDatum(v.terminDo) : "") : "dle dohody";
   return "<style>" + FA_CSS + ".fa .vk-roz{margin-top:5mm;display:grid;grid-template-columns:1.25fr 1fr;gap:7mm}.fa .vk-roz div{font-size:9pt;line-height:1.5}.fa .vk-roz ul{margin:1mm 0 0;padding-left:4.5mm}</style><div class='fa'>" +
     vykHlavickaHTML(v, "Cenová nabídka", v.cisloNab, podtitul) +
-    "<div class='fa-udaje'><div><span>Vystaveno</span><b>" + faDatum(dnes) + "</b></div><div><span>Platnost do</span><b>" + faDatum(faPlusDni(dnes, 14)) + "</b></div>" +
+    "<div class='fa-udaje'><div><span>Vystaveno</span><b>" + faDatum(dnes) + "</b></div><div><span>Platnost do</span><b>" + faDatum(faPlusDni(dnes, hnPlatnostDni())) + "</b></div>" +
       "<div><span>Termín</span><b>" + termin + "</b></div><div><span>Doba práce</span><b>cca " + r.cas.dny + " " + (r.cas.dny === 1 ? "den" : r.cas.dny < 5 ? "dny" : "dní") + "</b></div></div>" +
     "<div class='vk-roz'><div><div class='fa-lbl'>" + (sl === "vynaska" ? "Co vyneseme" : sl === "kusy" ? "Co odvezeme" : "Co vyklidíme") + "</div><div>" + esc(vkPopisRozsahu(v).replace(/, (přízemí|\d+\. patro.*)$/, "")) + " — " + esc(pristup) + ".</div>" +
         (soupis ? "<div style='margin-top:2mm'>" + soupis + "</div>" : "") + (v.rozsahText ? "<div style='margin-top:2mm'><b>Upřesnění:</b> " + esc(v.rozsahText) + "</div>" : "") +
@@ -14529,6 +14541,9 @@ function hnedVychozi(){
   if (n.zmarenyVyjezd == null) n.zmarenyVyjezd = 2000;
   if (n.cekani15 == null) n.cekani15 = 200;
   if (n.cekaniTolerance == null) n.cekaniTolerance = 15;
+  if (n.platnostDni == null) n.platnostDni = 14;
+  if (n.valorizacePct == null) n.valorizacePct = 5;
+  if (n.valorizaceZapnuto == null) n.valorizaceZapnuto = true;
 }
 function odpNast(){
   const n = S.nastaveni || {};
@@ -14698,6 +14713,7 @@ function hnedPodminky(){
   const n = S.nastaveni || {}, z = +n.zmarenyVyjezd || 0, c = +n.cekani15 || 0, tol = +n.cekaniTolerance || 0, k = [];
   if (z > 0) k.push("Zmařený výjezd — pracoviště nepřipravené k zahájení prací (nezpřístupněné, bez klíčů, bez souhlasu správce nebo nevyklizené, i když mělo být) — účtujeme paušálem " + kc(z) + ".");
   if (c > 0) k.push("Čekání na zpřístupnění pracoviště " + (tol > 0 ? "nad " + tol + " minut " : "") + "účtujeme " + kc(c) + " za každých započatých 15 minut.");
+  if (n.valorizaceZapnuto !== false) k.push("Ceny platí pro realizaci v době platnosti nabídky. Uskuteční-li se práce později a ceny likvidace odpadu, pohonných hmot nebo kontejnerů mezitím prokazatelně vzrostou o více než " + (+n.valorizacePct || 0) + " %, můžeme cenu upravit o tento nárůst. Úpravu předem písemně oznámíme i s doložením; když s ní nebudete souhlasit, můžete od smlouvy bez jakékoliv sankce odstoupit.");
   return k;
 }
 function hnCekaniBloku(min){ const tol = +S.nastaveni.cekaniTolerance || 0; return min > tol ? Math.ceil((min - tol) / 15) : 0; }
@@ -14793,6 +14809,62 @@ if (typeof document !== "undefined" && document.addEventListener) {
   document.addEventListener("input", e => { if (e.target.closest && e.target.closest("#hnModal")) hnPrepocet(); });
   document.addEventListener("change", e => { if (e.target.closest && e.target.closest("#hnModal")) hnPrepocet(); });
   document.addEventListener("keydown", e => { const m = document.getElementById("hnModal"); if (e.key === "Escape" && m && !m.hidden) m.hidden = true; });
+}
+
+/* ---------- 4) Platnost nabídky a valorizace ----------
+   Nabídka má konkrétní „platí do“. Při vydání nabídky se uloží snímek nákladových cen (likvidace, doprava, kontejnery);
+   když se zakázka dělá po platnosti nebo ceny od té doby stouply nad práh, kalkulace upozorní. Doložka o valorizaci je
+   napsaná tak, aby obstála i u spotřebitele: o zvýšení dáme vědět předem a klient může bez sankce odstoupit. */
+const HN_SKLADKOVACI_POPLATEK = {2026:1600, 2027:1700, 2028:1800, 2029:1850};
+function hnPlatnostDni(){ const d = +(S.nastaveni || {}).platnostDni; return d > 0 ? Math.round(d) : 14; }
+function hnDatumCz(iso){ return iso ? iso.split("-").reverse().map(Number).join(". ") : ""; }
+function hnPlatnostText(z){ return hnDatumCz(z && z.nabPlatnostDo ? z.nabPlatnostDo : faPlusDni(faDnes(), hnPlatnostDni())); }
+function hnSnimekCen(druh){
+  const n = S.nastaveni || {}, o = {};
+  if (druh === "vyklizeni") {
+    const s = S.vykSazby || {};
+    [["o_objemny", "Likvidace objemného odpadu", "Kč/t"], ["o_smes", "Likvidace směsného odpadu", "Kč/t"], ["o_sut", "Likvidace suti", "Kč/t"], ["o_drevo", "Likvidace dřeva", "Kč/t"],
+     ["vuzKm", "Auto — náklad na km", "Kč/km"], ["vuzDen", "Auto — den posádky", "Kč"], ["cenaPraceH", "Cena hodiny práce", "Kč/h"]].forEach(([k, l, j]) => { if (s[k] != null) o[k] = {n:l, j, v:+s[k] || 0}; });
+  } else {
+    [["skladkovne", "Likvidace čisté suti", "Kč/t"], ["skladkovneSmes", "Likvidace směsi", "Kč/t"], ["km", "Doprava — náklad na km", "Kč/km"], ["kontCenaKm", "Doprava kontejneru", "Kč/km"]]
+      .forEach(([k, l, j]) => { if (n[k] != null) o[k] = {n:l, j, v:+n[k] || 0}; });
+    const kont = (S.kontejnery || []).reduce((a, k) => a + (+k.nakup || 0), 0);
+    if (kont > 0) o.kontejnery = {n:"Kontejnery (součet nákupních cen)", j:"Kč", v:kont};
+  }
+  return o;
+}
+function hnZaznamNabidky(z, druh){
+  if (!z) return;
+  const dnes = faDnes();
+  z.nabVystaveno = dnes; z.nabPlatnostDo = faPlusDni(dnes, hnPlatnostDni()); z.nabCeny = hnSnimekCen(druh);
+  save();
+}
+/* co se změnilo od vydání nabídky — seznam vět pro upozornění */
+function hnKontrolaPlatnosti(z, druh){
+  if (!z || !z.nabPlatnostDo) return [];
+  const w = [], dnes = faDnes(), prah = +(S.nastaveni || {}).valorizacePct || 0, stav = z.status || "nabídka";
+  if (stav === "hotovo" || stav === "zamítnuto") return [];
+  if (stav === "nabídka" && dnes > z.nabPlatnostDo) w.push("Nabídka platila do " + hnDatumCz(z.nabPlatnostDo) + " — už vypršela. Když ji klient potvrdí teď, zkontroluj ceny a vystav novou (nové datum a aktuální ceny).");
+  if (z.terminOd && z.terminOd > z.nabPlatnostDo) w.push("Termín realizace (" + hnDatumCz(z.terminOd) + ") je po platnosti nabídky (" + hnDatumCz(z.nabPlatnostDo) + ").");
+  const nyni = hnSnimekCen(druh), zmeny = [];
+  Object.keys(z.nabCeny || {}).forEach(k => {
+    const a = z.nabCeny[k], b = nyni[k]; if (!a || !b || !(a.v > 0)) return;
+    const pct = (b.v - a.v) / a.v * 100;
+    if (pct >= Math.max(prah, 0.5)) zmeny.push(a.n + " " + fmt0.format(a.v) + " → " + fmt0.format(b.v) + " " + a.j + " (+" + fmt0.format(pct) + " %)");
+  });
+  if (zmeny.length) w.push("Od vydání nabídky (" + hnDatumCz(z.nabVystaveno) + ") zdražilo: " + zmeny.join("; ") + (prah > 0 ? " — nad práh valorizace " + prah + " %." : "."));
+  const rokN = +String(z.nabVystaveno || dnes).slice(0, 4), rokR = +String(z.terminOd || dnes).slice(0, 4);
+  if (rokR > rokN && HN_SKLADKOVACI_POPLATEK[rokR] && HN_SKLADKOVACI_POPLATEK[rokN])
+    w.push("Zakázka se dělá v roce " + rokR + ", nabídka je z roku " + rokN + ": zákonný poplatek za skládkování roste z " + fmt0.format(HN_SKLADKOVACI_POPLATEK[rokN]) + " na " + fmt0.format(HN_SKLADKOVACI_POPLATEK[rokR]) + " Kč/t — zkontroluj ceník zařízení.");
+  if (w.length && (+(S.nastaveni || {}).valorizaceZapnuto !== 0 && S.nastaveni.valorizaceZapnuto !== false)) w.push("Doložka v nabídce dovoluje cenu o prokazatelný nárůst upravit — klientovi to napiš předem; když nesouhlasí, může bez sankce odstoupit.");
+  return w;
+}
+function hnRenderPlatnost(){
+  const el = $("#hnPlatnost"); if (!el) return;
+  const w = hnKontrolaPlatnosti(J, "demolice");
+  if (w.length) { el.hidden = false; el.className = "hn-platnost ne"; el.innerHTML = "<b>⚠ Platnost nabídky a ceny</b><ul>" + w.map(x => "<li>" + esc(x) + "</li>").join("") + "</ul>"; return; }
+  if (J.nabPlatnostDo && (J.status || "nabídka") === "nabídka") { el.hidden = false; el.className = "hn-platnost"; el.innerHTML = "Nabídka vystavena " + hnDatumCz(J.nabVystaveno) + ", platí do <b>" + hnDatumCz(J.nabPlatnostDo) + "</b>."; return; }
+  el.hidden = true; el.innerHTML = "";
 }
 
 hnedVychozi();
@@ -15117,7 +15189,10 @@ const RM_HOTOVO = {
     kde:"Kalkulace → Odvoz suti a likvidace → řádek <b>Kovy do výkupu</b>. Výkupní cena v Ceník a nastavení → Výchozí hodnoty → Výkup kovů."},
   "nac-zmareny":{datum:"2026-09-26",
     co:"Sazba za <b>zmařený výjezd</b> (2 000 Kč) a za <b>čekání</b> (200 Kč za každých započatých 15 minut, prvních 15 minut zdarma). Podmínka se sama propíše do nabídky demolice i vyklízení. U zakázky tlačítko <b>⏱ Zmařený výjezd / čekání</b>: zadáš minuty, datum a důvod, okno spočítá částku, zapíše událost k zakázce, připraví fakturu na klienta a zkopíruje slušnou zprávu, proč ji posíláš.",
-    kde:"Ceník a nastavení → <b>📄 Podmínky nabídky a poplatky</b> (sazby, 0 = neuvádět). Tlačítko je v Kalkulaci dole vedle předávacího protokolu a ve Vyklízení vedle faktur."}
+    kde:"Ceník a nastavení → <b>📄 Podmínky nabídky a poplatky</b> (sazby, 0 = neuvádět). Tlačítko je v Kalkulaci dole vedle předávacího protokolu a ve Vyklízení vedle faktur."},
+  "nac-platnost":{datum:"2026-09-26",
+    co:"Nabídka demolice i vyklízení má konkrétní datum <b>„platí do“</b> (výchozí 14 dní) a <b>doložku o valorizaci</b>: při pozdější realizaci a zdražení odpadu, nafty nebo kontejnerů nad práh (5 %) jde cena upravit — oznámí se předem a klient může bez sankce odstoupit, takže doložka obstojí i u spotřebitele. Při tisku nabídky se uloží snímek nákladových cen. Kalkulace pak upozorní, když nabídka vypršela, termín je po platnosti, ceny od té doby stouply nad práh nebo se zakázka přehoupne do dalšího roku (zákonný poplatek za skládkování roste).",
+    kde:"Nastavení → <b>📄 Podmínky nabídky a poplatky</b> (platnost, práh, doložka). Upozornění: Kalkulace → karta <b>Zakázka</b> nahoře, ve Vyklízení v kartě <b>Zkontrolovat</b>."}
 };
 const rmHotova = x => !!RM_HOTOVO[x.id];
 const RM_JIZ = [
@@ -15390,6 +15465,9 @@ const NAPOVEDA = [
   ["[data-hn='zmarenyVyjezd']", "Zmařený výjezd", "Paušál, když přijedete v domluvený čas a práce nejde začít: nejsou klíče, nepustí správce, byt není vyklizený, nejde proud. Jeden zmařený den party je 8–10 tisíc ušlé tržby. Fakturu vystavíš tlačítkem <b>⏱ Zmařený výjezd / čekání</b> u zakázky."],
   ["[data-hn='cekani15']", "Čekání", "Kolik stojí každých započatých 15 minut čekání na zpřístupnění (výtah, klíče, správce). Počítej aspoň cenu party: 2 lidi × hodinová sazba ÷ 4."],
   ["[data-hn='cekaniTolerance']", "Čekání zdarma", "Prvních pár minut se neúčtuje — slušnost a menší spory. Účtuje se až to, co je nad tolerancí, po započatých 15 minutách."],
+  ["[data-hn='platnostDni']", "Platnost nabídky", "Kolik dní nabídka platí. V nabídce bude konkrétní datum „platí do“ — klient ví, že se má rozhodnout, a vy nejste vázaní starou cenou, když se ozve za dva měsíce."],
+  ["[data-hn='valorizacePct']", "Práh valorizace", "Od kolika procent zdražení (likvidace, nafta, kontejnery) kalkulace upozorní, že je potřeba cenu upravit. Při tisku nabídky se ceny uloží a pak se porovnávají s aktuálním Nastavením."],
+  ["[data-hn='valorizaceZapnuto']", "Doložka o valorizaci", "Věta v nabídce: když se práce uskuteční po platnosti a ceny vzrostou nad práh, cenu upravíte o nárůst. Úpravu oznámíte předem a klient může bez sankce odstoupit — díky tomu doložka platí i u spotřebitele a nedá se napadnout jako nepřiměřená."],
   ["h2:cenik:Prahy rentability", "Prahy rentability", "Pod jaká čísla nejít: minimální zisk na osobu a hodinu (pod ním varování a tlačítko Dorovnat přes interní přirážku), minimální denní tržba party, minimální cena zakázky. K tomu prodejní sazba dopravy, paušál výjezdu, příplatky a <b>koeficient výkonu party</b>."],
   ["#nMinZisk", "Minimální zisk na osobu a hodinu", "Pod touto hodinovkou kalkulace zčervená a nabídne „Dorovnat“ — zvedne interní přirážku tak, aby zakázka držela minimum."],
   ["#nKoefVykon", "Koeficient výkonu party", "1,0 = pracujete rychlostí norem RTS; 1,3 = o 30 % pomaleji (na začátku normální). Násobí odhad hodin a dní. Po 5 zakázkách ho spočítá Přehled firmy z reálných dat."],
