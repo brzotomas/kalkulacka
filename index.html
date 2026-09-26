@@ -584,6 +584,18 @@ details.gsec li{margin:3px 0}
 .br-graf rect.ok{fill:var(--good)}
 .br-graf rect.st{fill:var(--warn-line)}
 .br-graf rect.ne{fill:var(--bad)}
+.br-graf rect.pozor{fill:var(--warn-line)}
+.br-cf-graf{display:block;max-width:100%;height:auto;margin:10px 0 4px;color:var(--muted)}
+.br-cf-txt{paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
+.br-cf-r{cursor:pointer}
+@media (max-width:520px){.br-cf-tab{font-size:12.5px}.br-cf-tab th,.br-cf-tab td{padding-left:3px;padding-right:3px}}
+.br-cf-r:hover td{background:var(--ground)}
+.br-cf-tab td.ne{color:var(--bad)}
+.br-cf-tab td.pozor{color:var(--warn-ink)}
+.br-cf-det{font-size:13px;line-height:1.6;background:var(--ground)}
+.br-cf-det .ok,#brCashflow .ok{color:var(--good)}
+.br-cf-det .ne,#brCashflow .ne{color:var(--bad)}
+.br-cf-pol{display:grid;grid-template-columns:90px 1fr auto auto;gap:8px;align-items:center;font-size:14px;padding:3px 0;border-bottom:1px solid var(--line)}
 .br-str-tab input{width:76px}
 .br-str-tab select{max-width:190px}
 .br-ispop{margin-top:12px;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--surface2);font-size:13.5px}
@@ -1475,6 +1487,11 @@ body.zamceno{overflow:hidden}
       <tbody></tbody>
     </table></div>
     <p class="hint" id="pohlEmpty" style="display:none">Žádné nezaplacené částky. Vyplň zálohu a doplatek v sekci „Platby a splatnost“ u zakázky.</p>
+  </div>
+
+  <div class="card">
+    <h2>💰 Peníze na 13 týdnů dopředu</h2>
+    <div id="brCashflow"></div>
   </div>
 
   <div class="card">
@@ -8430,7 +8447,7 @@ function renderPripominky(){
     x.ikona+" <span>"+x.txt+"</span></div>").join(""):
     "<div class='warnbox' style='margin:0 0 12px;background:var(--good-bg);border-color:var(--good);color:var(--good)'>✓ <span>Nic nehoří — žádná propadlá revize, platba po splatnosti ani nevyřízená vícepráce.</span></div>";
 }
-function renderPrehled(){if(typeof renderBrPrace==="function"){renderBrPrace();renderBrPresnost();}renderVydaje();renderKlienti();renderNaradi();renderOdberatele();renderZdroje();renderRealita();renderPohledavky();renderProhry();renderRust();renderOdpSouhrn();renderPripominky();pStats();}
+function renderPrehled(){if(typeof renderBrPrace==="function"){renderBrPrace();renderBrPresnost();renderBrCashflow();}renderVydaje();renderKlienti();renderNaradi();renderOdberatele();renderZdroje();renderRealita();renderPohledavky();renderProhry();renderRust();renderOdpSouhrn();renderPripominky();pStats();}
 
 /* ---------- výbava checklist ---------- */
 document.querySelectorAll("[data-vyb]").forEach(ch=>{
@@ -14605,7 +14622,7 @@ function ekSkutecneFixni(){
   const d = new Date(), mesice = [];
   for (let i = 1; i <= 3; i++) { const x = new Date(d.getFullYear(), d.getMonth() - i, 1); mesice.push(x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0")); }
   const sum = {}; let celkem = 0;
-  (S.vydaje || []).forEach(v => { if (!mesice.includes(String(v.datum || "").slice(0, 7)) || !kat.includes(v.kategorie)) return; sum[v.kategorie] = (sum[v.kategorie] || 0) + (+v.castka || 0); celkem += +v.castka || 0; });
+  (S.vydaje || []).forEach(v => { const k = v.kat || v.kategorie; if (!mesice.includes(String(v.datum || "").slice(0, 7)) || !kat.includes(k)) return; sum[k] = (sum[k] || 0) + (+v.castka || 0); celkem += +v.castka || 0; });
   return {mesicne:celkem / 3, polozky:Object.keys(sum).map(k => ({nazev:k, castka:Math.round(sum[k] / 3)})), mesice};
 }
 function renderEkFirma(el, druh){
@@ -16796,6 +16813,179 @@ if (typeof document !== "undefined" && document.addEventListener) {
   });
 }
 
+/* ---------- Peníze na 13 týdnů dopředu ----------
+   Zůstatek na účtu týden po týdnu: přijde (vystavené faktury, zálohy a doplatky domluvených zakázek)
+   a odejde (přímé náklady zakázek v týdnu práce, fixní náklady, mzdy z plánu lidí, výběry majitelů,
+   zálohy na daň, jednorázové položky). Varování, když zůstatek klesne pod rezervu. */
+const BR_CF_TYDNU = 13;
+function brTydenStart(d){ const x = new Date(d + "T12:00:00"), w = (x.getDay() + 6) % 7; x.setDate(x.getDate() - w); return x.toISOString().slice(0, 10); }
+function brCfPolozky(){ const n = S.nastaveni; if (!Array.isArray(n.cfPolozky)) n.cfPolozky = []; return n.cfPolozky; }
+function brCfMesicni(e){
+  const L = ekLide(e), p = e.plan || {}, auto = (+(e.auto || {}).pojisteniRok || 0) / 12;
+  const hpp = (+p.hpp || 0), m = L.hpp.mzda;
+  return {fix:ekFixMesic(e) + auto, cistaHpp:hpp * m.cista, odvodyHpp:hpp * (m.naklad - m.cista), dpp:(+p.dpp || 0) * (+e.dpp.sazba || 0) * (+e.dpp.hodin || 0),
+    osvc:(+p.osvc || 0) * (+e.osvc.sazba || 0) * (+e.osvc.hodin || 0), majitele:+S.nastaveni.cfMajitele || 0};
+}
+function brCashflow(dnes){
+  dnes = dnes || faDnes();
+  const n = S.nastaveni, e = ekNastaveni(), start = brTydenStart(dnes);
+  const tydny = Array.from({length:BR_CF_TYDNU}, (_, i) => ({od:faPlusDni(start, 7 * i), do:faPlusDni(start, 7 * i + 6), prijmy:[], vydaje:[]}));
+  const konecH = tydny[BR_CF_TYDNU - 1].do;
+  const pridej = (datum, typ, popis, castka, odhad) => {
+    castka = Math.round(castka || 0); if (!(castka > 0)) return;
+    const po = !!datum && datum < dnes, d = datum && datum > dnes ? datum : dnes; if (d > konecH) return;
+    const t = tydny.find(x => d >= x.od && d <= x.do) || tydny[0];
+    t[typ].push({datum:d, popis, castka, odhad:!!odhad, poSplatnosti:po && typ === "prijmy"});
+  };
+  /* vystavené a nezaplacené doklady */
+  (S.faktury || []).forEach(f => {
+    if (!f.cislo || f.stav === "zaplacena" || f.stav === "stornovana" || f.stav === "koncept" || f.zaplaceno) return;
+    const k = +f.kUhrade || 0, kdo = (f.odberatel && f.odberatel.jmeno) || f.zakazkaNazev || "";
+    if (k > 0) pridej(f.splatnost, "prijmy", (f.typ === "zal" ? "Zálohová faktura " : "Faktura ") + f.cislo + (kdo ? " — " + kdo : ""), k);
+    else if (k < 0) pridej(f.splatnost, "vydaje", "Vrátit podle dokladu " + f.cislo + (kdo ? " — " + kdo : ""), -k);
+  });
+  const vyst = (typ, id) => (S.faktury || []).some(f => f.cislo && f.zakazkaId === id && f.typ === typ && f.stav !== "stornovana");
+  const vyfakturovat = (o, konec) => {
+    const d = !konec || konec < dnes ? dnes : konec;
+    if (o && o.fakturace === "mesic") { const x = new Date(d.slice(0, 8) + "01T12:00:00"); x.setMonth(x.getMonth() + 1); return x.toISOString().slice(0, 8) + "10"; }
+    return d;
+  };
+  /* domluvené zakázky: záloha před začátkem, doplatek po předání + splatnost, přímé náklady v týdnu práce */
+  const zakazka = (z, druh, celkem, zalohaPct, prime) => {
+    if (!z.id || !["domluveno", "probíhá", "hotovo"].includes(z.status) || !(celkem > 0)) return;
+    const o = brPartner(z.odberatelId), spl = (o && +o.splatnost) || +n.fakSplatnost || 14, nazev = z.nazev || "zakázka";
+    const konec = druh === "vyklizeni" ? brZakKonec({druh, z}) : (z.terminDo || z.terminOd || "");
+    let zal = druh === "demolice" ? (z.platbaPredem ? celkem : +z.zalohaCastka || 0) : Math.round(celkem * zalohaPct);
+    if (druh === "demolice" && !zal && !o && z.status === "domluveno") zal = Math.round(celkem * (+n.zaloha || 0) / 100);
+    const zalZap = !!z.zalohaZaplaceno || (S.faktury || []).some(f => f.zakazkaId === z.id && f.typ === "zal" && f.stav === "zaplacena");
+    if (zal > 0 && !zalZap && !vyst("zal", z.id) && z.status !== "hotovo")
+      pridej(z.zalohaSplatnost || (z.terminOd ? faPlusDni(z.terminOd, -3) : faPlusDni(dnes, 7)), "prijmy", "Záloha — " + nazev, zal, true);
+    const dopl = druh === "demolice" && +z.doplatekCastka > 0 ? +z.doplatekCastka : celkem - zal;
+    if (dopl > 0 && !z.doplatekZaplaceno && !brMaFakturu(z.id))
+      pridej(z.doplatekSplatnost || faPlusDni(vyfakturovat(o, konec), spl), "prijmy", (zal > 0 ? "Doplatek — " : "Platba — ") + nazev, dopl, true);
+    if (z.status !== "hotovo" && prime > 0) pridej(z.terminOd || dnes, "vydaje", "Přímé náklady — " + nazev + " (odpad, kontejnery, doprava, materiál)", prime, true);
+  };
+  (S.zakazky || []).forEach(z => {
+    if (!["domluveno", "probíhá", "hotovo"].includes(z.status)) return;
+    let prime = 0;
+    if (z.status !== "hotovo") { try { const x = ekVstupDemolice(z, e), p = ekPartaDemolice(z); prime = x.inp.prime.reduce((s, r) => s + r[1], 0) + (!p.hpp && !p.dpp ? +x.v.najatiN || 0 : 0); } catch (err) {} }
+    zakazka(z, "demolice", +z.vysCelkem || 0, 0, prime);
+  });
+  (S.vyklizeni || []).forEach(z => {
+    if (!["domluveno", "probíhá", "hotovo"].includes(z.status)) return;
+    const x = z.vysledek || {}, celkem = x.skutCena != null ? x.skutCena : (x.cena || 0);
+    let prime = 0;
+    if (z.status !== "hotovo") { try { const r = vykVypocet(z); if (r.ok) prime = ekVstupVyklizeni(z, r, e).prime.reduce((s, q) => s + q[1], 0); } catch (err) {} }
+    zakazka(z, "vyklizeni", celkem, z.predem ? 1 : +z.zaloha || 0, prime);
+  });
+  /* pravidelné výdaje */
+  const m = brCfMesicni(e);
+  tydny.forEach(t => { const f = Math.round(m.fix * 12 / 52); if (f > 0) t.vydaje.push({datum:t.od, popis:"Fixní náklady firmy (průměr na týden)", castka:f, odhad:true}); });
+  const mesice = [];
+  tydny.forEach(t => [t.od, t.do].forEach(d => { const k = d.slice(0, 7); if (!mesice.includes(k)) mesice.push(k); }));
+  mesice.forEach(k => {
+    const d15 = k + "-15", d20 = k + "-20";
+    if (d15 >= start) {
+      pridej(d15, "vydaje", "Čisté mzdy zaměstnanců", m.cistaHpp, true);
+      pridej(d15, "vydaje", "Brigádníci DPP", m.dpp, true);
+      pridej(d15, "vydaje", "Lidé na IČO (faktury)", m.osvc, true);
+      pridej(d15, "vydaje", "Výběry majitelů", m.majitele, true);
+    }
+    if (d20 >= start) pridej(d20, "vydaje", "Odvody a záloha na daň ze mezd", m.odvodyHpp, true);
+  });
+  const rok = +dnes.slice(0, 4);
+  [rok, rok + 1].forEach(r => zalohyNaDan(n.posledniDanPovinnost, r).forEach(([d, c]) => { if (d >= start) pridej(d, "vydaje", "Záloha na daň z příjmů", c); }));
+  const loni = typeof daneRok === "function" ? daneRok(rok - 1) : null;
+  if (loni && loni.dan > 0) {
+    const zaplZal = zalohyNaDan(n.posledniDanPovinnost, rok - 1).reduce((s, x) => s + x[1], 0), d = rok + (n.danPoradce ? "-07-01" : "-05-01");
+    if (d >= dnes) pridej(d, "vydaje", "Doplatek daně z příjmů za " + (rok - 1) + " (orientačně)", loni.dan - zaplZal, true);
+  }
+  brCfPolozky().forEach(p => { const c = +p.castka || 0; if (p.datum && p.datum >= start) pridej(p.datum, c >= 0 ? "prijmy" : "vydaje", p.popis || "Jednorázová položka", Math.abs(c)); });
+  /* zůstatek */
+  let z = +n.cfZustatek || 0;
+  tydny.forEach(t => {
+    t.prijmy.sort((a, b) => a.datum.localeCompare(b.datum)); t.vydaje.sort((a, b) => a.datum.localeCompare(b.datum));
+    t.prijmyKc = t.prijmy.reduce((s, x) => s + x.castka, 0); t.vydajeKc = t.vydaje.reduce((s, x) => s + x.castka, 0);
+    z += t.prijmyKc - t.vydajeKc; t.zustatek = z;
+  });
+  const mesVydaje = m.fix + m.cistaHpp + m.odvodyHpp + m.dpp + m.osvc + m.majitele;
+  const rezerva = n.cfRezerva != null && n.cfRezerva !== "" ? +n.cfRezerva : Math.round(mesVydaje / 1000) * 1000;
+  const minT = tydny.reduce((a, t) => t.zustatek < a.zustatek ? t : a, tydny[0]);
+  const poSpl = tydny[0].prijmy.filter(x => x.poSplatnosti);
+  return {tydny, start:+n.cfZustatek || 0, rezerva, rezervaDoporucena:Math.round(mesVydaje / 1000) * 1000, min:minT,
+    podNulou:tydny.find(t => t.zustatek < 0) || null, podRezervou:tydny.find(t => t.zustatek < rezerva) || null,
+    poSplatnosti:{pocet:poSpl.length, kc:poSpl.reduce((s, x) => s + x.castka, 0)}, mesVydaje};
+}
+let brCfOtevreny = -1;
+const brDm = d => (+d.slice(8, 10)) + ". " + (+d.slice(5, 7)) + ".";
+function brCfGraf(c, sirka){
+  const W = Math.max(300, Math.round(sirka || 660)), H = W < 500 ? 170 : 210, pad = W < 500 ? 30 : 44, bw = (W - pad) / c.tydny.length;
+  const hodn = c.tydny.map(t => t.zustatek).concat([0, c.rezerva, c.start]), max = Math.max(...hodn), min = Math.min(...hodn), rozsah = max - min || 1;
+  const y = v => 12 + (H - 42) * (max - v) / rozsah, y0 = y(0), mal = W < 500;
+  const txt = (x, yy, t, kotva) => "<text x='" + x + "' y='" + yy + "' text-anchor='" + (kotva || "start") + "' font-size='" + (mal ? 9 : 11) + "' fill='currentColor' class='br-cf-txt'>" + t + "</text>";
+  return "<svg class='br-graf br-cf-graf' viewBox='0 0 " + W + " " + H + "' width='" + W + "' height='" + H + "' role='img' aria-label='Zůstatek na účtu po týdnech'>" +
+    c.tydny.map((t, i) => {
+      const v = t.zustatek, x = pad + i * bw + (mal ? 1.5 : 4), top = Math.min(y(v), y0), h = Math.max(1, Math.abs(y(v) - y0));
+      return "<rect class='" + (v < 0 ? "ne" : v < c.rezerva ? "pozor" : "ok") + "' x='" + x + "' y='" + top + "' width='" + (bw - (mal ? 3 : 8)) + "' height='" + h + "' rx='2'><title>" + brDm(t.od) + ": " + kc(v) + "</title></rect>" +
+        (mal && i % 2 ? "" : txt(x + (bw - (mal ? 3 : 8)) / 2, H - 8, brDm(t.od), "middle"));
+    }).join("") +
+    "<line x1='" + pad + "' x2='" + W + "' y1='" + y0 + "' y2='" + y0 + "' stroke='currentColor' stroke-opacity='.5'/>" +
+    (c.rezerva > 0 ? "<line x1='" + pad + "' x2='" + W + "' y1='" + y(c.rezerva) + "' y2='" + y(c.rezerva) + "' stroke='currentColor' stroke-width='1.5' stroke-dasharray='5 4'/>" + txt(W - 4, y(c.rezerva) - 5, "rezerva " + fmt0.format(c.rezerva / 1000) + " tis.", "end") : "") +
+    txt(2, y(max) + 4, fmt0.format(max / 1000) + " tis.") + (min < 0 ? txt(2, y(min) + 4, fmt0.format(min / 1000) + " tis.") : "") + txt(2, y0 + 4, "0") + "</svg>";
+}
+function renderBrCashflow(){
+  const el = $("#brCashflow"); if (!el || el.contains(document.activeElement)) return;
+  const n = S.nastaveni, c = brCashflow(), dnes = faDnes();
+  const star = n.cfZustatekDatum && hnDnyMezi(n.cfZustatekDatum, dnes) > 7;
+  let h = "<div class='grid g3'><label class='f'>Zůstatek na účtu" + (n.cfZustatekDatum ? " <span class='hint'>k " + hnDatumCz(n.cfZustatekDatum) + "</span>" : "") + "<input type='number' step='1000' data-brcf='cfZustatek' value='" + (n.cfZustatek != null && n.cfZustatek !== "" ? n.cfZustatek : "") + "' placeholder='kolik je teď na účtu'>" + (star ? "<span class='hint ne'>starší než týden — přepiš podle banky</span>" : "") + "</label>" +
+    "<label class='f'>Rezerva — pod tohle nechci jít<input type='number' step='1000' data-brcf='cfRezerva' value='" + (n.cfRezerva != null && n.cfRezerva !== "" ? n.cfRezerva : "") + "' placeholder='" + c.rezervaDoporucena + "'><span class='hint'>doporučeno měsíc výdajů: " + kc(c.rezervaDoporucena) + "</span></label>" +
+    "<label class='f'>Výběry majitelů měsíčně<input type='number' step='1000' data-brcf='cfMajitele' value='" + (n.cfMajitele || "") + "' placeholder='0'><span class='hint'>mzda jednatelů nebo výběry, 15. v měsíci</span></label></div>";
+  if (!(n.cfZustatek != null && n.cfZustatek !== "")) h += "<p class='hint'>Vyplň zůstatek na účtu — bez něj graf začíná od nuly a ukazuje jen, kolik peněz přibude nebo ubude.</p>";
+  h += brCfGraf(c, el.clientWidth);
+  const w = [];
+  if (c.podNulou) w.push("<b>V týdnu od " + hnDatumCz(c.podNulou.od) + " dojdou peníze</b> — chybí " + kc(-c.podNulou.zustatek) + ".");
+  else if (c.podRezervou) w.push("<b>Zůstatek klesne pod rezervu</b> v týdnu od " + hnDatumCz(c.podRezervou.od) + " (nejníž " + kc(c.min.zustatek) + " v týdnu od " + hnDatumCz(c.min.od) + ").");
+  if (w.length) {
+    const bezZal = (S.zakazky || []).filter(z => z.status === "domluveno" && !(+z.zalohaCastka > 0) && !z.platbaPredem).length;
+    w.push("Co s tím: pošli upomínky" + (c.poSplatnosti.pocet ? " (" + c.poSplatnosti.pocet + " po splatnosti za " + kc(c.poSplatnosti.kc) + ")" : "") + (bezZal ? ", chtěj zálohu u " + bezZal + " domluvených zakázek bez zálohy" : "") + ", vyfakturuj hotové zakázky hned, posuň nákupy a investice za týden, kdy přijdou peníze.");
+  }
+  if (w.length) h += "<div class='warnbox' style='margin:8px 0'>" + (c.podNulou ? "🚨" : "⚠️") + "<span>" + w.join("<br>") + "</span></div>";
+  else h += "<p class='hint ok' style='margin:6px 0'>✓ Zůstatek drží nad rezervou celých 13 týdnů (nejníž " + kc(c.min.zustatek) + ")." +
+    (c.poSplatnosti.pocet ? "</p><p class='hint' style='margin:0 0 6px'>" + c.poSplatnosti.pocet + " " + (c.poSplatnosti.pocet === 1 ? "platba je" : "platby jsou") + " po splatnosti (" + kc(c.poSplatnosti.kc) + ") — počítám je do tohoto týdne. Když nepřijdou, zůstatek bude nižší." : "") + "</p>";
+  h += "<div class='tscroll'><table class='odp-tab br-cf-tab'><thead><tr><th>Týden</th><th class='r'>Přijde</th><th class='r'>Odejde</th><th class='r'>Zůstatek</th></tr></thead><tbody>" +
+    c.tydny.map((t, i) => "<tr class='br-cf-r' data-brcft='" + i + "'><td style='white-space:nowrap'>" + (i === brCfOtevreny ? "▾ " : "▸ ") + brDm(t.od) + " – " + brDm(t.do) + "</td><td class='r num'>" + (t.prijmyKc ? "+" + kc(t.prijmyKc) : "—") + "</td><td class='r num'>" + (t.vydajeKc ? "−" + kc(t.vydajeKc) : "—") + "</td>" +
+      "<td class='r num " + (t.zustatek < 0 ? "ne" : t.zustatek < c.rezerva ? "pozor" : "") + "'><b>" + kc(t.zustatek) + "</b></td></tr>" +
+      (i === brCfOtevreny ? "<tr><td colspan='4' class='br-cf-det'>" + (t.prijmy.length + t.vydaje.length ? t.prijmy.map(x => "<div><span class='ok'>+" + kc(x.castka) + "</span> " + hnDatumCz(x.datum) + " · " + esc(x.popis) + (x.poSplatnosti ? " <span class='ne'>po splatnosti</span>" : x.odhad ? " <span class='hint'>odhad</span>" : "") + "</div>").join("") +
+        t.vydaje.map(x => "<div><span class='ne'>−" + kc(x.castka) + "</span> " + hnDatumCz(x.datum) + " · " + esc(x.popis) + (x.odhad ? " <span class='hint'>odhad</span>" : "") + "</div>").join("") : "<span class='hint'>nic</span>") + "</td></tr>" : "")).join("") +
+    "</tbody></table></div>";
+  h += "<details class='br-det'><summary>Jednorázové položky (" + brCfPolozky().length + ")</summary><p class='hint' style='margin:0 0 6px'>Nákup stroje, splátka úvěru, vratka, dotace… Výdaj zapiš se znaménkem minus.</p>" +
+    brCfPolozky().map((p, i) => "<div class='br-cf-pol'><span>" + hnDatumCz(p.datum) + "</span><span>" + esc(p.popis) + "</span><b class='" + (p.castka < 0 ? "ne" : "ok") + "'>" + (p.castka < 0 ? "−" : "+") + kc(Math.abs(p.castka)) + "</b><button class='mini' type='button' data-brcfdel='" + i + "'>✕</button></div>").join("") +
+    "<div class='grid g3' style='margin-top:6px'><label class='f'>Datum<input type='date' id='brCfDatum' value='" + faPlusDni(dnes, 14) + "'></label><label class='f'>Co<input id='brCfPopis' placeholder='např. nákup bouracího kladiva'></label><label class='f'>Částka (výdaj s minusem)<input type='number' step='1000' id='brCfCastka' placeholder='-30000'></label></div>" +
+    "<div class='btnrow'><button class='b' type='button' id='brCfPridat'>+ Přidat položku</button></div></details>" +
+    "<p class='hint' style='margin:6px 0 0'>Počítá: vystavené faktury podle splatnosti, zálohy a doplatky domluvených zakázek (u partnera jeho splatnost a měsíční fakturace), přímé náklady v týdnu práce, fixní náklady a plán lidí z Ekonomiky firmy (" + kc(c.mesVydaje) + " měsíčně), zálohy na daň. Položky „odhad“ zpřesníš vystavením faktury.</p>";
+  el.innerHTML = h;
+}
+if (typeof document !== "undefined" && document.addEventListener) {
+  document.addEventListener("change", e => {
+    const k = e.target.dataset && e.target.dataset.brcf; if (!k) return;
+    const n = S.nastaveni, v = e.target.value;
+    n[k] = v === "" ? (k === "cfRezerva" ? null : "") : +v;
+    if (k === "cfZustatek") n.cfZustatekDatum = faDnes();
+    save(); e.target.blur(); renderBrCashflow();
+  });
+  document.addEventListener("click", e => {
+    const r = e.target.closest && e.target.closest("[data-brcft]");
+    if (r) { const i = +r.dataset.brcft; brCfOtevreny = brCfOtevreny === i ? -1 : i; renderBrCashflow(); return; }
+    if (e.target.dataset && e.target.dataset.brcfdel != null) { brCfPolozky().splice(+e.target.dataset.brcfdel, 1); save(); renderBrCashflow(); return; }
+    if (e.target.id === "brCfPridat") {
+      const d = ($("#brCfDatum") || {}).value, p = (($("#brCfPopis") || {}).value || "").trim(), c = +(($("#brCfCastka") || {}).value || 0);
+      if (!d || !c) { alert("Vyplň datum a částku (výdaj se znaménkem minus)."); return; }
+      brCfPolozky().push({id:uid(), datum:d, popis:p, castka:c}); save(); e.target.blur(); renderBrCashflow();
+      const det = $("#brCashflow .br-det"); if (det) det.open = true;
+    }
+  });
+}
+
 /* ================= ROADMAPA — co řeší velké firmy =================
    Samostatná záložka: seznam věcí, na kterých velké demoliční, dopravní a odpadové firmy dělají marži
    (nebo se chrání před ztrátou), rozdělený do fází. Nic z toho zatím není naprogramované v kalkulaci —
@@ -17194,7 +17384,10 @@ const RM_HOTOVO = {
     kde:"Přehled firmy → <b>Zdroje zakázek — který kanál vydělává</b>; náklady v rozbalení <b>Náklady kanálů</b> pod tabulkou."},
   "obch-ramcove":{datum:"2026-09-26",
     co:"Stálí odběratelé jsou teď <b>partneři s rámcovou smlouvou</b>: typ (realitka, správce/SVJ, developer, stavební firma), firma z adresáře, číslo a platnost smlouvy, <b>doba reakce</b>, <b>splatnost</b>, fakturace po zakázce nebo <b>souhrnně za měsíc</b> a očekávaný objem. U každého obrat, marže a <b>platební morálka</b> za 12 měsíců (průměrné zpoždění, kolik dluží). 📝 vytiskne <b>rámcovou smlouvu</b> s partnerským ceníkem (příloha č. 1) — partnerské ceny jen při včasném placení, bez zádržného a započtení, 1 200 Kč za upomínání, výpověď 1 měsíc; pro partnera pevné ceny potvrzených zakázek, pojištění a lhůty. Souhrnná měsíční faktura jedním klikem; v Plánu úkoly „poslat nabídku partnerovi v době reakce“ a „vyfakturovat měsíc“. Výběr partnera v kalkulaci přepne B2B ceník, ve vyklízení partnerskou marži; faktura dostane jeho splatnost.",
-    kde:"Přehled firmy → <b>🤝 Partneři a rámcové smlouvy</b>; výběr partnera v Kalkulaci (Stálý odběratel) a ve Vyklízení; úkoly v <b>📅 Plánu</b>. Smlouvu nechte jednou zkontrolovat advokátem."}
+    kde:"Přehled firmy → <b>🤝 Partneři a rámcové smlouvy</b>; výběr partnera v Kalkulaci (Stálý odběratel) a ve Vyklízení; úkoly v <b>📅 Plánu</b>. Smlouvu nechte jednou zkontrolovat advokátem."},
+  "pen-cashflow":{datum:"2026-09-27",
+    co:"Karta <b>💰 Peníze na 13 týdnů dopředu</b>: zadáš zůstatek na účtu a rezervu a kalkulačka týden po týdnu spočítá, co přijde (vystavené faktury podle splatnosti, zálohy a doplatky domluvených zakázek — u partnera s jeho splatností a měsíční fakturací) a co odejde (přímé náklady zakázek v týdnu práce, fixní náklady a plán lidí z Ekonomiky, výběry majitelů, zálohy na daň, jednorázové položky jako nákup stroje). Graf zůstatku s čárou rezervy, rozpis každého týdne kliknutím a <b>varování</b>, kdy by peníze klesly pod rezervu nebo došly, s radou co udělat. Opraven i výpočet „Podle výdajů za 3 měsíce“ ve fixních nákladech (četl špatné pole a ukazoval 0).",
+    kde:"Přehled firmy → <b>💰 Peníze na 13 týdnů dopředu</b> (pod Penězi na cestě)."}
 };
 const rmHotova = x => !!RM_HOTOVO[x.id];
 const RM_JIZ = [
@@ -17449,6 +17642,7 @@ const NAPOVEDA = [
 
   /* ---------------- PŘEHLED FIRMY ---------------- */
   ["h2:prehled:Měsíční výsledky", "Měsíční výsledky", "Tržby, výdaje a zisk po měsících z hotových zakázek a výdajů. Ukáže sezónnost a jestli firma roste."],
+  ["h2:prehled:💰 Peníze na 13 týdnů", "Peníze na 13 týdnů dopředu", "Firmy nekrachují na nízké marži, ale když na výplaty a dopravce chybí peníze. Jednou týdně přepiš zůstatek podle banky — graf ukáže, jestli v příštích 13 týdnech neklesnete pod rezervu. Klikni na týden a uvidíš, co v něm přijde a odejde. Položky „odhad“ se zpřesní vystavením faktury."],
   ["h2:prehled:Zdroje zakázek", "Zdroje zakázek", "Odkud chodí poptávky a který kanál přináší <b>zakázky a zisk</b>, ne jen kontakty. Když pod tabulkou vyplníš <b>Náklady kanálů</b> (nebo zapíšeš výdaj za reklamu), uvidíš, kolik stojí jedna vyhraná zakázka a kolik zisku přinese každá vložená koruna. Kanál pod 1 Kč zisku na korunu prodělává; hodně poptávek a málo výher = chodí srovnávači cen."],
   ["h2:prehled:Plán vs. realita", "Plán vs. realita", "Porovná odhadované a skutečné hodiny u hotových zakázek. Po 5 zakázkách nabídne přepočet norem nebo koeficientu výkonu party — odhady pak sedí na vás, ne na tabulky."],
   ["h2:prehled:📉 Práce, na kterých proděláváte", "Práce, na kterých proděláváte", "Součet skutečných hodin po položkách ceníku ze všech zakázek proti plánu. Práce, která trvá o víc než 15 % déle, je v ceníku levně — tlačítko ji <b>zdraží</b> o odchylku, nebo <b>upraví normu</b> času. Dole podíl neproduktivního času."],
