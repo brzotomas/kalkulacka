@@ -14937,6 +14937,12 @@ const ROADMAPA = [
     p:"U vyklízení vozíte odpad klienta vlastní dodávkou — podle nastavení smlouvy můžete být dopravce odpadů. Ohlášení je jednorázová formalita, bez něj hrozí pokuta při kontrole.",
     k:"Jednorázově ověřit s odpadovým poradcem a zapsat do Nastavení. Pak jen správná věta ve smlouvě a v evidenci odpadů."},
 
+  {id:"riz-smlouvy", o:"riz", f:0, d:3, m:"M", konec:true, n:"Smlouvy s klientem — silné pro nás, férové pro klienta",
+    v:"Nepracují na ústní dohodu ani jen na nabídku. Mají dvě smlouvy a obchodní podmínky od advokáta: <b>smlouvu o dílo s platbou po etapách</b> a <b>smlouvu s platbou předem</b>. V obou je přesný rozsah a cena, harmonogram plateb, předávací protokol, vícepráce jen písemně, právo přerušit práci při neplacení, smluvní pokuta a úrok z prodlení — a u spotřebitele správné poučení o odstoupení. Klient podepisuje před začátkem práce.",
+    p:"Páky na zaplacení, které obstojí i u spotřebitele: <b>platby po etapách</b> (nikdy nemáte v zakázce víc než jednu etapu), <b>podepsaný předávací protokol</b> „převzato bez vad bránících užívání“ (drobné vady převzetí nebrání — přímo ze zákona), <b>právo přerušit práce</b> a posunout termín při prodlení s platbou, <b>smluvní pokuta</b> 0,05 % denně (u firem vyšší) + zákonný úrok z prodlení + u firem 1 200 Kč za uplatnění, a s podepsanou smlouvou, protokolem a fakturou <b>elektronický platební rozkaz</b> během týdnů. U velkých zakázek uznání dluhu nebo notářský zápis se svolením k vykonatelnosti — vymáhá se rovnou exekucí. Pozor na past: smlouva podepsaná u klienta doma je „mimo obchodní prostory“ — spotřebitel může 14 dní odstoupit, a <b>bez poučení až rok a 14 dní</b>. Proto poučení, formulář a jeho výslovná žádost začít dřív (pak platí poměrnou část). <br><br><b>Platba předem se slevou:</b> klient má jistotu — když naší vinou nezačneme v termínu, vrátíme vše do 5 pracovních dnů; když chce skončit, vrátíme nevyčerpanou část. Zneužít to nejde: provedená práce a už vynaložené náklady (kontejnery, odvoz, materiál) se odečtou v <b>plné ceně bez slevy</b> — sleva platí jen za dokončenou a zaplacenou zakázku. Rozpor se řeší nejdřív domluvou a fotkami z protokolu, ne zadržením peněz.",
+    k:"Dvě šablony smlouvy (po etapách / předem) + obchodní podmínky, poučení spotřebitele a formulář pro odstoupení. Vyplní se samy ze zakázky (klient, adresa, rozsah, cena, etapy plateb, termín, sleva) pro demolice i vyklízení, zvlášť pro spotřebitele a pro firmu. Tisk/PDF k podpisu, evidence „podepsáno kdy a kým“, předávací protokol s větou o převzetí a navázání na upomínky a platební rozkaz. Text jednou nechat zkontrolovat advokátem (pár hodin práce) — šablona z kalkulačky je podklad, ne právní služba.",
+    u:"Klauzule do nabídky a předávací protokol už máte — smlouva z nich udělá právně pevný celek."},
+
   /* ---------- BRZY ---------- */
   {id:"nac-vyrobni", o:"nac", f:1, d:3, m:"M", n:"Skutečnost po jednotlivých pracích",
     v:"Mají dva rozpočty: nabídkový pro klienta a výrobní pro sebe (hodiny, kotouče, kontejnery, kdo). Po zakázce porovnají výrobní se skutečností <b>položku po položce</b>.",
@@ -14991,11 +14997,11 @@ const ROADMAPA = [
     v:"Pro každý dražší stroj mají práh: kolik dní ročně se musí používat, aby se nákup vyplatil proti půjčovně.",
     p:"Stroj, který stojí 300 dní v roce, je dražší než půjčovna. Stroj, který si půjčujete každý týden, je levnější koupit.",
     k:"V investiční kalkulačce scénář „půjčovna vs. nákup“ s daty z vašich zakázek (kolikrát jste půjčovali)."},
-  {id:"lide-cinnosti", o:"lide", f:1, d:3, m:"M", n:"Hodiny po činnostech z mobilu",
-    v:"Lidé si v telefonu přepínají činnost (bourání, vynáška, úklid, cesta, čekání). Z toho vznikají vlastní normy firmy.",
-    p:"Je to jediný zdroj přesných cen. Po 20 zakázkách víte, kolik vám opravdu trvá jádro nebo m² obkladu — a můžete nacenit levněji i dráž než konkurence s jistotou.",
-    k:"Stopky jako u vyklízení i pro demolice, s výběrem práce ze zakázky.",
-    u:"Vyklízení má stopky (práce, cesta, vykládka), demolice denní zápis."},
+  {id:"lide-appka", o:"lide", f:1, d:3, m:"L", n:"Evidence práce pro partu — samostatná appka pro zaměstnance",
+    v:"Lidé v telefonu zapisují příchod a odchod, přejezdy, na čem a jak dlouho dělali (zakázka, činnost, kolik m² nebo kusů), fotky a poznámky. Majitel vidí docházku, výkony a srovnání s plánem. Zaměstnanci přitom nevidí ceny, marže ani kalkulaci — vůbec nevědí, že existuje.",
+    p:"Z reálných dat se zpřesňují normy a ceny, vidíte, jestli se parta zrychluje, kolik kdo odpracoval (podklad pro mzdy a bonusy) a kde se ztrácí čas. <b>Dává smysl až při víc zakázkách</b> — z pár zakázek na začátku by čísla byla zkreslená. Odhad: za ~3 měsíce, zadání se do té doby upřesní.",
+    k:"Samostatná webová appka s vlastní adresou a přihlášením, bez odkazu na kalkulačku, napojená na stejnou databázi. Zaměstnanec vidí jen zakázky přidělené své partě: stopky příchod / odchod / cesta / činnost, co se udělalo, fotky, podpis klienta. Do kalkulačky se vrací skutečnost zakázky, docházka a výkony po lidech a měsíční přehled „zrychlujeme se?“. Práva hlídá databáze — zaměstnanec zapisuje a čte jen svoje.",
+    u:"Vyklízení má stopky a posádky, demolice denní zápis — tohle je posun na další úroveň."},
   {id:"lide-neprod", o:"lide", f:1, d:2, m:"S", n:"Neproduktivní čas",
     v:"Měří čekání na výtah, hledání parkování, nákupy, porady, úklid a přejezdy. Podle toho upraví normy a organizaci.",
     p:"Běžně je to 10–20 % pracovní doby. Co se neměří, to se nenacení.",
@@ -15251,7 +15257,7 @@ function renderRoadmapa(){
     hotove.sort((a, b) => String(RM_HOTOVO[b.id].datum).localeCompare(String(RM_HOTOVO[a.id].datum))).map(rmHotovoHTML).join("") + "</div>" : "";
   el.innerHTML = hotovoHTML + (skupiny.length ? skupiny.map(([i, z, pol]) =>
     "<div class='rm-faze'><div class='rm-fh'><span class='rm-fc'>" + (i + 1) + "</span><div><b>" + z[0] + "</b><span class='hint'> — " + z[1] + "</span></div><span class='badge'>" + pol.length + "</span></div>" +
-    pol.sort((a, b) => b.d - a.d).map(rmPolozkaHTML).join("") + "</div>").join("")
+    pol.sort((a, b) => (a.konec ? 1 : 0) - (b.konec ? 1 : 0) || b.d - a.d).map(rmPolozkaHTML).join("") + "</div>").join("")
     : (hotovoHTML ? "" : "<p class='hint' style='padding:12px 0'>Nic neodpovídá filtru.</p>"));
   const hned = ROADMAPA.filter(x => !rmHotova(x) && st[x.id] === "hned");
   $("#rmSouhrn").innerHTML = "<b>" + nHotovo + "</b> hotovo · <b>" + hned.length + "</b> chci brzy · <b>" + pocet(x => st[x.id] === "pozdeji") + "</b> později · <b>" + pocet(x => st[x.id] === "ne") + "</b> nezajímá · <b>" + pocet(x => !st[x.id]) + "</b> neoznačeno";
