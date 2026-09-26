@@ -597,6 +597,14 @@ details.gsec li{margin:3px 0}
 .br-zar-tab input[type=number]{width:74px}
 .br-zar-tab input:not([type]){min-width:130px}
 tr.br-nejl td{background:var(--good-bg)}
+/* roadmapa brzy — kanály, jízdy */
+.br-cac-v{white-space:nowrap;font-size:12.5px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--bg2,rgba(127,127,127,.12))}
+.br-cac-v.ok{background:var(--good-bg);color:var(--good)}
+.br-cac-v.ne{background:var(--bad-bg);color:var(--bad)}
+.br-cac-v.pozor{background:var(--warn-bg);color:var(--warn-ink)}
+.br-det summary{cursor:pointer;font-weight:600;margin:12px 0 6px}
+#brJizdy .ok{color:var(--good);font-weight:700}
+#brJizdy .ne{color:var(--bad);font-weight:600}
 
 
 /* roadmapa */
@@ -1383,11 +1391,17 @@ body.zamceno{overflow:hidden}
   </div>
   <div class="card">
     <h2>Zdroje zakázek — který kanál vydělává</h2>
+    <label class="f" style="max-width:240px;margin:0 0 8px">Období (podle data poptávky)<select id="brCacObd"><option value="3">poslední 3 měsíce</option><option value="6" selected>posledních 6 měsíců</option><option value="12">posledních 12 měsíců</option><option value="0">celá historie</option></select></label>
     <div class="tscroll"><table id="zdrojTab">
-      <thead><tr><th>Zdroj</th><th class="r">Zakázek</th><th class="r">Hotových</th><th class="r">Tržba s DPH (hotové)</th><th class="r">Zisk (hotové)</th></tr></thead>
+      <thead><tr><th>Zdroj</th><th class="r">Poptávek</th><th class="r">Vyhráno</th><th class="r">Tržba s DPH (hotové)</th><th class="r">Zisk (vyhrané)</th><th class="r">Náklad kanálu</th><th class="r">Kč za poptávku</th><th class="r">Kč za zakázku</th><th class="r">Zisk na 1 Kč</th><th>Verdikt</th></tr></thead>
       <tbody></tbody>
     </table></div>
-    <p class="hint" id="zdrojEmpty" style="display:none">Zatím žádné uložené zakázky — zdroj se vybírá v hlavičce kalkulace.</p>
+    <p class="hint" id="brCacSouhrn" style="margin:8px 0 0"></p>
+    <p class="hint" id="zdrojEmpty" style="display:none">Zatím žádné uložené zakázky — zdroj se vybírá v hlavičce kalkulace (i u vyklízení).</p>
+    <details class="br-det"><summary>Náklady kanálů</summary>
+      <p class="hint" style="margin:0 0 8px">Kolik platíte za každý kanál: měsíční paušál (reklama, předplatné portálu) a poplatek za jednu poptávku. Když v Ekonomice zapíšeš výdaj v kategorii <b>Marketing a reklama</b> a v dodavateli nebo popisu bude název kanálu (Google, Facebook, Nejřemeslníci…), za ten měsíc se použije skutečná částka místo odhadu. Zdarma kanály (doporučení, známí) nech prázdné.</p>
+      <div id="brKanaly"></div>
+    </details>
   </div>
 
   <div class="card">
@@ -5054,7 +5068,7 @@ function dorovnat(){
 $("#ulozit").addEventListener("click",()=>{
   if(!J.nazev){alert("Doplň název zakázky, ať ji pak najdeš.");$("#jNazev").focus();return}
   if(!J.zdroj){alert("Vyber zdroj zakázky (odkud přišla) — bez toho nejde report kanálů v Přehledu firmy.");$("#jZdroj").focus();return}
-  if(!J.id)J.id=uid();
+  if(!J.id){J.id=uid();J.zalozeno=faDnes();}
   const v=vypocet();
   const snap=JSON.parse(JSON.stringify(J));
   snap.ulozeno=new Date().toISOString();
@@ -8090,20 +8104,6 @@ $("#odbList").addEventListener("click",e=>{
   }
 });
 /* ---------- zdroje zakázek ---------- */
-function renderZdroje(){
-  const m={};
-  vsechnyZakazkyPrehled().forEach(z=>{const k=z.zdroj||"— neuvedeno —"; m[k]=m[k]||{n:0,h:0,t:0,z:0}; m[k].n++;
-    if(z.status==="hotovo"){m[k].h++; m[k].t+=z.vysCelkem||0; m[k].z+=z.vysZisk||0;}});
-  const keys=Object.keys(m).sort((a,b)=>m[b].z-m[a].z||m[b].n-m[a].n);
-  const tb=$("#zdrojTab tbody"); tb.innerHTML="";
-  $("#zdrojEmpty").style.display=keys.length?"none":"block";
-  keys.forEach(k=>{const r=m[k];
-    const tr=document.createElement("tr");
-    tr.innerHTML="<td>"+esc(k)+"</td><td class='r num'>"+r.n+"</td><td class='r num'>"+r.h+"</td><td class='r num'>"+kc(r.t)+"</td>"+
-      "<td class='r num' style='font-weight:700;color:"+(r.z>=0?"var(--good)":"var(--bad)")+"'>"+kc(r.z)+"</td>";
-    tb.appendChild(tr);
-  });
-}
 /* ---------- plán vs. realita + kalibrace norem ---------- */
 function planZak(z){
   const kv=S.nastaveni.koefVykon>0?S.nastaveni.koefVykon:1;
@@ -12922,7 +12922,7 @@ function vkNactiVYK1(){
 function vykUlozitZakazku(tichy){
   if (!VK.nazev) { alert("Doplň název zakázky, ať ji pak najdeš."); return false; }
   const r = vykVypocet(), sk = (VK.cas || []).length || (VK.skut && (VK.skut.listky || []).length) ? vykSkutecnost() : null;
-  if (!VK.id) VK.id = "vk-" + uid();
+  if (!VK.id) { VK.id = "vk-" + uid(); VK.zalozeno = faDnes(); }
   VK.ulozeno = new Date().toISOString();
   const hod = vkRozpisovy(), rp = r.ok ? vkRozpis(r) : null;
   VK.vysledek = r.ok ? {uctovani:VK.uctovani, sluzba:r.sluzba, cena:hod ? rp.gross : r.gross, naH:hod ? rp.naH : r.naH, V:r.rozsah.V, zdroj:r.rozsah.zdroj,
@@ -16435,6 +16435,114 @@ if (typeof document !== "undefined" && document.addEventListener) {
   document.addEventListener("input", e => { if (e.target.id === "brZakladna") { S.nastaveni.zakladna = e.target.value; save(); } });
 }
 
+/* ---------- Kolik stojí zakázka z každého kanálu ----------
+   Poptávky, vyhrané, zisk po zdrojích (demolice i vyklízení) za období + náklad kanálu:
+   výdaje „Marketing a reklama“ s názvem kanálu v dodavateli/popisu (skutečnost), jinak nastavený
+   měsíční paušál + poplatek za poptávku. → Kč za poptávku, Kč za zakázku, zisk na vloženou korunu. */
+const BR_VYHRANO = ["domluveno", "probíhá", "hotovo"];
+function brZalozeno(z){ return String(z.zalozeno || z.nabVystaveno || z.ulozeno || z.terminOd || "").slice(0, 10); }
+function brKanaly(){ const n = S.nastaveni; if (!n.kanaly || typeof n.kanaly !== "object") n.kanaly = {}; return n.kanaly; }
+function brMesiceObdobi(obd, dnes){
+  const d = dnes || faDnes(), m = [];
+  let y = +d.slice(0, 4), mm = +d.slice(5, 7);
+  let pocet = +obd || 0;
+  if (!pocet) {
+    const vse = (S.zakazky || []).concat(S.vyklizeni || []).map(brZalozeno).filter(Boolean).sort();
+    const od = vse[0] || d;
+    pocet = Math.max(1, (y - +od.slice(0, 4)) * 12 + mm - +od.slice(5, 7) + 1);
+  }
+  for (let i = 0; i < pocet; i++) { m.unshift(y + "-" + String(mm).padStart(2, "0")); mm--; if (!mm) { mm = 12; y--; } }
+  return m;
+}
+const BR_KANAL_ALIAS = {"Nejřemeslníci":["nejřemeslníci", "nejremeslnici"], "Poptavky.cz":["poptavky.cz", "poptávky.cz", "poptavky"], "Google":["google", "adwords"],
+  "Facebook":["facebook", "meta ", "meta platforms", "instagram"], "Stavebniny":["stavebnin"], "Doporučení řemeslníka":["doporuč", "provize za doporuč"], "Stálá firma":["stálá firma"], "Rodina / známí":["rodina", "známí"]};
+function brVydajKanal(v){
+  if (v.kat !== "Marketing a reklama") return "";
+  if (v.kanal && ZDROJE.includes(v.kanal)) return v.kanal;
+  const txt = " " + ((v.dodavatel || "") + " " + (v.popis || "")).toLowerCase() + " ";
+  return Object.keys(BR_KANAL_ALIAS).find(k => BR_KANAL_ALIAS[k].some(a => txt.includes(a))) || "";
+}
+function brCac(obd, dnes){
+  const mesice = brMesiceObdobi(obd, dnes), vMes = x => mesice.includes(String(x || "").slice(0, 7)), kan = brKanaly(), m = {};
+  const radek = k => m[k] = m[k] || {zdroj:k, pop:0, vyhr:0, hot:0, trzba:0, zisk:0, naklad:0, zVydaju:0, odhad:0};
+  (S.zakazky || []).forEach(z => { if (!vMes(brZalozeno(z))) return; const r = radek(z.zdroj || "— neuvedeno —"); r.pop++;
+    if (BR_VYHRANO.includes(z.status)) { r.vyhr++; r.zisk += z.vysZisk || 0; }
+    if (z.status === "hotovo") { r.hot++; r.trzba += z.vysCelkem || 0; } });
+  (S.vyklizeni || []).forEach(z => { if (!vMes(brZalozeno(z))) return; const r = radek(z.zdroj || "— neuvedeno —"), x = z.vysledek || {}; r.pop++;
+    if (BR_VYHRANO.includes(z.status)) { r.vyhr++; r.zisk += x.skutGp != null ? x.skutGp : (x.gp || 0); }
+    if (z.status === "hotovo") { r.hot++; r.trzba += x.skutCena != null ? x.skutCena : (x.cena || 0); } });
+  /* náklad kanálu po měsících: výdaje, jinak odhad z nastavení */
+  const vyd = {};
+  (S.vydaje || []).forEach(v => { if (!vMes(v.datum)) return; const k = brVydajKanal(v); if (!k) return; const kl = k + "|" + v.datum.slice(0, 7); vyd[kl] = (vyd[kl] || 0) + (+v.castka || 0); });
+  const popMes = {};
+  (S.zakazky || []).concat(S.vyklizeni || []).forEach(z => { const d = brZalozeno(z); if (!vMes(d)) return; const kl = (z.zdroj || "— neuvedeno —") + "|" + d.slice(0, 7); popMes[kl] = (popMes[kl] || 0) + 1; });
+  ZDROJE.forEach(k => {
+    const c = kan[k] || {};
+    mesice.forEach(ms => {
+      const kl = k + "|" + ms;
+      if (vyd[kl] > 0) { radek(k).naklad += vyd[kl]; m[k].zVydaju += vyd[kl]; }
+      else { const o = (+c.mes || 0) + (+c.pop || 0) * (popMes[kl] || 0); if (o > 0) { radek(k).naklad += o; m[k].odhad += o; } }
+    });
+  });
+  const rows = Object.values(m).map(r => {
+    r.uspech = r.pop ? r.vyhr / r.pop : 0;
+    r.naPop = r.naklad > 0 && r.pop ? r.naklad / r.pop : null;
+    r.naZak = r.naklad > 0 && r.vyhr ? r.naklad / r.vyhr : null;
+    r.naKc = r.naklad > 0 ? r.zisk / r.naklad : null;
+    r.verdikt = r.naklad <= 0 ? (r.vyhr ? ["ok", "zadarmo — pěstovat"] : ["", "—"])
+      : !r.vyhr ? ["ne", "nic nepřineslo"]
+      : r.naKc < 1 ? ["ne", "prodělává — omezit"]
+      : r.naKc < 3 ? ["pozor", "drží se"]
+      : ["ok", "vydělává — přidat"];
+    if (r.pop >= 5 && r.uspech < 0.15 && r.naklad > 0) r.verdikt = ["ne", "srovnávači cen — omezit"];
+    return r;
+  }).sort((a, b) => (b.zisk - b.naklad) - (a.zisk - a.naklad) || b.pop - a.pop);
+  const sum = rows.reduce((a, r) => { a.pop += r.pop; a.vyhr += r.vyhr; a.naklad += r.naklad; a.zisk += r.zisk; return a; }, {pop:0, vyhr:0, naklad:0, zisk:0});
+  return {mesice, rows, sum};
+}
+function renderZdroje(){
+  const tb = $("#zdrojTab tbody"); if (!tb) return;
+  const sel = $("#brCacObd"), obd = sel ? sel.value : "6", c = brCac(obd);
+  tb.innerHTML = "";
+  $("#zdrojEmpty").style.display = c.rows.some(r => r.pop) ? "none" : "block";
+  const zc = v => v == null ? "<span class='hint'>—</span>" : kc(v);
+  c.rows.forEach(r => {
+    if (!r.pop && !r.naklad) return;
+    const tr = document.createElement("tr");
+    tr.innerHTML = "<td>" + esc(r.zdroj) + "</td><td class='r num'>" + r.pop + "</td><td class='r num'>" + r.vyhr + (r.pop ? " <span class='hint'>(" + fmt0.format(r.uspech * 100) + " %)</span>" : "") + "</td>" +
+      "<td class='r num'>" + kc(r.trzba) + "</td><td class='r num' style='font-weight:700;color:" + (r.zisk >= 0 ? "var(--good)" : "var(--bad)") + "'>" + kc(r.zisk) + "</td>" +
+      "<td class='r num'>" + (r.naklad > 0 ? kc(r.naklad) + (r.zVydaju > 0 && r.odhad > 0 ? " <span class='hint'>část odhad</span>" : r.odhad > 0 ? " <span class='hint'>odhad</span>" : "") : "<span class='hint'>0</span>") + "</td>" +
+      "<td class='r num'>" + zc(r.naPop) + "</td><td class='r num'>" + zc(r.naZak) + "</td>" +
+      "<td class='r num'>" + (r.naKc == null ? "<span class='hint'>—</span>" : "<b>" + fmt1.format(r.naKc) + " Kč</b>") + "</td>" +
+      "<td><span class='br-cac-v " + r.verdikt[0] + "'>" + r.verdikt[1] + "</span></td>";
+    tb.appendChild(tr);
+  });
+  const s = $("#brCacSouhrn");
+  if (s) {
+    const plac = c.rows.filter(r => r.naZak != null).sort((a, b) => a.naZak - b.naZak);
+    s.innerHTML = c.sum.pop ? "Za " + c.mesice.length + " měs.: " + c.sum.pop + " poptávek, " + c.sum.vyhr + " vyhraných (" + fmt0.format(c.sum.vyhr / c.sum.pop * 100) + " %)" +
+      (c.sum.naklad > 0 ? ", na marketing " + kc(c.sum.naklad) + " = <b>" + kc(c.sum.vyhr ? c.sum.naklad / c.sum.vyhr : c.sum.naklad) + " na vyhranou zakázku</b>, zisk na vloženou korunu " + fmt1.format(c.sum.zisk / c.sum.naklad) + " Kč." : ". Vyplň náklady kanálů níže, ať vidíš, kolik stojí jedna zakázka.") +
+      (plac.length >= 2 ? "<br>Nejlevněji přivádí zakázku <b>" + esc(plac[0].zdroj) + "</b> (" + kc(plac[0].naZak) + "), nejdráž <b>" + esc(plac[plac.length - 1].zdroj) + "</b> (" + kc(plac[plac.length - 1].naZak) + ")." : "") : "";
+  }
+  brRenderKanaly();
+}
+function brRenderKanaly(){
+  const el = $("#brKanaly"); if (!el || el.contains(document.activeElement)) return;
+  const kan = brKanaly();
+  el.innerHTML = "<div class='tscroll'><table class='odp-tab'><thead><tr><th>Kanál</th><th class='r'>Paušál Kč/měsíc</th><th class='r'>Kč za poptávku</th></tr></thead><tbody>" +
+    ZDROJE.filter(k => k !== "Jiné").map(k => { const c = kan[k] || {}; return "<tr><td>" + esc(k) + "</td><td class='r'><input type='number' min='0' step='100' class='num' style='width:110px' data-brkan='" + esc(k) + "' data-pole='mes' value='" + (c.mes || "") + "'></td>" +
+      "<td class='r'><input type='number' min='0' step='10' class='num' style='width:90px' data-brkan='" + esc(k) + "' data-pole='pop' value='" + (c.pop || "") + "'></td></tr>"; }).join("") +
+    "</tbody></table></div>";
+}
+if (typeof document !== "undefined" && document.addEventListener) {
+  document.addEventListener("input", e => {
+    const k = e.target.dataset && e.target.dataset.brkan; if (!k) return;
+    const kan = brKanaly(); kan[k] = kan[k] || {}; kan[k][e.target.dataset.pole] = Math.max(0, +e.target.value || 0); save();
+    renderZdroje();
+  });
+  document.addEventListener("change", e => { if (e.target.id === "brCacObd") renderZdroje(); });
+}
+
 /* ================= ROADMAPA — co řeší velké firmy =================
    Samostatná záložka: seznam věcí, na kterých velké demoliční, dopravní a odpadové firmy dělají marži
    (nebo se chrání před ztrátou), rozdělený do fází. Nic z toho zatím není naprogramované v kalkulaci —
@@ -16827,7 +16935,10 @@ const RM_HOTOVO = {
     kde:"Ceník a nastavení → <b>♻️ Zařízení na odpad</b>; Kalkulace → Odvoz suti a likvidace → 🧭 Nejlevnější zařízení; Vyklízení → 🧭 Kam s odpadem."},
   "dop-prazdne":{datum:"2026-09-26",
     co:"V Plánu karta <b>🚐 Plán jízd a kilometry</b>: vybereš den, kalkulačka najde všechny zakázky toho dne (demolice i vyklízení), spočítá <b>nejkratší okruh</b> ze základny přes všechny a zpět (po silnici) a porovná ho s jízdami na každou zakázku zvlášť — pořadí zastávek, ušetřené km, hodiny a Kč. Pod tím <b>kilometry tohoto měsíce</b>: km na zakázku a u vyklízení, jakou část km jezdí auto s nákladem a kolik je prázdných jízd.",
-    kde:"<b>📅 Plán → 🚐 Plán jízd a kilometry</b>. Adresa základny se vyplní z firmy, jde přepsat."}
+    kde:"<b>📅 Plán → 🚐 Plán jízd a kilometry</b>. Adresa základny se vyplní z firmy, jde přepsat."},
+  "obch-cac":{datum:"2026-09-26",
+    co:"Karta <b>Zdroje zakázek</b> počítá za zvolené období (3, 6, 12 měsíců nebo celou historii) po kanálech: poptávky, vyhrané a úspěšnost, tržbu, zisk — u demolic i vyklízení — a <b>náklad kanálu</b>. Z něj <b>Kč za poptávku, Kč za vyhranou zakázku a zisk na vloženou korunu</b> s verdiktem (vydělává — přidat / drží se / prodělává — omezit / srovnávači cen / zadarmo — pěstovat). Náklad se bere ze skutečných výdajů „Marketing a reklama“ s názvem kanálu v dodavateli či popisu, jinak z nastaveného měsíčního paušálu a poplatku za poptávku. Nové zakázky si pamatují datum poptávky.",
+    kde:"Přehled firmy → <b>Zdroje zakázek — který kanál vydělává</b>; náklady v rozbalení <b>Náklady kanálů</b> pod tabulkou."}
 };
 const rmHotova = x => !!RM_HOTOVO[x.id];
 const RM_JIZ = [
@@ -17082,7 +17193,7 @@ const NAPOVEDA = [
 
   /* ---------------- PŘEHLED FIRMY ---------------- */
   ["h2:prehled:Měsíční výsledky", "Měsíční výsledky", "Tržby, výdaje a zisk po měsících z hotových zakázek a výdajů. Ukáže sezónnost a jestli firma roste."],
-  ["h2:prehled:Zdroje zakázek", "Zdroje zakázek", "Odkud chodí poptávky a který kanál přináší <b>zakázky a zisk</b>, ne jen kontakty. Podle toho dávej peníze a čas do marketingu."],
+  ["h2:prehled:Zdroje zakázek", "Zdroje zakázek", "Odkud chodí poptávky a který kanál přináší <b>zakázky a zisk</b>, ne jen kontakty. Když pod tabulkou vyplníš <b>Náklady kanálů</b> (nebo zapíšeš výdaj za reklamu), uvidíš, kolik stojí jedna vyhraná zakázka a kolik zisku přinese každá vložená koruna. Kanál pod 1 Kč zisku na korunu prodělává; hodně poptávek a málo výher = chodí srovnávači cen."],
   ["h2:prehled:Plán vs. realita", "Plán vs. realita", "Porovná odhadované a skutečné hodiny u hotových zakázek. Po 5 zakázkách nabídne přepočet norem nebo koeficientu výkonu party — odhady pak sedí na vás, ne na tabulky."],
   ["h2:prehled:📉 Práce, na kterých proděláváte", "Práce, na kterých proděláváte", "Součet skutečných hodin po položkách ceníku ze všech zakázek proti plánu. Práce, která trvá o víc než 15 % déle, je v ceníku levně — tlačítko ji <b>zdraží</b> o odchylku, nebo <b>upraví normu</b> času. Dole podíl neproduktivního času."],
   ["h2:prehled:🎯 Přesnost odhadů v čase", "Přesnost odhadů v čase", "Jak přesně odhadujete hodiny, po měsících. 100 % = skutečnost přesně podle plánu. Když se přesnost drží nad 85 %, můžete nacenit těsněji a vyhrát víc zakázek bez rizika."],
