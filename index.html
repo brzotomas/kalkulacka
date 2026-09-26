@@ -1355,7 +1355,7 @@ body.zamceno{overflow:hidden}
 
   <div class="card">
     <h2>Pro účetní</h2>
-    <p class="hint" style="margin:0 0 10px">Jednou měsíčně stáhni balík a pošli ho účetní. Obsahuje knihu vydaných faktur, seznam výdajů, všechny faktury jako PDF a fotky účtenek.</p>
+    <p class="hint" style="margin:0 0 10px">Jednou měsíčně stáhni balík a pošli ho účetní. Obsahuje knihu vydaných faktur, seznam výdajů, všechny faktury jako PDF i ve formátu <b>ISDOC</b> (účetní program je načte sám) a fotky účtenek.</p>
     <div class="fa-filtr">
       <select id="ucObdobi"></select>
       <button class="b prim" id="ucExport">📦 Stáhnout podklady (ZIP)</button>
@@ -9590,6 +9590,7 @@ function renderFaktury(){
         (f.typ === "storno" && f.stav === "vystavena" ? "<button class='mini act faZap' data-id='" + f.id + "' title='Peníze jsme klientovi vrátili'>✓ Vráceno</button>" : "") +
         (faPoSplatnosti(f) ? "<button class='mini act faUpom' data-id='" + f.id + "' title='Poslat upomínku'>🔔</button>" : "") +
         "<button class='mini act faPdf' data-id='" + f.id + "' title='Stáhnout PDF'>PDF</button>" +
+        (f.cislo ? "<button class='mini act brIsdoc' data-id='" + f.id + "' title='Stáhnout ISDOC pro účetní program'>ISDOC</button>" : "") +
         "<button class='mini faSmaz' data-id='" + f.id + "' title='Smazat doklad' aria-label='Smazat doklad " + esc(f.cislo) + "'>🗑</button>" +
       "</div></td>";
     tb.appendChild(tr);
@@ -10791,6 +10792,7 @@ $("#ucExport").addEventListener("click", async () => {
             "</title><style>body{margin:0;background:#8C877D}@media print{body{background:#fff}@page{size:A4;margin:0}}</style></head><body>" + faHTML(f) + "</body></html>")});
       }
     }
+    if (typeof brIsdocXml === "function") { fakt.forEach(f => { if (f.cislo) try { soubory.push({nazev:"isdoc/" + brIsdocJmeno(f), data:enc.encode(brIsdocXml(f))}); } catch (err) {} }); save(); }
     let chybiFoto = 0;
     for (let i = 0; i < vyd.length; i++) {
       const v = vyd[i]; if (!v.foto) continue;
@@ -10809,6 +10811,7 @@ $("#ucExport").addEventListener("click", async () => {
       (chybiFoto ? "POZOR: " + chybiFoto + " fotek dokladů se nepodařilo přibalit (jsou na jiném zařízení).\r\n" : "") +
       "\r\nOrientační výsledek roku " + obd.slice(0, 4) + " z aplikace: výnosy " + kc(d.vynosy) + ", náklady " + kc(d.naklady) +
       ", základ daně " + kc(d.zaklad) + ", daň 21 % " + kc(d.dan) + ".\r\n" +
+      "Složka isdoc/: stejné doklady ve formátu ISDOC (národní standard e-faktury) — účetní program (Pohoda, Money S3, ABRA Flexi…) je načte bez přepisování.\r\n" +
       "Firma není plátcem DPH. Zálohové faktury nejsou daňové doklady; záloha je odečtena v konečné faktuře.\r\n" +
       "Opravy se dělají samostatným dokladem se zápornými položkami ve stejné číselné řadě (storno celé faktury, dobropis části), s odkazem na původní fakturu.\r\n";
     soubory.unshift({nazev:"PRECTI-ME.txt", data:enc.encode("﻿" + souhrn)});
@@ -16986,6 +16989,95 @@ if (typeof document !== "undefined" && document.addEventListener) {
   });
 }
 
+/* ---------- Export faktur pro účetnictví (ISDOC 6.0.2) ----------
+   Každý vystavený doklad jako .isdoc (XML národního standardu), který Pohoda, Money, ABRA Flexi a další načtou bez
+   přepisování. Neplátce DPH: VATApplicable false, sazba 0 %. Storno a dobropis = typ 2 s odkazem na původní doklad,
+   zálohová faktura = typ 4, odečtené zálohy = NonTaxedDeposits. */
+function brXml(s){ return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, ""); }
+function brIsdocAdresa(s){
+  const casti = String(s || "").split(",").map(x => x.trim()).filter(Boolean);
+  const out = {ulice:"", cp:"", mesto:"", psc:""};
+  if (!casti.length) return out;
+  const pscI = casti.findIndex(x => /\b\d{3}\s?\d{2}\b/.test(x));
+  if (pscI >= 0) {
+    const m = casti[pscI].match(/\b(\d{3})\s?(\d{2})\b/); out.psc = m[1] + m[2];
+    out.mesto = casti[pscI].replace(m[0], "").trim() || (casti[pscI + 1] || casti[pscI - 1] || "");
+  } else if (casti.length > 1) out.mesto = casti[casti.length - 1];
+  const prvni = pscI === 0 && casti.length === 1 ? "" : casti[0];
+  const u = prvni.match(/^(.*?)\s+(\d+[\w]*(?:\/\d+[\w]*)?)$/);
+  if (u) { out.ulice = u[1]; out.cp = u[2]; } else out.ulice = prvni;
+  if (!out.mesto && casti.length > 1) out.mesto = casti[1];
+  if (!out.ulice) out.ulice = out.mesto;
+  return out;
+}
+function brUuid(){
+  if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID().toUpperCase();
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === "x" ? r : (r & 3 | 8)).toString(16); }).toUpperCase();
+}
+function brIsdocUuid(f){
+  if (!f.isdocUuid) { f.isdocUuid = brUuid(); const ul = (S.faktury || []).find(x => x.id === f.id); if (ul && ul !== f) ul.isdocUuid = f.isdocUuid; }
+  return f.isdocUuid;
+}
+function brIsdocXml(f){
+  const d = f.dodavatel || faDodavatel(), o = f.odberatel || {}, n2 = x => (Math.round((+x || 0) * 100) / 100).toFixed(2);
+  const storno = f.typ === "storno", typ = storno ? 2 : f.typ === "zal" ? 4 : 1;
+  const E = (tag, v) => "<" + tag + ">" + brXml(v) + "</" + tag + ">";
+  const party = (p, jmeno, adresa) => {
+    const a = brIsdocAdresa(adresa);
+    return "<Party><PartyIdentification>" + E("ID", String(p.ico || "").replace(/\s/g, "")) + "</PartyIdentification><PartyName>" + E("Name", jmeno) + "</PartyName>" +
+      "<PostalAddress>" + E("StreetName", a.ulice) + E("BuildingNumber", a.cp) + E("CityName", a.mesto) + E("PostalZone", a.psc) + "<Country><IdentificationCode>CZ</IdentificationCode><Name>Česká republika</Name></Country></PostalAddress>" +
+      (p.dic ? "<PartyTaxScheme>" + E("CompanyID", String(p.dic).replace(/\s/g, "")) + "<TaxScheme>VAT</TaxScheme></PartyTaxScheme>" : "") +
+      (p.telefon || p.email ? "<Contact>" + (p.telefon ? E("Telephone", p.telefon) : "") + (p.email ? E("ElectronicMail", p.email) : "") + "</Contact>" : "") + "</Party>";
+  };
+  const radky = (f.polozky || []).filter(p => p.celkem || p.popis).map(p => ({popis:p.popis || "", mn:+p.mnozstvi || 0, mj:p.mj || "", cena:+p.cenaMJ || 0, celkem:+p.celkem || 0}));
+  (f.slevy || []).forEach(s => { if (s.castka) radky.push({popis:(s.popis || "Sleva") + (s.pct ? " " + String(s.pct).replace(".", ",") + " %" : ""), mn:1, mj:"", cena:-s.castka, celkem:-s.castka}); });
+  const bezZaokr = Math.round(radky.reduce((a, r) => a + r.celkem, 0) * 100) / 100;
+  const zaokr = Math.round(((+f.celkem || 0) - bezZaokr) * 100) / 100;
+  const odp = storno ? [] : faOdpocty(f), zaplZal = odp.reduce((a, x) => a + (+x.castka || 0), 0);
+  const kc2 = Math.round(((+f.celkem || 0) - zaplZal) * 100) / 100;
+  const ucet = String(d.bankUcet || ""), [cisloUctu, kodBanky] = ucet.includes("/") ? ucet.split("/").map(x => x.trim()) : [ucet.trim(), ""];
+  const orig = storno && f.odkaz ? ((S.faktury || []).find(x => x.id === f.odkaz.id) || f.odkaz) : null;
+  const pozn = [f.poznamka, storno && f.duvodStorna ? "Důvod: " + f.duvodStorna : "", d.platceDPH ? "" : "Dodavatel není plátcem DPH."].filter(Boolean).join(" ");
+  return '<?xml version="1.0" encoding="UTF-8"?>\n<Invoice xmlns="http://isdoc.cz/namespace/2013" version="6.0.2">' +
+    E("DocumentType", typ) + E("ID", f.cislo) + E("UUID", brIsdocUuid(f)) + E("IssueDate", f.vystaveno) + (f.duzp && typ !== 4 ? E("TaxPointDate", f.duzp) : "") +
+    "<VATApplicable>" + (d.platceDPH ? "true" : "false") + "</VATApplicable><ElectronicPossibilityAgreementReference></ElectronicPossibilityAgreementReference>" + (pozn ? E("Note", pozn) : "") +
+    "<LocalCurrencyCode>CZK</LocalCurrencyCode><CurrRate>1</CurrRate><RefCurrRate>1</RefCurrRate>" +
+    "<AccountingSupplierParty>" + party(d, d.firma, d.adresa) + "</AccountingSupplierParty>" +
+    "<AccountingCustomerParty>" + party(o, o.jmeno, o.adresa) + "</AccountingCustomerParty>" +
+    (orig ? "<OriginalDocumentReferences><OriginalDocumentReference id=\"OrigDoc\">" + E("ID", orig.cislo) + (orig.vystaveno ? E("IssueDate", orig.vystaveno) : "") + (orig.isdocUuid ? E("UUID", orig.isdocUuid) : "") + "</OriginalDocumentReference></OriginalDocumentReferences>" : "") +
+    "<InvoiceLines>" + radky.map((r, i) => "<InvoiceLine>" + E("ID", i + 1) +
+      "<InvoicedQuantity" + (r.mj ? " unitCode=\"" + brXml(String(r.mj).replace("²", "2").replace("³", "3")) + "\"" : "") + ">" + (Math.round(r.mn * 1000) / 1000) + "</InvoicedQuantity>" +
+      E("LineExtensionAmount", n2(r.celkem)) + E("LineExtensionAmountTaxInclusive", n2(r.celkem)) + "<LineExtensionTaxAmount>0.00</LineExtensionTaxAmount>" +
+      E("UnitPrice", n2(r.cena)) + E("UnitPriceTaxInclusive", n2(r.cena)) + "<ClassifiedTaxCategory><Percent>0</Percent><VATCalculationMethod>0</VATCalculationMethod><VATApplicable>false</VATApplicable></ClassifiedTaxCategory>" +
+      "<Item>" + E("Description", r.popis) + "</Item></InvoiceLine>").join("") + "</InvoiceLines>" +
+    (odp.length ? "<NonTaxedDeposits>" + odp.map(x => "<NonTaxedDeposit>" + E("ID", x.cislo || "") + E("VariableSymbol", faVS(x.cislo || "")) + E("DepositAmount", n2(x.castka)) + "</NonTaxedDeposit>").join("") + "</NonTaxedDeposits>" : "") +
+    "<TaxTotal><TaxSubTotal>" + E("TaxableAmount", n2(bezZaokr)) + "<TaxAmount>0.00</TaxAmount>" + E("TaxInclusiveAmount", n2(bezZaokr)) +
+      "<AlreadyClaimedTaxableAmount>0.00</AlreadyClaimedTaxableAmount><AlreadyClaimedTaxAmount>0.00</AlreadyClaimedTaxAmount><AlreadyClaimedTaxInclusiveAmount>0.00</AlreadyClaimedTaxInclusiveAmount>" +
+      E("DifferenceTaxableAmount", n2(bezZaokr)) + "<DifferenceTaxAmount>0.00</DifferenceTaxAmount>" + E("DifferenceTaxInclusiveAmount", n2(bezZaokr)) +
+      "<TaxCategory><Percent>0</Percent><VATApplicable>false</VATApplicable></TaxCategory></TaxSubTotal><TaxAmount>0.00</TaxAmount></TaxTotal>" +
+    "<LegalMonetaryTotal>" + E("TaxExclusiveAmount", n2(bezZaokr)) + E("TaxInclusiveAmount", n2(bezZaokr)) +
+      "<AlreadyClaimedTaxExclusiveAmount>0.00</AlreadyClaimedTaxExclusiveAmount><AlreadyClaimedTaxInclusiveAmount>0.00</AlreadyClaimedTaxInclusiveAmount>" +
+      E("DifferenceTaxExclusiveAmount", n2(bezZaokr)) + E("DifferenceTaxInclusiveAmount", n2(bezZaokr)) + E("PayableRoundingAmount", n2(zaokr)) +
+      E("PaidDepositsAmount", n2(zaplZal)) + E("PayableAmount", n2(kc2)) + "</LegalMonetaryTotal>" +
+    (faZpusob(f) === "prevod" && (cisloUctu || d.iban) ? "<PaymentMeans><Payment>" + E("PaidAmount", n2(Math.max(0, +f.kUhrade || 0))) + "<PaymentMeansCode>42</PaymentMeansCode><Details>" +
+      E("PaymentDueDate", f.splatnost || f.vystaveno) + E("ID", cisloUctu) + E("BankCode", kodBanky) + "<Name></Name>" + E("IBAN", d.iban || "") + E("BIC", d.swift || "") +
+      E("VariableSymbol", faVS(f.cislo)) + "<ConstantSymbol></ConstantSymbol><SpecificSymbol></SpecificSymbol></Details></Payment></PaymentMeans>" : "") +
+    "</Invoice>\n";
+}
+function brIsdocJmeno(f){ return faPdfJmeno(f).replace(/\.pdf$/i, "") + ".isdoc"; }
+function brIsdocStahni(f){
+  if (!f || !f.cislo) return;
+  const xml = brIsdocXml(f); save();
+  stahniBlob(new Blob([xml], {type:"application/xml"}), brIsdocJmeno(f));
+}
+if (typeof document !== "undefined" && document.addEventListener) {
+  document.addEventListener("click", e => {
+    const b = e.target.closest && e.target.closest(".brIsdoc"); if (!b) return;
+    e.stopPropagation(); e.preventDefault();
+    brIsdocStahni((S.faktury || []).find(f => f.id === b.dataset.id));
+  }, true);
+}
+
 /* ================= ROADMAPA — co řeší velké firmy =================
    Samostatná záložka: seznam věcí, na kterých velké demoliční, dopravní a odpadové firmy dělají marži
    (nebo se chrání před ztrátou), rozdělený do fází. Nic z toho zatím není naprogramované v kalkulaci —
@@ -17387,7 +17479,10 @@ const RM_HOTOVO = {
     kde:"Přehled firmy → <b>🤝 Partneři a rámcové smlouvy</b>; výběr partnera v Kalkulaci (Stálý odběratel) a ve Vyklízení; úkoly v <b>📅 Plánu</b>. Smlouvu nechte jednou zkontrolovat advokátem."},
   "pen-cashflow":{datum:"2026-09-27",
     co:"Karta <b>💰 Peníze na 13 týdnů dopředu</b>: zadáš zůstatek na účtu a rezervu a kalkulačka týden po týdnu spočítá, co přijde (vystavené faktury podle splatnosti, zálohy a doplatky domluvených zakázek — u partnera s jeho splatností a měsíční fakturací) a co odejde (přímé náklady zakázek v týdnu práce, fixní náklady a plán lidí z Ekonomiky, výběry majitelů, zálohy na daň, jednorázové položky jako nákup stroje). Graf zůstatku s čárou rezervy, rozpis každého týdne kliknutím a <b>varování</b>, kdy by peníze klesly pod rezervu nebo došly, s radou co udělat. Opraven i výpočet „Podle výdajů za 3 měsíce“ ve fixních nákladech (četl špatné pole a ukazoval 0).",
-    kde:"Přehled firmy → <b>💰 Peníze na 13 týdnů dopředu</b> (pod Penězi na cestě)."}
+    kde:"Přehled firmy → <b>💰 Peníze na 13 týdnů dopředu</b> (pod Penězi na cestě)."},
+  "pen-isdoc":{datum:"2026-09-27",
+    co:"Každý vystavený doklad jde stáhnout ve formátu <b>ISDOC 6.0.2</b> (národní standard e-faktury) — tlačítko <b>ISDOC</b> v seznamu faktur, a ZIP pro účetní má novou složku <b>isdoc/</b> se všemi doklady období. Účetní program (Pohoda, Money S3, ABRA Flexi…) je naimportuje bez přepisování. Faktura = typ 1, zálohová = typ 4, storno a dobropis = typ 2 s odkazem na původní doklad; slevy jako řádky, odečtené zálohy, zaokrouhlení, účet, IBAN, VS a splatnost; neplátce DPH se sazbou 0 %. Každý doklad má stálé UUID.",
+    kde:"<b>Faktury a daně</b> → seznam dokladů (tlačítko ISDOC) a <b>Pro účetní</b> → 📦 Stáhnout podklady (ZIP). Při prvním importu u účetní ověřte jeden doklad."}
 };
 const rmHotova = x => !!RM_HOTOVO[x.id];
 const RM_JIZ = [
@@ -17636,7 +17731,7 @@ const NAPOVEDA = [
   ["h2:faktury:Párování plateb z banky", "Párování plateb", "Nahraješ výpis z banky (CSV) a kalkulačka podle variabilního symbolu a částky najde zaplacené faktury. Před označením se zeptá."],
   ["h2:faktury:Výdaje a doklady", "Výdaje a doklady", "Nákupy firmy (nafta, nářadí, materiál, služby) s kategorií a fotkou účtenky. Snižují základ daně a jdou účetní. „Vyfotit účtenku“ funguje i z mobilu."],
   ["h2:faktury:Daně a výsledek hospodaření", "Daně a výsledek", "Výnosy z faktur − výdaje = výsledek hospodaření, odhad <b>daně z příjmů 21 %</b> a kolik si můžete vyplatit po <b>srážkové dani 15 %</b>. Říká i, kolik % z každé faktury si odkládat na daň. ⓘ u daní vysvětluje, proč jsou dvě."],
-  ["h2:faktury:Pro účetní", "Pro účetní", "Jedním tlačítkem ZIP s fakturami, výdaji a přehledy za zvolené období — pošleš účetní a nemusíte nic přepisovat."],
+  ["h2:faktury:Pro účetní", "Pro účetní", "Jedním tlačítkem ZIP s fakturami, výdaji a přehledy za zvolené období — pošleš účetní a nemusíte nic přepisovat. Faktury jsou v něm i ve formátu ISDOC (složka isdoc/): Pohoda, Money, ABRA Flexi a další je naimportují samy. Jednotlivou fakturu v ISDOC stáhneš tlačítkem ISDOC v seznamu dokladů — hodí se i pro firmy, které e-faktury chtějí."],
   ["h2:faktury:Synchronizace", "Synchronizace", "Stejná data na telefonu, počítači i u parťáka přes Supabase. Po přihlášení e-mailem se změny posílají samy. Bez synchronizace je všechno jen v tomto prohlížeči — pak dělej zálohy (Ceník a nastavení → Data)."],
   ["sum:faktury:🧪 Zkušební data", "Zkušební data", "Smaže všechny doklady — jen na vyzkoušení fakturace před ostrým provozem. Ostré doklady se nemažou, ale stornují."],
 
