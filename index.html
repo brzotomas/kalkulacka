@@ -501,6 +501,34 @@ details.gsec li{margin:3px 0}
 @media (max-width:560px){.ek-fix-r.ek-nar{grid-template-columns:1fr 1fr}.ek-fix-r.ek-nar>input:first-child{grid-column:1/-1}}
 
 
+/* nápověda ⓘ */
+.nap-i{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;min-width:17px;padding:0;margin:0 0 0 6px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);font:italic 700 11px/1 Georgia,"Times New Roman",serif;text-transform:none;letter-spacing:0;vertical-align:1px;cursor:pointer;flex:0 0 auto}
+.nap-i:hover,.nap-i:focus-visible{border-color:var(--accent);color:var(--accent);outline:none}
+.nap-i::before{content:"";position:absolute;left:-7px;top:-7px;width:31px;height:31px}
+.nap-i{position:relative}
+.nap-lbl{display:inline}
+label.chk .nap-i{margin-left:2px}
+.nap-ukazka{cursor:default;vertical-align:0}
+.nap-pop{position:fixed;z-index:9000;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.18),var(--shadow);font-size:13.5px;line-height:1.5;max-height:min(70vh,520px);display:flex;flex-direction:column;text-transform:none;letter-spacing:0;font-weight:400}
+.nap-pop[hidden]{display:none}
+.nap-pop.dole{max-height:62vh;border-radius:14px}
+.nap-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px 6px 14px;border-bottom:1px solid var(--line)}
+.nap-h b{font-size:14px}
+.nap-x{background:none;border:0;color:var(--muted);font-size:22px;line-height:1;cursor:pointer;padding:2px 6px;font-family:inherit}
+.nap-t{padding:10px 14px 4px;overflow:auto}
+.nap-f{padding:6px 14px 10px;text-align:right}
+.nap-pr{background:none;border:0;color:var(--accent);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;padding:4px 0}
+#napMapa .vybg{margin:14px 0 4px;font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent)}
+.nap-tab{width:100%;border-collapse:collapse;font-size:13px;margin:4px 0 12px}
+.nap-tab th,.nap-tab td{text-align:left;vertical-align:top;padding:6px 8px;border-bottom:1px solid var(--line)}
+.nap-tab th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.nap-slov{margin:4px 0 12px;display:grid;grid-template-columns:minmax(120px,210px) 1fr;gap:4px 14px;font-size:13.5px}
+.nap-slov dt{font-weight:700}
+.nap-slov dd{margin:0;color:var(--ink)}
+@media (max-width:600px){.nap-slov{grid-template-columns:1fr;gap:0}.nap-slov dd{margin:0 0 8px}.nap-i{width:19px;height:19px;min-width:19px}}
+@media print{.nap-i,.nap-pop{display:none!important}}
+
+
 /* zámek aplikace */
 .zamek{position:fixed;inset:0;z-index:9999;background:var(--ground);display:flex;align-items:center;justify-content:center;padding:24px 16px;overflow:auto}
 .zamek[hidden]{display:none}
@@ -1410,6 +1438,112 @@ body.zamceno{overflow:hidden}
 
 <!-- ============ PRŮVODCE ============ -->
 <section id="tab-pruvodce" class="tab">
+  <details class="gsec" id="napMapa" open><summary><span>🧭 Mapa aplikace — co kde je, jak to funguje a co kdy dělat</span></summary><div class="inner">
+    <p style="margin:0 0 10px">U nadpisů karet a u polí je malé <span class="nap-i nap-ukazka">i</span>. Klikni na něj a uvidíš, <b>co to je, jak to počítá a co s tím dělat</b>. Klik na ⓘ nic nezmění ani nezaškrtne. Zavřeš ho křížkem, klikem vedle nebo klávesou Esc. Tady je celý obrázek pohromadě.</p>
+
+    <div class="vybg">Záložky — k čemu je která</div>
+    <div class="tscroll"><table class="nap-tab">
+      <thead><tr><th>Záložka</th><th>K čemu</th><th>Kdy tam jdeš</th></tr></thead>
+      <tbody>
+        <tr><td><b>⚡ Rychlá cena</b></td><td>Orientační cena demolice z plochy a rozsahu, bez prohlídky.</td><td>Přišla poptávka a chceš odpovědět do hodiny.</td></tr>
+        <tr><td><b>Kalkulace</b></td><td>Přesná kalkulace demolice: práce, suť, kontejnery, vynáška, materiál, rezerva, slevy, platby, fotky, denní zápis, skutečnost a skutečný zisk.</td><td>Po prohlídce, při nabídce a během celé zakázky.</td></tr>
+        <tr><td><b>📦 Vyklízení</b></td><td>Celá druhá služba: cena na místě, soupis věcí, odprodej, marže, nabídka, den zakázky, výsledky, posádky, sazby.</td><td>U každé poptávky na vyklizení nebo odvoz věcí.</td></tr>
+        <tr><td><b>Zakázky</b></td><td>Seznam uložených demolic se stavem, cenou a ziskem.</td><td>Otevřít starou zakázku, přepnout stav, udělat kopii.</td></tr>
+        <tr><td><b>📅 Plán</b></td><td>Kalendář demolic i vyklízení, vytížení měsíce, nasmlouváno dopředu, kolize.</td><td>Každé pondělí a před potvrzením termínu.</td></tr>
+        <tr><td><b>✉ Zprávy</b></td><td>Hotové texty pro klienty (odpověď, termín, záloha, dokončení, hodnocení).</td><td>Kdykoliv píšeš klientovi.</td></tr>
+        <tr><td><b>💰 Růst a investice</b></td><td>Na co šetřit a jestli se vyplatí koupit stroj nebo najmout člověka.</td><td>Před větším nákupem, jednou za měsíc.</td></tr>
+        <tr><td><b>🧾 Faktury a daně</b></td><td>Zálohové a konečné faktury, QR platba, párování plateb, výdaje, daně, podklady pro účetní, synchronizace.</td><td>Po domluvě (záloha), po dokončení (faktura), každý pátek (platby, výdaje).</td></tr>
+        <tr><td><b>Přehled firmy</b></td><td>Měsíční výsledky, zdroje zakázek, plán vs. realita, adresář, odběratelé, peníze na cestě, proč prohráváte, evidence odpadů.</td><td>Týdně a na konci měsíce.</td></tr>
+        <tr><td><b>Ceník a nastavení</b></td><td>Údaje firmy na doklady, výchozí hodnoty, prahy rentability, vynáška, dopravci, kontejnery, ceník prací, zámek, zálohy dat.</td><td>Při startu a když se změní ceny nebo firma.</td></tr>
+        <tr><td><b>Průvodce</b></td><td>Tento návod, první kroky, klauzule, checklisty, návody k Claudovi, fakturám a daním.</td><td>Když si nejsi jistý postupem.</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="vybg">Demolice — od poptávky po zaplacení</div>
+    <ol style="margin:4px 0 12px;padding-left:20px">
+      <li><b>Poptávka</b> → <b>⚡ Rychlá cena</b>: plocha, patro, co se bourá → pošli rozpětí (text ve <b>✉ Zprávách</b>) a domluv prohlídku.</li>
+      <li><b>Prohlídka</b>: nafoť všechno, změř tloušťky zdí a plochy. Z fotek ti soupis připraví Claude (📸 Nacenit z fotek → blok DKT1 → 📥 Načíst zakázku z textu).</li>
+      <li><b>Kalkulace</b>: šablona v „Začít rychle“ nebo práce ručně → zkontroluj suť a kontejnery (Navrhnout podle suti), vynášku, dopravu, rezervu.</li>
+      <li><b>Kontrola zisku</b> v Ekonomice zakázky: zisk na osobu a hodinu musí být nad minimem. Když není, <b>Dorovnat</b> (interní přirážka) — neosekávej rezervu. Podívej se i na 💰 Skutečný zisk zakázky: kolik zůstane do kapsy po daních.</li>
+      <li><b>Nabídka</b>: 🖨 Vygenerovat nabídku nebo 📋 Kopírovat nabídku → pošli → <b>💾 Uložit zakázku</b> se stavem „nabídka“.</li>
+      <li><b>Domluveno</b>: stav „domluveno“, termín od–do (propíše se do Plánu), <b>zálohová faktura</b>, potvrzení termínu ze Zpráv.</li>
+      <li><b>Během bourání</b>: fotky před, denní zápis každý večer, vícepráce <b>jen s písemným souhlasem</b> (dodatek), vážní lístky do Evidence odpadů.</li>
+      <li><b>Hotovo</b>: Po dokončení — skutečnost (hodiny, kontejnery, km), <b>konečná faktura</b> (sama odečte zálohu), fotky po, stav „hotovo“.</li>
+      <li><b>Zaplaceno</b>: Párování plateb ve Fakturách → požádej o hodnocení (Zprávy). Po 5 zakázkách přepočítej normy v Přehledu firmy → Plán vs. realita.</li>
+    </ol>
+
+    <div class="vybg">Vyklízení — od poptávky po zaplacení</div>
+    <ol style="margin:4px 0 12px;padding-left:20px">
+      <li><b>Poptávka</b> → <b>⚡ Cena na místě</b>: prostor, jak je plno, patro, km. Z rozpětí řekni <b>nižší číslo</b> a pevnou cenu slib po fotkách nebo prohlídce.</li>
+      <li><b>Fotky nebo prohlídka</b>: 📸 Nacenit z fotek přes Claude (blok VYK1), nebo <b>📋 Soupis věcí</b> na místě. Věci s hodnotou do <b>💰 Odprodej a výkup</b>.</li>
+      <li><b>Nastav nabídku</b>: balíček <b>Vyklidit a předat</b> (výchozí), vytížení firmy (volno / běžně / plno / nabito), stav prostoru, kontejner, když se vyplatí.</li>
+      <li><b>Zkontroluj marži</b> v kartě Marže zakázky: cíl 40 %, hranice 35 %. Pod polem Sleva vidíš, kolik ještě jde dát. „Nejníž“ je cena, pod kterou nejdeš.</li>
+      <li><b>Nabídka</b>: 🖨 Nabídka nebo zpráva klientovi → <b>💾 Uložit</b> se stavem „nabídka“. Odmítnuté ukládej s důvodem a cenou konkurence.</li>
+      <li><b>Domluveno</b>: termín, okno příjezdu, záloha (zálohová faktura), den předem SMS „den před příjezdem“ ze Zpráv vyklízení.</li>
+      <li><b>Den zakázky</b>: posádka, stopky, skutečné km a objem, vážní lístky, předané věci → vyúčtování, výkaz a předávací protokol.</li>
+      <li><b>Po zakázce</b>: konečná faktura, fotky po, stav „hotovo“, žádost o hodnocení. Hodí se rekonstrukce? <b>🏗 Připravit k rekonstrukci</b> → Založit bourání → společná nabídka.</li>
+    </ol>
+
+    <div class="vybg">Čísla, na která se dívat</div>
+    <ul style="margin:4px 0 12px;padding-left:20px">
+      <li><b>Demolice — zisk na osobu a hodinu</b> (Ekonomika zakázky): nad minimem z Prahů rentability. Pod ním zakázku přeceň, nebo neber.</li>
+      <li><b>Vyklízení — hrubá marže</b>: 40 % cíl, 35 % spodní hranice. <b>Hrubý zisk na poptávku</b> (Výsledky vyklízení) ukáže, jestli vyšší ceny vydělávají víc, i když vyhrajete méně nabídek.</li>
+      <li><b>Čisté na hodinu majitele</b> (💰 Skutečný zisk zakázky): kolik opravdu zůstane po lidech, autě, nářadí, fixních nákladech a obou daních.</li>
+      <li><b>Vytížení</b> (Plán, Posádky): 75–90 % je zdravé. Trvale nad 90 % = jste levní, zdražte. Pod 60 % = marketing, ne slevy.</li>
+      <li><b>Nasmlouváno dopředu</b> (Plán): pod 5 pracovních dní sháněj práci, nad 10 dní máš klid a můžeš si říct o víc.</li>
+      <li><b>Peníze na cestě</b> (Přehled firmy): co je po splatnosti, urguj hned.</li>
+    </ul>
+
+    <div class="vybg">Týdenní rytmus</div>
+    <ul style="margin:4px 0 12px;padding-left:20px">
+      <li><b>Každý den</b>: odpovědět na poptávky do hodiny, večer denní zápis a fotky, stopky u vyklízení.</li>
+      <li><b>Pondělí</b>: Plán (vytížení, nasmlouváno dopředu, kolize) a Růstový přehled v Přehledu firmy. Podle vytížení nastav „Vytížení firmy“ ve vyklízení.</li>
+      <li><b>Pátek</b>: faktury za hotové zakázky, párování plateb z banky, výdaje s účtenkami, urgence po splatnosti.</li>
+      <li><b>Konec měsíce</b>: Měsíční výsledky, Posádky, Proč prohráváme nabídky, ZIP pro účetní, záloha dat (bez synchronizace), kontrola Ekonomiky firmy (nafta, pojištění, lidé).</li>
+    </ul>
+
+    <div class="vybg">Kde jsou data</div>
+    <ul style="margin:4px 0 12px;padding-left:20px">
+      <li>Všechno se ukládá <b>do tohoto prohlížeče</b>. Se zapnutou <b>synchronizací</b> (Faktury a daně → Synchronizace) jsou data i na telefonu a u parťáka.</li>
+      <li>Bez synchronizace dělej <b>zálohu</b> (Ceník a nastavení → Data → Export). Fotky zůstávají jen v zařízení, kde jsi je nahrál.</li>
+      <li><b>PIN</b> chrání před zvědavci, ne před hackerem. Nastavuje se v Ceník a nastavení → 🔒 Zámek aplikace.</li>
+    </ul>
+
+    <div class="vybg">Slovníček</div>
+    <dl class="nap-slov">
+      <dt>Tržba</dt><dd>Všechno, co klient zaplatí za práci, odvoz, materiál a dopravu, bez DPH.</dd>
+      <dt>Přímé náklady</dt><dd>Peníze, které za zakázku opravdu vydáte: kontejnery, skládkovné, materiál, nafta, najatí lidé, provize.</dd>
+      <dt>Hrubá marže (vyklízení)</dt><dd>Kolik % z ceny zůstane po přímých nákladech a po lidech za plnou cenu hodiny (i vás). Z toho se platí režie, marketing, auta a zisk.</dd>
+      <dt>Čistý zisk firmy bez rezervy (demolice)</dt><dd>Tržba − náklady, bez započtení rezervy. Rezerva je pojistka, ne výplata.</dd>
+      <dt>Skutečný zisk / čisté na hodinu majitele</dt><dd>Co zůstane do kapsy po všech nákladech, podílu fixů firmy, dani z příjmů 21 % a srážkové dani 15 % z dividendy.</dd>
+      <dt>Kč/h u práce</dt><dd>Kolik položka vydělá za hodinu (cena ÷ normohodiny). Vysoké Kč/h = výhodná práce.</dd>
+      <dt>★ náročnost</dt><dd>Fyzická dřina a neoblíbenost práce: ★ lehká čistá práce, ★★★ běžné bourání, ★★★★★ to, co nikdo nechce dělat. U dřiny je v ceně +10 až +30 %.</dd>
+      <dt>Normohodina, RTS</dt><dd>Čas na jednotku práce podle stavebních norem. Ceník vychází z cen RTS +8 %.</dd>
+      <dt>Koeficient výkonu party</dt><dd>O kolik jste pomalejší nebo rychlejší než normy (1,3 = o 30 % pomaleji). Násobí odhad hodin.</dd>
+      <dt>Rezerva</dt><dd>% navíc na skryté konstrukce (demolice) nebo nevyhlédnuté věci (vyklízení).</dd>
+      <dt>Interní přirážka</dt><dd>Zvýšení ceny práce, které klient nevidí jako řádek — jen vyšší jednotkové ceny.</dd>
+      <dt>Sleva</dt><dd>Viditelná sleva s důvodem. Jde celá z vašeho zisku.</dd>
+      <dt>Cílová marže</dt><dd>Marže, na kterou kalkulačka cenu vyklízení nastaví: cena = náklady ÷ (1 − marže). Mění ji plnost, stav prostoru, partner a vytížení.</dd>
+      <dt>Vytížení firmy</dt><dd>Přepínač ve vyklízení: volno −5, plno +5, nabito +10 bodů cílové marže.</dd>
+      <dt>Cenový test A/B/C</dt><dd>Střídání cenových hladin (+0 / +10 / +20 %), abyste zjistili, kolik trh unese.</dd>
+      <dt>Balíček „Vyklidit a předat“</dt><dd>Vyklizení + úklid, fotky, potvrzení o likvidaci, dohledání dokladů, klíče na dálku.</dd>
+      <dt>Protiúčet</dt><dd>Věc s hodnotou převezmete a její cenu odečtete klientovi z ceny.</dd>
+      <dt>Vážní lístek</dt><dd>Doklad ze sběrného dvora nebo skládky: kolik kg, jaký kód odpadu, kolik jste zaplatili.</dd>
+      <dt>Kód odpadu</dt><dd>Katalogové číslo druhu odpadu (např. 17 01 07 směs betonu a cihel, 20 03 07 objemný odpad). S hvězdičkou = nebezpečný.</dd>
+      <dt>Vynáška</dt><dd>Přesun suti nebo věcí z místa práce do kontejneru nebo auta. Počítá se z tonáže, pater a vzdálenosti.</dd>
+      <dt>Skládkovné</dt><dd>Poplatek za uložení odpadu podle hmotnosti.</dd>
+      <dt>Paušál kontejneru</dt><dd>Cena dopravce za přistavení a odvoz, k tomu km a dny navíc.</dd>
+      <dt>Vícepráce a dodatek</dt><dd>Práce navíc proti nabídce. Dělá se až po písemném odsouhlasení klientem.</dd>
+      <dt>B2C / B2B</dt><dd>Koncový zákazník / firma. B2B ceník je o 10 % levnější a jen pro stálé odběratele.</dd>
+      <dt>Reverse charge (§92e)</dt><dd>U stavebních prací pro plátce DPH fakturujete bez daně a DPH odvede odběratel. Týká se vás až jako plátců DPH.</dd>
+      <dt>ZF, konečná faktura, dobropis, storno</dt><dd>Zálohová faktura před zahájením; konečná po dokončení (odečte zálohy); dobropis snižuje vystavenou fakturu; storno ruší chybný doklad.</dd>
+      <dt>VS a QR platba</dt><dd>Variabilní symbol = číslo faktury. QR kód na faktuře vyplní klientovi platbu v bance, párování pak najde platbu samo.</dd>
+      <dt>Daň 21 % a 15 %</dt><dd>21 % platí s.r.o. ze zisku. Když si zbytek vyplatíte jako dividendu, strhne se z něj ještě 15 %. Dohromady asi 33 % původního zisku.</dd>
+      <dt>Posádka a bonus</dt><dd>Parta, která zakázku dělá. Bonus = podíl z ušetřených hodin proti plánu, jen bez škod a při zdravé marži.</dd>
+      <dt>Hrubý zisk na poptávku</dt><dd>Úspěšnost nabídek × hrubý zisk zakázky. Ukáže, co vám přinese každá poptávka, i ta nevyhraná.</dd>
+    </dl>
+  </div></details>
+
   <details class="gsec" open><summary><span>🚀 Prvních 30 dní — než přijde první zakázka <span class="badge" id="startBadge"></span></span></summary><div class="inner vyb">
     <p class="hint" style="margin:0 0 6px">Odškrtávej, jak postupuješ. Pořadí je záměrné — každý krok staví na předchozím.</p>
     <div class="vybg">Týden 1 · Aby vás vůbec někdo mohl oslovit</div>
@@ -14188,6 +14322,284 @@ function renderEkFirmyVse(){
   });
 });
 ["#dmEkonDet", "#vkEkonDet"].forEach(sel => { const d = $(sel); if (d) d.addEventListener("toggle", () => { if (d.open) renderEkFirma($(sel === "#dmEkonDet" ? "#dmEkon" : "#vkEkon"), sel === "#dmEkonDet" ? "demolice" : "vyklizeni"); }); });
+
+/* ================= NÁPOVĚDA ⓘ =================
+   Jen vysvětlivky: k nadpisům karet a k polím přidá malé ⓘ, klik ukáže, co to je, jak to funguje a co s tím dělat.
+   Nic nemění na výpočtech ani datech. Části, které se překreslují (vyklízení, karty zisku), dostanou ⓘ znovu po každé změně.
+   Klíč cíle: "h2:záložka:Začátek nadpisu" · "sum:záložka:Začátek souhrnu" · "#id" nebo "[data-…]" = pole (ⓘ k jeho popisku)
+             · "css:selektor:Začátek textu" = libovolný prvek s textem. */
+const NAPOVEDA = [
+  /* ---------------- ⚡ RYCHLÁ CENA ---------------- */
+  ["h2:rychla:Rychlá orientační cena", "Rychlá cena", "Odhad demolice <b>do minuty, ještě před prohlídkou</b> — z plochy bytu a toho, co se bude bourat. Slouží k rychlé odpovědi na poptávku (kdo odpoví první, často vyhrává), <b>ne jako závazná nabídka</b>.<br><br>Postup: vyplň plochu, patro a výtah, zaškrtni co se bourá, klikni Spočítat. Pošli klientovi rozpětí a domluv prohlídku. Tlačítko „Otevřít v plné kalkulaci“ přenese rozsah do Kalkulace, kde ho po prohlídce zpřesníš."],
+  ["#rPlocha", "Podlahová plocha", "Plocha bytu nebo domu v m². Z ní se odhaduje množství prací — kolik je příček, omítek, podlah a obkladů na m² běžného bytu. Když nevíš přesně, stačí údaj z inzerátu."],
+  ["#rStari", "Stáří stavby", "Starší stavby (před rokem 1990) můžou obsahovat <b>azbest</b> (eternit, lepidla, izolace). U nich se ukáže upozornění — azbest je nebezpečný odpad, smí ho odstraňovat jen oprávněná firma a do ceny běžné demolice nepatří."],
+  ["h2:rychla:Co se bude bourat", "Co se bude bourat", "Zaškrtni druhy prací. U každé je koeficient, kolik jí připadá na m² běžného bytu (např. omítky stěn ~2,6 m² na 1 m² podlahy). Bytové jádro se počítá kusově. Výsledek je <b>orientační</b> — skutečné množství změříš na prohlídce."],
+  ["h2:rychla:Jak to počítá", "Jak rychlá cena počítá", "Plocha × koeficienty → množství prací → ceny z ceníku (stejné jako v Kalkulaci) + odhad suti, kontejnerů a vynášky podle patra. Rozpětí je schválně široké, protože bez prohlídky nevíš tloušťky zdí ani materiál."],
+
+  /* ---------------- KALKULACE (demolice) ---------------- */
+  ["h2:kalkulace:Začít rychle", "Začít rychle — šablony", "Hotové typy zakázek (vybourání bytu, jádro, otvor, příčky…). Klikneš, odpovíš na pár otázek a kalkulace se vyplní sama — pak ji jen doladíš. Ušetří půl hodiny klikání položek. Vlastní šablony si můžeš uložit z hotové zakázky."],
+  ["sum:kalkulace:📥 Načíst zakázku z textu", "Načíst zakázku z textu", "Sem vložíš odpověď od Clauda (blok začínající <b>DKT1</b>) nebo kód od parťáka (<b>DK1|…</b>) a zakázka se sama vyplní — práce, patro, kontejnery, termín. Opačně „Zkopírovat kód“ pošle rozpracovanou zakázku parťákovi."],
+  ["sum:kalkulace:📸 Nacenit z fotek", "Nacenit z fotek přes Claude", "Jednou si stáhneš balík souborů a založíš v Claudovi projekt. Pak na prohlídce nafotíš místnosti, napíšeš míry a Claude vrátí soupis prací a blok DKT1, který vložíš do „Načíst zakázku z textu“. Návod je v balíku a v Průvodci."],
+  ["h2:kalkulace:Zakázka", "Zakázka", "Hlavička zakázky: kdo, kde, kdy a za jakých podmínek. Z údajů se tiskne nabídka a faktura, termín se propíše do Plánu, zdroj do Přehledu firmy. <b>Uložit</b> zakázku najdeš dole — bez uložení se nedá fakturovat ani vyhodnocovat."],
+  ["#jKlientId", "Klient z adresáře", "Vyber klienta z adresáře (Přehled firmy → Adresář klientů) — doplní se jméno, adresa a údaje na fakturu. U nového klienta stačí vyplnit jméno níž, do adresáře ho přidáš později."],
+  ["#jZdroj", "Zdroj zakázky", "Odkud poptávka přišla (portál, doporučení, web, realitka…). Je povinný, protože z něj Přehled firmy počítá, <b>který kanál přináší zakázky a zisk</b> — a kam tedy dávat peníze a čas na marketing."],
+  ["#jOdberatel", "Stálý odběratel (B2B)", "Firma, se kterou spolupracujete pravidelně (stavební firma, správce). Jen stálým odběratelům je povolený B2B ceník (o 10 % levnější). Spravují se v Přehledu firmy → Stálí odběratelé."],
+  ["#jCenik", "Ceník B2C / B2B", "<b>B2C</b> = koncový zákazník (plné ceny). <b>B2B</b> = subdodávka pro firmu, ceny o 10 % nižší, protože firma přináší objem a méně starostí. B2B dávej jen stálým odběratelům — jinak zbytečně slevuješ."],
+  ["#jDph", "Režim DPH", "<b>Neplátce</b>: k ceně se nic nepřičítá, cena je konečná (dokud nejste plátci). <b>12 %</b>: stavební práce na bydlení (byt do 120 m², RD do 350 m²). <b>21 %</b>: ostatní. <b>Reverse charge §92e</b>: stavební práce pro plátce DPH — fakturuješ bez daně, odvede ji odběratel. DPH není tvůj příjem, jen ho přeposíláš státu."],
+  ["#jPatro", "Podlaží", "Patro, kde se bourá. Hlavně ovlivňuje <b>vynášku suti</b> — každé patro po schodech přidá čas na každou cestu. 0 = přízemí."],
+  ["#jVytah", "Výtah v domě", "Jestli je v domě výtah. Samotný výtah ještě neznamená, že smíte vozit suť — to se nastavuje u vynášky („Výtah lze použít na suť“)."],
+  ["#jLide", "Lidí na stavbě", "Kolik lidí bude na zakázce pracovat. Z toho kalkulačka počítá, kolik dní zakázka zabere (hodiny prací ÷ lidé ÷ hodiny za den) a jak se dělí zisk."],
+  ["#jNajati", "Z toho najatých", "Kolik z lidí nejsou majitelé (brigádník, pomocník, člověk na IČO). Jejich hodiny jsou <b>náklad</b> (Nastavení → náklad na najatého), zisk se pak dělí jen mezi majitele. V kartě „Skutečný zisk zakázky“ můžeš rozlišit zaměstnance, DPP a IČO."],
+  ["#jTerminOd", "Termín", "Termín od–do se propíše do Plánu. Kalkulačka porovná, kolik dní zakázka potřebuje, a upozorní, když se nevejde nebo koliduje s jinou zakázkou (i s vyklízením)."],
+  ["h2:kalkulace:Bourací práce", "Bourací práce", "Seznam prací z ceníku. Začni psát do vyhledávání (otvor, příčka, beton, omítka…) a klikni na položku, pak zadej množství. U položky vidíš <b>Kč/h</b> (kolik ta práce vydělá za hodinu) a <b>★ až ★★★★★</b> — fyzickou dřinu a neoblíbenost práce (u dřiny je v ceně +10 až +30 %). Pod tabulkou je přepočet m² × tloušťka → m³ pro objemové položky. Nosné konstrukce jen se statickým posudkem od objednatele."],
+  ["h2:kalkulace:Odvoz suti a likvidace", "Odvoz suti a likvidace", "Kolik suti vznikne (z norem u každé práce) a v kolika kontejnerech ji odvezete. Vyber <b>dopravce</b> — nákupní ceny kontejnerů se spočítají z jeho paušálu, km a dní na stavbě. „Navrhnout podle suti“ navrhne kontejnery s rezervou místa (suť se nedá skládat jako kostky). Prodejní cena kontejneru je tvoje marže na odvozu."],
+  ["#jDopravce", "Dopravce", "Firma, která přistaví a odveze kontejner. Jejich ceny zadáš v Nastavení → Dopravci. Nejlevnější dopravce se mění podle vzdálenosti a počtu dní — porovnání v Nastavení počítá pro konkrétní zakázku."],
+  ["#jKmDopravce", "Vzdálenost dopravce → stavba", "Km od dopravce ke stavbě. Dopravci účtují dopravu kontejneru podle km — proto může být vzdálenější dopravce s levnějšími km výhodnější na dlouhé trasy."],
+  ["#jDnyKontejneru", "Dní na stavbě", "Jak dlouho kontejner stojí u stavby. Pár dní bývá v ceně, každý další den se platí pronájem. Plánuj odvoz tak, aby kontejner nestál zbytečně."],
+  ["#jSkladkovne", "Účtovat likvidaci", "Skládkovné (poplatek za uložení suti podle tonáže) se klientovi účtuje s marží z Nastavení. Vypni jen tehdy, když si likvidaci zajišťuje klient sám."],
+  ["h2:kalkulace:Vynáška a přesun suti", "Vynáška suti", "Nejpodceňovanější položka rozpočtu. Počítá se <b>z tonáže suti</b>: kolik cest s kolečkem nebo kbelíky, kolik pater po schodech, jak daleko ke kontejneru. Hodiny × sazba vynášky = cena. Sazby a časy cest jsou v Nastavení → Vynáška suti."],
+  ["#jVzdalenost", "Vzdálenost ke kontejneru", "Metry od místa bourání ke kontejneru nebo autu. Každých 10 m navíc přidá čas na každou cestu tam a zpět."],
+  ["#jVytahNaSut", "Výtah lze použít na suť", "Když správce dovolí vozit suť výtahem (a výtah vydrží), ušetří to většinu práce s patry. Bez souhlasu správce nepočítej — poškozený výtah je drahý."],
+  ["#jRucniNoseni", "Ruční nošení bez kolečka", "Úzké nebo točité schodiště, kam nejde kolečko — nosí se v kbelících. Vynáška se tím prodraží (přirážka v Nastavení)."],
+  ["h2:kalkulace:Materiál", "Materiál", "Materiál na zakázku s nákupní a prodejní cenou: ocelové nosníky, fólie, pytle, <b>kotouče a spotřební materiál, který fakturujete klientovi</b>. Prodej jde do ceny, nákup do nákladů, rozdíl je marže."],
+  ["h2:kalkulace:Příplatky, režie a další", "Příplatky, rezerva, sleva, přirážka", "Všechno, co upraví cenu nad samotné práce: rezerva na skryté konstrukce, provize, sleva pro klienta, interní přirážka, doprava, víkend a expres, platba předem. Pořadí použití: naceň poctivě → když je zisk nízký, zvedni interní přirážku → slevu dávej až nakonec a vědomě."],
+  ["#jRezerva", "Rezerva na skryté konstrukce", "Procento z práce navíc na to, co není vidět: skrytý beton, dvojité příčky, armatura. V nabídce je vidět jako řádek. Hlavní zisk se počítá <b>bez rezervy</b> — rezerva je pojistka, ne výplata."],
+  ["#jProvize", "Provize za dohození", "Když zakázku dohodil někdo jiný (realitka, stavbyvedoucí), obvykle ~7 % z práce. Je to náklad — kalkulačka ho odečte od zisku."],
+  ["#jSleva", "Sleva pro klienta", "Viditelná sleva na konci nabídky. <b>Jde celá z tvého zisku</b>. Dávej ji jen s důvodem a jen když zisk na hodinu zůstane nad tvým minimem."],
+  ["#jSlevaDuvod", "Důvod slevy", "Vytiskne se v nabídce i na faktuře. Klient vidí, proč slevu dostal (stálý zákazník, více zakázek), a příště ji nebere jako samozřejmost."],
+  ["#jPrirazka", "Interní přirážka", "Zvedne ceny práce i vynášky o zadané procento. <b>Klient ji nevidí</b> — nabídka ukáže jen vyšší jednotkové ceny, žádný řádek „přirážka“. Používej, když je zisk na hodinu nízký, místo abys osekával rezervu."],
+  ["#jKm", "Doprava celkem", "Kilometry všech jízd na zakázku dohromady (tam i zpět, všechny dny). Náklad = km × nákladová sazba; klientovi se účtuje km × prodejní sazba, nejméně paušál výjezdu."],
+  ["#jDopravaUctovat", "Dopravu účtovat klientovi", "Zaškrtnuto = doprava je v ceně jako řádek. Nezaškrtnuto = doprava je jen tvůj náklad (třeba u zakázky v místě)."],
+  ["#jVikend", "Práce o víkendu / svátku", "Příplatek k práci (výchozí v Nastavení). Víkendová práce vás stojí volno — ať se zaplatí."],
+  ["#jExpres", "Expresní termín", "Příplatek, když klient chce začít hned a musíte přeskládat plán. Spěch se platí."],
+  ["#jPlatbaPredem", "Klient platí celou částku předem", "Klient dostane slevu za platbu předem (Nastavení) a záloha se nastaví na 100 %. Výhoda pro vás: žádné riziko nezaplacení a peníze dopředu."],
+  ["#jNabidnoutPredem", "Nabídnout platbu předem", "Do nabídky se přidá druhá, levnější cena při platbě celé částky předem — klient si vybere."],
+  ["h2:kalkulace:Vlastní položky", "Vlastní položky", "Cokoliv, co není v ceníku: pronájem lešení, statik, úklid, subdodávka. Vyplň náš náklad, prodejní cenu, nebo obojí — prodej jde do ceny, náklad do nákladů."],
+  ["h2:kalkulace:Vícepráce", "Vícepráce", "Práce, které se ukážou až při bourání (skrytý beton, horší stav). <b>Nic nedělej, dokud to klient písemně neodsouhlasí</b>: přidej vícepráci s důvodem a cenou → Vygenerovat dodatek → pošli nebo dej podepsat → přepni na „odsouhlaseno“. Do ceny a faktury jdou jen odsouhlasené."],
+  ["h2:kalkulace:Platby a splatnost", "Platby a splatnost", "Záloha před zahájením a doplatek po dokončení — částka, splatnost a datum zaplacení. Doporučenou zálohu doplní tlačítko. Nezaplacené částky vidíš v Přehledu firmy → Peníze na cestě. Faktury se vystavují tlačítky dole."],
+  ["h2:kalkulace:Fotodokumentace", "Fotodokumentace", "Fotky před, během a po. <b>Před bouráním foť vždy</b> (praskliny, podlahy, společné prostory) — jedna reklamace „vy jste to rozbili“ sežere zisk celé zakázky. Fotky po dokončení jsou nejlepší reklama. Ukládají se jen do tohoto zařízení."],
+  ["h2:kalkulace:Denní zápis ze stavby", "Denní zápis", "Každý večer minutu: kdo, kolik hodin, co se udělalo, komplikace. Tlačítkem přepíšeš skutečné hodiny do „Po dokončení“ — z toho se zpřesňují odhady. Zápis je i důkaz při sporu o termín."],
+  ["h2:kalkulace:Evidence odpadů", "Evidence odpadů", "Zákonná povinnost: kolik tun jakého odpadu (kód) a kam jste předali. Čísla ber z vážních lístků, ne z odhadu. Roční souhrn je v Přehledu firmy. Azbest (17 06 05*) je nebezpečný odpad."],
+  ["h2:kalkulace:Po dokončení", "Po dokončení — skutečnost", "Skutečné hodiny, kontejnery a km po zakázce. Přehled firmy z nich porovná plán s realitou a po 5 zakázkách nabídne přepočet norem — odhady budou čím dál přesnější."],
+  ["h2:kalkulace:Ekonomika zakázky", "Ekonomika zakázky", "Souhrn vpravo: tržba, náklady, cena pro klienta s DPH, záloha a <b>čistý zisk firmy bez rezervy</b>. Dole tržba a zisk na hodinu party a na osobu, odhad dní. Varování upozorní na nízký zisk, malou zakázku nebo kolizi termínu."],
+  ["h2:kalkulace:💰 Skutečný zisk zakázky", "Skutečný zisk zakázky", "Kolik opravdu zůstane po všem: materiál, kontejnery, doprava, lidé (zaměstnanec, DPP, IČO), opotřebení nářadí, podíl fixních nákladů firmy, <b>daň 21 %</b> a <b>15 % z dividendy</b>. „Na hodinu majitele“ je číslo do kapsy. ⓘ u daní vysvětluje, proč se daní dvakrát."],
+  ["sum:kalkulace:💼 Ekonomika firmy", "Ekonomika firmy", "Společné nastavení pro demolice i vyklízení: mzdy a sazby lidí, nářadí, auto, fixní náklady, daně, cíl čistého na hodinu. Z něj se počítají karty „Skutečný zisk zakázky“ a měsíc firmy. Stačí nastavit jednou a občas aktualizovat."],
+
+  /* ---------------- ZAKÁZKY, PLÁN, ZPRÁVY, RŮST ---------------- */
+  ["h2:zakazky:Uložené zakázky", "Uložené zakázky demolic", "Všechny uložené demolice s cenou, ziskem a stavem. Stav (nabídka → domluveno → probíhá → hotovo, nebo zamítnuto) si přepínej průběžně — z něj se počítá úspěšnost nabídek, Plán a Přehled. „Otevřít“ nahraje zakázku do Kalkulace, „Kopie“ udělá novou podle staré."],
+  ["h2:plan:Nasmlouvané zakázky", "Plán", "Kalendář všech zakázek s termínem (demolice i vyklízení) a čísla: <b>nasmlouváno dopředu</b> (pod 5 dní = sháněj práci, nad 10 dní = klid), <b>vytížení měsíce</b> (ideál 75–90 %; nad 95 % prodáváte levně) a kolize termínů. Termín se zadává v Kalkulaci nebo u vyklízení."],
+  ["h2:zpravy:Zprávy klientovi", "Zprávy klientovi", "Hotové texty pro situace, které se opakují (odpověď na poptávku, potvrzení termínu, připomínka zálohy, dokončení…). Značky ve {závorkách} se vyplní z otevřené kalkulace. Klikni Kopírovat a vlož do SMS nebo mailu. Texty si můžeš přepsat."],
+  ["h2:zpravy:Připomínka: požádat o hodnocení", "Žádost o hodnocení", "Seznam hotových zakázek, u kterých jste ještě nepožádali o recenzi. Hodnocení na Googlu a portálech je pro malou firmu nejlevnější reklama — žádej hned po dokončení, dokud je klient spokojený."],
+  ["h2:rust:Na co šetřit", "Na co šetřit", "Milníky, na které firma šetří (auto, nářadí, rezerva…) v rozumném pořadí — každá fáze staví na předchozí. Z každého zisku odkládáš nastavené procento a milníky se plní. Částky uprav podle skutečných nabídek."],
+  ["#nOdkladPct", "Kolik % ze zisku odkládáte", "Část zisku, která nejde na výplatu, ale na růst firmy (doporučeno 25 %). Z ní se plní milníky výše."],
+  ["h2:rust:Vyplatí se to koupit?", "Investiční kalkulačka", "Než koupíš stroj, auto nebo najmeš člověka: zadej cenu, měsíční náklady, kolik ti to ušetří nebo vydělá na jedné zakázce a kolik zakázek měsíčně. Kalkulačka řekne, za jak dlouho se to zaplatí."],
+
+  /* ---------------- VYKLÍZENÍ ---------------- */
+  ["h2:vyklizeni:⚡ Cena na místě", "Cena na místě", "Rychlé nacenění vyklízení přímo u klienta: co děláme, prostor, plocha, jak je plno, patro, km. Cena se počítá hned. Přesnější je soupis věcí (níž) nebo nacenění z fotek přes Claude."],
+  ["css:#vkForm .vk3-lbl:Co děláme", "Co děláme", "<b>Vyklízení s odvozem</b> — vyneseme, odvezeme, zlikvidujeme (hlavní produkt). <b>Jen vynáška</b> — věci do kontejneru klienta nebo před dům, odvoz si řeší klient. <b>Pár kusů</b> — odvoz jednotlivých věcí, cena jen ze soupisu."],
+  ["css:#vkForm .vk3-lbl:Balíček", "Balíček", "<b>Vyklidit a předat</b> (výchozí, doporučený): navíc úklid, fotky před a po, potvrzení o likvidaci, nalezené doklady a cennosti stranou, klíče na dálku. Prodáváš klid, ne kubíky. <b>Vyklidit</b>: jen věci pryč, levnější."],
+  ["css:#vkForm .vk3-lbl:Prostor", "Prostor", "Typ a velikost prostoru. Každá dispozice má typický objem věcí podle zaplnění (např. 2+1 běžně zařízený ≈ 15 m³). Sklep, půda a garáž mají vlastní hmotnost a jsou prašnější."],
+  ["[data-vk='plocha']", "Plocha", "Skutečná plocha v m². Objem se přepočítá podle ní (dům 240 m² má dvakrát víc věcí než 120 m²). Prázdné = typická plocha dispozice."],
+  ["css:#vkForm .vk3-lbl:K tomu ještě", "Sklep, půda, garáž navíc", "Přidá k bytu nebo domu objem sklepa, půdy nebo garáže při stejném zaplnění."],
+  ["css:#vkForm .vk3-lbl:Jak je plno", "Jak je plno", "Zaplnění prostoru — rozhoduje o objemu, hmotnosti i čase. Přeplněný byt (sběratel) má vyšší cílovou marži, protože rozsah je nejistý. Když máš soupis věcí, zaplnění se nepoužije."],
+  ["[data-vk='patro']", "Patro", "Patro bez výtahu přidá čas na každé nošení — a tím i cenu (u 3+1 ve 4. patře bez výtahu zhruba +3 500 Kč proti přízemí)."],
+  ["[data-vks='vytah']", "Výtah", "Velký výtah (vejde se nábytek) ušetří většinu práce s patry, malý jen polovinu. Nejde-li použít, počítá se po schodech."],
+  ["[data-vk='vzdalenost']", "Od vchodu k autu", "Metry od vchodu k místu, kde zastaví dodávka. Každých 10 m navíc přidá čas na nošení."],
+  ["[data-vk='km']", "Km od základny", "Jedna cesta ze základny k zakázce. Posádka dojíždí každý den tam a zpět, čas v autě se počítá jako práce. Odpad se vozí do zařízení u zakázky, ne zpět na základnu."],
+  ["[data-vk='lide']", "Lidí na zakázce", "Kolik lidí pojede. Víc lidí = rychleji hotovo, ale víc hodin na cestě. Třetí člověk se vyplatí jen na velkých vícedenních zakázkách."],
+  ["[data-vks='stav']", "Stav prostoru", "Běžný, prašný (sklepy, půdy), znečištěný (holubi, skelná vata) nebo silná kontaminace (po úmrtí). Ztížené prostředí zvedá čas i cílovou marži (až 55 %). Ochranné pomůcky a dezinfekci domluv předem."],
+  ["[data-vkb='rozebirat']", "Rozebírat nábytek", "Zaškrtnuto = nábytek se rozebere (víc času, ale vejde se do auta a líp se nosí). Bez rozebírání se jen vynáší."],
+  ["[data-vkb='kontejner']", "Kontejner u domu", "Odpad jde rovnou do kontejneru u domu místo jízd dodávkou do zařízení. Od 3 jízd kalkulačka sama spočítá, která varianta je levnější, a napíše to v „Zkontrolovat“."],
+  ["[data-vkb='vikend']", "Víkend nebo svátek", "Příplatek k ceně za práci o víkendu (Sazby). Volno se platí."],
+  ["[data-vkb='expres']", "Expres do 48 h", "Příplatek, když klient potřebuje hotovo hned a musíte přeskládat plán."],
+  ["css:#vkForm .vk3-lbl:Cenový test", "Cenový test", "Když v Sazbách zapneš cenový test, nové nabídky se střídají v hladinách A (běžná), B (+10 %) a C (+20 %). Výsledky vyklízení pak ukážou, která hladina vydělá nejvíc na jednu poptávku. Hladinu jde u zakázky změnit."],
+  ["css:#vkForm .vk3-lbl:Vytížení firmy", "Vytížení firmy", "Jak moc máte plno. Posune cílovou marži u všech nabídek: <b>volno −5</b>, <b>plno +5</b>, <b>nabito +10</b> bodů. Když jste plní na dva týdny dopředu, jste levní — cena má říkat, že na to nemáte čas."],
+  ["sum:vyklizeni:📸 Nacenit z fotek", "Nacenit z fotek přes Claude", "Jednou stáhneš balík (12 souborů) a založíš v Claudovi projekt. Pak pošleš fotky a Claude vrátí soupis věcí, co se dá prodat, plán likvidace, cenu a blok <b>VYK1</b> — vložíš ho sem a zakázka se vyplní. Po úpravách v kalkulačce balík znovu nahraj do projektu."],
+  ["h2:vyklizeni:📋 Soupis věcí", "Soupis věcí", "Přesnější než rychlý odhad: přidáváš věci vyhledáváním (skříň, lednice, pytel…). Každá má objem, hmotnost, čas rozebrání a nošení a druh odpadu. Kovy a elektro se počítají zvlášť (výkup, zpětný odběr zdarma)."],
+  ["h2:vyklizeni:💰 Odprodej a výkup", "Odprodej a výkup", "Věci s hodnotou: výkupní cena, jistota prodeje a kam prodat. <b>Protiúčet</b> = věc převezmete a odečtete z ceny (klient platí méně, vy věc prodáte). Jistý a možný prodej se do ceny nepočítá — ukazuje, kolik můžete vydělat navíc."],
+  ["h2:vyklizeni:Zakázka a nabídka", "Zakázka a nabídka", "Klient, termín, způsob účtování, stav, sleva, záloha a naše marže. Odtud se tiskne nabídka, vystavují faktury a posílají zprávy. Zakázku průběžně ukládej — jen uložené se počítají do výsledků."],
+  ["[data-vks='uctovani']", "Jak účtovat", "<b>Pevná cena na klíč</b> — pro domácnosti, jedna částka za výsledek. <b>Po položkách</b> — práce, doprava podle km a likvidace podle váhy zvlášť; pro vzdálené a nejasné zakázky. <b>Hodinově</b> — jen firmám a na vícepráce. Karta „Jak účtovat“ vpravo porovná všechny tři."],
+  ["[data-vks='status']", "Stav zakázky", "Nabídka → domluveno → probíhá → hotovo, nebo zamítnuto. <b>Ukládej i odmítnuté</b> s důvodem a cenou konkurence — bez toho nejde spočítat úspěšnost ani zisk na poptávku."],
+  ["[data-vkb='likvidaceZvlast']", "Likvidace podle vážních lístků", "Cena za práci a odvoz + skutečná likvidace s přirážkou 15 %. Riziko váhy nese klient, marže zakázky zůstane stejná. Hodí se u nejasného rozsahu a těžkého odpadu."],
+  ["[data-vkp='sleva']", "Sleva", "Viditelná sleva v nabídce. Pod polem vidíš, kolik % ještě jde, aby marže nespadla pod spodní hranici. Řekni vysokou cenu a slevu dej vědomě, s důvodem."],
+  ["[data-vkt='slevaDuvod']", "Důvod slevy", "Vytiskne se klientovi v nabídce i na faktuře — sleva pak nevypadá jako samozřejmost."],
+  ["[data-vkp='zaloha']", "Záloha", "Kolik procent chcete předem. Zálohovou fakturu vystavíš tlačítkem dole. Záloha drží termín a chrání před nezaplacením."],
+  ["[data-vkp='provize']", "Provize za dohození", "Když zakázku dohodil někdo jiný (realitka). Je to náklad — cena ho sama zahrne, aby marže zůstala."],
+  ["[data-vk='jine']", "Jiné náklady", "Parkování, zábor chodníku, půjčovné — cokoliv, co zaplatíte a klientovi to zvlášť neukazujete."],
+  ["[data-vkt='okno']", "Příjezd", "Časové okno příjezdu (např. 7:30–8:00). Použije se ve zprávě „SMS den před příjezdem“."],
+  ["css:#vkForm .vk3-lbl:Naše marže a rizika", "Naše marže a rizika", "Interní nastavení, které klient nevidí: přirážka, rezerva, cílová marže, km do zařízení, partner. Tady ladíš cenu, aniž by se v nabídce objevil jakýkoliv řádek navíc."],
+  ["[data-vk='prirazkaInt']", "Interní přirážka", "Zvedne naši práci a dopravu o zadané procento — ne likvidaci a materiál. Klient ji nikde neuvidí, jen vyšší cenu."],
+  ["[data-vk='rezerva']", "Rezerva na skryté věci", "Když nevidíš do zavřených skříní, sklepa nebo na půdu: zvedne odhad objemu, času i likvidace, takže cena roste z reálného rozsahu. Typicky 10–20 % u odhadu bez prohlídky."],
+  ["[data-vk='gmVlastni']", "Cílová marže této zakázky", "Prázdné = automaticky podle pravidel (40 %, přeplněné 45 %, kontaminace až 55 %, partner 35 %, ± vytížení) — pod polem vidíš proč. Vyplněné číslo přepíše automatiku."],
+  ["[data-vk='kmZarizeni']", "Km do sběrného dvora nebo skládky", "Kam odpad opravdu odvezete od zakázky. Jezdíte po celé Moravě, odpad nevozíte zpět na základnu. Prázdné = výchozích 10 km."],
+  ["[data-vkb='partner']", "Partner nebo opakovaná zakázka", "Realitky, správci domů, stálí odběratelé — nižší marže (35 %), protože přinášejí víc zakázek bez shánění."],
+  ["[data-vks='dph']", "Režim DPH", "Jen pro plátce DPH: 21 % běžně, 12 % úklidové práce v domácnosti, přenesená povinnost u stavebních prací pro plátce. Sazbu potvrď s účetní."],
+  ["[data-vkb='predem']", "Platba předem", "Klient zaplatí celou částku předem se slevou 5 %. Žádné riziko nezaplacení."],
+  ["[data-vkb='nabidnoutPredem']", "Druhá cena v nabídce", "Nabídka ukáže i levnější cenu při platbě předem — klient si vybere."],
+  ["sum:vyklizeni:🏗 Připravit k rekonstrukci", "Připravit k rekonstrukci", "Vyklizení + bourání jako jeden projekt. „Založit bourání“ vytvoří demolici s údaji klienta a otevře ji v Kalkulaci. Karta pak ukáže marži obou částí i celku a vytiskne <b>společnou nabídku</b>. Z klienta za 20 tisíc je projekt za 60–100 tisíc."],
+  ["sum:vyklizeni:➕ Vlastní položky", "Vlastní položky", "Cokoliv navíc s vlastní cenou: kontejner na suť, deratizace, malování, zábor. Vyplň náš náklad a cenu pro klienta — v nabídce i na faktuře jako samostatný řádek."],
+  ["sum:vyklizeni:🔨 Vícepráce", "Vícepráce", "Co se ukázalo až na místě. Do ceny jde jen <b>odsouhlasené</b> a mimo slevu. „Dodatek k odsouhlasení“ zkopíruje zprávu pro klienta — nech si odpovědět „souhlasím“, máš důkaz."],
+  ["sum:vyklizeni:📷 Fotodokumentace", "Fotodokumentace", "Fotky ve skupinách: před, doklady a cennosti, škody, vážní lístky, po. Zůstávají jen v tomto zařízení. Chrání při reklamaci a jsou nejlepší reklama."],
+  ["sum:vyklizeni:⏱ Den zakázky", "Den zakázky", "V den zakázky: posádka, stopky (práce, cesta, vykládka), skutečné km a objem, vážní lístky, předané věci. Vznikne vyúčtování, výkaz, předávací protokol a skutečná marže — a z hotových zakázek se zpřesňují normy."],
+  ["[data-vks='posadka']", "Posádka", "Kdo zakázku dělá. Posádky pojmenuješ dole v „Posádky“; výsledovka pak ukáže zisk a vytížení každé zvlášť."],
+  ["css:#vkForm .vk-h3:Skutečnost", "Skutečnost", "Co se opravdu stalo: km, naložený objem, jízdy, materiál, výkup kovů, jiné náklady a <b>škody a reklamace</b>. Z toho se počítá skutečná marže a bonus posádky."],
+  ["css:#vkForm .vk-h3:Vážní lístky", "Vážní lístky", "Zákonná evidence odpadů: zařízení, kód, kg a zaplacená částka z lístku. Sčítají se do ročního souhrnu v Přehledu firmy; u likvidace podle lístků i do faktury."],
+  ["css:#vkForm .vk-h3:Předáno klientovi", "Předáno klientovi", "Doklady, cennosti, fotografie, klíče, které jste našli a vrátili. Tiskne se do předávacího protokolu — u pozůstalostí je to důkaz, že se nic neztratilo."],
+  ["h2:vyklizeni:Cena pro klienta", "Cena pro klienta", "Cena, kterou klient uvidí, a jak vznikla: <b>náklady ÷ (1 − cílová marže)</b>. U rychlého odhadu je to rozpětí — říkej tu nižší, pevnou cenu dej po soupisu nebo fotkách. Pod ní rozpis příplatků, slev, protiúčtu a zálohy."],
+  ["h2:vyklizeni:Marže zakázky", "Marže zakázky", "<b>Hrubá marže</b> = kolik % z ceny zůstane firmě po lidech (i vás, za plnou cenu hodiny), odpadu a autu. Cíl 40 %, hranice 35 %. Z ní se platí režie, marketing, auta a zisk. Dole „nejníž“ pro vyjednávání, maximální sleva, srovnání s trhem a cena, kdybyste byli plátci DPH."],
+  ["h2:vyklizeni:💰 Skutečný zisk zakázky", "Skutečný zisk zakázky", "Kolik zůstane majitelům do kapsy po autě, likvidaci, nářadí, podílu fixních nákladů firmy a daních (21 % + 15 % z dividendy). Nahoře zadáš, kdo na zakázce dělá (zaměstnanci, DPP, IČO)."],
+  ["h2:vyklizeni:Jak účtovat tuhle zakázku", "Jak účtovat", "Tři způsoby účtování vedle sebe: cena, marže, hrubý zisk a kolik vám zůstane na hodinu, když děláte sami. Pomůže vybrat, jak zakázku nabídnout."],
+  ["h2:vyklizeni:Srovnání s trhem", "Srovnání s trhem", "Ceny konkurence za m³ nebo hodinu — <b>jen pro představu</b>, o ceně nerozhodují. Jste vědomě dražší, protože platíte lidi, marži a prodáváte jistotu."],
+  ["h2:vyklizeni:Zkontrolovat", "Zkontrolovat", "Upozornění k zakázce: co ověřit (rozsah, těžká břemena, nebezpečný odpad, kontejner, zařízení na odpad, marže pod hranicí, čekající vícepráce)."],
+  ["h2:vyklizeni:Uložené zakázky vyklízení", "Uložené zakázky vyklízení", "Všechny uložené zakázky s cenou, marží (plán nebo skutečnost) a fakturami. Stav přepínej průběžně — počítá se z něj úspěšnost, Plán a výsledky."],
+  ["sum:vyklizeni:📊 Výsledky vyklízení", "Výsledky vyklízení", "Úspěšnost nabídek, průměrná zakázka a marže, <b>hrubý zisk na poptávku</b> (nejdůležitější číslo: úspěšnost × zisk zakázky), zisk na den posádky, přesnost odhadu hodin, kolik klientů koupilo i bourání, proč jste nabídky nevyhráli a cenový test."],
+  ["sum:vyklizeni:👷 Posádky", "Posádky", "Výsledovka každé posádky za měsíc: tržba, hrubý zisk, zisk na den, hodiny proti plánu, škody, bonusy a vytížení. Bonus = podíl z ušetřených hodin, jen bez škod a při zdravé marži. Nad 85 % vytížení je čas zdražit, nebo přidat posádku."],
+  ["sum:vyklizeni:💼 Ekonomika firmy", "Ekonomika firmy", "Společné nastavení pro demolice i vyklízení: lidé a mzdy, auto, fixní náklady, daně, cíl čistého na hodinu, páky na marži a měsíc firmy. Nastav jednou, aktualizuj, když se něco změní (nafta, pojištění, nový člověk)."],
+  ["sum:vyklizeni:Sazby, normy a katalog", "Sazby a normy vyklízení", "Všechna čísla výpočtu: cena hodiny, marže, vytížení, minima, auto, odpad, časy nošení, hmotnosti, katalog věcí. Upravuj podle skutečnosti — a po změnách znovu nahraj balík do Claude projektu. Z hotových zakázek se tu zpřesní normy tlačítkem u kalibrace."],
+  ["sum:vyklizeni:Trh, zařízení, výkup", "Trh a zdroje", "Průzkum cen konkurence, zařízení na odpad, výkupů a re-use. Slouží jako podklad a pro Clauda."],
+
+  /* ---------------- FAKTURY A DANĚ ---------------- */
+  ["h2:faktury:Čeká na vyfakturování", "Čeká na vyfakturování", "Hotové zakázky bez konečné faktury a kolik pracovních dní už čekají. Fakturuj hned po dokončení — každý den zpoždění jsou peníze, které nemáte."],
+  ["h2:faktury:Vydané faktury", "Vydané faktury", "Všechny doklady: zálohové (ZF), konečné, storna a dobropisy. Klik otevře náhled, PDF, tisk a odeslání klientovi. Konečná faktura sama odečte zaplacené zálohy. Zkušební doklady smažeš 🗑 — číslo se uvolní."],
+  ["h2:faktury:Párování plateb z banky", "Párování plateb", "Nahraješ výpis z banky (CSV) a kalkulačka podle variabilního symbolu a částky najde zaplacené faktury. Před označením se zeptá."],
+  ["h2:faktury:Výdaje a doklady", "Výdaje a doklady", "Nákupy firmy (nafta, nářadí, materiál, služby) s kategorií a fotkou účtenky. Snižují základ daně a jdou účetní. „Vyfotit účtenku“ funguje i z mobilu."],
+  ["h2:faktury:Daně a výsledek hospodaření", "Daně a výsledek", "Výnosy z faktur − výdaje = výsledek hospodaření, odhad <b>daně z příjmů 21 %</b> a kolik si můžete vyplatit po <b>srážkové dani 15 %</b>. Říká i, kolik % z každé faktury si odkládat na daň. ⓘ u daní vysvětluje, proč jsou dvě."],
+  ["h2:faktury:Pro účetní", "Pro účetní", "Jedním tlačítkem ZIP s fakturami, výdaji a přehledy za zvolené období — pošleš účetní a nemusíte nic přepisovat."],
+  ["h2:faktury:Synchronizace", "Synchronizace", "Stejná data na telefonu, počítači i u parťáka přes Supabase. Po přihlášení e-mailem se změny posílají samy. Bez synchronizace je všechno jen v tomto prohlížeči — pak dělej zálohy (Ceník a nastavení → Data)."],
+  ["sum:faktury:🧪 Zkušební data", "Zkušební data", "Smaže všechny doklady — jen na vyzkoušení fakturace před ostrým provozem. Ostré doklady se nemažou, ale stornují."],
+
+  /* ---------------- PŘEHLED FIRMY ---------------- */
+  ["h2:prehled:Měsíční výsledky", "Měsíční výsledky", "Tržby, výdaje a zisk po měsících z hotových zakázek a výdajů. Ukáže sezónnost a jestli firma roste."],
+  ["h2:prehled:Zdroje zakázek", "Zdroje zakázek", "Odkud chodí poptávky a který kanál přináší <b>zakázky a zisk</b>, ne jen kontakty. Podle toho dávej peníze a čas do marketingu."],
+  ["h2:prehled:Plán vs. realita", "Plán vs. realita", "Porovná odhadované a skutečné hodiny u hotových zakázek. Po 5 zakázkách nabídne přepočet norem nebo koeficientu výkonu party — odhady pak sedí na vás, ne na tabulky."],
+  ["h2:prehled:Adresář klientů", "Adresář klientů", "Klienti s kontakty a údaji na fakturu (IČO, DIČ). Při zakládání zakázky je vybereš a údaje se doplní. Tlačítko doplní adresář z uložených zakázek."],
+  ["h2:prehled:Nářadí a revize", "Nářadí a revize", "Evidence nářadí a termíny revizí elektrického nářadí — povinnost, na kterou se zapomíná, a bez revize neplatí pojištění při úrazu."],
+  ["h2:prehled:Stálí odběratelé", "Stálí odběratelé", "Firmy, kterým je povolený B2B ceník (o 10 % levnější). Jen těm, kdo přinášejí pravidelný objem."],
+  ["h2:prehled:Peníze na cestě", "Peníze na cestě", "Nezaplacené zálohy a doplatky se splatností. Co je po splatnosti, urgovat hned — upomínky jsou ve Fakturách."],
+  ["h2:prehled:Proč prohráváme nabídky", "Proč prohráváme", "Důvody zamítnutých nabídek a o kolik byl levnější ten, kdo zakázku vzal. Když je to pořád cena, nabídka neumí vysvětlit hodnotu — ne vždy je řešení zlevnit."],
+  ["h2:prehled:Růstový přehled", "Růstový přehled", "Pět čísel na každý týden: úspěšnost nabídek, vytížení, zisk na hodinu, peníze na cestě a nejlepší kanál — s cílem a radou, co dělat."],
+  ["h2:prehled:Evidence odpadů", "Evidence odpadů — rok", "Roční souhrn odpadů podle kódů z demolic i vyklízení — podklad pro zákonné hlášení."],
+  ["h2:prehled:Výdaje firmy", "Výdaje firmy", "Přehled výdajů podle kategorií (nafta, nářadí, materiál, služby…) — kam firma posílá peníze a kde se dá ušetřit. Výdaje zapisuješ ve Fakturách a daních → Výdaje a doklady."],
+
+  /* ---------------- CENÍK A NASTAVENÍ ---------------- */
+  ["h2:cenik:Firma na dokladech", "Firma na dokladech", "Údaje, které se tisknou na nabídky a faktury: obchodní firma, IČO, sídlo, účet a IBAN pro QR platbu, logo. Musí přesně odpovídat obchodnímu rejstříku."],
+  ["h2:cenik:Výchozí hodnoty", "Výchozí hodnoty", "Nastavení pro nové zakázky a faktury: splatnosti, plátce DPH, sleva za platbu předem, lidé v partě, pracovní den, náklady na najatého, marže na odvozu, skládkovné, kontejnery, doprava, rezerva a záloha."],
+  ["#nPlatceDPH", "Jsme plátci DPH", "Zaškrtni, až se firma zaregistruje k DPH (povinně po překročení obratu 2 mil. Kč za 12 měsíců). Pak se k cenám přičítá daň a faktury jsou daňové doklady."],
+  ["#nSazbaNajaty", "Náklad na najatého pracovníka", "Kolik vás stojí hodina člověka, který není majitel (brigádník, IČO). Odečítá se jako náklad u „Z toho najatých“."],
+  ["#nOdvozMarze", "Marže na odvozu", "O kolik % se navýší nákupní cena kontejneru při návrhu prodejní ceny."],
+  ["#nKontRezerva", "Rezerva místa v kontejnerech", "Návrh kontejnerů počítá s volným místem — suť se nedá skládat jako kostky a nikdo nechce objednávat další kontejner kvůli půl kubíku."],
+  ["#nKm", "Nákladová sazba dopravy", "Kolik vás stojí kilometr auta (nafta, servis, odpis). Přesněji ji spočítá Ekonomika firmy → Auto a přenese jedním tlačítkem."],
+  ["#nRezerva", "Výchozí rezerva", "Rezerva na skryté konstrukce pro nové zakázky demolic (% z práce)."],
+  ["#nZaloha", "Doporučená záloha", "Kolik % z ceny chtít předem u demolic. Záloha drží termín a kryje materiál a kontejnery."],
+  ["h2:cenik:Prahy rentability", "Prahy rentability", "Pod jaká čísla nejít: minimální zisk na osobu a hodinu (pod ním varování a tlačítko Dorovnat přes interní přirážku), minimální denní tržba party, minimální cena zakázky. K tomu prodejní sazba dopravy, paušál výjezdu, příplatky a <b>koeficient výkonu party</b>."],
+  ["#nMinZisk", "Minimální zisk na osobu a hodinu", "Pod touto hodinovkou kalkulace zčervená a nabídne „Dorovnat“ — zvedne interní přirážku tak, aby zakázka držela minimum."],
+  ["#nKoefVykon", "Koeficient výkonu party", "1,0 = pracujete rychlostí norem RTS; 1,3 = o 30 % pomaleji (na začátku normální). Násobí odhad hodin a dní. Po 5 zakázkách ho spočítá Přehled firmy z reálných dat."],
+  ["h2:cenik:Vynáška suti — sazby", "Vynáška suti — sazby", "Z čeho se počítá vynáška: hodinová sazba (nejtěžší práce — drž vysoko), kolik unese kolečko a kbelíky, délka cesty, čas na patro a na každých 10 m, úspora s výtahem. Změny se projeví ve všech kalkulacích."],
+  ["h2:cenik:Dopravci kontejnerů", "Dopravci kontejnerů", "Ceny jednotlivých dopravců: Kč/km, dny zdarma, další den a paušál za každý typ kontejneru. Porovnání ukáže, kdo je nejlevnější pro zadanou vzdálenost a počet dní."],
+  ["h2:cenik:Kontejnery", "Kontejnery", "Typy kontejnerů (objem, nosnost, nákupní a prodejní cena), ze kterých se navrhuje odvoz suti."],
+  ["h2:cenik:Ceník prací", "Ceník prací", "Všechny bourací práce s cenou B2C a B2B, sutí na MJ, normohodinami a ★. Vychází z RTS (+8 %). Ceny můžeš upravit jednotlivě nebo hromadně o procento. Kč/h = cena ÷ normohodiny."],
+  ["#zdrazitPct", "Změnit všechny ceny o %", "Hromadné zdražení (nebo zlevnění záporným číslem) celého ceníku nebo kategorie — třeba o inflaci jednou ročně. Historie změn se ukládá."],
+  ["h2:cenik:🔒 Zámek aplikace", "Zámek aplikace", "PIN při každém otevření a obnovení stránky (výchozí 2001). Chrání před zvědavýma očima, není to šifrování. PIN platí jen pro toto zařízení."],
+  ["h2:cenik:Data", "Data a zálohy", "Export zálohy stáhne všechna data do souboru, Import je obnoví (třeba na jiném počítači). Bez synchronizace dělej zálohu pravidelně — data jsou jen v tomto prohlížeči."]
+];
+
+/* ---------- vložení ⓘ ---------- */
+function napNorm(t){ return String(t || "").replace(/\s+/g, " ").replace(/^\s+/, "").trim(); }
+function napCil(klic){
+  if (klic.startsWith("#") || klic.startsWith("[")) {
+    const pole = document.querySelector(klic); if (!pole) return null;
+    return pole.closest("label") || null;
+  }
+  const i = klic.indexOf(":"), typ = klic.slice(0, i), zbytek = klic.slice(i + 1);
+  if (typ === "css") { const j = zbytek.lastIndexOf(":"), sel = zbytek.slice(0, j), text = napNorm(zbytek.slice(j + 1));
+    return [...document.querySelectorAll(sel)].find(e => napNorm(e.textContent).startsWith(text)) || null; }
+  const j = zbytek.indexOf(":"), tab = zbytek.slice(0, j), text = napNorm(zbytek.slice(j + 1));
+  const oblast = document.getElementById("tab-" + tab); if (!oblast) return null;
+  return [...oblast.querySelectorAll(typ === "sum" ? "summary" : "h2")].find(e => napNorm(e.textContent).startsWith(text)) || null;
+}
+function napAplikuj(){
+  NAPOVEDA.forEach((n, i) => {
+    const cil = napCil(n[0]); if (!cil || cil.querySelector(".nap-i[data-nap='" + i + "']")) return;
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "nap-i"; b.dataset.nap = i; b.textContent = "i"; b.title = "Co to je?"; b.setAttribute("aria-label", "Nápověda: " + n[1]);
+    napVloz(cil, b);
+  });
+}
+const NAP_POLE = /^(INPUT|SELECT|TEXTAREA)$/;
+function napVloz(cil, b){
+  /* popisek pole nad políčkem (label.f): text popisku zabalit, aby ⓘ stálo hned za ním na stejném řádku */
+  if (cil.tagName === "LABEL" && !cil.classList.contains("chk")) {
+    let obal = cil.querySelector(":scope > .nap-lbl");
+    if (!obal) {
+      const prvni = [...cil.childNodes].find(x => x.nodeType === 1 && (NAP_POLE.test(x.tagName) || x.querySelector && x.querySelector("input,select,textarea")));
+      obal = document.createElement("span"); obal.className = "nap-lbl";
+      [...cil.childNodes].slice(0, prvni ? [...cil.childNodes].indexOf(prvni) : cil.childNodes.length).forEach(x => obal.appendChild(x));
+      cil.insertBefore(obal, prvni || null);
+    }
+    obal.appendChild(b); return;
+  }
+  /* souhrn rozbalovací sekce: dovnitř nadpisu nebo textového obalu, ať ⓘ nestojí uprostřed řádku */
+  if (cil.tagName === "SUMMARY") {
+    const vnitrek = cil.querySelector(":scope > h2") || (cil.children.length === 1 && cil.firstElementChild.tagName === "SPAN" ? cil.firstElementChild : null);
+    if (vnitrek) { napVlozZaText(vnitrek, b); return; }
+    const obal = document.createElement("span"); obal.className = "nap-lbl";
+    [...cil.childNodes].forEach(x => obal.appendChild(x)); cil.appendChild(obal); obal.appendChild(b); return;
+  }
+  /* zaškrtávátko: za text, před případnou šedou poznámku */
+  if (cil.tagName === "LABEL") { const pozn = cil.querySelector(":scope > .hint"); cil.insertBefore(b, pozn || null); return; }
+  napVlozZaText(cil, b);
+}
+/* za text nadpisu, ale před štítky, poznámky a tlačítka */
+function napVlozZaText(el, b){
+  const pred = [...el.children].find(x => x !== b && (x.matches(".badge,.hint,.pill,button,select,input") && !x.classList.contains("nap-i")));
+  el.insertBefore(b, pred || null);
+}
+let napAktivni = null;
+function napZavri(){ const p = document.getElementById("napPop"); if (p) p.hidden = true; napAktivni = null; }
+function napOtevri(b){
+  const n = NAPOVEDA[+b.dataset.nap]; if (!n) return;
+  let p = document.getElementById("napPop");
+  if (!p) { p = document.createElement("div"); p.id = "napPop"; p.className = "nap-pop"; p.setAttribute("role", "dialog"); document.body.appendChild(p); }
+  p.innerHTML = "<div class='nap-h'><b>" + n[1] + "</b><button type='button' class='nap-x' aria-label='Zavřít'>×</button></div><div class='nap-t'>" + n[2] + "</div>" +
+    "<div class='nap-f'><button type='button' class='nap-pr'>Celý průvodce →</button></div>";
+  p.hidden = false; napAktivni = b;
+  napUmisti(p, b);
+}
+function napUmisti(p, b){
+  const r = b.getBoundingClientRect(), w = Math.min(360, window.innerWidth - 24);
+  if (window.innerWidth < 600) { p.style.left = "12px"; p.style.right = "12px"; p.style.width = "auto"; p.style.top = ""; p.style.bottom = "12px"; p.classList.add("dole"); }
+  else {
+    p.classList.remove("dole"); p.style.right = ""; p.style.bottom = ""; p.style.width = w + "px";
+    p.style.left = Math.max(12, Math.min(r.left - 20, window.innerWidth - w - 12)) + "px";
+    const vyska = p.offsetHeight, dolu = r.bottom + 8 + vyska < window.innerHeight;
+    p.style.top = (dolu ? r.bottom + 8 : Math.max(12, r.top - vyska - 8)) + "px";
+  }
+}
+/* klik v zachytávací fázi: ⓘ uvnitř popisku zaškrtávátka nebo souhrnu rozbalovací sekce nesmí nic přepnout */
+document.addEventListener("click", e => {
+  const b = e.target.closest && e.target.closest(".nap-i");
+  if (b) { e.preventDefault(); e.stopPropagation(); napOtevri(b); return; }
+  const p = document.getElementById("napPop");
+  if (!p || p.hidden) return;
+  if (e.target.closest(".nap-x")) { napZavri(); return; }
+  if (e.target.closest(".nap-pr")) { napZavri(); const t = document.querySelector("nav button[data-tab=pruvodce]"); if (t) t.click(); const m = document.getElementById("napMapa"); if (m) { m.open = true; setTimeout(() => m.scrollIntoView({block:"start"}), 50); } return; }
+  if (!e.target.closest("#napPop")) napZavri();
+}, true);
+document.addEventListener("keydown", e => { if (e.key === "Escape") napZavri(); });
+/* při posouvání stránky okno jede s ⓘ; když ⓘ zmizí z obrazovky nebo z aplikace, okno se zavře */
+function napSleduj(){
+  const p = document.getElementById("napPop"); if (!p || p.hidden || !napAktivni) return;
+  if (!napAktivni.isConnected) { napZavri(); return; }
+  const r = napAktivni.getBoundingClientRect();
+  if (r.bottom < 0 || r.top > window.innerHeight || (!r.width && !r.height)) { if (!p.classList.contains("dole")) napZavri(); return; }
+  napUmisti(p, napAktivni);
+}
+if (typeof window !== "undefined" && window.addEventListener) { window.addEventListener("scroll", napSleduj, {passive:true}); window.addEventListener("resize", napSleduj); }
+/* části, které se překreslují, dostanou ⓘ znovu */
+let napCasovac = null;
+function napNaplanuj(){ if (napCasovac) return; napCasovac = setTimeout(() => { napCasovac = null; napAplikuj(); }, 120); }
+if (typeof MutationObserver === "function" && document.body) new MutationObserver(napNaplanuj).observe(document.body, {childList:true, subtree:true});
+if (typeof document !== "undefined" && document.body) napNaplanuj();
 
 /* ---------- init ---------- */
 function fillAll(){fillHdr();fillNastaveni();renderPrace();renderKont();renderMat();renderOst();renderVP();renderFotky();renderDZ();renderOdp();renderDopravci();renderNKont();renderCenik();renderRychle();renderSablonyZak();renderSablony();renderRecenze();renderMilniky();renderInvestice();zakCount();syncVybava();renderPrehled();renderLogoNahled();renderBankStav();renderSyncStav();recalc();}
