@@ -569,6 +569,11 @@ details.gsec li{margin:3px 0}
 .br-pov{margin-top:12px}
 .br-pov ul{list-style:none;margin:6px 0 0;padding:0}
 .br-pov li{margin:0 0 4px}
+.br-verdikt{margin-top:10px;padding:10px 12px;border-radius:9px;font-size:13.5px;border:1px solid var(--line)}
+.br-verdikt ul{margin:4px 0 6px;padding-left:18px}
+.br-verdikt.brat{background:var(--good-bg);border-color:var(--good)}
+.br-verdikt.drazsi{background:var(--warn-bg);border-color:var(--warn-line);color:var(--warn-ink)}
+.br-verdikt.odmitnout{background:var(--bad-bg);border-color:var(--bad)}
 
 
 /* roadmapa */
@@ -837,6 +842,11 @@ body.zamceno{overflow:hidden}
       <label class="f">Termín od<input id="jTerminOd" type="date"><span class="hint" id="terminHint"></span></label>
       <label class="f">Termín do<input id="jTerminDo" type="date"></label>
     </div>
+  </div>
+
+  <div class="card" id="brBidCard">
+    <h2>🎯 Brát, nebo nebrat?</h2>
+    <div id="brBid"></div>
   </div>
 
   <div class="card" id="brPrhCard">
@@ -4822,6 +4832,7 @@ function recalc(){
   if(typeof hnRenderRiziko==="function")hnRenderRiziko();
   if(typeof hnRenderPojisteni==="function")hnRenderPojisteni();
   if(typeof renderBrPrh==="function")renderBrPrh(v);
+  if(typeof renderBrBid==="function")renderBrBid();
   $("#dopravaHint").textContent=(J.dopravaUctovat&&(J.km||0)>0)?
     "klientovi "+kc(v.dopravaP)+" = max("+(J.km||0)+" km × "+fmt0.format(n.kmProdej)+" Kč; paušál "+fmt0.format(n.pausal)+"), náklad "+kc(v.dopravaN):
     ((J.km||0)>0?"náklad "+kc(v.dopravaN)+" (neúčtuje se)":"");
@@ -5469,7 +5480,7 @@ function sablonaPouzit(){
 /* ========== přenos zakázky textem (kód DK1|…) ========== */
 const ZAK_POLE=["nazev","klient","adresa","poznamka","zdroj","cenik","dph","patro","vytah","vytahNaSut",
   "vzdalenost","rucniNoseni","lide","najati","kmDopravce","dnyKontejneru","skladkovne","rezerva","provize",
-  "sleva","slevaDuvod","prirazka","platbaPredem","nabidnoutPredem","odpadModel","trideni","poplatky","zabor","zaborM2","zaborDny","zaborSazba","followup","smlouva","prohlidka","povoleni",
+  "sleva","slevaDuvod","prirazka","platbaPredem","nabidnoutPredem","odpadModel","trideni","poplatky","zabor","zaborM2","zaborDny","zaborSazba","followup","smlouva","prohlidka","povoleni","bid",
   "km","dopravaUctovat","vikend","expres","terminOd","terminDo","prace","material","ostatni","kontejnery","odpady"];
 function zakDoTextu(z){
   const o={};
@@ -15712,6 +15723,60 @@ if (typeof document !== "undefined" && document.addEventListener) {
   });
 }
 
+/* ---------- Brát, nebo nebrat? Skóre zakázky ----------
+   Šest otázek k poptávce + to, co kalkulačka už ví (zisk na hodinu, prověření klienta, rizika z prohlídky).
+   Výsledek: nacenit normálně / nacenit dráž (přirážka jedním klikem) / slušně odmítnout (text jedním klikem). */
+const BR_BID = [
+  {k:"vzdalenost", q:"Vzdálenost", m:[["blizko", "Do 20 km", 2], ["stredni", "20–60 km", 0], ["daleko", "Přes 60 km", -2]]},
+  {k:"klient", q:"Klient", m:[["staly", "Stálý partner / doporučení", 2], ["novy", "Nový", 0], ["problem", "Známý problémový nebo pomalý plátce", -3]]},
+  {k:"konkurence", q:"Kolik firem poptává", m:[["jen", "Jen nás", 2], ["par", "2–3 firmy", 0], ["portal", "Portál, desítky firem", -2]]},
+  {k:"vytizeni", q:"Naše vytížení v termínu", m:[["volno", "Volno", 2], ["bezne", "Běžně", 0], ["plno", "Plno", -2]]},
+  {k:"prace", q:"Typ práce", m:[["silna", "Naše silná stránka", 2], ["bezna", "Běžná", 0], ["drina", "Dřina, riziko, nechceme", -2]]},
+  {k:"dalsi", q:"Přinese další práci?", m:[["ano", "Ano — partner, reference, navazující zakázky", 2], ["mozna", "Možná", 0], ["ne", "Jednorázovka", -1]]}
+];
+function brBid(z){
+  z = z || J; const b = z.bid || {}, body = [];
+  BR_BID.forEach(ot => { const m = ot.m.find(x => x[0] === b[ot.k]); if (m) body.push([ot.q + ": " + m[1].toLowerCase(), m[2]]); });
+  const odpovezeno = body.length;
+  /* co kalkulačka už ví */
+  if (z === J && (J.prace || []).some(r => (r.mnozstvi || 0) > 0)) {
+    const v = vypocet(), min = +(S.nastaveni || {}).minZiskOsHod || 0, zh = v.hodiny > 0 ? v.zisk / v.hodiny : 0;
+    if (min > 0 && zh > 0) body.push(["zisk " + fmt0.format(zh) + " Kč/h na osobu (minimum " + fmt0.format(min) + ")", zh >= min * 1.3 ? 2 : zh >= min ? 1 : -2]);
+  }
+  const k = (S.klienti || []).find(x => x.id === z.klientId), p = k && k.provereno;
+  if (p && (p.insolvence || p.zanik)) body.push(["klient v insolvenci nebo zaniklý", -5]);
+  if (typeof brProhlidka === "function") { const pr = brProhlidka(z); if (pr.varovani.some(w => /posudek|azbest/i.test(w))) body.push(["prohlídka: vážné riziko (nosné bez posudku / azbest)", -2]); }
+  const skore = body.reduce((a, x) => a + x[1], 0);
+  const verdikt = !odpovezeno ? null : skore >= 4 ? "brat" : skore >= 0 ? "drazsi" : "odmitnout";
+  return {odpovezeno, body, skore, verdikt};
+}
+function renderBrBid(){
+  const el = $("#brBid"); if (!el) return;
+  const b = J.bid || {}, x = brBid(J), prirazka = +(S.nastaveni || {}).bidPrirazka || 15;
+  let h = "<div class='br-prh-grid'>" + BR_BID.map(ot => "<div class='br-ot'><div class='br-otq'>" + esc(ot.q) + "</div><div class='br-chips'>" +
+    ot.m.map(m => "<button type='button' class='vk3-chip br-chip" + (b[ot.k] === m[0] ? " on" : "") + "' data-brbid='" + ot.k + "' data-brval='" + m[0] + "'>" + esc(m[1]) + "</button>").join("") + "</div></div>").join("") + "</div>";
+  if (x.verdikt) {
+    const txt = {brat:"✓ Brát — nacenit normálně", drazsi:"Nacenit dráž — jen když se to vyplatí", odmitnout:"Slušně odmítnout (nebo jen za vysokou cenu)"}[x.verdikt];
+    h += "<div class='br-verdikt " + x.verdikt + "'><b>" + txt + "</b> <span class='hint'>skóre " + (x.skore > 0 ? "+" : "") + x.skore + "</span><ul>" +
+      x.body.map(([t, bod]) => "<li>" + esc(t) + " <b>" + (bod > 0 ? "+" : "") + bod + "</b></li>").join("") + "</ul>" +
+      (x.verdikt === "drazsi" ? ((J.prirazka || 0) >= prirazka ? "<span class='ok'>✓ Interní přirážka " + J.prirazka + " % je nastavená.</span>" : "<button type='button' class='b' id='brBidPrirazka'>Nastavit interní přirážku +" + prirazka + " %</button>") : "") +
+      (x.verdikt === "odmitnout" ? "<button type='button' class='b' id='brBidOdmitnuti'>📋 Text slušného odmítnutí</button> <span class='hint' id='brBidStav'></span>" : "") + "</div>";
+  } else h += "<p class='hint' style='margin:8px 0 0'>Než začneš nacenovat, klepni odpovědi — nacenění zabere hodinu, ať ji dáváš zakázkám, které stojí za to.</p>";
+  el.innerHTML = h;
+}
+if (typeof document !== "undefined" && document.addEventListener) {
+  document.addEventListener("click", e => {
+    const c = e.target.closest && e.target.closest("[data-brbid]");
+    if (c) { if (!J.bid) J.bid = {}; const k = c.dataset.brbid; if (J.bid[k] === c.dataset.brval) delete J.bid[k]; else J.bid[k] = c.dataset.brval; recalc(); save(); return; }
+    if (e.target.id === "brBidPrirazka") { J.prirazka = +(S.nastaveni || {}).bidPrirazka || 15; if ($("#jPrirazka")) $("#jPrirazka").value = J.prirazka; recalc(); save(); return; }
+    if (e.target.id === "brBidOdmitnuti") {
+      const sb = (S.sablony || []).find(s => s && s.id === "odmitnuti"), t = sb ? naplnSablonu(sb.text) : "";
+      const st = $("#brBidStav"), hotovo = () => { if (st) st.innerHTML = "<span class='ok'>✓ Ve schránce</span>"; };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(hotovo, () => prompt("Zkopíruj:", t)); else prompt("Zkopíruj:", t);
+    }
+  });
+}
+
 /* ================= ROADMAPA — co řeší velké firmy =================
    Samostatná záložka: seznam věcí, na kterých velké demoliční, dopravní a odpadové firmy dělají marži
    (nebo se chrání před ztrátou), rozdělený do fází. Nic z toho zatím není naprogramované v kalkulaci —
@@ -16074,7 +16139,10 @@ const RM_HOTOVO = {
     kde:"Kalkulace → Prohlídka a rizika → <b>Rizika zakázky</b> a Doporučená rezerva."},
   "riz-povoleni":{datum:"2026-09-26",
     co:"Z odpovědí vznikne <b>checklist povolení a souhlasů</b> (souhlas SVJ, výtah na suť, odpojení médií, hlučné práce, statický posudek, stavební úřad, azbest, zábor) s odškrtáváním a datem. Když je zakázka domluvená a do začátku zbývá 10 dní, nesplněné body se ukážou jako <b>úkoly v Plánu</b> s tlačítkem Hotovo.",
-    kde:"Kalkulace → Prohlídka a rizika → <b>Povolení a souhlasy</b>; úkoly v <b>📅 Plánu</b>."}
+    kde:"Kalkulace → Prohlídka a rizika → <b>Povolení a souhlasy</b>; úkoly v <b>📅 Plánu</b>."},
+  "nac-bid":{datum:"2026-09-26",
+    co:"Karta <b>🎯 Brát, nebo nebrat?</b>: šest otázek k poptávce (vzdálenost, klient, kolik firem poptává, vytížení, typ práce, přinese další práci) a k tomu, co kalkulačka už ví — <b>zisk na hodinu</b> proti minimu, klient v insolvenci z prověření, vážné riziko z prohlídky. Výsledek se skóre a důvody: <b>brát</b>, <b>nacenit dráž</b> (tlačítko nastaví interní přirážku +15 %), nebo <b>slušně odmítnout</b> (tlačítko zkopíruje text odmítnutí ze Zpráv).",
+    kde:"Kalkulace → karta <b>🎯 Brát, nebo nebrat?</b> nad Prohlídkou a riziky."}
 };
 const rmHotova = x => !!RM_HOTOVO[x.id];
 const RM_JIZ = [
@@ -16198,6 +16266,7 @@ const NAPOVEDA = [
   ["#jLide", "Lidí na stavbě", "Kolik lidí bude na zakázce pracovat. Z toho kalkulačka počítá, kolik dní zakázka zabere (hodiny prací ÷ lidé ÷ hodiny za den) a jak se dělí zisk."],
   ["#jNajati", "Z toho najatých", "Kolik z lidí nejsou majitelé (brigádník, pomocník, člověk na IČO). Jejich hodiny jsou <b>náklad</b> (Nastavení → náklad na najatého), zisk se pak dělí jen mezi majitele. V kartě „Skutečný zisk zakázky“ můžeš rozlišit zaměstnance, DPP a IČO."],
   ["#jTerminOd", "Termín", "Termín od–do se propíše do Plánu. Kalkulačka porovná, kolik dní zakázka potřebuje, a upozorní, když se nevejde nebo koliduje s jinou zakázkou (i s vyklízením)."],
+  ["h2:kalkulace:🎯 Brát, nebo nebrat?", "Brát, nebo nebrat?", "Než začneš nacenovat, klepni šest odpovědí k poptávce. Kalkulačka k nim přidá zisk na hodinu, prověření klienta a rizika z prohlídky a řekne: <b>brát</b>, <b>nacenit dráž</b> (jedním klikem interní přirážka), nebo <b>slušně odmítnout</b> (text jedním klikem). Nacenění stojí hodinu — dávej ji zakázkám, které za to stojí."],
   ["h2:kalkulace:🔎 Prohlídka a rizika", "Prohlídka a rizika", "Projdi na prohlídce otázky a klepni odpovědi. Kalkulačka nastaví výtah a zábor, upozorní na rizika (stoupačky, azbest, nosné bez posudku), spočítá <b>rizika v Kč a doporučenou rezervu</b> místo paušálu a připraví <b>seznam povolení</b> — nesplněné se před začátkem prací objeví jako úkoly v Plánu. Druhé klepnutí odpověď zruší."],
   ["h2:kalkulace:Bourací práce", "Bourací práce", "Seznam prací z ceníku. Začni psát do vyhledávání (otvor, příčka, beton, omítka…) a klikni na položku, pak zadej množství. U položky vidíš <b>Kč/h</b> (kolik ta práce vydělá za hodinu) a <b>★ až ★★★★★</b> — fyzickou dřinu a neoblíbenost práce (u dřiny je v ceně +10 až +30 %). Pod tabulkou je přepočet m² × tloušťka → m³ pro objemové položky. Nosné konstrukce jen se statickým posudkem od objednatele."],
   ["h2:kalkulace:Odvoz suti a likvidace", "Odvoz suti a likvidace", "Kolik suti vznikne (z norem u každé práce), <b>jakého druhu</b> a v kolika kontejnerech ji odvezete. Čistá suť (beton, cihly, keramika) stojí na likvidaci zlomek ceny směsi (sádrokarton, izolace, PVC, dřevo) — kalkulačka porovná „tříděně vs. nevytříděně“ i s kontejnery a vybere levnější. Kovy jdou do výkupu. Vyber <b>dopravce</b> — nákupní ceny kontejnerů se spočítají z jeho paušálu, km a dní na stavbě. „Navrhnout podle suti“ navrhne kontejnery s rezervou místa (suť se nedá skládat jako kostky). Prodejní cena kontejneru je tvoje marže na odvozu."],
