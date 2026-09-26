@@ -586,6 +586,17 @@ details.gsec li{margin:3px 0}
 .br-graf rect.ne{fill:var(--bad)}
 .br-str-tab input{width:76px}
 .br-str-tab select{max-width:190px}
+.br-ispop{margin-top:12px;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--surface2);font-size:13.5px}
+.br-ispop-r{display:grid;grid-template-columns:150px 1fr auto;gap:10px;align-items:center;margin-top:6px}
+@media (max-width:600px){.br-ispop-r{grid-template-columns:1fr}}
+.br-bar{height:10px;background:var(--line);border-radius:6px;overflow:hidden}
+.br-bar span{display:block;height:100%}
+.br-bar span.ok{background:var(--good)}
+.br-bar span.st{background:var(--warn-line)}
+.br-bar span.ne{background:var(--bad)}
+.br-zar-tab input[type=number]{width:74px}
+.br-zar-tab input:not([type]){min-width:130px}
+tr.br-nejl td{background:var(--good-bg)}
 
 
 /* roadmapa */
@@ -911,6 +922,8 @@ body.zamceno{overflow:hidden}
       <button class="b" id="addKont">+ Přidat kontejner</button>
       <button class="b" id="navrhKont">Navrhnout podle suti</button>
       <button class="b" id="prepocitatKont">Přepočítat nákupní ceny dle dopravce</button>
+      <button class="b" id="brZarNajit">🧭 Nejlevnější zařízení</button>
+      <span class="hint" id="brZarVybrane"></span>
     </div>
     <div class="sut" id="kontRozpis" style="margin:12px 0 0;display:block"></div>
   </div>
@@ -1462,6 +1475,7 @@ body.zamceno{overflow:hidden}
       <thead><tr><th>Kód</th><th>Druh odpadu</th><th class="r">Tun celkem</th><th class="r">Odvozů</th></tr></thead>
       <tbody></tbody>
     </table></div>
+    <div id="brIspop"></div>
     <p class="hint" id="odpSouhrnEmpty">Zatím žádná evidence. Vyplňuj ji u zakázek podle váženek ze skládky — je to zákonná povinnost a zároveň nejlepší způsob, jak si zpřesnit koeficienty suti.</p>
   </div>
 
@@ -1570,6 +1584,13 @@ body.zamceno{overflow:hidden}
       <label class="f">Ověřeno s odpadovým poradcem dne<input type="date" data-hn="odpadRoleOvereno" data-txt="1"><span class="hint">dokud je prázdné, visí úkol v Plánu</span></label>
       <label class="f">Ohlášení dopravce odpadů podáno dne<input type="date" data-hn="odpadDopravceOhlaseno" data-txt="1"><span class="hint">jen když vozíte cizí odpad (role Dopravce)</span></label>
     </div>
+  </div>
+
+  <div class="card">
+    <h2>♻️ Zařízení na odpad</h2>
+    <p class="hint" style="margin:0 0 10px">Sběrné dvory, recyklační střediska a skládky, kam vozíte — s ceníkem bez DPH za tunu. Prázdná cena = použije se výchozí sazba. U zakázky pak tlačítko 🧭 spočítá, kam je to nejlevnější i s cestou.</p>
+    <div id="brZarSeznam"></div>
+    <div class="btnrow"><button class="b" id="brZarPridat">+ Přidat zařízení</button></div>
   </div>
 
   <div class="card">
@@ -4345,7 +4366,7 @@ document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()
   if(b.dataset.tab==="vyklizeni")renderVyklizeni();
   if(b.dataset.tab==="plan")renderPlan();
   if(b.dataset.tab==="zpravy"){renderSablony();renderRecenze();}
-  if(b.dataset.tab==="cenik")renderDopravciNejlepsi();
+  if(b.dataset.tab==="cenik"){renderDopravciNejlepsi();if(typeof renderBrZarizeni==="function")renderBrZarizeni();}
   if(b.dataset.tab==="rust"){renderMilniky();renderInvestice();if(typeof renderBrStrojePrehled==="function")renderBrStrojePrehled();}
 }));
 
@@ -4896,6 +4917,7 @@ function recalc(){
   if(typeof renderBrBid==="function")renderBrBid();
   if(typeof renderBrSkut==="function")renderBrSkut(v);
   if(typeof renderBrStroje==="function")renderBrStroje();
+  if(typeof renderBrZarVybrane==="function")renderBrZarVybrane();
   if(typeof renderBrDia==="function"&&!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest("#brDia")))renderBrDia();
   $("#dopravaHint").textContent=(J.dopravaUctovat&&(J.km||0)>0)?
     "klientovi "+kc(v.dopravaP)+" = max("+(J.km||0)+" km × "+fmt0.format(n.kmProdej)+" Kč; paušál "+fmt0.format(n.pausal)+"), náklad "+kc(v.dopravaN):
@@ -5544,7 +5566,7 @@ function sablonaPouzit(){
 /* ========== přenos zakázky textem (kód DK1|…) ========== */
 const ZAK_POLE=["nazev","klient","adresa","poznamka","zdroj","cenik","dph","patro","vytah","vytahNaSut",
   "vzdalenost","rucniNoseni","lide","najati","kmDopravce","dnyKontejneru","skladkovne","rezerva","provize",
-  "sleva","slevaDuvod","prirazka","platbaPredem","nabidnoutPredem","odpadModel","trideni","poplatky","zabor","zaborM2","zaborDny","zaborSazba","followup","smlouva","prohlidka","povoleni","bid","diamant","neprod","skutVynaskaH","strojeHod",
+  "sleva","slevaDuvod","prirazka","platbaPredem","nabidnoutPredem","odpadModel","trideni","poplatky","zabor","zaborM2","zaborDny","zaborSazba","followup","smlouva","prohlidka","povoleni","bid","diamant","neprod","skutVynaskaH","strojeHod","zarizeniId","odvozSami",
   "km","dopravaUctovat","vikend","expres","terminOd","terminDo","prace","material","ostatni","kontejnery","odpady"];
 function zakDoTextu(z){
   const o={};
@@ -8336,6 +8358,7 @@ function renderOdpSouhrn(){
       "<td>"+esc(o?o.nazev:"—")+"</td><td class='r num'>"+fmt1.format(m[k].t)+" t</td><td class='r num'>"+m[k].n+"</td>";
     tb.appendChild(tr);
   });
+  if(typeof brRenderIspop==="function")brRenderIspop();
 }
 /* ---------- automatické připomínky ---------- */
 /* Obrat pro účely registrace k DPH — z dokončených zakázek běžného kalendářního roku, vždy bez daně. */
@@ -10919,7 +10942,7 @@ async function syncToken(){
 function syncOdhlasit(){ SY.access = ""; SY.refresh = ""; SY.vyprsi = 0; SY.stav = "vypnuto"; syncUloz(); renderSync(); }
 
 /* ---------- převod stavu aplikace na záznamy ---------- */
-const SYNC_STAV_KLICE = ["nastaveni","cenik","kontejnery","dopravci","klienti","odberatele","naradi","sablony","milniky","investice","vybava","cenikHistorie","vykSazby","vykKatalog","ekon","vykPosadky"];
+const SYNC_STAV_KLICE = ["nastaveni","cenik","kontejnery","dopravci","klienti","odberatele","naradi","sablony","milniky","investice","vybava","cenikHistorie","vykSazby","vykKatalog","ekon","vykPosadky","zarizeni"];
 function syncStavData(){ const o = {}; SYNC_STAV_KLICE.forEach(k => { if (S[k] !== undefined) o[k] = S[k]; }); return o; }
 function syncDoFronty(druh, id, data, cislo, smazano){
   SY.fronta = SY.fronta.filter(z => !(z.druh === druh && z.id === id));
@@ -11521,7 +11544,7 @@ function vykNakladyZakazky(z, s, r, c, platce){
   const bezOdvozu = c.sluzba === "vynaska";
   let odpad = 0;
   const proudy = bezOdvozu ? [] : vykProudy().map(p => {
-    const kg = r.proudy[p[0]] || 0, kcT = s["o_" + p[0]] != null ? s["o_" + p[0]] : p[2];
+    const kg = r.proudy[p[0]] || 0, kcT = z.zarizeniCeny && +z.zarizeniCeny[p[0]] > 0 ? +z.zarizeniCeny[p[0]] : (s["o_" + p[0]] != null ? s["o_" + p[0]] : p[2]);
     const kc = kg / 1000 * kcT * (platce ? 1 : 1.21);
     odpad += kc;
     return {id:p[0], nazev:p[1], kg, kcT, kc:vykR2(kc)};
@@ -12176,7 +12199,7 @@ function renderVyklizeni(){
     "<label class='chk' style='margin-top:8px'><input type='checkbox' data-vkb='predem'" + (v.predem ? " checked" : "") + "> Klient platí celou částku předem — sleva 5 %, záloha 100 %</label>" +
     (!v.predem ? "<label class='chk'><input type='checkbox' data-vkb='nabidnoutPredem'" + (v.nabidnoutPredem !== false ? " checked" : "") + "> Nabídnout v nabídce i druhou, levnější cenu při platbě předem</label>" : "") +
     "<div class='btnrow'><button class='b prim' type='button' id='vkUlozit'>💾 Uložit</button><button class='b' type='button' id='vkTisk'>🖨 Nabídka</button>" +
-      "<button class='b' type='button' id='vkFakZal'>🧾 Zálohová faktura</button><button class='b' type='button' id='vkFakKon'>🧾 Konečná faktura</button><button class='b' type='button' id='vkZmareny'>⏱ Zmařený výjezd / čekání</button><button class='b' type='button' id='vkProverit'>🔍 Prověřit klienta</button><button class='b' type='button' id='vkSmlouva'>📝 Smlouva</button>" +
+      "<button class='b' type='button' id='vkFakZal'>🧾 Zálohová faktura</button><button class='b' type='button' id='vkFakKon'>🧾 Konečná faktura</button><button class='b' type='button' id='vkZmareny'>⏱ Zmařený výjezd / čekání</button><button class='b' type='button' id='vkProverit'>🔍 Prověřit klienta</button><button class='b' type='button' id='vkSmlouva'>📝 Smlouva</button><button class='b' type='button' id='vkZarizeni'>🧭 Kam s odpadem</button>" +
       "<button class='b' type='button' id='vkNova'>Nová zakázka</button><button class='b' type='button' id='vkModel'>Modelový příklad</button></div>" +
     "<div class='vk-zpravy'><select id='vkZpravaVyber'>" + VYK_ZPRAVY.map((z, i) => "<option value='" + i + "'>" + esc(z[0]) + "</option>").join("") + "</select>" +
       "<button class='b' type='button' id='vkZpravaKop'>✉ Kopírovat zprávu klientovi</button><button class='b' type='button' id='vkKodKop'>📤 Kód zakázky (VYK1)</button></div>" +
@@ -14742,7 +14765,8 @@ function hnedVychozi(){
 }
 function odpNast(){
   const n = S.nastaveni || {};
-  return {cista:+n.skladkovne || 0, smes:n.skladkovneSmes != null ? +n.skladkovneSmes : 2250, kov:n.vykupKov != null ? +n.vykupKov : 4,
+  const zar = typeof J !== "undefined" && J && J.zarizeniId && Array.isArray(S.zarizeni) ? S.zarizeni.find(z => z.id === J.zarizeniId) : null;
+  return {cista:zar && +zar.sut > 0 ? +zar.sut : +n.skladkovne || 0, smes:zar && +zar.stavSmes > 0 ? +zar.stavSmes : (n.skladkovneSmes != null ? +n.skladkovneSmes : 2250), kov:n.vykupKov != null ? +n.vykupKov : 4,
     hodT:n.trideniHodT != null ? +n.trideniHodT : 0.25, jakoSmes:!!n.likvidaceJakoSmes, marze:1 + (+n.odvozMarze || 0) / 100};
 }
 function odpadDruhAuto(r){
@@ -16143,6 +16167,191 @@ if (typeof document !== "undefined" && document.addEventListener) {
   });
 }
 
+/* ---------- Hlídat limit hlášení odpadů (ISPOP) ----------
+   Původce podává roční hlášení do 28. 2., když za předchozí rok vyprodukoval víc než 100 t ostatních
+   nebo 600 kg nebezpečných odpadů. Počítá se po kalendářních letech z evidence demolic a vážních lístků vyklízení. */
+const BR_ISPOP_T = 100, BR_ISPOP_NEB_KG = 600;
+function brIspop(rok){
+  const r = String(rok), m = {};
+  const pridej = (kod, t, kam) => { if (!(t > 0) || !kod) return; const x = m[kod] || (m[kod] = {kod, t:0, n:0, kam:new Set()}); x.t += t; x.n++; if (kam) x.kam.add(kam); };
+  const jobNavic = (S.job && (S.job.odpady || []).length && !(S.zakazky || []).some(z => z.id === S.job.id)) ? [S.job] : [];
+  (S.zakazky || []).concat(jobNavic).forEach(z => (z.odpady || []).forEach(o => { const d = String(o.datum || z.terminDo || z.terminOd || z.ulozeno || ""); if (d.startsWith(r)) pridej(o.kod, +o.tuny || 0, o.kam); }));
+  (S.vyklizeni || []).forEach(v => ((v.skut || {}).listky || []).forEach(l => { const d = String(l.datum || v.terminDo || v.terminOd || v.ulozeno || ""); if (d.startsWith(r)) pridej(l.kod, (+l.kg || 0) / 1000, l.zarizeni); }));
+  const kody = Object.values(m).sort((a, b) => b.t - a.t);
+  const ostatni = kody.filter(x => !String(x.kod).includes("*")).reduce((a, x) => a + x.t, 0), nebKg = kody.filter(x => String(x.kod).includes("*")).reduce((a, x) => a + x.t * 1000, 0);
+  return {rok, kody, ostatni, nebKg, povinnost:ostatni > BR_ISPOP_T || nebKg > BR_ISPOP_NEB_KG};
+}
+function brIspopCsv(rok){
+  const x = brIspop(rok), naz = k => { const o = (typeof ODPADY_KODY !== "undefined" ? ODPADY_KODY : []).find(y => y.kod === k); return o ? o.nazev : ""; };
+  return "Kód odpadu;Druh;Kategorie;Tun;Odvozů;Předáno do\n" + x.kody.map(k => [k.kod, naz(k.kod), String(k.kod).includes("*") ? "N" : "O", String(Math.round(k.t * 1000) / 1000).replace(".", ","), k.n, [...k.kam].join(", ")].map(v => '"' + String(v).replace(/"/g, '""') + '"').join(";")).join("\n");
+}
+function brRenderIspop(){
+  const el = $("#brIspop"); if (!el) return;
+  const rok = new Date().getFullYear(), ted = brIspop(rok), lon = brIspop(rok - 1), podano = ((S.nastaveni || {}).ispopPodano || {})[rok - 1];
+  const bar = (hod, lim, j) => { const p = Math.min(100, hod / lim * 100); return "<div class='br-bar'><span style='width:" + p.toFixed(1) + "%' class='" + (p >= 100 ? "ne" : p >= 80 ? "st" : "ok") + "'></span></div><span class='hint'>" + fmt1.format(hod) + " " + j + " z " + fmt0.format(lim) + " " + j + "</span>"; };
+  let h = "<div class='br-ispop'><b>Limit pro roční hlášení do ISPOP — rok " + rok + "</b>" +
+    "<div class='br-ispop-r'><span>Ostatní odpady</span>" + bar(ted.ostatni, BR_ISPOP_T, "t") + "</div>" +
+    "<div class='br-ispop-r'><span>Nebezpečné odpady</span>" + bar(ted.nebKg, BR_ISPOP_NEB_KG, "kg") + "</div>" +
+    (ted.povinnost ? "<p class='ne' style='margin:4px 0 0'>Letos jste přes limit — hlášení za rok " + rok + " bude potřeba podat do 28. 2. " + (rok + 1) + ".</p>"
+      : ted.ostatni > BR_ISPOP_T * 0.8 || ted.nebKg > BR_ISPOP_NEB_KG * 0.8 ? "<p class='hint' style='margin:4px 0 0'>Blížíte se limitu — počítejte s hlášením za tento rok.</p>" : "") +
+    (lon.povinnost ? "<p style='margin:6px 0 0'><b>Rok " + (rok - 1) + ": limit překročen</b> (" + fmt1.format(lon.ostatni) + " t ostatních, " + fmt0.format(lon.nebKg) + " kg nebezpečných) — hlášení do ISPOP do 28. 2. " + rok + (podano ? " <span class='ok'>✓ podáno " + hnDatumCz(podano) + "</span>" : "") + ".</p>" : "") +
+    "<div class='btnrow' style='margin-top:6px'><button type='button' class='b' data-brispop='" + rok + "'>⬇ Podklad za " + rok + " (CSV)</button><button type='button' class='b' data-brispop='" + (rok - 1) + "'>⬇ Podklad za " + (rok - 1) + " (CSV)</button></div>" +
+    "<p class='hint' style='margin:4px 0 0'>Podklad pro účetní nebo odpadového poradce: kódy, tuny, počet odvozů a zařízení. Hlášení se podává přes ISPOP (ispop.cz) za každou provozovnu.</p></div>";
+  el.innerHTML = h;
+}
+if (typeof document !== "undefined" && document.addEventListener) {
+  document.addEventListener("click", e => {
+    const b = e.target.closest && e.target.closest("[data-brispop]"); if (!b) return;
+    const rok = +b.dataset.brispop, blob = new Blob(["﻿" + brIspopCsv(rok)], {type:"text/csv;charset=utf-8"});
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "odpady-" + rok + ".csv"; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  });
+}
+/* úkol v lednu a únoru: podat hlášení za loňský rok */
+HN_UKOLY_EXT.push(dnes => {
+  const rok = +dnes.slice(0, 4), mes = +dnes.slice(5, 7); if (mes > 2) return [];
+  const lon = brIspop(rok - 1), pod = ((S.nastaveni || {}).ispopPodano || {})[rok - 1];
+  if (!lon.povinnost || pod) return [];
+  const do_ = rok + "-02-28";
+  return [{id:"firma", typ:"ispop", datum:do_, zbyva:hnDnyMezi(dnes, do_), text:"Podat roční hlášení odpadů do ISPOP za rok " + (rok - 1), pozn:fmt1.format(lon.ostatni) + " t ostatních, " + fmt0.format(lon.nebKg) + " kg nebezpečných · podklad v Přehledu firmy → Evidence odpadů",
+    akce:"<button type='button' class='b' data-brispopok='" + (rok - 1) + "'>✓ Podáno</button>"}];
+});
+if (typeof document !== "undefined" && document.addEventListener) {
+  document.addEventListener("click", e => {
+    const b = e.target.closest && e.target.closest("[data-brispopok]"); if (!b) return;
+    const n = S.nastaveni; n.ispopPodano = Object.assign({}, n.ispopPodano || {}, {[b.dataset.brispopok]:faDnes()}); save(); hnRenderUkoly();
+  });
+}
+
+/* ---------- Nejlevnější zařízení včetně cesty ----------
+   Seznam zařízení (adresa, poloha, ceník Kč/t). U zakázky: poloha adresy (Photon/OpenStreetMap), vzdálenost po silnici
+   (OSRM, když nejde, vzdušně × 1,3), likvidace podle druhů odpadu + cesta (vlastní dodávkou) → seřazeno od nejlevnějšího.
+   „Použít“ přiřadí zařízení zakázce: demolice počítá likvidaci jeho cenami, vyklízení jeho cenami a km. */
+const BR_ZAR_CENY = [["sut", "Čistá suť 17 01 07"], ["stavSmes", "Stavební směs 17 09 04"], ["objemny", "Objemný 20 03 07"], ["smes", "Směsný komunální 20 03 01"], ["drevo", "Dřevo"]];
+function brZarizeni(){ if (!Array.isArray(S.zarizeni)) S.zarizeni = []; return S.zarizeni; }
+async function brGeokod(adresa){
+  const r = await fetch("https://photon.komoot.io/api/?limit=1&lat=49.6&lon=17.25&q=" + encodeURIComponent(adresa + ", Česko"));
+  if (!r.ok) throw new Error("vyhledání adresy selhalo (" + r.status + ")");
+  const d = await r.json(), f = (d.features || [])[0]; if (!f) throw new Error("adresu se nepodařilo najít");
+  const p = f.properties || {}, [lon, lat] = f.geometry.coordinates;
+  return {lat, lon, popis:[p.street ? p.street + (p.housenumber ? " " + p.housenumber : "") : p.name, p.city || p.town || p.village || p.county].filter(Boolean).join(", ")};
+}
+function brVzdusne(a, b){ const R = 6371, dl = (b.lat - a.lat) * Math.PI / 180, dn = (b.lon - a.lon) * Math.PI / 180, x = Math.sin(dl / 2) ** 2 + Math.cos(a.lat * Math.PI / 180) * Math.cos(b.lat * Math.PI / 180) * Math.sin(dn / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(x)); }
+async function brSilnicniKm(z, cile){
+  try {
+    const body = [z].concat(cile).map(p => p.lon.toFixed(5) + "," + p.lat.toFixed(5)).join(";");
+    const r = await fetch("https://router.project-osrm.org/table/v1/driving/" + body + "?sources=0&annotations=distance");
+    const d = await r.json(); if (d.code !== "Ok") throw new Error("osrm");
+    return {km:d.distances[0].slice(1).map(m => m == null ? null : m / 1000), silnice:true};
+  } catch (e) { return {km:cile.map(c => brVzdusne(z, c) * 1.3), silnice:false}; }
+}
+/* odhad nákladu u jednoho zařízení */
+function brZarNaklad(zdroj, zak, zar, km, sami){
+  if (zdroj === "vyklizeni") {
+    const r = vykVypocet(zak); if (!r.ok) return null;
+    const s = S.vykSazby, plat = vykPlatce(), proudy = r.naklady.proudy || [];
+    const likv = proudy.reduce((a, p) => a + p.kg / 1000 * (+zar[p.id] > 0 ? +zar[p.id] : p.kcT) * (plat ? 1 : 1.21), 0);
+    const jizdy = r.cas.jizdy || 0, lide = r.cas.lide || 2;
+    const cesta = jizdy * 2 * km * (+s.vuzKm || 0) + jizdy * 2 * km / (+s.rychlostDalka || 65) * lide * (+s.cenaPraceH || 425);
+    return {likv, cesta, celkem:likv + cesta, jizdy};
+  }
+  const puv = J; J = zak; let o; try { o = odpadRozpis(sutCelkem()); } finally { J = puv; }
+  const n = S.nastaveni || {}, d = o.druhy || {cista:{t:0, m3:0}, smes:{t:0, m3:0}};
+  const cis = +zar.sut > 0 ? +zar.sut : +n.skladkovne || 0, sm = +zar.stavSmes > 0 ? +zar.stavSmes : (n.skladkovneSmes != null ? +n.skladkovneSmes : 2250);
+  const likv = o.model === 2 && (!o.obaProudy || o.tridit) ? d.cista.t * cis + d.smes.t * sm : ((d.cista.t || 0) + (d.smes.t || 0)) * (o.model === 2 ? sm : cis);
+  const m3 = (d.cista.m3 || 0) + (d.smes.m3 || 0), jizdy = sami ? Math.max(1, Math.ceil(m3 / (+n.dodavkaM3 || 6))) : 0;
+  const cesta = sami ? jizdy * 2 * km * (+n.km || 0) + jizdy * 2 * km / 50 * Math.max(1, zak.lide || 2) * (+n.sazbaNajaty || 250) : 0;
+  return {likv, cesta, celkem:likv + cesta, jizdy};
+}
+async function brKamSOdpadem(zdroj){
+  const zak = zdroj === "vyklizeni" ? VK : J; if (!zak) return;
+  let m = document.getElementById("brZarModal");
+  if (!m) { m = document.createElement("div"); m.id = "brZarModal"; m.className = "hn-modal"; document.body.appendChild(m); }
+  m.dataset.zdroj = zdroj;
+  const zar = brZarizeni().filter(z => z.lat && z.lon);
+  const hlava = "<div class='hn-hl'><b>🧭 Kam s odpadem — " + esc(zak.nazev || "zakázka") + "</b><button type='button' class='hn-x' data-brzar='zavrit' aria-label='Zavřít'>×</button></div>";
+  m.hidden = false;
+  if (!zar.length) { m.innerHTML = "<div class='hn-okno'>" + hlava + "<p>Zatím nemáš žádné zařízení s polohou. Přidej je v <b>Ceník a nastavení → ♻️ Zařízení na odpad</b> (adresa + 📍 Najít + ceník).</p></div>"; return; }
+  if (!zak.adresa) { m.innerHTML = "<div class='hn-okno'>" + hlava + "<p>Zakázka nemá adresu — doplň ji a zkus to znovu.</p></div>"; return; }
+  m.innerHTML = "<div class='hn-okno'>" + hlava + "<p class='hint'>Hledám adresu a počítám vzdálenosti po silnici…</p></div>";
+  try {
+    const poloha = zak.gps && zak.gps.adresa === zak.adresa ? zak.gps : Object.assign(await brGeokod(zak.adresa), {adresa:zak.adresa});
+    zak.gps = poloha;
+    const {km, silnice} = await brSilnicniKm(poloha, zar);
+    const sami = zdroj === "vyklizeni" ? true : !!zak.odvozSami;
+    const rad = zar.map((z, i) => Object.assign({z, km:km[i]}, brZarNaklad(zdroj, zak, z, km[i] || 0, sami) || {})).filter(x => x.km != null && x.celkem != null).sort((a, b) => a.celkem - b.celkem);
+    const vybr = zak.zarizeniId;
+    m.innerHTML = "<div class='hn-okno'>" + hlava +
+      "<p class='hint' style='margin:0 0 6px'>Adresa zakázky nalezena jako <b>" + esc(poloha.popis) + "</b>" + (silnice ? " · vzdálenosti po silnici" : " · vzdušně × 1,3 (trasu se nepodařilo spočítat)") + ". Když poloha nesedí, zpřesni adresu zakázky.</p>" +
+      (zdroj !== "vyklizeni" ? "<label class='chk' style='margin:0 0 6px'><input type='checkbox' id='brZarSami'" + (sami ? " checked" : "") + "> Vozíme sami dodávkou (jinak odváží dopravce kontejnerů a počítá se jen likvidace)</label>" : "") +
+      "<div class='tscroll'><table class='odp-tab'><thead><tr><th>Zařízení</th><th class='r'>Km</th><th class='r'>Likvidace</th><th class='r'>Cesta</th><th class='r'>Celkem</th><th></th></tr></thead><tbody>" +
+      rad.map((x, i) => "<tr" + (i === 0 ? " class='br-nejl'" : "") + "><td><b>" + esc(x.z.nazev || "Zařízení") + "</b>" + (x.z.firmy === false ? " <span class='ne'>(ne od firem)</span>" : "") + "<div class='hint'>" + esc(x.z.adresa || "") + "</div></td><td class='r'>" + fmt0.format(x.km) + "</td><td class='r'>" + kc(x.likv) + "</td><td class='r'>" + (x.cesta ? kc(x.cesta) + (x.jizdy ? "<div class='hint'>" + x.jizdy + "× tam a zpět</div>" : "") : "—") + "</td><td class='r'><b>" + kc(x.celkem) + "</b></td><td>" +
+        (vybr === x.z.id ? "<span class='ok'>✓ vybráno</span>" : "<button type='button' class='b' data-brzarpouzit='" + esc(x.z.id) + "' data-brzarkm='" + x.km.toFixed(1) + "'>Použít</button>") + "</td></tr>").join("") +
+      "</tbody></table></div>" + (rad.length > 1 ? "<p class='hint' style='margin:6px 0 0'>Rozdíl mezi nejlevnějším a nejdražším: <b>" + kc(rad[rad.length - 1].celkem - rad[0].celkem) + "</b>.</p>" : "") + "</div>";
+    save();
+  } catch (e) { m.innerHTML = "<div class='hn-okno'>" + hlava + "<p class='ne'>Nepovedlo se: " + esc(e.message || "chyba") + ". Zkontroluj adresu zakázky a připojení.</p></div>"; }
+}
+function brZarPouzit(zdroj, id, km){
+  const zak = zdroj === "vyklizeni" ? VK : J, z = brZarizeni().find(x => x.id === id); if (!zak || !z) return;
+  zak.zarizeniId = id;
+  if (zdroj === "vyklizeni") {
+    zak.kmZarizeni = Math.round(km);
+    zak.zarizeniCeny = {}; ["objemny", "smes", "drevo", "sut"].forEach(k => { if (+z[k] > 0) zak.zarizeniCeny[k] = +z[k]; });
+    if (typeof vykUloz === "function") vykUloz(); if (typeof renderVyklizeni === "function") renderVyklizeni();
+  } else { recalc(); }
+  save();
+}
+function brZarNazev(zak){ const z = zak && zak.zarizeniId ? brZarizeni().find(x => x.id === zak.zarizeniId) : null; return z ? z.nazev : ""; }
+/* seznam zařízení v Nastavení */
+function renderBrZarizeni(){
+  const el = $("#brZarSeznam"); if (!el) return;
+  if (document.activeElement && document.activeElement.closest && document.activeElement.closest("#brZarSeznam")) return;
+  const zar = brZarizeni();
+  el.innerHTML = zar.length ? "<div class='tscroll'><table class='odp-tab br-zar-tab'><thead><tr><th>Zařízení</th><th>Adresa a poloha</th>" + BR_ZAR_CENY.map(c => "<th>" + c[1] + "<div class='hint'>Kč/t</div></th>").join("") + "<th>Od firem</th><th></th></tr></thead><tbody>" +
+    zar.map((z, i) => "<tr><td><input data-brzarp='" + i + "' data-k='nazev' value='" + esc(z.nazev || "") + "' placeholder='název'></td>" +
+      "<td><input data-brzarp='" + i + "' data-k='adresa' value='" + esc(z.adresa || "") + "' placeholder='ulice, obec'> <button type='button' class='mini' data-brzargeo='" + i + "'>📍 Najít</button><div class='hint'>" + (z.lat ? "✓ " + esc(z.polohaPopis || (z.lat.toFixed(3) + ", " + z.lon.toFixed(3))) : "poloha chybí") + "</div></td>" +
+      BR_ZAR_CENY.map(c => "<td><input type='number' min='0' step='10' data-brzarp='" + i + "' data-k='" + c[0] + "' value='" + (z[c[0]] || "") + "'></td>").join("") +
+      "<td><input type='checkbox' data-brzarf='" + i + "'" + (z.firmy !== false ? " checked" : "") + "></td><td><button type='button' class='mini' data-brzardel='" + i + "'>✕</button></td></tr>").join("") + "</tbody></table></div>"
+    : "<p class='hint' style='margin:0'>Přidej sběrné dvory, recyklační střediska a skládky, kam vozíte — s ceníkem za tunu. Kalkulačka pak u každé zakázky spočítá, kam je to celkově nejlevnější, i s cestou.</p>";
+}
+if (typeof document !== "undefined" && document.addEventListener) {
+  document.addEventListener("click", async e => {
+    const t = e.target;
+    if (t.id === "brZarNajit") { brKamSOdpadem("demolice"); return; }
+    if (t.id === "vkZarizeni") { brKamSOdpadem("vyklizeni"); return; }
+    if (t.id === "brZarPridat") { brZarizeni().push({id:"zar-" + uid(), nazev:"", adresa:"", firmy:true}); save(); renderBrZarizeni(); return; }
+    const del = t.closest && t.closest("[data-brzardel]"); if (del) { if (confirm("Smazat zařízení?")) { brZarizeni().splice(+del.dataset.brzardel, 1); save(); renderBrZarizeni(); } return; }
+    const geo = t.closest && t.closest("[data-brzargeo]");
+    if (geo) {
+      const z = brZarizeni()[+geo.dataset.brzargeo]; if (!z || !z.adresa) { alert("Nejdřív vyplň adresu zařízení."); return; }
+      geo.disabled = true; geo.textContent = "hledám…";
+      try { const p = await brGeokod(z.adresa); z.lat = p.lat; z.lon = p.lon; z.polohaPopis = p.popis; save(); } catch (err) { alert("Polohu se nepodařilo najít: " + err.message); }
+      renderBrZarizeni(); return;
+    }
+    const m = document.getElementById("brZarModal");
+    const p = t.closest && t.closest("[data-brzarpouzit]");
+    if (p && m) { brZarPouzit(m.dataset.zdroj, p.dataset.brzarpouzit, +p.dataset.brzarkm); m.hidden = true; return; }
+    if (m && !m.hidden && (t === m || (t.closest && t.closest("[data-brzar='zavrit']")))) m.hidden = true;
+  });
+  document.addEventListener("input", e => {
+    const i = e.target.closest && e.target.closest("[data-brzarp]"); if (!i) return;
+    const z = brZarizeni()[+i.dataset.brzarp]; if (!z) return;
+    const k = i.dataset.k; z[k] = i.type === "number" ? num(i.value) : i.value;
+    if (k === "adresa") { delete z.lat; delete z.lon; delete z.polohaPopis; }
+    save();
+  });
+  document.addEventListener("change", e => {
+    const f = e.target.closest && e.target.closest("[data-brzarf]"); if (f) { const z = brZarizeni()[+f.dataset.brzarf]; if (z) { z.firmy = f.checked; save(); } return; }
+    if (e.target.id === "brZarSami") { J.odvozSami = e.target.checked; save(); brKamSOdpadem("demolice"); }
+  });
+}
+
+function renderBrZarVybrane(){
+  const el = $("#brZarVybrane"); if (!el) return;
+  const nz = brZarNazev(J);
+  el.innerHTML = nz ? "Likvidace podle ceníku: <b>" + esc(nz) + "</b> <button type='button' class='hn-odkaz' id='brZarZrusit'>zrušit</button>" : "";
+}
+if (typeof document !== "undefined" && document.addEventListener) document.addEventListener("click", e => { if (e.target.id === "brZarZrusit") { delete J.zarizeniId; recalc(); save(); } });
+
 /* ================= ROADMAPA — co řeší velké firmy =================
    Samostatná záložka: seznam věcí, na kterých velké demoliční, dopravní a odpadové firmy dělají marži
    (nebo se chrání před ztrátou), rozdělený do fází. Nic z toho zatím není naprogramované v kalkulaci —
@@ -16526,7 +16735,13 @@ const RM_HOTOVO = {
     kde:"Kalkulace → karta <b>🛠 Stroje na zakázce</b>; sazby strojů v <b>💰 Růst a investice → 🛠 Stroje</b>, ceny a životnost v Ekonomice firmy → Nářadí."},
   "tech-pujcit":{datum:"2026-09-26",
     co:"U každého stroje <b>půjčit, nebo koupit</b>: roční náklad vlastnictví (odpis + servis) proti půjčovnému × dnům, kdy jste stroj za poslední rok opravdu potřebovali (spočítáno ze zakázek). Verdikt „Vlastnit“ nebo „Půjčovat“ i s počtem dní, od kdy se vlastnictví vyplatí.",
-    kde:"<b>💰 Růst a investice → 🛠 Stroje — strojhodina a půjčit, nebo koupit</b>. Nový stroj přidáš v Ekonomice firmy → Nářadí."}
+    kde:"<b>💰 Růst a investice → 🛠 Stroje — strojhodina a půjčit, nebo koupit</b>. Nový stroj přidáš v Ekonomice firmy → Nářadí."},
+  "odp-ispop":{datum:"2026-09-26",
+    co:"V evidenci odpadů je <b>limit pro roční hlášení do ISPOP</b> po kalendářních letech: kolik tun ostatních (limit 100 t) a kolik kg nebezpečných odpadů (limit 600 kg) už letos máte, s barevným ukazatelem a upozorněním, když se blížíte. Když byl limit překročen loni, v lednu a únoru je úkol v Plánu „podat hlášení do 28. 2.“ s tlačítkem Podáno. Tlačítka stáhnou <b>podklad (CSV)</b> za letošní i loňský rok — kódy, tuny, počet odvozů a zařízení, pro účetní nebo odpadového poradce.",
+    kde:"Přehled firmy → <b>Evidence odpadů — roční souhrn</b>; úkol v <b>📅 Plánu</b> (leden–únor)."},
+  "odp-zarizeni":{datum:"2026-09-26",
+    co:"Seznam <b>zařízení na odpad</b> s adresou, polohou (📍 Najít) a ceníkem za tunu (čistá suť, stavební směs, objemný, komunální, dřevo). U zakázky tlačítko <b>🧭 Nejlevnější zařízení</b> najde adresu, spočítá vzdálenost po silnici ke každému zařízení, likvidaci podle druhů odpadu a — když vozíte sami — cestu tam a zpět (km i čas lidí). Seřadí od nejlevnějšího a ukáže rozdíl. <b>Použít</b> zařízení přiřadí: demolice pak počítá likvidaci jeho cenami, vyklízení jeho cenami a km do zařízení.",
+    kde:"Ceník a nastavení → <b>♻️ Zařízení na odpad</b>; Kalkulace → Odvoz suti a likvidace → 🧭 Nejlevnější zařízení; Vyklízení → 🧭 Kam s odpadem."}
 };
 const rmHotova = x => !!RM_HOTOVO[x.id];
 const RM_JIZ = [
@@ -16823,6 +17038,7 @@ const NAPOVEDA = [
   ["[data-hn='pojVNabidce']", "Pojištění v nabídce", "Do nabídky se přidá věta „Jsme pojištěni pro případ škody (pojišťovna, limit)“. Klient vidí, že je v bezpečí — levné firmy tohle napsat nemůžou."],
   ["[data-hn='odpadRoleDemolice']", "Role u odpadu — demolice", "Zhotovitel stavebních prací bývá původcem odpadu, který při práci vznikne — odpad je váš, vy ho předáte do zařízení a vedete evidenci. Do nabídky se přidá věta, že odpad převezmete jako jeho původce."],
   ["[data-hn='odpadRoleVyklizeni']", "Role u odpadu — vyklízení", "Když věci podle nabídky přecházejí předáním na vás, odpad z nich je váš a vezete vlastní odpad. Kdo by vozil cizí odpad pro cizí potřebu, je dopravce odpadů a musí činnost ohlásit krajskému úřadu. Ověřte si to jednou s odpadovým poradcem."],
+  ["h2:cenik:♻️ Zařízení na odpad", "Zařízení na odpad", "Kam vozíte odpad a za kolik. Vyplň adresu, klikni 📍 Najít (poloha pro výpočet vzdálenosti) a ceník za tunu bez DPH. U zakázky pak 🧭 spočítá, které zařízení je celkově nejlevnější i s cestou, a jedním klikem ho zakázce přiřadí."],
   ["h2:cenik:Prahy rentability", "Prahy rentability", "Pod jaká čísla nejít: minimální zisk na osobu a hodinu (pod ním varování a tlačítko Dorovnat přes interní přirážku), minimální denní tržba party, minimální cena zakázky. K tomu prodejní sazba dopravy, paušál výjezdu, příplatky a <b>koeficient výkonu party</b>."],
   ["#nMinZisk", "Minimální zisk na osobu a hodinu", "Pod touto hodinovkou kalkulace zčervená a nabídne „Dorovnat“ — zvedne interní přirážku tak, aby zakázka držela minimum."],
   ["#nKoefVykon", "Koeficient výkonu party", "1,0 = pracujete rychlostí norem RTS; 1,3 = o 30 % pomaleji (na začátku normální). Násobí odhad hodin a dní. Po 5 zakázkách ho spočítá Přehled firmy z reálných dat."],
