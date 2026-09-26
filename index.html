@@ -501,6 +501,53 @@ details.gsec li{margin:3px 0}
 @media (max-width:560px){.ek-fix-r.ek-nar{grid-template-columns:1fr 1fr}.ek-fix-r.ek-nar>input:first-child{grid-column:1/-1}}
 
 
+/* roadmapa */
+.rm-uvod p{margin:0 0 6px;font-size:14px;line-height:1.55;max-width:900px}
+.rm-akce{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.rm-dva{align-items:start}
+@media (max-width:900px){.rm-dva{grid-template-columns:1fr}}
+.rm-zasady{margin:4px 0 0;padding-left:20px;font-size:13.5px;line-height:1.5}
+.rm-zasady li{margin:0 0 7px}
+.rm-tab{width:100%;border-collapse:collapse;font-size:13px}
+.rm-tab th,.rm-tab td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.rm-tab th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.rm-tab th.r,.rm-tab td.r{text-align:right;white-space:nowrap}
+.rm-tab .rm-soucet td{font-weight:800;border-bottom:0;color:var(--good)}
+.rm-hledat{width:100%;border:1px solid var(--line);border-radius:9px;padding:10px 12px;background:var(--ground);color:var(--ink);font:inherit;font-size:14px;margin:2px 0 10px}
+.rm-filtry{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.rm-fr{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.rm-fl{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;min-width:62px}
+.rm-chip{min-height:32px;padding:5px 11px;font-size:13px}
+.rm-n{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:var(--chip);color:var(--muted);font-size:11px;font-weight:700;margin-left:2px}
+.rm-chip.on .rm-n{background:rgba(255,255,255,.25);color:#fff}
+.rm-faze{margin:6px 0 18px}
+.rm-fh{display:flex;align-items:center;gap:10px;padding:8px 0 10px;border-bottom:2px solid var(--line);margin-bottom:10px}
+.rm-fh .badge{margin-left:auto;float:none}
+.rm-fc{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font-weight:800;flex:0 0 auto}
+.rm-pol{border:1px solid var(--line);border-left:4px solid var(--line);border-radius:10px;padding:12px 14px;margin:0 0 10px;background:var(--surface)}
+.rm-pol.rm-hned{border-left-color:var(--accent)}
+.rm-pol.rm-pozdeji{border-left-color:var(--warn-line)}
+.rm-pol.rm-ne{opacity:.6}
+.rm-hl{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start}
+.rm-hl h3{margin:0;font-size:15.5px;line-height:1.35}
+.rm-stitky{display:flex;gap:5px;flex-wrap:wrap}
+.rm-st{font-size:11.5px;font-weight:700;border-radius:20px;padding:2px 9px;background:var(--chip);color:var(--muted);white-space:nowrap}
+.rm-slabe{opacity:.3}
+.rm-bloky{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:8px}
+@media (max-width:900px){.rm-bloky{grid-template-columns:1fr;gap:6px}}
+.rm-bloky p{margin:2px 0 0;font-size:13.5px;line-height:1.5}
+.rm-t{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.rm-uz{color:var(--good);font-size:12.5px!important;margin-top:6px!important}
+.rm-pr{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:10px;padding-top:8px;border-top:1px dashed var(--line)}
+.rm-pb{border:1px solid var(--line);background:var(--surface2);color:var(--ink);border-radius:999px;padding:5px 11px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;min-height:32px}
+.rm-pb.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.rm-jiz,.rm-zdroje{margin:4px 0 0;padding-left:20px;font-size:13.5px;line-height:1.5}
+.rm-jiz li,.rm-zdroje li{margin:0 0 5px}
+.rm-jiz li::marker{content:"✓  ";color:var(--good)}
+.rm-zdroje a{color:var(--accent)}
+@media print{#tab-roadmapa .rm-pr,#tab-roadmapa .rm-filtry,#tab-roadmapa .rm-hledat,#tab-roadmapa .rm-akce{display:none}}
+
+
 /* nápověda ⓘ */
 .nap-i{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;min-width:17px;padding:0;margin:0 0 0 6px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);font:italic 700 11px/1 Georgia,"Times New Roman",serif;text-transform:none;letter-spacing:0;vertical-align:1px;cursor:pointer;flex:0 0 auto}
 .nap-i:hover,.nap-i:focus-visible{border-color:var(--accent);color:var(--accent);outline:none}
@@ -598,6 +645,7 @@ body.zamceno{overflow:hidden}
       <button data-tab="prehled">Přehled firmy</button>
       <button data-tab="cenik">Ceník a nastavení</button>
       <button data-tab="pruvodce">Průvodce</button>
+      <button data-tab="roadmapa">🗺 Roadmapa</button>
     </nav>
   </div>
 </header>
@@ -1456,6 +1504,7 @@ body.zamceno{overflow:hidden}
         <tr><td><b>Přehled firmy</b></td><td>Měsíční výsledky, zdroje zakázek, plán vs. realita, adresář, odběratelé, peníze na cestě, proč prohráváte, evidence odpadů.</td><td>Týdně a na konci měsíce.</td></tr>
         <tr><td><b>Ceník a nastavení</b></td><td>Údaje firmy na doklady, výchozí hodnoty, prahy rentability, vynáška, dopravci, kontejnery, ceník prací, zámek, zálohy dat.</td><td>Při startu a když se změní ceny nebo firma.</td></tr>
         <tr><td><b>Průvodce</b></td><td>Tento návod, první kroky, klauzule, checklisty, návody k Claudovi, fakturám a daním.</td><td>Když si nejsi jistý postupem.</td></tr>
+        <tr><td><b>🗺 Roadmapa</b></td><td>Co řeší velké firmy a co by šlo do kalkulačky postupně přidat — podle fází, s tvými prioritami.</td><td>Když přemýšlíš, co dál zlepšit.</td></tr>
       </tbody>
     </table></div>
 
@@ -2391,6 +2440,74 @@ material: Fólie a pytle | 800 | 1100</pre>
       <li><b>DPH</b> se přičítá až na konec a není tvůj příjem — jen ho přeposíláš státu. U reverse charge (§ 92e) fakturuješ bez DPH a daň odvádí odběratel.</li>
     </ul>
   </div></details>
+</section>
+<!-- ============ ROADMAPA ============ -->
+<section id="tab-roadmapa" class="tab">
+  <div class="card rm-uvod">
+    <h2>🗺 Roadmapa — co řeší velké firmy a vy zatím ne</h2>
+    <p>Velké demoliční, dopravní a odpadové firmy nemají vyšší hodinovku. Vydělávají na desítkách drobností: <b>tuny, kilometry, dny kontejneru, smlouvy, platby a data</b>. Tady je všechno sepsané a rozdělené do fází podle toho, kdy to pro vás začne dávat smysl.</p>
+    <p class="hint" style="margin:6px 0 0">Nic z toho zatím v kalkulačce není naprogramované — je to plán. U každé položky si klikni prioritu (Chci brzy / Později / Nezajímá). Pak dej <b>Zkopírovat moje priority</b> a pošli seznam Claudovi — podle něj se to postupně dodělá.</p>
+    <div class="rm-akce"><button type="button" class="b prim" id="rmKopirovat">📋 Zkopírovat moje priority</button><span class="hint" id="rmSouhrn"></span></div>
+  </div>
+
+  <div class="grid g2 rm-dva">
+    <div class="card">
+      <h2>Jak velké firmy přemýšlejí o marži</h2>
+      <ol class="rm-zasady">
+        <li><b>Marže se dělá v odpadech a logistice, ne v hodinovce.</b> Hodinovou sazbu srovná každý klient. Tuny, kilometry a dny kontejneru nesrovná nikdo.</li>
+        <li><b>Co se neměří, to se neúčtuje.</b> Čekání, zmařené výjezdy, placené dny kontejneru, spotřební materiál, neproduktivní čas.</li>
+        <li><b>Každá smlouva má pojistky.</b> Platnost nabídky, valorizace, vícepráce jen písemně, zmařený výjezd, úrok z prodlení, omezení odpovědnosti.</li>
+        <li><b>Peníze přijdou dřív, než odejdou.</b> Zálohy, krátká splatnost, prověřený klient, pozastávky započtené v ceně, cashflow na 13 týdnů dopředu.</li>
+        <li><b>Drahé věci musí být vytížené.</b> Lidi, auta a stroje. Prázdný den party nebo auta je nejdražší položka firmy.</li>
+        <li><b>Vlastní data místo tabulek.</b> Vlastní normy, ceny zařízení a přesnost odhadů — každá zakázka zpřesní tu další.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h2>Příklad: koupelna za 60 000 Kč</h2>
+      <p class="hint" style="margin:0 0 8px">Zděná koupelna s příčkami, obklady a potěrem (~4 t suti). Kde velká firma najde peníze navíc proti běžnému postupu:</p>
+      <div class="tscroll"><table class="rm-tab">
+        <thead><tr><th>Páka</th><th class="r">Navíc</th><th>Poznámka</th></tr></thead>
+        <tbody>
+          <tr><td>Suť tříděně místo směsi</td><td class="r">≈ 5 000 Kč</td><td>9 000 → 4 000 Kč za likvidaci, i po hodině na třídění</td></tr>
+          <tr><td>Kovy do výkupu</td><td class="r">≈ 600 Kč</td><td>vana, radiátor, trubky, zárubně ~150 kg</td></tr>
+          <tr><td>Spotřební materiál v ceně</td><td class="r">≈ 800 Kč</td><td>pytle, fólie, kotouče, ochrana výtahu a chodby</td></tr>
+          <tr><td>Kontejner odvezen hned</td><td class="r">≈ 400 Kč</td><td>žádný placený den navíc</td></tr>
+          <tr><td>Zmařený výjezd ve smlouvě</td><td class="r">0 / 1 500 Kč</td><td>když klient nepřipraví byt nebo klíče</td></tr>
+          <tr class="rm-soucet"><td>Celkem</td><td class="r">≈ 6 800 Kč</td><td>víc než 10 procentních bodů marže navíc</td></tr>
+        </tbody>
+      </table></div>
+      <p class="hint" style="margin:8px 0 0">Orientačně. Ceny odpadů podle ceníku moravského sběrného zařízení (4/2026) a recyklačních středisek — v každém regionu se liší.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Seznam — co zapracovat a kdy</h2>
+    <input type="search" id="rmHledat" class="rm-hledat" placeholder="🔍 Hledat (třeba kontejner, suť, faktura, pojištění…)">
+    <div id="rmFiltry" class="rm-filtry"></div>
+    <div id="rmSeznam"></div>
+  </div>
+
+  <div class="grid g2 rm-dva">
+    <div class="card">
+      <h2>Co už máte (a velké firmy taky)</h2>
+      <ul class="rm-jiz" id="rmJiz"></ul>
+      <p class="hint" style="margin:8px 0 0">Kalkulačka už teď umí víc než běžná malá firma. Roadmapa jen ukazuje, kde jsou další peníze.</p>
+    </div>
+    <div class="card">
+      <h2>Zdroje a na co si dát pozor</h2>
+      <ul class="rm-zdroje">
+        <li>Poplatek za skládkování podle přílohy č. 9 zákona o odpadech 541/2020 Sb.: 1 600 Kč/t v roce 2026, až 1 850 Kč/t od 2029 — <a href="https://www.enviweb.cz/118666" target="_blank" rel="noopener">EnviWeb</a>, <a href="https://sfzp.gov.cz/files/documents/storage/2022/01/24/1643016015_Z%C3%A1kladn%C3%AD%20informace_Poplatky%20za%20ukl%C3%A1d%C3%A1n%C3%AD%20odpadu.pdf" target="_blank" rel="noopener">SFŽP</a></li>
+        <li>Stavební a demoliční odpady a třídění — <a href="https://mzp.gov.cz/cz/agenda/odpadove-hospodarstvi-a-cirkularni-ekonomika/odpady/stavebni-a-demolicni-odpady" target="_blank" rel="noopener">MŽP</a></li>
+        <li>Příjem suti v recyklačním středisku (ceník od 1. 9. 2026) — <a href="https://www.brnorecyklace.cz/files/cenik.pdf" target="_blank" rel="noopener">Recyklace Brno</a></li>
+        <li>Hlášení odpadů do ISPOP (limit 100 t ostatních / 600 kg nebezpečných, do 28. 2.) — <a href="https://www.ispop.cz/prehled-ohlasovacich-povinnosti/" target="_blank" rel="noopener">ISPOP</a>, <a href="https://ci.inisoft.cz/pages/viewpage.action?pageId=94339706" target="_blank" rel="noopener">INISOFT</a></li>
+        <li>Kdo je dopravce odpadů a co musí ohlásit — <a href="https://pravo21.cz/pravo/povinnosti-podnikajicich-osob-pri-preprave-odpadu-na-uzemi-ceske-republiky" target="_blank" rel="noopener">Právo21</a></li>
+        <li>Zábor veřejného prostranství (poplatek nejvýš 10 Kč/m² a den, podle vyhlášky obce) — <a href="https://portal.gov.cz/sluzby-vs/poplatek-za-uzivani-verejneho-prostranstvi-S1025" target="_blank" rel="noopener">Portál veřejné správy</a></li>
+        <li>Palivový příplatek v dopravě — <a href="https://ceskarepublika.raben-group.com/zakaznicka-zona/palivovy-priplatek" target="_blank" rel="noopener">Raben</a></li>
+        <li>Úrok z prodlení a 1 200 Kč za uplatnění pohledávky: nařízení vlády č. 351/2013 Sb.</li>
+      </ul>
+      <p class="hint" style="margin:8px 0 0">Právní a daňové body (dopravce odpadů, DPH, BOZP, pojištění) si před zavedením ověř s účetní, odpadovým poradcem nebo právníkem.</p>
+    </div>
+  </div>
 </section>
 </main>
 
@@ -14338,6 +14455,397 @@ function renderEkFirmyVse(){
 });
 ["#dmEkonDet", "#vkEkonDet"].forEach(sel => { const d = $(sel); if (d) d.addEventListener("toggle", () => { if (d.open) renderEkFirma($(sel === "#dmEkonDet" ? "#dmEkon" : "#vkEkon"), sel === "#dmEkonDet" ? "demolice" : "vyklizeni"); }); });
 
+/* ================= ROADMAPA — co řeší velké firmy =================
+   Samostatná záložka: seznam věcí, na kterých velké demoliční, dopravní a odpadové firmy dělají marži
+   (nebo se chrání před ztrátou), rozdělený do fází. Nic z toho zatím není naprogramované v kalkulaci —
+   jen popis. Uživatel si u každé položky může označit prioritu (ukládá se do S.roadmapa). */
+const RM_OBLASTI = {
+  nac:"💰 Nacenění", odp:"♻️ Odpady a suť", dop:"🚚 Doprava a kontejnery", tech:"🛠 Stroje a nářadí",
+  lide:"👷 Lidé a BOZP", obch:"📈 Obchod", pen:"🏦 Peníze", riz:"⚖️ Smlouvy a riziko", data:"📊 Řízení a data"
+};
+const RM_FAZE = [
+  ["Hned", "do měsíce — malé úpravy, rychlý účinek, žádné investice"],
+  ["Brzy", "1–6 měsíců — až chodí 5–15 zakázek měsíčně"],
+  ["Druhá parta", "první zaměstnanci, víc part, víc zakázek najednou"],
+  ["Vlastní technika", "vlastní nosič kontejnerů, stroje, dispečink"],
+  ["Velká firma", "tendry, certifikace, recyklace, vlastní zařízení"]
+];
+const RM_PRACE = {S:"malá úprava", M:"střední", L:"velká"};
+/* id, oblast, fáze, název, velké firmy, proč/kolik, v kalkulačce, náročnost, dopad 1–3, už máte */
+const ROADMAPA = [
+  /* ---------- HNED ---------- */
+  {id:"odp-trideni", o:"odp", f:0, d:3, m:"M", n:"Třídit suť na místě — čistá suť zvlášť od směsi",
+    v:"Nikdy nevozí „všechno do jednoho“. Na stavbě mají dva až tři kontejnery nebo big bagy: čistý beton a cihly, směs, dřevo a kovy zvlášť. Sádrokarton a izolace dávají stranou, protože zkazí celý kontejner čisté suti.",
+    p:"Na Moravě stojí čistá suť (17 01 07) kolem 700 Kč/t, směsný stavební odpad (17 09 04) kolem 2 250 Kč/t. Recyklační střediska berou čistý beton i za 200–350 Kč/t. Zděná koupelna s příčkami, obklady a potěrem dá ~4 t suti: jako směs ~9 000 Kč, tříděně (3,2 t čisté + 0,8 t směsi) ~4 000 Kč → <b>kolem +5 000 Kč na jedné zakázce</b>, i po hodině práce navíc na třídění. Zákon navíc třídění stavebního odpadu vyžaduje.",
+    k:"U každé bourací práce druh odpadu (beton, cihla, sádra, dřevo, obklady, směs). Kalkulace spočítá tuny po druzích, navrhne kontejnery zvlášť a ukáže „tříděně vs. směs“ i s časem na třídění."},
+  {id:"odp-kovy", o:"odp", f:0, d:2, m:"S", n:"Kovy z demolic do výkupu",
+    v:"Armatura, ocelové nosníky, litinové vany a radiátory, trubky, zárubně jdou vždy do výkupu. U demolic celých staveb je výkup kovů často celý zisk zakázky.",
+    p:"Litinová vana ~100 kg, radiátory, rozvody a zárubně z bytu dají snadno 150–300 kg kovu — pár set korun až tisícovka čistého na zakázku, a o to méně odpadu k placení.",
+    k:"U prací odhad kg kovu (vana, radiátor, zárubeň, nosník). Výkup se odečte od nákladů, ne od ceny pro klienta — jako už to dělá vyklízení.",
+    u:"Vyklízení výkup kovů počítá."},
+  {id:"nac-zmareny", o:"nac", f:0, d:2, m:"S", n:"Zmařený výjezd a čekání",
+    v:"V ceníku mají „zmařený výjezd“ (klient nemá klíče, nepustí SVJ, není vyklizeno, nejde proud) a „čekání“ účtované po započatých 15 minutách. Stojí to ve smlouvě, takže se o tom nediskutuje.",
+    p:"Jeden zmařený den dvou lidí je 8–10 tisíc ušlé tržby. Stačí jeden za čtvrt roku a paušál 1 500–3 000 Kč se vyplatí — hlavně ale klienti přestanou termíny brát na lehkou váhu.",
+    k:"Věta v podmínkách nabídky, položky „zmařený výjezd“ a „čekání“ v ceníku a tlačítko u zakázky, které z toho rovnou udělá fakturu."},
+  {id:"nac-platnost", o:"nac", f:0, d:2, m:"S", n:"Platnost nabídky a valorizace",
+    v:"Každá nabídka má platnost (14–30 dní) a u pozdějšího termínu doložku: když zdraží skládky, nafta nebo kontejnery o víc než X %, cena se upraví.",
+    p:"Poplatek za skládkování využitelných odpadů ze zákona každý rok roste: 1 600 Kč/t v roce 2026, 1 700 v 2027, 1 800 v 2028 a 1 850 od 2029. Nabídka potvrzená v březnu na zakázku v listopadu jinak zdražení zaplatí z vaší marže.",
+    k:"Pole „platnost do“ v nabídce a doložka o valorizaci. Upozornění, když se zakázka dělá po platnosti a ceny v Nastavení se mezitím změnily."},
+  {id:"dop-zabor", o:"dop", f:0, d:1, m:"S", n:"Kontejner na chodníku nebo ulici — zábor",
+    v:"Mají připravený postup: povolení zvláštního užívání komunikace, oznámení obci a místní poplatek za užívání veřejného prostranství. Počítají to do ceny a nechávají si na to čas.",
+    p:"Poplatek je podle vyhlášky obce, nejvýš 10 Kč za m² a den (kontejner ~6 m² × 5 dní = do 300 Kč). Nejde tolik o peníze jako o pokutu a hodinu až dvě vyřizování, které nikdo nezaplatí.",
+    k:"Zaškrtávátko „kontejner na veřejném prostranství“: poplatek × m² × dny + čas na vyřízení do ceny a úkol do Plánu (kdy podat žádost)."},
+  {id:"obch-followup", o:"obch", f:0, d:3, m:"S", n:"Připomínání nabídek (follow-up)",
+    v:"Obchodní systém jim připomene každou nabídku 2., 7. a 14. den. Obchodník zavolá nebo pošle krátkou zprávu. Zakázku často vyhraje ten, kdo se ozve znovu, ne ten nejlevnější.",
+    p:"Když vyhrajete i jen o 3 zakázky z 10 víc díky připomenutí, je to víc peněz než jakákoliv sleva. Nic to nestojí.",
+    k:"U každé nabídky datum „připomenout“ a seznam „čeká na odpověď“ s počtem dní. Hotové texty follow-upu ve Zprávách. Denně jedna obrazovka: komu dnes napsat.",
+    u:"Stavy nabídek a Zprávy už máte, chybí připomínání."},
+  {id:"pen-prodleni", o:"pen", f:0, d:2, m:"S", n:"Úrok z prodlení a 1 200 Kč za upomínku",
+    v:"Na faktuře a ve smlouvě mají úrok z prodlení. Firmám, které neplatí, účtují ze zákona i náklady na vymáhání. Upomínky jdou automaticky.",
+    p:"Ze zákona (nařízení vlády 351/2013 Sb.) je úrok z prodlení repo sazba ČNB + 8 procentních bodů ročně. Mezi podnikateli navíc náklady spojené s uplatněním každé pohledávky nejméně 1 200 Kč. Firmy pak platí dřív.",
+    k:"Věta na faktuře. Upomínka sama spočítá úrok ke dni odeslání a u firem přidá 1 200 Kč."},
+  {id:"pen-proverit", o:"pen", f:0, d:2, m:"S", n:"Prověřit klienta před zakázkou",
+    v:"Před každou větší zakázkou kontrolují IČO v ARES a insolvenčním rejstříku, u plátců DPH registr nespolehlivých plátců a zveřejněné účty. U nových firem chtějí zálohu vždy.",
+    p:"Jedna nezaplacená zakázka za 60 000 Kč smaže zisk z pěti dalších. Až budete plátci DPH, platba nespolehlivému plátci nebo na nezveřejněný účet znamená ručení za jeho DPH.",
+    k:"Tlačítko „prověřit“ u klienta s IČO (ARES, insolvence, spolehlivost plátce) a varování v nabídce: nový klient bez historie → záloha.",
+    u:"Doplnění z ARES u faktur už máte."},
+  {id:"riz-vop", o:"riz", f:0, d:3, m:"S", n:"Obchodní podmínky ke každé nabídce",
+    v:"Nabídka nikdy neodchází bez obchodních podmínek: co je a není v ceně, přístup a parkování, voda a elektřina, skryté konstrukce, vícepráce jen písemně, splatnost, zmařený výjezd, odpovědnost za škody, reklamace.",
+    p:"Podmínky nic nevydělají, dokud nenastane spor — pak rozhodnou, jestli platíte vy, nebo klient. U demolic hrozí škody na stoupačkách a sousedních bytech.",
+    k:"Jednou sepsané podmínky (ideálně s právníkem) jako příloha každé nabídky a potvrzení klientem („souhlasím“ v e-mailu nebo podpis na mobilu).",
+    u:"Klauzule do nabídky jsou v Průvodci — zatím ručně."},
+  {id:"riz-pojisteni", o:"riz", f:0, d:3, m:"S", n:"Pojištění odpovědnosti — limit a výluky",
+    v:"Mají pojištění odpovědnosti s limitem v milionech a hlídají výluky (vibrace, azbest, škody na věcech převzatých, práce na nosných konstrukcích). U rizikových zakázek si nechají potvrdit krytí.",
+    p:"Proražená stoupačka při bourání jádra v paneláku umí zatopit tři byty pod vámi — statisíce. Bez správného pojištění je to konec firmy, ne špatný měsíc.",
+    k:"Údaje o pojistce v Nastavení (limit, spoluúčast, výluky) a varování u rizikových prací (jádro, stoupačky, nosné zdi, azbest)."},
+  {id:"riz-dopravce", o:"riz", f:0, d:2, m:"S", n:"Ověřit roli: původce, nebo dopravce odpadů",
+    v:"Mají jasně, kdo je původcem odpadu a kdo ho veze. U demolice je původcem stavebního odpadu obvykle zhotovitel. Kdo ale veze cizí odpad, který sám nevytvořil, je podle zákona „dopravce odpadů“ a musí činnost ohlásit krajskému úřadu.",
+    p:"U vyklízení vozíte odpad klienta vlastní dodávkou — podle nastavení smlouvy můžete být dopravce odpadů. Ohlášení je jednorázová formalita, bez něj hrozí pokuta při kontrole.",
+    k:"Jednorázově ověřit s odpadovým poradcem a zapsat do Nastavení. Pak jen správná věta ve smlouvě a v evidenci odpadů."},
+
+  /* ---------- BRZY ---------- */
+  {id:"nac-vyrobni", o:"nac", f:1, d:3, m:"M", n:"Skutečnost po jednotlivých pracích",
+    v:"Mají dva rozpočty: nabídkový pro klienta a výrobní pro sebe (hodiny, kotouče, kontejnery, kdo). Po zakázce porovnají výrobní se skutečností <b>položku po položce</b>.",
+    p:"Nevíte jen, že zakázka vyšla hůř, ale proč: třeba otloukání obkladů trvá o 40 % déle, než počítá norma, a bourání příček sedí. Opravíte jednu cenu a prodělávat přestanete.",
+    k:"V denním zápisu hodiny po pracích (stačí rozdělit den na 2–3 činnosti). Přehled firmy pak ukáže „práce, na kterých proděláváme“.",
+    u:"Plán vs. realita a kalibrace norem už máte — zatím za celou zakázku."},
+  {id:"nac-prohlidka", o:"nac", f:1, d:3, m:"M", n:"Prohlídkový formulář, který sám nastaví rizika",
+    v:"Na prohlídce vyplňují stejný formulář: přístup, parkování, výtah a souhlas SVJ, hlukové hodiny, stoupačky, elektro a voda, azbest, statika, sousedé, sklady. Každá odpověď má předem danou přirážku nebo rezervu.",
+    p:"Rezerva přestane být pocit. Nezapomenete nacenit ztížený přístup nebo zákaz výtahu a dvě stejné zakázky nacení každý z party stejně.",
+    k:"Prohlídka jako průvodce v telefonu (10–15 otázek) → nastaví vynášku, rezervu, zábor a varování. Hodí se k focení pro Clauda."},
+  {id:"nac-bid", o:"nac", f:1, d:2, m:"S", n:"Brát, nebo nebrat? Skóre zakázky",
+    v:"Než začnou nacenovat, obodují zakázku: marže, riziko, vzdálenost, platební morálka, vytížení, šance na výhru, strategický klient. Pod prahem pošlou jen vysokou cenu nebo odmítnou.",
+    p:"Nacenění zabere 1–2 hodiny. Když zakázky, které stejně nevyhrajete nebo na nich proděláte, rovnou odfiltrujete, uvolníte čas na ty dobré.",
+    k:"Šest otázek u nové poptávky → skóre a doporučení: nacenit / nacenit draze / slušně odmítnout (s hotovým textem)."},
+  {id:"nac-diamant", o:"nac", f:1, d:2, m:"M", n:"Diamantové řezání a vrtání podle metru a průměru",
+    v:"Řezání nacení po běžných metrech podle tloušťky, jádrové vrtání po cm hloubky podle průměru. Opotřebení kotoučů a korunek, voda a odsávání kalu jdou do každé položky.",
+    p:"Kotouč stojí tisíce, korunka taky — u malých firem mizí v „režii“ a otvory pak vychází levněji, než stojí. Spotřební nástroj patří do ceny položky.",
+    k:"Položky „řez m × cm“ a „vrt Ø × cm“ s automatickým opotřebením nástroje v nákladech (cena kotouče ÷ životnost v m²)."},
+  {id:"odp-zarizeni", o:"odp", f:1, d:3, m:"M", n:"Nejlevnější zařízení včetně cesty",
+    v:"Neberou nejlevnější ceník, ale nejlevnější <b>celek</b>: ceník zařízení + cesta tam a zpět + čekání na váze. Mají databázi zařízení s ceníky podle kódů a polohou.",
+    p:"Jezdíte po celé Moravě. Rozdíl mezi zařízeními je klidně 500–1 500 Kč/t a špatná volba u 5 t sežere denní zisk.",
+    k:"Seznam zařízení (poloha, kódy, Kč/t, otevírací doba). Zakázka navrhne, kam co vézt a kolik to celkem stojí."},
+  {id:"odp-sadra", o:"odp", f:1, d:1, m:"S", n:"Sádra a izolace zvlášť",
+    v:"Sádrokarton, sádrové omítky a izolace nikdy nejdou do čisté suti. Recyklační střediska za příměsi účtují víc nebo náklad nepřevezmou.",
+    p:"Jedna odmítnutá dodávka = jízda navíc a přeložení. Kontejner s příměsí sádry se platí jako směs.",
+    k:"Upozornění u prací se sádrou a izolací a samostatná položka odpadu."},
+  {id:"odp-ispop", o:"odp", f:1, d:2, m:"S", n:"Hlídat limit hlášení odpadů (ISPOP)",
+    v:"Evidenci vedou průběžně a včas vědí, že musí podat roční hlášení.",
+    p:"Původce musí podat hlášení do ISPOP, když za rok vyprodukuje víc než 100 t ostatních nebo 600 kg nebezpečných odpadů — termín je 28. 2. Demolice přes 100 t přejdou rychle.",
+    k:"Evidence odpadů ukáže, kolik zbývá do limitu, a v lednu připomene hlášení s podklady za rok.",
+    u:"Roční souhrn odpadů v Přehledu firmy už máte."},
+  {id:"dop-prazdne", o:"dop", f:1, d:2, m:"M", n:"Prázdné kilometry a plné auto",
+    v:"Dopravní firmy měří podíl prázdných kilometrů a vytížení každé jízdy (tuny, m³). Cestou zpět vezou materiál, spojují zakázky v jednom směru a plánují trasy dne.",
+    p:"Auto jezdí stejně — jen jednou vydělává a jednou ne. Spojení dvou zakázek ve stejném směru ušetří polovinu dopravy.",
+    k:"Plán dne s více zakázkami a sdílenou jízdou (doprava se rozpočítá). Ukazatel prázdných km za měsíc."},
+  {id:"dop-auto", o:"dop", f:1, d:2, m:"S", n:"Každé auto vlastní výsledovka",
+    v:"U každého vozidla znají přesné náklady: splátka nebo odpis, pojištění, STK, pneu, servis, nafta, AdBlue, známka a mýto. Porovnávají s půjčovnou.",
+    p:"Až budou dvě auta, jedno obvykle vydělává a druhé stojí. Sazba za km pak sedí na konkrétní auto, ne na průměr.",
+    k:"Karta vozidla → sazba Kč/km a Kč/den pro každé auto, výběr auta u zakázky.",
+    u:"Auto a sazby za km a den už máte v Ekonomice firmy — pro jedno auto."},
+  {id:"dop-kontejnery", o:"dop", f:1, d:2, m:"S", n:"Hlídat dny kontejnerů",
+    v:"Kontejner, který stojí, nevydělává. Hlídají dny na stavbě a objednávají odvoz hned po skončení bourání.",
+    p:"Každý den navíc je nájem, který klient v ceně nemá. Při pěti zakázkách měsíčně to jsou tisíce ročně.",
+    k:"V Plánu přehled kontejnerů na stavbách: kdy objednat odvoz a kdy začnou placené dny.",
+    u:"Dny zdarma a cenu dalšího dne u dopravců už máte."},
+  {id:"tech-strojhodina", o:"tech", f:1, d:2, m:"M", n:"Strojhodina u každého stroje",
+    v:"U každého stroje (kladivo, pila, jádrovka, vysavač, míchačka, minibagr) znají Kč/h: cena ÷ hodiny životnosti + servis + spotřební díly. Zakázka nese hodiny strojů, které opravdu použila.",
+    p:"Bourací kladivo za 40 tisíc na 1 500 hodin je 27 Kč/h — u zakázky s 60 hodinami bourání 1 600 Kč. Víte, kdy se vyplatí koupit a kdy půjčit.",
+    k:"Seznam strojů s Kč/h. U prací výchozí stroj → opotřebení se počítá samo místo paušálu.",
+    u:"Opotřebení nářadí za hodinu v Ekonomice firmy už máte (paušálně)."},
+  {id:"tech-pujcit", o:"tech", f:1, d:2, m:"S", n:"Půjčit, nebo koupit",
+    v:"Pro každý dražší stroj mají práh: kolik dní ročně se musí používat, aby se nákup vyplatil proti půjčovně.",
+    p:"Stroj, který stojí 300 dní v roce, je dražší než půjčovna. Stroj, který si půjčujete každý týden, je levnější koupit.",
+    k:"V investiční kalkulačce scénář „půjčovna vs. nákup“ s daty z vašich zakázek (kolikrát jste půjčovali)."},
+  {id:"lide-cinnosti", o:"lide", f:1, d:3, m:"M", n:"Hodiny po činnostech z mobilu",
+    v:"Lidé si v telefonu přepínají činnost (bourání, vynáška, úklid, cesta, čekání). Z toho vznikají vlastní normy firmy.",
+    p:"Je to jediný zdroj přesných cen. Po 20 zakázkách víte, kolik vám opravdu trvá jádro nebo m² obkladu — a můžete nacenit levněji i dráž než konkurence s jistotou.",
+    k:"Stopky jako u vyklízení i pro demolice, s výběrem práce ze zakázky.",
+    u:"Vyklízení má stopky (práce, cesta, vykládka), demolice denní zápis."},
+  {id:"lide-neprod", o:"lide", f:1, d:2, m:"S", n:"Neproduktivní čas",
+    v:"Měří čekání na výtah, hledání parkování, nákupy, porady, úklid a přejezdy. Podle toho upraví normy a organizaci.",
+    p:"Běžně je to 10–20 % pracovní doby. Co se neměří, to se nenacení.",
+    k:"Kategorie „neproduktivní“ ve stopkách a denním zápisu. Přehled, kolik to je a kam to přičíst."},
+  {id:"obch-ramcove", o:"obch", f:1, d:3, m:"M", n:"Rámcové smlouvy s partnery",
+    v:"Realitky, správci domů, SVJ, developeři, stavební firmy: rámcová smlouva s ceníkem, dobou reakce a měsíční fakturací. Stálí partneři dávají vytížení, na které se dá plánovat.",
+    p:"Pět partnerů po dvou zakázkách měsíčně je půlka kapacity bez shánění. Nižší marže, ale jistota a žádné náklady na získání.",
+    k:"Partnerský ceník a přehled obratu, marže a platební morálky po partnerech.",
+    u:"B2B ceník a stálé odběratele už máte."},
+  {id:"obch-cac", o:"obch", f:1, d:2, m:"S", n:"Kolik stojí jedna zakázka z každého kanálu",
+    v:"Znají cenu za poptávku a za vyhranou zakázku z každého kanálu (portál, Google, letáky, doporučení) a návratnost.",
+    p:"Kanál s mnoha poptávkami může být nejdražší, když z něj chodí jen srovnávači cen. Peníze pak přesunete tam, kde vyhráváte.",
+    k:"K zdrojům zakázek měsíční náklad kanálu → Kč za poptávku, Kč za zakázku a zisk na vloženou korunu.",
+    u:"Zdroje zakázek a úspěšnost už máte, chybí náklady kanálů."},
+  {id:"obch-rychlost", o:"obch", f:1, d:2, m:"S", n:"Rychlost odpovědi na poptávku",
+    v:"Měří čas od poptávky do nabídky a drží ho pod 24 hodin. Kdo odpoví první, vyhrává nejčastěji.",
+    p:"Klient obvykle napíše třem firmám a vybere z prvních dvou odpovědí. Je to zadarmo — jen disciplína.",
+    k:"Datum poptávky u zakázky a průměrná doba odpovědi v Přehledu firmy."},
+  {id:"pen-cashflow", o:"pen", f:1, d:3, m:"M", n:"Peníze na 13 týdnů dopředu",
+    v:"Každý týden vidí, kolik peněz přijde (splatné faktury, zálohy, domluvené zakázky) a odejde (mzdy, leasing, dopravci, DPH, daň, pojistné). Nikdy nejsou překvapení.",
+    p:"Firmy nekrachují na nízké marži, ale na tom, že na výplatu a dopravce chybí peníze, i když jsou „v zisku“.",
+    k:"Graf zůstatku na 13 týdnů z faktur, Plánu a fixních nákladů. Varování, když zůstatek klesne pod rezervu."},
+  {id:"pen-isdoc", o:"pen", f:1, d:1, m:"S", n:"Export faktur pro účetnictví (ISDOC)",
+    v:"Faktury posílají účetní ve strojovém formátu, který účetní program rovnou načte.",
+    p:"ISDOC je český standard e-faktury, podporují ho běžné účetní programy. Účetní nic nepřepisuje a je levnější.",
+    k:"K PDF přidat ISDOC soubor a zahrnout ho do ZIPu pro účetní.",
+    u:"ZIP pro účetní už máte."},
+  {id:"pen-banka", o:"pen", f:1, d:1, m:"M", n:"Platby z banky automaticky",
+    v:"Platby se stahují z banky samy a párují na faktury bez nahrávání výpisů.",
+    p:"Ušetří čas a hlavně hned víte, kdo nezaplatil. Nejdřív ověřit, jestli banka nabízí API pro firemní účty.",
+    k:"Napojení na API banky místo nahrávání CSV.",
+    u:"Párování plateb z CSV už máte."},
+  {id:"riz-registr", o:"riz", f:1, d:2, m:"M", n:"Rizika zakázky místo paušální rezervy",
+    v:"U větších zakázek mají seznam rizik s pravděpodobností a dopadem (skrytý beton, zákaz výtahu, stížnosti sousedů, azbest) a rezervu z toho spočítanou.",
+    p:"Paušální rezerva je u jednoduché zakázky zbytečně vysoká a u složité nízká. Pak prohráváte jednoduché a proděláváte na složitých.",
+    k:"Tlačítka rizik (z prohlídky) → rezerva v Kč s vysvětlením."},
+  {id:"riz-protokol", o:"riz", f:1, d:2, m:"S", n:"Předávací protokol i u demolic",
+    v:"Každá zakázka končí protokolem s fotkami a podpisem: co bylo uděláno, stav, vícepráce, výhrady. Od podpisu běží splatnost a záruka.",
+    p:"Bez protokolu se o dokončení a vadách hádá týdny a faktura čeká.",
+    k:"Předávací protokol u demolice (jako u vyklízení) s podpisem prstem na mobilu.",
+    u:"Vyklízení protokol má."},
+  {id:"riz-povoleni", o:"riz", f:1, d:2, m:"S", n:"Povolení a souhlasy před zahájením",
+    v:"Mají checklist: souhlas SVJ a správce, hlukové hodiny a klid podle vyhlášky obce, zábor, statik u nosných konstrukcí, ohlášení nebo povolení odstranění stavby u celých staveb, ohlášení azbestu hygieně.",
+    p:"Zastavená stavba kvůli chybějícímu souhlasu stojí dny bez tržby a pověst.",
+    k:"Checklist povolení u zakázky podle typu prací, s termíny v Plánu."},
+  {id:"data-tyden", o:"data", f:1, d:2, m:"S", n:"Jedna obrazovka pro majitele",
+    v:"Každé pondělí stejná čísla: odeslané nabídky, úspěšnost, tržba nasmlouvaná na 4 týdny, marže plán vs. skutečnost, peníze na cestě, zůstatek za 4 týdny.",
+    p:"Rozhodnutí (zdražit, marketing, najmout) děláte podle čísel, ne podle pocitu z posledního týdne.",
+    k:"Rozšířit Růstový přehled o nasmlouvanou tržbu, cashflow a marže demolic i vyklízení dohromady.",
+    u:"Růstový přehled a výsledky vyklízení už máte."},
+  {id:"data-presnost", o:"data", f:1, d:2, m:"S", n:"Přesnost odhadů v čase",
+    v:"Sledují, o kolik se liší odhad a skutečnost, a jestli se to zlepšuje.",
+    p:"Když se odhad trefuje do ±10 %, můžete nacenit těsněji a vyhrát víc zakázek bez rizika.",
+    k:"Graf přesnosti odhadu hodin po měsících a po typech zakázek.",
+    u:"Kalibrace norem a přesnost hodin u vyklízení už máte."},
+
+  /* ---------- DRUHÁ PARTA ---------- */
+  {id:"lide-naklad", o:"lide", f:2, d:3, m:"S", n:"Plné náklady zaměstnance",
+    v:"Počítají plnou cenu odpracované hodiny: hrubá mzda + odvody 33,8 % + dovolená, svátky a nemoc + ochranné pomůcky, školení, lékařské prohlídky, stravenky a diety. Obvykle 1,5–1,8× hrubé hodinové mzdy.",
+    p:"Kdo počítá jen hrubou mzdu, nacení práci zaměstnanců o třetinu levněji, než stojí.",
+    k:"V Ekonomice firmy u zaměstnance i neodpracovaný čas a pomůcky → přesná cena hodiny.",
+    u:"Zaměstnance, DPP a IČO v Ekonomice firmy už máte."},
+  {id:"lide-diety", o:"lide", f:2, d:2, m:"S", n:"Diety a ubytování u vzdálených zakázek",
+    v:"U vzdálených zakázek porovnávají denní dojíždění s ubytováním a počítají cestovní náhrady (stravné podle zákoníku práce).",
+    p:"Zakázka 150 km daleko: 3–4 hodiny v autě denně na dva lidi je 6–8 hodin práce, kterou nikdo nezaplatí. Ubytování bývá levnější.",
+    k:"U zakázky volba „dojíždět / ubytovat“ se srovnáním nákladů a doporučením."},
+  {id:"lide-bonus", o:"lide", f:2, d:2, m:"S", n:"Bonus za výkon i u demolic",
+    v:"Parta má jistý základ a týmový bonus za zakázky hotové pod plánem, bez škod a reklamací.",
+    p:"Lidé se chovají jako spolumajitelé a vy nemusíte hlídat každou hodinu.",
+    k:"Stejný bonus jako u posádek vyklízení i pro demolice.",
+    u:"Vyklízení bonus posádky má."},
+  {id:"lide-bozp", o:"lide", f:2, d:3, m:"M", n:"BOZP: rizika, školení, pomůcky",
+    v:"Ke každé zakázce vyhodnocení rizik, školení lidí, evidence ochranných pomůcek a revizí. U větších staveb koordinátor BOZP a oznámení inspektorátu práce.",
+    p:"Úraz nevyškoleného člověka znamená pokutu inspektorátu a problém s pojišťovnou. U demolic je riziko vysoké (pády, prach, vibrace, azbest).",
+    k:"BOZP checklist k zakázce, evidence školení a pomůcek u lidí, termíny obnov v Plánu.",
+    u:"Revize nářadí v Přehledu firmy už máte."},
+  {id:"lide-kvalifikace", o:"lide", f:2, d:1, m:"S", n:"Kdo co smí dělat",
+    v:"Mají přehled oprávnění: práce ve výškách, strojnický průkaz, řidičák C, svářeči, práce s azbestem, první pomoc.",
+    p:"Na zakázku pošlete toho, kdo smí, a nezjistíte to až na místě.",
+    k:"Matice lidí a oprávnění s platností; varování při plánování."},
+  {id:"odp-azbest", o:"odp", f:2, d:2, m:"S", n:"Azbest přes partnera s marží",
+    v:"Mají vlastní oprávněnou partu nebo stálého partnera. Zakázku s azbestem neodmítnou — azbest subdodají, koordinují a zbytek udělají sami.",
+    p:"Malé firmy zakázku s eternitem často odmítnou a přijdou o celou demolici. S partnerem vyděláte na koordinaci i na zbytku práce.",
+    k:"Položka „subdodávka azbest“ (cena partnera + přirážka + koordinace) a upozornění na ohlášení hygieně."},
+  {id:"odp-pruzkum", o:"odp", f:2, d:2, m:"M", n:"Průzkum před demolicí jako placená služba",
+    v:"Developerům a investorům prodávají průzkum před demolicí: soupis materiálů, nebezpečných látek a hmotnostní bilanci odpadů pro rozpočet a povolení.",
+    p:"Placená prohlídka, která vám zároveň dá nejpřesnější podklad pro nabídku.",
+    k:"Šablona zprávy z prohlídky (fotky, materiály, tuny po druzích, rizika) jako PDF."},
+  {id:"nac-strediska", o:"nac", f:2, d:2, m:"M", n:"Výsledovka po službách",
+    v:"Demolice, vyklízení a doprava mají každá vlastní výsledek s podílem režie. Vědí, která služba firmu živí.",
+    p:"Může se ukázat, že jedna služba jen vytěžuje lidi a auto za nulový zisk.",
+    k:"Přehled firmy: tržba, marže a zisk zvlášť po službách a měsících."},
+  {id:"pen-pozastavka", o:"pen", f:2, d:2, m:"S", n:"Pozastávky u stavebních firem",
+    v:"U subdodávek pro stavební firmy se běžně zadržuje 5–10 % do předání nebo do konce záruky. Počítají to do ceny a do cashflow a hlídají uvolnění.",
+    p:"5 % z 200 000 Kč zadržených na dva roky je 10 000 Kč, na které se snadno zapomene.",
+    k:"Pole pozastávka na faktuře a seznam „pozastávky k uvolnění“ s termíny."},
+  {id:"pen-rozpocet", o:"pen", f:2, d:2, m:"S", n:"Roční plán a skutečnost",
+    v:"Mají roční rozpočet tržeb a nákladů po měsících a každý měsíc porovnají odchylky.",
+    p:"Včas poznáte, že sezóna nevychází, a přidáte marketing dřív, než dojdou peníze.",
+    k:"Plán tržeb a nákladů na rok a srovnání se skutečností v Přehledu firmy."},
+  {id:"pen-rezerva", o:"pen", f:2, d:1, m:"S", n:"Rezerva na reklamace",
+    v:"Z každé zakázky odkládají 1–2 % na reklamace a škody.",
+    p:"Když reklamace přijde, neplatí se z výplaty.",
+    k:"Procento rezervy v Nastavení a její zůstatek vedle odkládání na daň.",
+    u:"Odkládání na daň už máte."},
+  {id:"obch-balicky", o:"obch", f:2, d:2, m:"S", n:"Balíčky a navazující služby",
+    v:"Neprodávají jen bourání, ale výsledek: vyklidit, vybourat, odvézt, uklidit a připravit pro řemeslníky. Jedna faktura, jeden termín.",
+    p:"Vyšší průměrná zakázka a menší konkurence — srovnat se dá jen s firmou, která umí totéž.",
+    k:"Balíčky i u demolic (jako „Vyklidit a předat“) a společná nabídka projektu.",
+    u:"Projekt vyklízení + bourání už máte."},
+  {id:"obch-reference", o:"obch", f:2, d:1, m:"S", n:"Reference a portfolio",
+    v:"Mají seznam referenčních zakázek s fotkami před a po, rozsahem a kontaktem — pro B2B klienty a tendry.",
+    p:"Stavební firma nebo správce dá práci tomu, kdo ukáže podobnou hotovou zakázku.",
+    k:"Z hotových zakázek s fotkami vygenerovat PDF referencí."},
+  {id:"data-kapacity", o:"data", f:2, d:2, m:"M", n:"Plánování kapacit více part",
+    v:"Časová osa (Gantt) všech part a strojů, dovolené, přesouvání zakázek tažením.",
+    p:"S druhou partou se plán v hlavě rozpadne. Prázdný den party je ztráta 8–10 tisíc.",
+    k:"Plán po partách s dovolenými a volnou kapacitou na 4 týdny.",
+    u:"Plán, vytížení a posádky vyklízení už máte."},
+  {id:"data-role", o:"data", f:2, d:1, m:"M", n:"Role a oprávnění",
+    v:"Zaměstnanec vidí své zakázky, stopky a fotky, ne marže, ceník a výsledky firmy.",
+    p:"S prvním zaměstnancem nechcete, aby viděl, kolik firma vydělá na jeho hodině.",
+    k:"Režim „parta“ s omezeným pohledem (vyžaduje přihlášení přes synchronizaci)."},
+  {id:"tech-servis", o:"tech", f:2, d:1, m:"S", n:"Servisní plán a záložní stroj",
+    v:"Servis podle motohodin a záložní stroj pro klíčové práce.",
+    p:"Den stání party kvůli rozbitému kladivu stojí víc než druhé kladivo.",
+    k:"U strojů motohodiny a termíny servisu, upozornění v Plánu.",
+    u:"Revize nářadí už máte."},
+
+  /* ---------- VLASTNÍ TECHNIKA ---------- */
+  {id:"dop-nosic", o:"dop", f:3, d:3, m:"M", n:"Vlastní nosič kontejnerů — kdy se vyplatí",
+    v:"Velké firmy mají kontejnerovou dopravu jako samostatný byznys: nosiče, stovky kontejnerů, dispečink. Doprava a odpady bývají větší zisk než samotné bourání.",
+    p:"Orientačně: použitý nosič, pojištění, servis a řidič stojí desítky tisíc měsíčně fixně + vlastní kontejnery. Bod zvratu bývá kolem 25–35 přistavení měsíčně (vlastních i pro cizí). Počítá se to z vašich skutečných dat o objednaných kontejnerech.",
+    k:"Scénář v investiční kalkulačce: kolik jste za rok zaplatili dopravcům, kolik přistavení, cena nosiče a řidiče → bod zvratu a návratnost."},
+  {id:"dop-pravidla", o:"dop", f:3, d:2, m:"S", n:"Pravidla nad 3,5 t",
+    v:"U vozidel nad 3,5 t hlídají řidičák C a profesní způsobilost řidičů, tachograf a doby řízení, mýtné, koncesi na silniční dopravu pro cizí potřebu a registraci dopravce odpadů.",
+    p:"Pokuty za tachograf a doby řízení jsou vysoké a kontroly časté. Musí to být v nákladech dřív, než se auto koupí.",
+    k:"Checklist před nákupem a náklady (mýto, tachograf, školení řidičů) v kartě vozidla."},
+  {id:"dop-dispecink", o:"dop", f:3, d:2, m:"L", n:"Dispečink a GPS",
+    v:"Vidí auta a kontejnery na mapě, jízdy se samy zapisují do zakázek (kniha jízd), zákazník dostane SMS s příjezdem.",
+    p:"Méně telefonování, přesné km do zakázek a žádné ztracené kontejnery.",
+    k:"Import jízd z GPS jednotky do zakázek a přehled kontejnerů v terénu."},
+  {id:"dop-sluzba", o:"dop", f:3, d:3, m:"L", n:"Kontejnery a doprava jako další služba",
+    v:"Prodávají přistavení kontejnerů stavebníkům, řemeslníkům a obcím. Auto vydělává i ve dny, kdy parta bourá.",
+    p:"Stejné auto, víc zákazníků. Podmínka: registrace dopravce odpadů a smlouvy se zařízeními.",
+    k:"Jednoduchá objednávka kontejneru (typ, dny, adresa, odpad) s cenou a fakturou."},
+  {id:"tech-velke", o:"tech", f:3, d:2, m:"M", n:"Demoliční robot a minibagr",
+    v:"Na železobeton v interiérech mají dálkově ovládané demoliční roboty a minibagry do vnitřních prostor. Kupují je až při stálém vytížení, jinak půjčují na zakázku s přirážkou.",
+    p:"Robot zvládne za den, co parta za týden. Vysoká cena se vyplatí jen s dostatkem zakázek.",
+    k:"Strojní položky s půjčovným a obsluhou v ceníku a výpočet, kdy se nákup vyplatí."},
+  {id:"pen-palivo", o:"pen", f:3, d:1, m:"S", n:"Palivové karty",
+    v:"Tankují na firemní karty se slevou a měsíční fakturou. Spotřeba se sleduje na každé auto.",
+    p:"Sleva kolem 1–2 Kč/l — u jednoho auta pár tisíc ročně, u flotily desítky.",
+    k:"Import výpisu palivové karty do výdajů a spotřeba na auto."},
+  {id:"odp-mezisklad", o:"odp", f:3, d:3, m:"L", n:"Vlastní plocha na třídění",
+    v:"Mají povolené zařízení (plochu), kam svážejí z malých zakázek, třídí a na skládku nebo recyklaci jedou až s plným autem.",
+    p:"Méně jízd, lepší ceny za velké objemy a víc vytříděného materiálu. Potřebuje povolení kraje.",
+    k:"Evidence skladu podle kódů a výpočet úspory proti přímé likvidaci."},
+
+  /* ---------- VELKÁ FIRMA ---------- */
+  {id:"nac-urs", o:"nac", f:4, d:2, m:"L", n:"Rozpočty v kódech ÚRS/RTS pro stavební firmy",
+    v:"Stavební firmy a investoři posílají výkaz výměr v kódech. Subdodavatel, který vrátí oceněný výkaz ve stejném formátu, vyhrává.",
+    p:"Otevře to dveře k velkým subdodávkám a veřejným zakázkám.",
+    k:"Import výkazu výměr (Excel) → spárování s ceníkem → export oceněného výkazu.",
+    u:"Ceník vychází z RTS a má kódy."},
+  {id:"obch-tendry", o:"obch", f:4, d:2, m:"L", n:"Veřejné zakázky",
+    v:"Sledují tendry obcí, škol, nemocnic a státních firem, mají připravené kvalifikační doklady (výpisy, reference, pojištění) a šablony nabídek.",
+    p:"Velké objemy a jistá platba, ale ostrá cenová konkurence a papírování.",
+    k:"Složka kvalifikačních dokladů s platnostmi a přehled podaných tendrů."},
+  {id:"obch-iso", o:"obch", f:4, d:1, m:"L", n:"Certifikace ISO",
+    v:"ISO 9001 (kvalita), 14001 (životní prostředí), 45001 (BOZP) — požadují je velcí investoři a stavební firmy.",
+    p:"Bez nich se k části zakázek nedostanete. Stojí peníze a čas, vyplatí se až ve velkém.",
+    k:"Evidence dokumentů a záznamů, které certifikace vyžaduje (většinu už kalkulačka sbírá)."},
+  {id:"odp-drtic", o:"odp", f:4, d:3, m:"L", n:"Drcení betonu a prodej recyklátu",
+    v:"U demolic celých staveb drtí beton mobilním drtičem přímo na místě a recyklát použijí na zásypy nebo ho prodají.",
+    p:"Z nákladu na likvidaci je příjem. Týká se ale celých staveb, ne bytových interiérů.",
+    k:"Kalkulace „drtit na místě vs. odvézt“ (tuny, pronájem drtiče, cena recyklátu)."},
+  {id:"data-portal", o:"data", f:4, d:1, m:"M", n:"Klientský portál",
+    v:"Klient vidí stav zakázky, fotky, faktury a dokumenty online.",
+    p:"Méně telefonátů, profesionální dojem u B2B klientů.",
+    k:"Sdílený odkaz na zakázku jen pro čtení (vyžaduje synchronizaci)."}
+];
+const RM_JIZ = [
+  "Normy prací podle RTS a kalibrace podle skutečnosti (Kč/h a ★ u každé práce)",
+  "Vynáška počítaná z tonáže, pater a vzdálenosti — to má málokterá malá firma",
+  "Kontejnery podle dopravců (paušál, km, dny) a návrh kombinace podle suti",
+  "Minimální zisk na hodinu, Dorovnat přes interní přirážku, rezerva zvlášť",
+  "Vícepráce s písemným dodatkem, denní zápis, fotodokumentace, evidence odpadů",
+  "Zálohy, faktury s QR, párování plateb, výdaje, daně a podklady pro účetní",
+  "Skutečný zisk zakázky po lidech, autě, nářadí, režii a obou daních",
+  "Vyklízení: cílová marže, ceny podle vytížení, cenový test A/B/C, výkup kovů, protiúčet",
+  "Posádky s výsledovkou a bonusem, projekt vyklízení + bourání se společnou nabídkou",
+  "Zdroje zakázek, proč prohráváte, plán vs. realita, vytížení a nasmlouváno dopředu"
+];
+const RM_PRIORITY = [["hned", "Chci brzy"], ["pozdeji", "Později"], ["ne", "Nezajímá"]];
+let rmFiltr = {f:"vse", o:"vse", p:"vse", q:""};
+
+function rmStav(){ if (!S.roadmapa || typeof S.roadmapa !== "object") S.roadmapa = {}; return S.roadmapa; }
+function rmPolozkaHTML(x){
+  const pr = rmStav()[x.id] || "";
+  return "<article class='rm-pol" + (pr ? " rm-" + pr : "") + "' data-rm='" + x.id + "'>" +
+    "<div class='rm-hl'><h3>" + x.n + "</h3><div class='rm-stitky'><span class='rm-st'>" + RM_OBLASTI[x.o] + "</span>" +
+      "<span class='rm-st' title='Dopad na marži nebo ochranu firmy'>dopad " + "★".repeat(x.d) + "<span class='rm-slabe'>" + "★".repeat(3 - x.d) + "</span></span>" +
+      "<span class='rm-st' title='Kolik práce by bylo zapracování do kalkulačky'>práce: " + RM_PRACE[x.m] + "</span></div></div>" +
+    "<div class='rm-bloky'>" +
+      "<div><b class='rm-t'>Co dělají velké firmy</b><p>" + x.v + "</p></div>" +
+      "<div><b class='rm-t'>Proč a kolik to dělá</b><p>" + x.p + "</p></div>" +
+      "<div><b class='rm-t'>Jak by to vypadalo v kalkulačce</b><p>" + x.k + "</p>" + (x.u ? "<p class='rm-uz'>✓ " + x.u + "</p>" : "") + "</div>" +
+    "</div>" +
+    "<div class='rm-pr'><span class='hint'>Moje priorita:</span>" + RM_PRIORITY.map(([k, t]) => "<button type='button' class='rm-pb" + (pr === k ? " on" : "") + "' data-rmp='" + k + "'>" + t + "</button>").join("") + "</div>" +
+  "</article>";
+}
+function renderRoadmapa(){
+  const el = $("#rmSeznam"); if (!el) return;
+  const st = rmStav(), q = rmFiltr.q.trim().toLowerCase();
+  const vyber = ROADMAPA.filter(x => (rmFiltr.f === "vse" || String(x.f) === rmFiltr.f) && (rmFiltr.o === "vse" || x.o === rmFiltr.o) &&
+    (rmFiltr.p === "vse" || (rmFiltr.p === "bez" ? !st[x.id] : st[x.id] === rmFiltr.p)) &&
+    (!q || (x.n + " " + x.v + " " + x.p + " " + x.k).toLowerCase().includes(q)));
+  const chip = (typ, k, t, n) => "<button type='button' class='vk3-chip rm-chip" + (rmFiltr[typ] === k ? " on" : "") + "' data-rmf='" + typ + "' data-rmv='" + k + "'>" + t + (n != null ? " <span class='rm-n'>" + n + "</span>" : "") + "</button>";
+  const pocet = fn => ROADMAPA.filter(fn).length;
+  $("#rmFiltry").innerHTML =
+    "<div class='rm-fr'><span class='rm-fl'>Fáze</span>" + chip("f", "vse", "Vše", ROADMAPA.length) + RM_FAZE.map((z, i) => chip("f", String(i), (i + 1) + ". " + z[0], pocet(x => x.f === i))).join("") + "</div>" +
+    "<div class='rm-fr'><span class='rm-fl'>Oblast</span>" + chip("o", "vse", "Vše") + Object.keys(RM_OBLASTI).map(k => chip("o", k, RM_OBLASTI[k], pocet(x => x.o === k))).join("") + "</div>" +
+    "<div class='rm-fr'><span class='rm-fl'>Priorita</span>" + chip("p", "vse", "Vše") + RM_PRIORITY.map(([k, t]) => chip("p", k, t, pocet(x => st[x.id] === k))).join("") + chip("p", "bez", "Neoznačené", pocet(x => !st[x.id])) + "</div>";
+  const skupiny = RM_FAZE.map((z, i) => [i, z, vyber.filter(x => x.f === i)]).filter(g => g[2].length);
+  el.innerHTML = skupiny.length ? skupiny.map(([i, z, pol]) =>
+    "<div class='rm-faze'><div class='rm-fh'><span class='rm-fc'>" + (i + 1) + "</span><div><b>" + z[0] + "</b><span class='hint'> — " + z[1] + "</span></div><span class='badge'>" + pol.length + "</span></div>" +
+    pol.sort((a, b) => b.d - a.d).map(rmPolozkaHTML).join("") + "</div>").join("")
+    : "<p class='hint' style='padding:12px 0'>Nic neodpovídá filtru.</p>";
+  const hned = ROADMAPA.filter(x => st[x.id] === "hned");
+  $("#rmSouhrn").innerHTML = "<b>" + hned.length + "</b> chci brzy · <b>" + pocet(x => st[x.id] === "pozdeji") + "</b> později · <b>" + pocet(x => st[x.id] === "ne") + "</b> nezajímá · <b>" + pocet(x => !st[x.id]) + "</b> neoznačeno";
+}
+function rmTextPriorit(){
+  const st = rmStav(), radky = [];
+  RM_PRIORITY.forEach(([k, t]) => {
+    const pol = ROADMAPA.filter(x => st[x.id] === k); if (!pol.length) return;
+    radky.push(t.toUpperCase() + ":"); pol.forEach(x => radky.push("- " + x.n + " (" + RM_OBLASTI[x.o].replace(/^\S+\s/, "") + ", fáze " + (x.f + 1) + ")")); radky.push("");
+  });
+  return radky.length ? "Moje priority z Roadmapy kalkulačky:\n\n" + radky.join("\n") : "";
+}
+/* navázání na stránku — jen v prohlížeči (testy vyklízení běží bez DOM) */
+if (typeof document !== "undefined" && document.getElementById && document.getElementById("tab-roadmapa")) {
+  $("#tab-roadmapa").addEventListener("click", e => {
+    const f = e.target.closest("[data-rmf]");
+    if (f) { rmFiltr[f.dataset.rmf] = f.dataset.rmv; renderRoadmapa(); return; }
+    const p = e.target.closest("[data-rmp]");
+    if (p) {
+      const id = p.closest("[data-rm]").dataset.rm, st = rmStav();
+      if (st[id] === p.dataset.rmp) delete st[id]; else st[id] = p.dataset.rmp;
+      save(); renderRoadmapa(); return;
+    }
+    if (e.target.id === "rmKopirovat") {
+      const t = rmTextPriorit(), b = e.target;
+      if (!t) { alert("Zatím nemáš nic označené. U položek klikni na Chci brzy / Později / Nezajímá."); return; }
+      const hotovo = () => { b.textContent = "✓ Zkopírováno"; setTimeout(() => { b.textContent = "📋 Zkopírovat moje priority"; }, 1600); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(hotovo, () => prompt("Zkopíruj:", t)); else prompt("Zkopíruj:", t);
+    }
+  });
+  $("#rmHledat").addEventListener("input", e => { rmFiltr.q = e.target.value; renderRoadmapa(); });
+  { const nb = document.querySelector("nav button[data-tab=roadmapa]"); if (nb) nb.addEventListener("click", renderRoadmapa); }
+  $("#rmJiz").innerHTML = RM_JIZ.map(t => "<li>" + t + "</li>").join("");
+  renderRoadmapa();
+}
+
 /* ================= NÁPOVĚDA ⓘ =================
    Jen vysvětlivky: k nadpisům karet a k polím přidá malé ⓘ, klik ukáže, co to je, jak to funguje a co s tím dělat.
    Nic nemění na výpočtech ani datech. Části, které se překreslují (vyklízení, karty zisku), dostanou ⓘ znovu po každé změně.
@@ -14515,6 +15023,9 @@ const NAPOVEDA = [
   ["h2:cenik:Ceník prací", "Ceník prací", "Všechny bourací práce s cenou B2C a B2B, sutí na MJ, normohodinami a ★. Vychází z RTS (+8 %). Ceny můžeš upravit jednotlivě nebo hromadně o procento. Kč/h = cena ÷ normohodiny."],
   ["#zdrazitPct", "Změnit všechny ceny o %", "Hromadné zdražení (nebo zlevnění záporným číslem) celého ceníku nebo kategorie — třeba o inflaci jednou ročně. Historie změn se ukládá."],
   ["h2:cenik:🔒 Zámek aplikace", "Zámek aplikace", "PIN při každém otevření a obnovení stránky (výchozí 2001). Chrání před zvědavýma očima, není to šifrování. PIN platí jen pro toto zařízení."],
+  /* ---------------- ROADMAPA ---------------- */
+  ["h2:roadmapa:🗺 Roadmapa", "Roadmapa", "Plán, co by šlo do kalkulačky postupně přidat — sepsané podle toho, co řeší velké demoliční, dopravní a odpadové firmy. <b>Nic z toho zatím není naprogramované.</b> U položek si klikni prioritu a tlačítkem „Zkopírovat moje priority“ pošli seznam Claudovi."],
+  ["h2:roadmapa:Seznam", "Seznam položek", "Každá položka má: co dělají velké firmy, proč a kolik to dělá, a jak by to vypadalo v kalkulačce. <b>Dopad</b> ★–★★★ = vliv na marži nebo ochranu firmy, <b>práce</b> = kolik by stálo zapracování. Filtruj podle fáze (kdy to dává smysl), oblasti nebo své priority. Priority se ukládají do tohoto zařízení."],
   ["h2:cenik:Data", "Data a zálohy", "Export zálohy stáhne všechna data do souboru, Import je obnoví (třeba na jiném počítači). Bez synchronizace dělej zálohu pravidelně — data jsou jen v tomto prohlížeči."]
 ];
 
