@@ -625,6 +625,18 @@ tr.br-nejl td{background:var(--good-bg)}
 .br-par-akce .mini{margin-left:4px}
 .br-par-form{background:var(--ground);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:2px 0 6px}
 .br-par-tab .ne{color:var(--bad);font-weight:600}
+.br-pod-modal{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.6);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:16px}
+.br-pod-modal[hidden]{display:none}
+.br-pod-in{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;width:100%;max-width:600px;margin:auto 0}
+.br-pod-in h2{margin:0 0 4px}
+.br-pod-rozsah{margin:4px 0 8px;padding-left:18px;font-size:14px;line-height:1.5}
+.br-pod-stav{display:flex;gap:18px;flex-wrap:wrap;margin:10px 0}
+.br-pod-cvbox{margin:10px 0}
+.br-pod-cvbox span{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+.br-pod-cv{display:block;width:100%;height:160px;background:#fff;border:1px solid var(--line);border-radius:8px;touch-action:none;cursor:crosshair}
+.br-pod-cvbox .mini{margin-top:4px}
+.br-pod-dluh{background:var(--warn-bg);color:var(--warn-ink);border:1px solid var(--warn-line);border-radius:8px;padding:8px 10px;margin:8px 0}
+#brPodChyba:empty{display:none}
 
 
 /* roadmapa */
@@ -1106,6 +1118,7 @@ body.zamceno{overflow:hidden}
     <button class="b" id="fakZal">🧾 Zálohová faktura</button>
     <button class="b" id="fakKon">🧾 Konečná faktura</button>
     <button class="b" id="protokol">✅ Předávací protokol</button>
+    <span id="brPodpisObal"><button class="b" id="brPodpis">✍️ Podepsat předání</button> <span class="hint" id="brPredaniStav"></span></span>
     <button class="b" id="hnZmarenyBtn">⏱ Zmařený výjezd / čekání</button>
     <button class="b" id="smlBtn">📝 Smlouva</button>
     <button class="b" id="nova">Nová kalkulace</button>
@@ -4961,6 +4974,7 @@ function recalc(){
   if(typeof renderBrSkut==="function")renderBrSkut(v);
   if(typeof renderBrStroje==="function")renderBrStroje();
   if(typeof renderBrZarVybrane==="function")renderBrZarVybrane();
+  if(typeof brRenderPredaniStav==="function")brRenderPredaniStav();
   if(typeof renderBrDia==="function"&&!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest("#brDia")))renderBrDia();
   $("#dopravaHint").textContent=(J.dopravaUctovat&&(J.km||0)>0)?
     "klientovi "+kc(v.dopravaP)+" = max("+(J.km||0)+" km × "+fmt0.format(n.kmProdej)+" Kč; paušál "+fmt0.format(n.pausal)+"), náklad "+kc(v.dopravaN):
@@ -7656,18 +7670,19 @@ $("#protokol").addEventListener("click",()=>{
     "<table><thead><tr><th>Provedené práce</th><th class='r'>Rozsah</th></tr></thead><tbody>"+rows+"</tbody></table>"+
     "<p style='margin-top:14px'><b>Odpady — odvoz a likvidace</b></p>"+
     "<table><thead><tr><th>Kód a druh odpadu</th><th class='r'>Množství</th><th>Kam odvezeno</th><th>Č. váženky</th></tr></thead><tbody>"+odpRows+"</tbody></table>"+
-    "<p style='margin-top:16px'><b>Stav díla při předání</b> (nehodící se škrtněte):</p>"+
+    (J.predani&&J.predani.podpisKlient&&typeof brPredaniStavHTML==="function"?brPredaniStavHTML(J.predani):"<p style='margin-top:16px'><b>Stav díla při předání</b> (nehodící se škrtněte):</p>"+
     "<p>&nbsp;&nbsp;&nbsp;&nbsp;□&nbsp; Dílo je předáno <b>bez vad a nedodělků</b>.<br>"+
     "&nbsp;&nbsp;&nbsp;&nbsp;□&nbsp; Dílo je předáno s těmito vadami / nedodělky a termínem odstranění:</p>"+
     "<p>&nbsp;&nbsp;&nbsp;&nbsp;...........................................................................................................................<br><br>"+
-    "&nbsp;&nbsp;&nbsp;&nbsp;...........................................................................................................................</p>"+
+    "&nbsp;&nbsp;&nbsp;&nbsp;...........................................................................................................................</p>")+
     "<p style='margin-top:14px'><b>Prostor byl předán uklizený, suť odvezena.</b> Objednatel potvrzuje, že si dílo prohlédl a k jeho rozsahu a provedení nemá jiných výhrad než výše uvedených.</p>"+
     "<p><b>Objednatel potvrzuje převzetí díla a uznává, že ke dni podpisu tohoto protokolu dluží zhotoviteli "+kc((typeof hnNeuhrazeno==="function"&&hnNeuhrazeno(J,"demolice")!=null)?hnNeuhrazeno(J,"demolice"):dopl)+"</b> (zbývající část ceny díla), splatných do 14 dnů od podpisu tohoto protokolu"+
       (J.doplatekSplatnost?", tj. do "+new Date(J.doplatekSplatnost).toLocaleDateString("cs-CZ"):"")+".</p>"+
     "<div class='kl'>Záruka na provedené bourací práce se sjednává v délce 24 měsíců a vztahuje se na rozsah díla dle této zakázky. Nevztahuje se na konstrukce a instalace, které nebyly předmětem díla, ani na následné práce jiných dodavatelů.<br><br><br>"+
-    "V ................................ dne ......................<br><br><br>"+
+    (J.predani&&J.predani.podpisKlient&&typeof brPodpisBlok==="function"?brPodpisBlok(J.predani):"V ................................ dne ......................<br><br><br>"+
     "..............................................&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;..............................................<br>"+
-    "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;zhotovitel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;objednatel</div>";
+    "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;zhotovitel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;objednatel")+"</div>";
+  if(typeof brProtokolFotky==="function"){brProtokolFotky(J,"demolice").then(h=>{if(h)$("#tiskArea").insertAdjacentHTML("beforeend",h);window.print();});return;}
   window.print();
 });
 
@@ -12625,7 +12640,7 @@ function renderVkPrubeh(){
       "<tr><td colspan='3' class='hint'>Zatím nic.</td></tr>") +
     "</tbody></table></div><div class='btnrow'><button class='b' type='button' id='vkPredanoAdd'>+ Předaná věc</button></div>" +
     "<div id='vkVyuctovani'></div>" +
-    "<div class='btnrow'><button class='b' type='button' id='vkVykaz'>🧾 Výkaz pro klienta</button><button class='b' type='button' id='vkProtokol'>📝 Předávací protokol</button><button class='b prim' type='button' id='vkFakKon2'>🧾 Konečná faktura podle skutečnosti</button></div>";
+    "<div class='btnrow'><button class='b' type='button' id='vkVykaz'>🧾 Výkaz pro klienta</button><button class='b' type='button' id='vkProtokol'>📝 Předávací protokol</button>" + (typeof brPodpisTlacitko === "function" ? brPodpisTlacitko(VK, "vkPodpis") : "") + "<button class='b prim' type='button' id='vkFakKon2'>🧾 Konečná faktura podle skutečnosti</button></div>";
   el.innerHTML = h;
   renderVkVyuctovani();
 }
@@ -14184,6 +14199,7 @@ function vykTiskProtokolu(){
   if (!VK.id) { alert("Nejdřív ulož zakázku."); return; }
   if (!VK.klient) { alert("Doplň jméno klienta."); return; }
   $("#tiskArea").innerHTML = vykProtokolHTML(VK);
+  if (typeof brProtokolFotky === "function") { const pv = VK; brProtokolFotky(pv, "vyklizeni").then(h => { if (h) $("#tiskArea").insertAdjacentHTML("beforeend", h); const t0 = document.title; document.title = "Protokol-" + (pv.cisloNab || pv.nazev || "vyklizeni"); setTimeout(() => { window.print(); document.title = t0; }, 60); }); return; }
   const puvodni = document.title; document.title = "Protokol-" + (VK.cisloNab || VK.nazev || "vyklizeni");
   setTimeout(() => { window.print(); document.title = puvodni; }, 60);
 }
@@ -14205,8 +14221,8 @@ function vykProtokolHTML(v){
     (sl !== "vynaska" ? "<h3 class='vk-t'>Odpad předán do oprávněného zařízení</h3>" + (listky.length ? "<table class='fa-pol' style='margin-top:0'><thead><tr><th>Zařízení</th><th>Kód a druh odpadu</th><th class='r'>kg</th></tr></thead><tbody>" +
       listky.map(l => "<tr><td>" + esc(l.zarizeni || "—") + "</td><td>" + esc(l.kod ? l.kod + " " + kodNazev(l.kod) : "—") + "</td><td class='r'>" + faMn(+l.kg || 0) + "</td></tr>").join("") + "</tbody></table>" : "<div class='vk-txt'>Vážní lístky doložíme s vyúčtováním.</div>") : "") +
     (sl !== "vynaska" || true ? "<h3 class='vk-t'>Převzetí a platba</h3><div class='vk-txt'>Objednatel potvrzuje převzetí díla a uznává, že ke dni podpisu tohoto protokolu dluží zhotoviteli <b>" + (typeof hnNeuhrazeno === "function" && hnNeuhrazeno(v, "vyklizeni") != null ? faKc(hnNeuhrazeno(v, "vyklizeni")) : "………………") + "</b> (zbývající část ceny podle nabídky a vyúčtování), splatných podle faktury.</div>" : "") +
-    "<h3 class='vk-t'>Poznámky a výhrady objednatele</h3><div style='border-bottom:.3mm solid #bbb;height:7mm'></div><div style='border-bottom:.3mm solid #bbb;height:7mm'></div>" +
-    "<div style='display:grid;grid-template-columns:1fr 1fr;gap:10mm;margin-top:14mm;font-size:9pt'><div style='border-top:.3mm solid #999;padding-top:1mm'>Předal za dodavatele</div><div style='border-top:.3mm solid #999;padding-top:1mm'>Převzal objednatel</div></div>" +
+    "<h3 class='vk-t'>Poznámky a výhrady objednatele</h3>" + (v.predani && v.predani.podpisKlient && typeof brPredaniStavHTML === "function" ? "<div class='vk-txt'>" + brPredaniStavHTML(v.predani) + "</div>" : "<div style='border-bottom:.3mm solid #bbb;height:7mm'></div><div style='border-bottom:.3mm solid #bbb;height:7mm'></div>") +
+    (v.predani && v.predani.podpisKlient && typeof brPodpisBlok === "function" ? brPodpisBlok(v.predani) : "<div style='display:grid;grid-template-columns:1fr 1fr;gap:10mm;margin-top:14mm;font-size:9pt'><div style='border-top:.3mm solid #999;padding-top:1mm'>Předal za dodavatele</div><div style='border-top:.3mm solid #999;padding-top:1mm'>Převzal objednatel</div></div>") +
     vykPataHTML() + "</div>";
 }
 function vykTiskVykazu(){
@@ -17078,6 +17094,134 @@ if (typeof document !== "undefined" && document.addEventListener) {
   }, true);
 }
 
+/* ---------- Předávací protokol s podpisem prstem ----------
+   U demolice i vyklízení: okno se shrnutím prací, stavem (bez vad / s výhradami a termínem odstranění), jménem
+   přebírajícího a podpisem prstem objednatele i zhotovitele. Uloží se k zakázce (z.predani), zakázka je hotová,
+   u demolice běží splatnost doplatku od podpisu. Tištěný protokol pak má podpisy, čas a fotky „po dokončení“. */
+let brPodpisDruh = "", brPodpisPlatna = {};
+function brPredaniZak(druh){ return druh === "vyklizeni" ? VK : J; }
+function brPredaniRozsah(z, druh){
+  if (druh === "vyklizeni") return [esc(typeof vkPopisRozsahu === "function" ? vkPopisRozsahu(z) : z.nazev || "")];
+  const r = (z.prace || []).filter(x => x.nazev && (x.mnozstvi || 0) > 0).map(x => esc(x.nazev) + " — " + fmt1.format(x.mnozstvi) + " " + esc(x.mj || ""));
+  (z.viceprace || []).filter(x => x.stav === "odsouhlaseno" && x.nazev).forEach(x => r.push("Vícepráce: " + esc(x.nazev)));
+  return r;
+}
+function brPodpisTlacitko(z, id){
+  const p = z && z.predani;
+  return "<button class='b' type='button' id='" + id + "'>" + (p && p.podpisKlient ? "✍️ Předáno " + hnDatumCz(p.datum) : "✍️ Podepsat předání") + "</button>";
+}
+function brRenderPredaniStav(){
+  const b = $("#brPodpis"); if (!b) return;
+  const p = J && J.predani;
+  b.textContent = p && p.podpisKlient ? "✍️ Předáno " + hnDatumCz(p.datum) + " — upravit" : "✍️ Podepsat předání";
+  const s = $("#brPredaniStav");
+  if (s) s.textContent = p && p.podpisKlient ? "převzal " + p.jmeno + " v " + p.cas + (p.vady ? " · s výhradami" : " · bez vad") : "";
+}
+function brPodpisOtevri(druh){
+  const z = brPredaniZak(druh);
+  if (!z || !z.id) { alert("Nejdřív zakázku ulož."); return; }
+  if (druh === "demolice" && !(z.prace || []).some(r => r.nazev && (r.mnozstvi || 0) > 0)) { alert("Zakázka nemá žádné práce — není co předávat."); return; }
+  brPodpisDruh = druh;
+  const p = z.predani || {}, n = S.nastaveni, dlu = typeof hnNeuhrazeno === "function" ? hnNeuhrazeno(z, druh) : null, rozsah = brPredaniRozsah(z, druh);
+  let m = $("#brPodpisModal");
+  if (!m) { m = document.createElement("div"); m.id = "brPodpisModal"; m.className = "br-pod-modal"; document.body.appendChild(m); }
+  m.innerHTML = "<div class='br-pod-in' role='dialog' aria-modal='true' aria-label='Předání zakázky'>" +
+    "<h2>✍️ Předání zakázky</h2><p class='hint' style='margin:0 0 8px'>" + esc(z.nazev || "") + (z.adresa ? " · " + esc(z.adresa) : "") + "</p>" +
+    "<details class='br-det'" + (rozsah.length <= 6 ? " open" : "") + "><summary>Co předáváme (" + rozsah.length + ")</summary><ul class='br-pod-rozsah'>" + rozsah.map(x => "<li>" + x + "</li>").join("") + "</ul></details>" +
+    "<div class='br-pod-stav'><label class='chk'><input type='radio' name='brPodStav' value='ok'" + (p.vady ? "" : " checked") + "> Bez vad a nedodělků</label>" +
+      "<label class='chk'><input type='radio' name='brPodStav' value='vady'" + (p.vady ? " checked" : "") + "> S výhradami</label></div>" +
+    "<div id='brPodVady'" + (p.vady ? "" : " hidden") + "><label class='f'>Výhrady, vady a nedodělky<textarea id='brPodVadyTxt' rows='3'>" + esc(p.vady || "") + "</textarea></label>" +
+      "<label class='f'>Termín odstranění<input type='date' id='brPodTermin' value='" + esc(p.termin || faPlusDni(faDnes(), 7)) + "'></label></div>" +
+    "<label class='f'>Převzal (jméno a příjmení)<input id='brPodJmeno' value='" + esc(p.jmeno || String(z.klient || "").split(",")[0].trim()) + "'></label>" +
+    (dlu != null && dlu > 0 ? "<p class='br-pod-dluh'>Zbývá doplatit <b>" + kc(dlu) + "</b>. Podpisem objednatel potvrzuje převzetí díla a výši neuhrazené ceny.</p>" : "<p class='hint'>Podpisem objednatel potvrzuje převzetí díla v uvedeném stavu.</p>") +
+    "<div class='br-pod-cvbox'><span>Podpis objednatele</span><canvas class='br-pod-cv' data-brcv='klient'></canvas><button type='button' class='mini' data-brcvclr='klient'>Smazat podpis</button></div>" +
+    "<div class='br-pod-cvbox'><span>Za zhotovitele" + (n.jednatel ? " — " + esc(n.jednatel) : "") + "</span><canvas class='br-pod-cv' data-brcv='firma'></canvas><button type='button' class='mini' data-brcvclr='firma'>Smazat podpis</button></div>" +
+    "<p class='ne' id='brPodChyba' style='margin:4px 0'></p>" +
+    "<div class='btnrow'><button type='button' class='b' id='brPodZrusit'>Zrušit</button><button type='button' class='b prim' id='brPodUlozit'>✓ Uložit předání</button></div></div>";
+  m.hidden = false; document.body.style.overflow = "hidden";
+  brPodpisPlatna = {};
+  m.querySelectorAll("canvas[data-brcv]").forEach(cv => brPodpisPlatno(cv, p[cv.dataset.brcv === "klient" ? "podpisKlient" : "podpisFirma"]));
+}
+function brPodpisPlatno(cv, puvodni){
+  const r = Math.min(2, window.devicePixelRatio || 1), w = cv.clientWidth || 520, h = cv.clientHeight || 160;
+  cv.width = Math.round(w * r); cv.height = Math.round(h * r);
+  const c = cv.getContext("2d"); c.scale(r, r); c.lineWidth = 2.4; c.lineCap = "round"; c.lineJoin = "round"; c.strokeStyle = "#111";
+  const st = {prazdne:true, kresli:false, cv, c, w, h, puvodni:""};
+  brPodpisPlatna[cv.dataset.brcv] = st;
+  if (puvodni) { const img = new Image(); img.onload = () => c.drawImage(img, 0, 0, w, h); img.src = puvodni; st.prazdne = false; st.puvodni = puvodni; }
+  const bod = e => { const b = cv.getBoundingClientRect(); return [e.clientX - b.left, e.clientY - b.top]; };
+  cv.addEventListener("pointerdown", e => {
+    e.preventDefault(); try { cv.setPointerCapture(e.pointerId); } catch (x) {}
+    st.kresli = true; st.puvodni = ""; st.prazdne = false;
+    const [x, y] = bod(e); c.beginPath(); c.moveTo(x, y); c.lineTo(x + 0.1, y + 0.1); c.stroke();
+  });
+  cv.addEventListener("pointermove", e => { if (!st.kresli) return; e.preventDefault(); const [x, y] = bod(e); c.lineTo(x, y); c.stroke(); });
+  const konec = () => { st.kresli = false; };
+  ["pointerup", "pointercancel", "pointerleave"].forEach(t => cv.addEventListener(t, konec));
+}
+function brPodpisZavri(){ const m = $("#brPodpisModal"); if (m) { m.hidden = true; m.innerHTML = ""; } document.body.style.overflow = ""; }
+function brPodpisUloz(){
+  const druh = brPodpisDruh, z = brPredaniZak(druh), ch = $("#brPodChyba"); if (!z) return;
+  const k = brPodpisPlatna.klient, f = brPodpisPlatna.firma;
+  if (!k || k.prazdne) { ch.textContent = "Chybí podpis objednatele."; return; }
+  const jmeno = (($("#brPodJmeno") || {}).value || "").trim();
+  if (!jmeno) { ch.textContent = "Napiš jméno toho, kdo přebírá."; return; }
+  const sVadami = (document.querySelector("input[name=brPodStav]:checked") || {}).value === "vady", vady = sVadami ? (($("#brPodVadyTxt") || {}).value || "").trim() : "";
+  if (sVadami && !vady) { ch.textContent = "Popiš výhrady, nebo zvol „Bez vad a nedodělků“."; return; }
+  const ted = new Date(), datum = faDnes();
+  z.predani = {datum, cas:String(ted.getHours()).padStart(2, "0") + ":" + String(ted.getMinutes()).padStart(2, "0"), jmeno, vady, termin:sVadami ? (($("#brPodTermin") || {}).value || "") : "",
+    podpisKlient:k.puvodni || k.cv.toDataURL("image/png"), podpisFirma:f && !f.prazdne ? (f.puvodni || f.cv.toDataURL("image/png")) : "",
+    dluh:typeof hnNeuhrazeno === "function" ? hnNeuhrazeno(z, druh) : null};
+  if (["nabídka", "domluveno", "probíhá"].includes(z.status)) z.status = "hotovo";
+  if (druh === "demolice") {
+    if (!z.doplatekSplatnost && !z.doplatekZaplaceno) z.doplatekSplatnost = faPlusDni(datum, 14);
+    const ul = (S.zakazky || []).find(x => x.id === z.id);
+    if (ul) { ul.predani = z.predani; ul.status = z.status; ul.doplatekSplatnost = z.doplatekSplatnost; }
+    save(); brPodpisZavri(); brRenderPredaniStav();
+    if (typeof recalc === "function") recalc();
+  } else {
+    const ul = (S.vyklizeni || []).find(x => x.id === z.id);
+    if (ul) { ul.predani = z.predani; ul.status = z.status; }
+    vykUloz(); if (typeof vkUlozitTise === "function") vkUlozitTise(); brPodpisZavri(); renderVyklizeni();
+  }
+}
+function brPredaniStavHTML(p){
+  return "<p><b>Předáno " + hnDatumCz(p.datum) + " v " + esc(p.cas) + ", převzal(a) " + esc(p.jmeno) + ".</b> " +
+    (p.vady ? "Dílo předáno <b>s výhradami</b>: " + esc(p.vady) + (p.termin ? " Termín odstranění: <b>" + hnDatumCz(p.termin) + "</b>." : "") : "Dílo předáno <b>bez vad a nedodělků</b>.") + "</p>";
+}
+function brPodpisBlok(p){
+  const pole = (nadpis, img, jm) => "<div style='text-align:center'>" + (img ? "<img src='" + img + "' alt='podpis' style='display:block;margin:0 auto;max-width:70mm;max-height:24mm'>" : "<div style='height:24mm'></div>") +
+    "<div style='border-top:.3mm solid #999;padding-top:1mm;font-size:9pt'>" + nadpis + (jm ? " — " + esc(jm) : "") + "</div></div>";
+  return "<div style='display:grid;grid-template-columns:1fr 1fr;gap:10mm;margin-top:8mm'>" + pole("Předal za zhotovitele", p.podpisFirma, S.nastaveni.jednatel || "") + pole("Převzal objednatel", p.podpisKlient, p.jmeno) + "</div>" +
+    "<div style='font-size:8pt;color:#555;margin-top:2mm'>Podepsáno elektronicky na místě prstem dne " + hnDatumCz(p.datum) + " v " + esc(p.cas) + ".</div>";
+}
+async function brProtokolFotky(z, druh){
+  const f = (z.fotky || []), poradi = ["po", "skody", "pred"], vyber = [];
+  poradi.forEach(sk => f.filter(x => x.skupina === sk).forEach(x => { if (vyber.length < 6) vyber.push(x); }));
+  if (!vyber.length) return "";
+  const nazvy = Object.fromEntries((druh === "vyklizeni" ? VYK_FOTO_SKUPINY : FOTO_SKUPINY).map(x => [x[0], x[1]]));
+  const obr = [];
+  for (const x of vyber) {
+    let src = null;
+    try { src = await IDB.get(druh === "vyklizeni" ? (z.id || "vk-bez-id") + "|" + x.id : z.id + "|" + x.id); } catch (e) {}
+    if (src) obr.push("<figure style='margin:0'><img src='" + src + "' alt='' style='width:100%;height:62mm;object-fit:cover;border:.2mm solid #ccc'><figcaption style='font-size:8pt;color:#555'>" + esc(nazvy[x.skupina] || "") + (x.datum ? " · " + hnDatumCz(x.datum) : "") + "</figcaption></figure>");
+  }
+  if (!obr.length) return "";
+  return "<div style='page-break-before:always;break-before:page;padding:12mm 14mm'><h2 style='font-size:13pt;margin:0 0 4mm'>Fotodokumentace k předání — " + esc(z.nazev || "") + "</h2>" +
+    "<div style='display:grid;grid-template-columns:1fr 1fr;gap:5mm'>" + obr.join("") + "</div></div>";
+}
+if (typeof document !== "undefined" && document.addEventListener) {
+  document.addEventListener("click", e => {
+    const t = e.target, id = t.id;
+    if (id === "brPodpis") { brPodpisOtevri("demolice"); return; }
+    if (id === "vkPodpis") { brPodpisOtevri("vyklizeni"); return; }
+    if (id === "brPodZrusit") { brPodpisZavri(); return; }
+    if (id === "brPodUlozit") { brPodpisUloz(); return; }
+    if (t.dataset && t.dataset.brcvclr) { const st = brPodpisPlatna[t.dataset.brcvclr]; if (st) { st.c.clearRect(0, 0, st.w, st.h); st.prazdne = true; st.puvodni = ""; } return; }
+  });
+  document.addEventListener("change", e => { if (e.target.name === "brPodStav") { const v = $("#brPodVady"); if (v) v.hidden = e.target.value !== "vady"; } });
+}
+
 /* ================= ROADMAPA — co řeší velké firmy =================
    Samostatná záložka: seznam věcí, na kterých velké demoliční, dopravní a odpadové firmy dělají marži
    (nebo se chrání před ztrátou), rozdělený do fází. Nic z toho zatím není naprogramované v kalkulaci —
@@ -17477,12 +17621,15 @@ const RM_HOTOVO = {
   "obch-ramcove":{datum:"2026-09-26",
     co:"Stálí odběratelé jsou teď <b>partneři s rámcovou smlouvou</b>: typ (realitka, správce/SVJ, developer, stavební firma), firma z adresáře, číslo a platnost smlouvy, <b>doba reakce</b>, <b>splatnost</b>, fakturace po zakázce nebo <b>souhrnně za měsíc</b> a očekávaný objem. U každého obrat, marže a <b>platební morálka</b> za 12 měsíců (průměrné zpoždění, kolik dluží). 📝 vytiskne <b>rámcovou smlouvu</b> s partnerským ceníkem (příloha č. 1) — partnerské ceny jen při včasném placení, bez zádržného a započtení, 1 200 Kč za upomínání, výpověď 1 měsíc; pro partnera pevné ceny potvrzených zakázek, pojištění a lhůty. Souhrnná měsíční faktura jedním klikem; v Plánu úkoly „poslat nabídku partnerovi v době reakce“ a „vyfakturovat měsíc“. Výběr partnera v kalkulaci přepne B2B ceník, ve vyklízení partnerskou marži; faktura dostane jeho splatnost.",
     kde:"Přehled firmy → <b>🤝 Partneři a rámcové smlouvy</b>; výběr partnera v Kalkulaci (Stálý odběratel) a ve Vyklízení; úkoly v <b>📅 Plánu</b>. Smlouvu nechte jednou zkontrolovat advokátem."},
-  "pen-cashflow":{datum:"2026-09-27",
+  "pen-cashflow":{datum:"2026-09-26",
     co:"Karta <b>💰 Peníze na 13 týdnů dopředu</b>: zadáš zůstatek na účtu a rezervu a kalkulačka týden po týdnu spočítá, co přijde (vystavené faktury podle splatnosti, zálohy a doplatky domluvených zakázek — u partnera s jeho splatností a měsíční fakturací) a co odejde (přímé náklady zakázek v týdnu práce, fixní náklady a plán lidí z Ekonomiky, výběry majitelů, zálohy na daň, jednorázové položky jako nákup stroje). Graf zůstatku s čárou rezervy, rozpis každého týdne kliknutím a <b>varování</b>, kdy by peníze klesly pod rezervu nebo došly, s radou co udělat. Opraven i výpočet „Podle výdajů za 3 měsíce“ ve fixních nákladech (četl špatné pole a ukazoval 0).",
     kde:"Přehled firmy → <b>💰 Peníze na 13 týdnů dopředu</b> (pod Penězi na cestě)."},
-  "pen-isdoc":{datum:"2026-09-27",
+  "pen-isdoc":{datum:"2026-09-26",
     co:"Každý vystavený doklad jde stáhnout ve formátu <b>ISDOC 6.0.2</b> (národní standard e-faktury) — tlačítko <b>ISDOC</b> v seznamu faktur, a ZIP pro účetní má novou složku <b>isdoc/</b> se všemi doklady období. Účetní program (Pohoda, Money S3, ABRA Flexi…) je naimportuje bez přepisování. Faktura = typ 1, zálohová = typ 4, storno a dobropis = typ 2 s odkazem na původní doklad; slevy jako řádky, odečtené zálohy, zaokrouhlení, účet, IBAN, VS a splatnost; neplátce DPH se sazbou 0 %. Každý doklad má stálé UUID.",
-    kde:"<b>Faktury a daně</b> → seznam dokladů (tlačítko ISDOC) a <b>Pro účetní</b> → 📦 Stáhnout podklady (ZIP). Při prvním importu u účetní ověřte jeden doklad."}
+    kde:"<b>Faktury a daně</b> → seznam dokladů (tlačítko ISDOC) a <b>Pro účetní</b> → 📦 Stáhnout podklady (ZIP). Při prvním importu u účetní ověřte jeden doklad."},
+  "riz-protokol":{datum:"2026-09-26",
+    co:"U demolice i vyklízení tlačítko <b>✍️ Podepsat předání</b>: na mobilu se ukáže, co se předává, volba <b>bez vad</b> nebo <b>s výhradami</b> (text a termín odstranění), jméno přebírajícího, kolik zbývá doplatit, a <b>podpis prstem</b> objednatele i zhotovitele. Uloží se k zakázce s datem a časem, zakázka se označí jako hotová a u demolice začne běžet splatnost doplatku (14 dní od podpisu). Vytištěný protokol (i do PDF) pak obsahuje oba podpisy, záznam o předání a výhradách, uznání dluhu a přílohu <b>fotodokumentace</b> (fotky „po dokončení“, škody, „před“).",
+    kde:"Kalkulace → Po dokončení → <b>✍️ Podepsat předání</b> vedle Předávacího protokolu; Vyklízení → Průběh a vyúčtování → ✍️ Podepsat předání."}
 };
 const rmHotova = x => !!RM_HOTOVO[x.id];
 const RM_JIZ = [
@@ -17598,6 +17745,7 @@ const NAPOVEDA = [
   ["h2:kalkulace:Zakázka", "Zakázka", "Hlavička zakázky: kdo, kde, kdy a za jakých podmínek. Z údajů se tiskne nabídka a faktura, termín se propíše do Plánu, zdroj do Přehledu firmy. <b>Uložit</b> zakázku najdeš dole — bez uložení se nedá fakturovat ani vyhodnocovat."],
   ["#jKlientId", "Klient z adresáře", "Vyber klienta z adresáře (Přehled firmy → Adresář klientů) — doplní se jméno, adresa a údaje na fakturu. U nového klienta stačí vyplnit jméno níž, do adresáře ho přidáš později. <b>🔍 Prověřit klienta</b> ukáže stav firmy v ARES (insolvence, zánik, stáří), historii plateb u vás a doporučenou zálohu."],
   ["#jZdroj", "Zdroj zakázky", "Odkud poptávka přišla (portál, doporučení, web, realitka…). Je povinný, protože z něj Přehled firmy počítá, <b>který kanál přináší zakázky a zisk</b> — a kam tedy dávat peníze a čas na marketing."],
+  ["css:#brPodpisObal:", "Podepsat předání", "Na místě dej klientovi telefon: uvidí, co se předává, zvolí bez vad nebo s výhradami a podepíše se prstem. Podpis se uloží k zakázce, od podpisu běží splatnost doplatku a protokol se vytiskne i s podpisy a fotkami. O vadách se pak nehádáte — jsou zapsané."],
   ["#jOdberatel", "Stálý odběratel (B2B)", "Firma, se kterou spolupracujete pravidelně (stavební firma, správce). Jen stálým odběratelům je povolený B2B ceník (o 10 % levnější). Spravují se v Přehledu firmy → 🤝 Partneři a rámcové smlouvy. Po výběru partnera se ceník přepne na B2B a faktura dostane jeho splatnost."],
   ["#jCenik", "Ceník B2C / B2B", "<b>B2C</b> = koncový zákazník (plné ceny). <b>B2B</b> = subdodávka pro firmu, ceny o 10 % nižší, protože firma přináší objem a méně starostí. B2B dávej jen stálým odběratelům — jinak zbytečně slevuješ."],
   ["#jDph", "Režim DPH", "<b>Neplátce</b>: k ceně se nic nepřičítá, cena je konečná (dokud nejste plátci). <b>12 %</b>: stavební práce na bydlení (byt do 120 m², RD do 350 m²). <b>21 %</b>: ostatní. <b>Reverse charge §92e</b>: stavební práce pro plátce DPH — fakturuješ bez daně, odvede ji odběratel. DPH není tvůj příjem, jen ho přeposíláš státu."],
