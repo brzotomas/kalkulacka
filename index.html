@@ -684,6 +684,77 @@ button[data-sml='tisk']:disabled{opacity:.45;cursor:not-allowed}
 .br-maj-akce a:hover{color:var(--accent);border-bottom-color:var(--accent)}
 
 
+/* navigace po sekcích */
+:root{--hdrH:64px}
+.sum{top:calc(var(--hdrH) + 10px)}
+@media (min-width:961px){.sum{max-height:calc(100vh - var(--hdrH) - 20px);overflow:auto;overscroll-behavior:contain;scrollbar-width:thin}}
+section.tab .card,section.tab details.gsec{scroll-margin-top:calc(var(--hdrH) + 12px)}
+.snav-blik{animation:snavBlik 1.4s ease-out}
+@keyframes snavBlik{0%{box-shadow:0 0 0 3px var(--accent)}100%{box-shadow:0 0 0 3px transparent}}
+.hwrap .brand{order:0}
+.snav-hlav{order:1;display:none;align-items:center;gap:6px;margin-left:auto;min-width:0}
+.hwrap>nav{order:2}
+@media (min-width:761px){.hwrap>nav{flex-basis:100%}}
+body.snav-ma .snav-hlav{display:flex}
+.snav-bar{display:flex;align-items:center;gap:8px;max-width:380px;min-width:0;border:1px solid var(--line);background:var(--ground);color:var(--ink);border-radius:999px;padding:6px 14px;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
+.snav-bar:hover{border-color:var(--accent)}
+.snav-bar-t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.snav-bar-n{color:var(--muted);font-weight:500;font-size:12px;white-space:nowrap}
+.snav-up{flex:0 0 auto;border:1px solid var(--line);background:var(--ground);color:var(--muted);border-radius:999px;width:34px;height:34px;cursor:pointer;font:inherit;font-weight:700}
+.snav-rail{display:none}
+.snav-hl{padding:12px 14px 9px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.snav-hl b{font-size:12px;text-transform:uppercase;letter-spacing:.07em}
+.snav-hl span{font-size:12px;color:var(--muted)}
+.snav-sez{overflow:auto}
+.snav-sk{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;padding:11px 10px 4px}
+.snav-i{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:0;border-left:3px solid transparent;background:none;color:var(--ink);font:inherit;font-size:13.5px;line-height:1.3;padding:6px 8px;border-radius:0 7px 7px 0;cursor:pointer}
+.snav-i:hover{background:var(--surface2)}
+.snav-i.on{background:var(--surface2);border-left-color:var(--accent);font-weight:700}
+.snav-ik{flex:0 0 20px;text-align:center}
+.snav-t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.snav-nahoru{border:0;border-top:1px solid var(--line);background:none;color:var(--muted);padding:9px;font:inherit;font-size:13px;cursor:pointer}
+.snav-nahoru:hover{color:var(--ink)}
+@media (min-width:1660px){
+  body.snav-ma .snav-rail{display:flex;flex-direction:column;position:fixed;top:calc(var(--hdrH) + 16px);left:max(16px, calc((100vw - 1180px) / 2 - 236px));width:220px;max-height:calc(100vh - var(--hdrH) - 32px);background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);z-index:15;overflow:hidden}
+  body.snav-ma .snav-rail .snav-sez{flex:1;padding:2px 6px 8px}
+  body.snav-ma .snav-hlav{display:none}
+}
+.snav-sheet{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.35)}
+.snav-sheet[hidden]{display:none}
+.snav-sheet-in{position:absolute;background:var(--surface);color:var(--ink);border:1px solid var(--line);box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden}
+.snav-sheet-hl{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-bottom:1px solid var(--line)}
+.snav-x{border:0;background:none;font-size:24px;color:var(--muted);cursor:pointer;line-height:1;padding:0 4px}
+.snav-sheet .snav-sez{padding:2px 8px 12px}
+@media (min-width:761px){.snav-sheet{background:transparent}.snav-sheet-in{top:calc(var(--hdrH) - 6px);right:max(16px, calc((100vw - 1180px) / 2 + 16px));width:340px;max-height:min(72vh, 660px);border-radius:12px}}
+.snav-cena{display:none}
+@media (max-width:960px){
+  body.snav-ma-cenu .snav-cena{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:18;gap:16px;align-items:center;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -4px 16px rgba(0,0,0,.18)}
+  body.snav-ma-cenu main{padding-bottom:78px}
+  .snav-cena span{display:flex;flex-direction:column;line-height:1.15;min-width:0}
+  .snav-cena small{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .snav-cena b{font-size:16px;white-space:nowrap}
+  .snav-cena b.ok{color:var(--good)}
+  .snav-cena b.ne{color:var(--bad)}
+  .snav-cena .b{margin-left:auto;white-space:nowrap}
+}
+@media (max-width:760px){
+  header .brand{display:none}
+  .hwrap{padding:6px 8px 8px;gap:6px}
+  .hwrap>nav{order:1;flex-basis:100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;-webkit-mask-image:linear-gradient(90deg,#000 92%,transparent);mask-image:linear-gradient(90deg,#000 92%,transparent)}
+  .hwrap>nav::-webkit-scrollbar{display:none}
+  .hwrap>nav button{flex:0 0 auto;white-space:nowrap;scroll-snap-align:center;padding:8px 11px}
+  .snav-hlav{order:2;flex-basis:100%;margin:0}
+  .snav-bar{flex:1;max-width:none;padding:7px 12px;font-size:14px}
+  .snav-bar>span:last-child{margin-left:auto}
+  .snav-sheet-in{left:0;right:0;bottom:0;max-height:78vh;border-radius:16px 16px 0 0;padding-bottom:env(safe-area-inset-bottom)}
+  .snav-sheet .snav-i{padding:10px;font-size:15px}
+  .snav-sheet .snav-sk{padding:12px 10px 4px}
+  main{padding:10px}
+  input,select,textarea{font-size:16px}
+}
+@media print{.snav-rail,.snav-sheet,.snav-cena,.snav-hlav{display:none!important}}
+
+
 /* roadmapa */
 .rm-uvod p{margin:0 0 6px;font-size:14px;line-height:1.55;max-width:900px}
 .rm-akce{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:12px}
@@ -1550,7 +1621,7 @@ body.zamceno{overflow:hidden}
       <thead><tr><th>Zakázka</th><th>Položka</th><th class="r">Částka</th><th>Splatnost</th><th>Stav</th></tr></thead>
       <tbody></tbody>
     </table></div>
-    <p class="hint" id="pohlEmpty" style="display:none">Žádné nezaplacené částky. Vyplň zálohu a doplatek v sekci „Platby a splatnost“ u zakázky.</p>
+    <p class="hint" id="pohlEmpty" style="display:none">Žádné nezaplacené platby. Tady se ukážou platby domluvených zakázek podle jejich platebního plánu (Kalkulace → Platby a splatnost).</p>
   </div>
 
   <div class="card">
@@ -1824,6 +1895,8 @@ body.zamceno{overflow:hidden}
 <section id="tab-pruvodce" class="tab">
   <details class="gsec" id="napMapa" open><summary><span>🧭 Mapa aplikace — co kde je, jak to funguje a co kdy dělat</span></summary><div class="inner">
     <p style="margin:0 0 10px">U nadpisů karet a u polí je malé <span class="nap-i nap-ukazka">i</span>. Klikni na něj a uvidíš, <b>co to je, jak to počítá a co s tím dělat</b>. Klik na ⓘ nic nezmění ani nezaškrtne. Zavřeš ho křížkem, klikem vedle nebo klávesou Esc. Tady je celý obrázek pohromadě.</p>
+
+    <p style="margin:0 0 10px"><b>Kde na stránce jsem:</b> na širokém monitoru je vlevo seznam sekcí záložky ve skupinách (např. Zakázka, Nacenění, Odpad, Peníze, Realizace) a zvýrazní se ta, ve které právě jsi. Na menší obrazovce a na telefonu je název aktuální sekce v liště nahoře — klepnutím otevřeš seznam a skočíš kamkoliv, <b>↑</b> vrátí nahoru. Na telefonu je v Kalkulaci dole lišta s cenou a ziskem, <b>Souhrn ↓</b> skočí na celý rozpis.</p>
 
     <div class="vybg">Záložky — k čemu je která</div>
     <div class="tscroll"><table class="nap-tab">
@@ -18150,6 +18223,158 @@ if (typeof document !== "undefined" && document.addEventListener) {
     if (z) platEtapaHotova(zdroj, z, +i);
     if (typeof hnRenderUkoly === "function") hnRenderUkoly();
   });
+}
+
+
+/* ================= NAVIGACE PO SEKCÍCH =================
+   Široká obrazovka: vlevo panel „Na této stránce“ — sekce záložky ve skupinách (např. Zakázka, Nacenění, Odpad,
+   Peníze, Realizace), zvýrazněná ta, ve které právě jsi. Užší obrazovka: v hlavičce lišta s názvem aktuální sekce,
+   klik otevře seznam. Telefon: záložky v jednom posuvném řádku, lišta sekce pod nimi, seznam vyjede zespodu a dole
+   je lišta s cenou a ziskem zakázky. Seznam se staví sám z nadpisů karet, takže nové karty se objeví automaticky.
+   Pozor: nesmí to být <nav> — přepínání záložek bere všechna tlačítka v <nav>. */
+const SNAV_SKUPINY = {
+  kalkulace:[["Zakázka", /^(Začít rychle|Zakázka|Brát, nebo nebrat|Prohlídka a rizika)/], ["Nacenění", /^(Bourací práce|Řezání a vrtání|Vynáška|Materiál|Příplatky)/], ["Odpad", /^(Odvoz suti|Evidence odpadů)/],
+    ["Peníze", /^(Platby|Vícepráce|Ekonomika zakázky|Skutečný zisk|Ekonomika firmy)/], ["Realizace", /^(Fotodokumentace|Denní zápis|Stroje|Skutečnost|Po dokončení)/]],
+  vyklizeni:[["Nacenění", /^(Cena na místě|Nacenit z fotek|Soupis věcí|Odprodej|Vlastní položky)/], ["Zakázka", /^(Zakázka a nabídka|Připravit k rekonstrukci|Uložené zakázky)/],
+    ["Cena a marže", /^(Cena pro klienta|Marže zakázky|Skutečný zisk|Jak účtovat|Srovnání s trhem|Zkontrolovat)/], ["Realizace", /^(Vícepráce|Fotodokumentace|Den zakázky)/],
+    ["Firma a sazby", /^(Výsledky vyklízení|Posádky|Ekonomika firmy|Sazby|Trh)/]],
+  prehled:[["Tento týden", /^(Pondělní|Měsíční výsledky|Růstový)/], ["Peníze", /^(Peníze na|Výdaje firmy)/], ["Obchod", /^(Zdroje zakázek|Proč prohráváme|Partneři|Adresář)/],
+    ["Odhady a práce", /^(Plán vs\. realita|Práce, na kterých|Přesnost odhadů)/], ["Provoz", /^(Nářadí|Evidence odpadů)/]],
+  cenik:[["Ceny", /^(Ceník prací|Diamantové|Prahy rentability|Vynáška suti)/], ["Odpad a kontejnery", /^(Zařízení na odpad|Dopravci|Kontejnery)/], ["Firma a nastavení", /^(Firma na dokladech|Výchozí hodnoty|Podmínky nabídky|Zámek|Data)/]],
+  faktury:[["Doklady", /^(Vydané faktury|Párování|Výdaje)/], ["Daně a účetní", /^(Daně|Pro účetní)/], ["Nastavení", /^(Synchronizace|Zkušební)/]]
+};
+const SNAV_IKONY = [[/^Začít rychle/, "⚡"], [/^Zakázka a nabídka/, "📁"], [/^Zakázka/, "📁"], [/^Bourací práce/, "🔨"], [/^Vynáška/, "🏋"], [/^Materiál/, "🧱"], [/^Příplatky/, "➕"], [/^Odvoz suti/, "🚛"],
+  [/^Evidence odpadů/, "♻️"], [/^Platby/, "💳"], [/^Vícepráce/, "🧩"], [/^Fotodokumentace/, "📷"], [/^Denní zápis/, "📝"], [/^Po dokončení/, "✅"], [/^Ekonomika zakázky/, "📊"], [/^Měsíční výsledky/, "📅"],
+  [/^Zdroje zakázek/, "📣"], [/^Plán vs\. realita/, "🎯"], [/^Adresář/, "👥"], [/^Nářadí/, "🔧"], [/^Peníze na cestě/, "💸"], [/^Proč prohráváme/, "🤔"], [/^Růstový/, "📈"], [/^Výdaje/, "🧾"],
+  [/^Vydané faktury/, "🧾"], [/^Párování/, "🏦"], [/^Daně/, "🏛"], [/^Pro účetní/, "📦"], [/^Synchronizace/, "🔄"], [/^Firma na dokladech/, "🏢"], [/^Výchozí hodnoty/, "⚙️"], [/^Ceník prací/, "📋"],
+  [/^(Kontejnery|Dopravci)/, "🚛"], [/^Prahy/, "📏"], [/^Data/, "💾"], [/^Uložené zakázky/, "🗂"], [/^Cena pro klienta/, "💰"], [/^Marže/, "📊"], [/^Srovnání s trhem/, "⚖️"], [/^Zkontrolovat/, "✔️"],
+  [/^Sazby/, "⚙️"], [/^Jak účtovat/, "🧮"], [/^Trh/, "🔎"], [/^Nasmlouvané/, "📅"], [/^Zprávy klientovi/, "✉️"], [/^Uložené/, "🗂"]];
+const SNAV_NAZVY_ZALOZEK = {rychla:"Rychlá cena", kalkulace:"Kalkulace", vyklizeni:"Vyklízení", zakazky:"Zakázky", plan:"Plán", zpravy:"Zprávy", rust:"Růst a investice", faktury:"Faktury a daně", prehled:"Přehled firmy", cenik:"Ceník a nastavení", pruvodce:"Průvodce", roadmapa:"Roadmapa"};
+let snav = {tab:"", polozky:[], podpis:"", aktivni:-1};
+const snavEmoji = /^(\p{Extended_Pictographic}|\p{Regional_Indicator})(️|‍\p{Extended_Pictographic})*\s*/u;
+function snavNazev(k){
+  const h = k.querySelector(":scope > h2, :scope > summary, :scope > .inner > h2, h2, summary"); if (!h) return null;
+  const c = h.cloneNode(true);
+  c.querySelectorAll(".badge, .hint, .nap-i, button, input, select, small, .pill").forEach(x => x.remove());
+  let t = c.textContent.replace(/\s+/g, " ").trim();
+  if (!t) return null;
+  let ikona = "";
+  const m = t.match(snavEmoji); if (m) { ikona = m[0].trim(); t = t.slice(m[0].length).trim(); }
+  t = t.split(" — ")[0].trim();
+  if (!ikona) { const i = SNAV_IKONY.find(x => x[0].test(t)); ikona = i ? i[1] : "•"; }
+  return {nazev:t, ikona};
+}
+function snavViditelny(k){ return k.offsetParent !== null || (k.tagName === "DETAILS" && k.parentElement && k.parentElement.offsetParent !== null); }
+function snavSestav(){
+  const sek = document.querySelector("section.tab.on"); if (!sek) return;
+  const tab = sek.id.replace(/^tab-/, "");
+  const karty = [...sek.querySelectorAll(".card, details.gsec")].filter(k => !k.parentElement.closest(".card, details.gsec") && snavViditelny(k));
+  const polozky = [];
+  karty.forEach(k => { const n = snavNazev(k); if (!n) return; polozky.push(Object.assign(n, {el:k, vSouhrnu:!!k.closest("aside.sum")})); });
+  const pravidla = SNAV_SKUPINY[tab];
+  polozky.forEach(p => { const s = pravidla && pravidla.find(x => x[1].test(p.nazev)); p.skupina = s ? s[0] : pravidla ? "Další" : ""; });
+  const podpis = tab + "|" + polozky.map(p => p.nazev).join("|");
+  if (podpis === snav.podpis) { snav.polozky.forEach((p, i) => { p.el = polozky[i].el; }); return; }
+  snav = {tab, polozky, podpis, aktivni:-1};
+  snavVykresli();
+  snavSpy();
+}
+function snavSeznamHTML(){
+  const skupiny = [], mapa = {};
+  const poradi = (SNAV_SKUPINY[snav.tab] || []).map(x => x[0]).concat(["Další", ""]);
+  snav.polozky.forEach((p, i) => { if (!mapa[p.skupina]) { mapa[p.skupina] = []; skupiny.push(p.skupina); } mapa[p.skupina].push(i); });
+  skupiny.sort((a, b) => poradi.indexOf(a) - poradi.indexOf(b));
+  return skupiny.map(s => (s ? "<div class='snav-sk'>" + esc(s) + "</div>" : "") + mapa[s].map(i => { const p = snav.polozky[i];
+    return "<button type='button' class='snav-i' data-snav='" + i + "'><span class='snav-ik' aria-hidden='true'>" + p.ikona + "</span><span class='snav-t'>" + esc(p.nazev) + "</span></button>"; }).join("")).join("");
+}
+function snavVykresli(){
+  const malo = snav.polozky.length < 4;
+  document.body.classList.toggle("snav-ma", !malo);
+  const rail = document.getElementById("snavRail"), list = document.getElementById("snavList");
+  if (malo) { if (rail) rail.innerHTML = ""; if (list) list.innerHTML = ""; return; }
+  const hl = "<div class='snav-hl'><b>" + esc(SNAV_NAZVY_ZALOZEK[snav.tab] || "Na této stránce") + "</b><span>" + snav.polozky.length + " sekcí</span></div>";
+  if (rail) rail.innerHTML = hl + "<div class='snav-sez'>" + snavSeznamHTML() + "</div><button type='button' class='snav-nahoru' data-snavnahoru>↑ Nahoru</button>";
+  if (list) list.innerHTML = snavSeznamHTML();
+}
+/* ve které sekci jsem: poslední karta, jejíž horní hrana už je pod hlavičkou */
+function snavSpy(){
+  if (!snav.polozky.length) return;
+  const hdr = (document.querySelector("header") || {}).offsetHeight || 60, lim = hdr + 90, siroko = window.innerWidth > 960;
+  let akt = -1;
+  const konec = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+  snav.polozky.forEach((p, i) => { if (siroko && p.vSouhrnu) return; if (!p.el.isConnected) return; if (p.el.getBoundingClientRect().top <= lim) akt = i; });
+  if (konec) { for (let i = snav.polozky.length - 1; i >= 0; i--) if (!(siroko && snav.polozky[i].vSouhrnu)) { akt = i; break; } }
+  if (akt < 0) akt = snav.polozky.findIndex(p => !(siroko && p.vSouhrnu));
+  if (akt === snav.aktivni) return;
+  snav.aktivni = akt;
+  document.querySelectorAll(".snav-i").forEach(b => { const on = +b.dataset.snav === akt; b.classList.toggle("on", on); if (on) b.setAttribute("aria-current", "true"); else b.removeAttribute("aria-current"); });
+  const p = snav.polozky[akt], bar = document.getElementById("snavBarT"), n = document.getElementById("snavBarN");
+  if (bar && p) bar.textContent = p.nazev;
+  const ik = document.getElementById("snavBarIk"); if (ik && p) ik.textContent = p.ikona;
+  if (n) n.textContent = (akt + 1) + "/" + snav.polozky.length;
+  const rail = document.getElementById("snavRail"), onb = rail && rail.querySelector(".snav-i.on");
+  if (onb && rail.scrollHeight > rail.clientHeight) { const r = onb.getBoundingClientRect(), rr = rail.getBoundingClientRect(); if (r.top < rr.top + 40 || r.bottom > rr.bottom - 40) rail.scrollTop += r.top - rr.top - rr.height / 2; }
+}
+function snavJdi(i){
+  const p = snav.polozky[i]; if (!p || !p.el.isConnected) return;
+  snavZavri();
+  if (p.el.tagName === "DETAILS" && !p.el.open) p.el.open = true;
+  p.el.classList.remove("snav-blik"); void p.el.offsetWidth; p.el.classList.add("snav-blik");
+  setTimeout(() => p.el.classList.remove("snav-blik"), 1400);
+  if (p.vSouhrnu && window.innerWidth > 960) return;          /* souhrn vpravo je vidět pořád — jen blikne */
+  const plynule = !window.snavBezAnimace && !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  p.el.scrollIntoView({behavior:plynule ? "smooth" : "auto", block:"start"});
+}
+function snavOtevri(){ const s = document.getElementById("snavSheet"); if (!s || !snav.polozky.length) return; s.hidden = false; document.body.classList.add("snav-otevreno"); const on = s.querySelector(".snav-i.on"); if (on) on.scrollIntoView({block:"center"}); const bar = document.getElementById("snavBar"); if (bar) bar.setAttribute("aria-expanded", "true"); }
+function snavZavri(){ const s = document.getElementById("snavSheet"); if (s) s.hidden = true; document.body.classList.remove("snav-otevreno"); const bar = document.getElementById("snavBar"); if (bar) bar.setAttribute("aria-expanded", "false"); }
+/* spodní lišta na telefonu: cena a zisk zakázky, klik skočí na souhrn */
+function snavCena(){
+  const el = document.getElementById("snavCena"); if (!el) return;
+  const tab = snav.tab || ((document.querySelector("section.tab.on") || {}).id || "").replace(/^tab-/, "");
+  let h = "";
+  try {
+    if (tab === "kalkulace" && typeof vypocet === "function" && J && (J.prace || []).length) { const v = vypocet(); if (v.celkem > 0) h = "<span><small>Klient zaplatí</small><b>" + kc(v.celkem) + "</b></span><span><small>Zisk bez rezervy</small><b class='" + ((v.ziskBezRezervy != null ? v.ziskBezRezervy : v.zisk) >= 0 ? "ok" : "ne") + "'>" + kc(v.ziskBezRezervy != null ? v.ziskBezRezervy : v.zisk) + "</b></span>"; }
+    /* vyklízení má na telefonu vlastní lištu s cenou a marží */
+  } catch (e) {}
+  el.innerHTML = h ? h + "<button type='button' class='b' data-snavsouhrn>Souhrn ↓</button>" : "";
+  document.body.classList.toggle("snav-ma-cenu", !!h);
+}
+function snavHdr(){ const h = document.querySelector("header"); if (h) document.documentElement.style.setProperty("--hdrH", h.offsetHeight + "px"); }
+if (typeof document !== "undefined" && document.addEventListener && document.querySelector) {
+  (() => {
+    const hw = document.querySelector("header .hwrap"); if (!hw) return;
+    const bar = document.createElement("div"); bar.className = "snav-hlav";
+    bar.innerHTML = "<button type='button' id='snavBar' class='snav-bar' aria-haspopup='dialog' aria-expanded='false' aria-label='Sekce stránky'><span id='snavBarIk' aria-hidden='true'>📍</span><span id='snavBarT' class='snav-bar-t'></span><span id='snavBarN' class='snav-bar-n'></span><span aria-hidden='true'>▾</span></button>" +
+      "<button type='button' class='snav-up' data-snavnahoru aria-label='Nahoru'>↑</button>";
+    const nav = hw.querySelector("nav"); hw.insertBefore(bar, nav ? nav.nextSibling : null);
+    const rail = document.createElement("div"); rail.id = "snavRail"; rail.className = "snav-rail"; rail.setAttribute("role", "navigation"); rail.setAttribute("aria-label", "Sekce stránky"); document.body.appendChild(rail);
+    const sh = document.createElement("div"); sh.id = "snavSheet"; sh.className = "snav-sheet"; sh.hidden = true;
+    sh.innerHTML = "<div class='snav-sheet-in' role='dialog' aria-label='Sekce stránky'><div class='snav-sheet-hl'><b>Přejít na sekci</b><button type='button' class='snav-x' data-snavzavri aria-label='Zavřít'>×</button></div><div id='snavList' class='snav-sez'></div></div>";
+    document.body.appendChild(sh);
+    const cena = document.createElement("div"); cena.id = "snavCena"; cena.className = "snav-cena"; document.body.appendChild(cena);
+    snavHdr();
+    if (window.ResizeObserver) new ResizeObserver(() => { snavHdr(); }).observe(document.querySelector("header"));
+    let ceka = false;
+    const prepocitej = () => { if (ceka) return; ceka = true; requestAnimationFrame(() => { ceka = false; snavSpy(); }); };
+    window.addEventListener("scroll", prepocitej, {passive:true});
+    window.addEventListener("resize", () => { snavHdr(); snav.podpis = ""; snavSestav(); snavSpy(); });
+    let casovac = null;
+    const pozdeji = () => { clearTimeout(casovac); casovac = setTimeout(() => { snavSestav(); snavCena(); }, 350); };
+    const main = document.querySelector("main");
+    if (main && window.MutationObserver) new MutationObserver(pozdeji).observe(main, {childList:true, subtree:true, attributes:true, attributeFilter:["hidden", "class", "open"]});
+    document.addEventListener("click", e => {
+      const t = e.target.closest ? e.target : null; if (!t) return;
+      const tb = t.closest("header nav button[data-tab]");
+      if (tb) { snav.podpis = ""; setTimeout(() => { snavSestav(); snavCena(); window.scrollTo({top:0}); if (window.innerWidth <= 760) tb.scrollIntoView({inline:"center", block:"nearest"}); }, 30); return; }
+      const it = t.closest("[data-snav]"); if (it) { snavJdi(+it.dataset.snav); return; }
+      if (t.closest("#snavBar")) { const s = document.getElementById("snavSheet"); if (s && s.hidden) snavOtevri(); else snavZavri(); return; }
+      if (t.closest("[data-snavnahoru]")) { snavZavri(); window.scrollTo({top:0, behavior:"smooth"}); return; }
+      if (t.closest("[data-snavzavri]") || t.id === "snavSheet") { snavZavri(); return; }
+      if (t.closest("[data-snavsouhrn]")) { const a = document.querySelector("section.tab.on aside.sum"); if (a) a.scrollIntoView({behavior:"smooth", block:"start"}); return; }
+    });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") snavZavri(); });
+    setTimeout(() => { snavSestav(); snavCena(); }, 300);
+  })();
 }
 
 /* ================= ROADMAPA — co řeší velké firmy =================
