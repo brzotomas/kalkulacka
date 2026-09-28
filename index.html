@@ -1205,12 +1205,12 @@ body.zamceno{overflow:hidden}
 
   <div class="card">
     <h2>Vynáška a přesun suti <span class="badge" id="vynBadge"></span></h2>
-    <p class="hint" style="margin:0 0 10px">Počítá se <b>z tonáže suti</b>, ne z hodin — čím výš a čím dál se nosí, tím dráž. Sazby najdeš v Nastavení. Tohle je nejnamáhavější práce v celém oboru, tak ji nepodhodnocuj.</p>
+    <p class="hint" style="margin:0 0 10px">Počítá se <b>z tonáže a objemu suti</b> a z celodenního tempa jednoho člověka — čím výš a čím dál se nosí, tím dráž. Podlaží a výtah se berou z hlavičky zakázky, časy cest najdeš v Nastavení. Tohle je nejnamáhavější práce v celém oboru, tak ji nepodhodnocuj.</p>
     <div class="grid g4">
       <label class="f">Vzdálenost ke kontejneru (m)<input id="jVzdalenost" type="number" min="0" step="5"><span class="hint">od místa bourání k autu/kontejneru</span></label>
       <div class="f" style="justify-content:flex-end"><span>&nbsp;</span><label class="chk"><input id="jVytahNaSut" type="checkbox"> Výtah lze použít na suť</label></div>
       <div class="f" style="justify-content:flex-end"><span>&nbsp;</span><label class="chk"><input id="jRucniNoseni" type="checkbox"> Ruční nošení bez kolečka</label></div>
-      <div class="f" style="justify-content:flex-end"><span class="hint">Podlaží a výtah se berou z hlavičky zakázky</span><span>&nbsp;</span></div>
+      <div class="f" style="justify-content:flex-end"><span>&nbsp;</span><label class="chk"><input id="jShoz" type="checkbox"> Shoz z okna do kontejneru</label></div>
     </div>
     <div class="sut" id="vynRozpis" style="margin:12px 0 0;display:block"></div>
   </div>
@@ -1737,6 +1737,7 @@ body.zamceno{overflow:hidden}
     </table></div>
     <p class="hint" id="realEmpty">Vyplň u dokončených zakázek sekci „Po dokončení“ v kalkulaci — tady se pak porovná plán s realitou a po 5 zakázkách ti aplikace nabídne přepočet norem.</p>
     <div id="kalibrace"></div>
+    <div id="kalibraceVyn"></div>
   </div>
 
   <div class="card">
@@ -1972,18 +1973,21 @@ body.zamceno{overflow:hidden}
 
   <div class="card">
     <h2>Vynáška suti — sazby</h2>
-    <p class="hint" style="margin:0 0 10px">Vynáška se počítá jako <b>hodiny na tunu × hodinová sazba</b>. Výslednou cenu za tunu vidíš přímo u zakázky a mění se podle pater a vzdálenosti. Výchozí čísla odpovídají realitě: parta zvládne vynést zhruba <b>3,7 t za hodinu z přízemí</b>, ale jen <b>1 t za hodinu ze 3. patra</b>.</p>
+    <p class="hint" style="margin:0 0 10px">Vynáška = <b>počet cest × čas cesty × hodinová sazba</b>. Časy jsou <b>celodenní udržitelné tempo jednoho člověka</b>, ne sprint: po schodech 25 kg na cestu (zákonný limit pro časté zvedání a přenášení je 30 kg a 10 t za směnu), 50 s na patro dolů a zpátky, 20 s na naložení a vysypání. Když zapíšeš skutečné hodiny vynášky u hotových zakázek, Přehled nabídne <b>koeficient vynášky</b> podle vašeho tempa.</p>
     <div class="grid g3">
       <label class="f">Hodinová sazba za vynášku (Kč/h)<input id="nVynSazba" type="number" min="0" step="5"><span class="hint">nejnamáhavější práce — drž vysoko (715–800)</span></label>
       <label class="f">Kolečko — kolik kg suti uveze<input id="nVynKolecko" type="number" min="1" step="5"><span class="hint">plné kolečko suti se neuveze, realita 60–70 kg</span></label>
       <label class="f">Kolečko — kolik m³ se do něj vejde<input id="nVynKoleckoM3" type="number" min="0.01" step="0.005"><span class="hint">u lehké objemné suti (jádro, SDK) řídí počet cest objem, ne váha</span></label>
       <label class="f">Kolečko — délka jednoho cyklu (s)<input id="nVynCyklusSek" type="number" min="10" step="10"><span class="hint" id="vynZakladHint"></span></label>
-      <label class="f">Kbelíky — kolik kg na jednu cestu<input id="nVynKbelik" type="number" min="1" step="5"><span class="hint">2 kbelíky ≈ 40 kg, víc člověk po schodech neunese</span></label>
-      <label class="f">Kbelíky — kolik m³ na jednu cestu<input id="nVynKbelikM3" type="number" min="0.005" step="0.005"><span class="hint">2 kbelíky ≈ 40 litrů</span></label>
-      <label class="f">Kbelíky — sekund navíc na jedno patro<input id="nVynPatroSek" type="number" min="1" step="5"><span class="hint" id="vynPatroHint"></span></label>
+      <label class="f">Po schodech — kolik kg na jednu cestu<input id="nVynKbelik" type="number" min="1" step="1"><span class="hint">plný kbelík nebo pytel ≈ 25 kg; limit pro častou ruční manipulaci je 30 kg</span></label>
+      <label class="f">Po schodech — kolik m³ na jednu cestu<input id="nVynKbelikM3" type="number" min="0.005" step="0.005"><span class="hint">pytel nebo 2 kbelíky ≈ 40 litrů (u lehké suti řídí objem)</span></label>
+      <label class="f">Po schodech — sekund na jedno patro<input id="nVynPatroSek" type="number" min="1" step="5"><span class="hint" id="vynPatroHint"></span></label>
+      <label class="f">Po schodech — režie jedné cesty (s)<input id="nVynSchodyRezieSek" type="number" min="0" step="5"><span class="hint">naložit kbelík/pytel, donést ke schodům, dole vysypat</span></label>
+      <label class="f">Shoz — montáž a demontáž (osobohodin)<input id="nVynShozH" type="number" min="0" step="0.5"><span class="hint">připočte se jednou na zakázku se shozem</span></label>
+      <label class="f">Koeficient vynášky (vaše tempo)<input id="nVynKoef" type="number" min="0.3" step="0.05"><span class="hint">1,0 = model · 1,2 = jste o 20 % pomalejší. Nastaví ho kalibrace v Přehledu ze skutečných hodin.</span></label>
       <label class="f">Sekund navíc na každých 10 m vodorovně<input id="nVynVzdalenostSek" type="number" min="0" step="5"><span class="hint">na jednu cestu tam a zpět</span></label>
-      <label class="f">Koeficient při použití výtahu<input id="nVynVytahKoef" type="number" min="0" max="1" step="0.05"><span class="hint">0,3 = výtah ušetří 70 % práce s patry</span></label>
-      <label class="f">Za každých 10 m navíc vodorovně (h/t)<input id="nVynVzdalenost" type="number" min="0" step="0.01"></label>
+      <label class="f">Koeficient při použití výtahu<input id="nVynVytahKoef" type="number" min="0" max="1" step="0.05"><span class="hint">0,25 = výtah ušetří 75 % času na patrech (režie cesty zůstává)</span></label>
+      <label class="f" style="display:none">Za každých 10 m navíc vodorovně (h/t)<input id="nVynVzdalenost" type="number" min="0" step="0.01"></label>
       <label class="f">Přirážka za ruční nošení bez kolečka<input id="nVynRucniKoef" type="number" min="1" step="0.05"><span class="hint">úzké nebo točité schodiště</span></label>
     </div>
     <div id="vynUkazka"></div>
@@ -2868,23 +2872,17 @@ material: Fólie a pytle | 800 | 1100</pre>
 
   <details class="gsec"><summary>Vynáška suti — nejpodceňovanější položka rozpočtu</summary><div class="inner">
     <ul>
-      <li><b>Nosí se hmotnost, ne plocha.</b> Proto se vynáška počítá z tun suti, ne z hodin ani z m². Kalkulačka si tonáž vezme z bouracích prací a sama spočítá cenu za tunu podle konkrétních podmínek.</li>
-      <li><b>Výkony jsou ověřené fyzikou i trhem.</b> Kolečko se sutí uveze reálně 60–70 kg a cyklus trvá skoro dvě minuty — to dává <b>2 t za hodinu na osobu</b> po rovině. Po schodech s kbelíky (2× 20 kg) je to zlomek. Tržní kontrola sedí: odnos suti se prodává za 1 200–1 600 Kč/m³ a náš model dává ve 2. patře 1 301 Kč/m³.
-        <ul>
-          <li>přízemí, do 10 m — <b>358 Kč/t</b>, tempo 2,0 t/hod</li>
-          <li>1. patro po schodech — <b>679 Kč/t</b>, tempo 1,05 t/hod</li>
-          <li>2. patro po schodech — <b>1 001 Kč/t</b>, tempo 0,71 t/hod</li>
-          <li>3. patro po schodech — <b>1 323 Kč/t</b>, tempo 0,54 t/hod</li>
-          <li>3. patro s výtahem — <b>599 Kč/t</b>, tempo 1,19 t/hod</li>
-          <li>5. patro, 30 m, ručně bez kolečka — <b>2 886 Kč/t</b>, tempo 0,25 t/hod</li>
-        </ul>
-        Ze třetího patra vynese člověk za hodinu <b>půl tuny</b>. Kdo to nacení jako přízemí, prodělá — a hodně.</li>
-      <li><b>Zeptej se, jestli smíte použít výtah na suť</b> — samotná existence výtahu nestačí, SVJ to často zakazuje. V sekci vynášky je na to samostatné zaškrtávátko a rozdíl je zásadní: 3. patro s výtahem 281 Kč/t, bez něj 686 Kč/t.</li>
+      <li><b>Nosí se hmotnost a objem, ne plocha.</b> Vynáška se počítá z počtu cest — kolik tun a m³ suti vznikne z bouracích prací, kolik se vejde do kolečka a kolik unese člověk po schodech. Kalkulačka si suť vezme z bouracích prací sama.</li>
+      <li><b>Počítá se celodenní tempo, ne sprint.</b> Po schodech <b>25 kg na cestu</b> (zákonný limit pro časté zvedání a přenášení je 30 kg a 10 t za směnu), <b>50 s na každé patro</b> dolů s nákladem a zpátky nahoru, 20 s na naložení a vysypání. Kolečko 65 kg a 270 s na cyklus (naložit, převézt 10 m, vysypat do kontejneru, oddech). Hodinová sazba se nemění — mění se jen doba. Podle aktuálního nastavení (hutná suť):
+        <ul id="vynPruvodceSc"></ul>
+        Trh prodává odnos suti za 1 200–1 600 Kč/m³ — to odpovídá přízemí až 1. patru. Z vyšších pater po schodech je reálný čas dražší. Kdo to prodá za tržní cenu, nosí zadarmo.</li>
+      <li><b>Výtah a shoz jsou největší úspora.</b> Zeptej se, jestli smíte vozit suť výtahem (samotná existence výtahu nestačí, SVJ to často zakazuje), a jestli jde dát kontejner pod okno se shozem. Obojí je v kartě vynášky jako zaškrtávátko a kalkulačka hned ukáže rozdíl.</li>
       <li><b>Vzdálenost ke kontejneru</b> se měří od místa bourání k autu. Když kontejner nemůže stát u vchodu (zábor, úzká ulice), připočti reálné metry — každých 10 m navíc něco stojí.</li>
-      <li><b>Ruční nošení bez kolečka</b> zaškrtni u úzkých nebo točitých schodišť, kde se s kolečkem nedá projet. Práce je pak zhruba o 40 % pomalejší.</li>
+      <li><b>Ruční nošení bez kolečka</b> zaškrtni u úzkých nebo točitých schodišť, kde se s kolečkem nedá projet. Práce je pak zhruba o 35 % pomalejší.</li>
+      <li><b>Tempo si doladíš podle sebe.</b> U hotové zakázky zapiš v „Po dokončení“ skutečné hodiny vynášky. Po 3 zakázkách ti Přehled nabídne koeficient vynášky a kalkulačka pak počítá vaším tempem.</li>
       <li><b>Hodinovka zůstává vždy na nastavené sazbě</b> (výchozí 715 Kč/h) — cena za tunu je jen jiný pohled na tutéž práci. V Nastavení máš názornou tabulku, jak sazby dopadnou na typické situace.</li>
     </ul>
-  </div></details>
+</div></details>
 
   <details class="gsec"><summary>Plánování termínů a vytížení kapacity</summary><div class="inner">
     <ul>
@@ -4120,8 +4118,8 @@ function defKontejnery(){return [
  {id:"k9", nazev:"9 m³ – směsný odpad",  objem:9, nosnost:3,   nakup:5800, prodej:7200},
 ];}
 function defNastaveni(){return {firma:"", lide:2, hodDen:9, sazbaNajaty:250, odvozMarze:20, skladkovne:610, skladkovneSmes:2250, vykupKov:4, trideniHodT:0.25, likvidaceJakoSmes:false, km:15, kmProdej:25, pausal:600, rezerva:12, zaloha:40,
-  vynSazba:715, vynKolecko:65, vynKoleckoM3:0.065, vynCyklusSek:240,
-  vynKbelik:40, vynKbelikM3:0.040, vynPatroSek:35, vynVzdalenostSek:25,
+  vynSazba:715, vynKolecko:65, vynKoleckoM3:0.065, vynCyklusSek:270,
+  vynKbelik:25, vynKbelikM3:0.040, vynPatroSek:50, vynVzdalenostSek:25, vynSchodyRezieSek:20, vynShozH:3, vynKoef:1,
   vynVytahKoef:0.25, vynRucniKoef:1.35, koefVykon:1.0,
   kontCenaKm:32, kontDnyZdarma:3, kontCenaDen:180, kontRezerva:18,
   ico:"", dic:"", adresaFirmy:"", bankUcet:"", iban:"", swift:"", znacka:"", spisZn:"", jednatel:"", telefon:"", email:"", web:"", posledniDanPovinnost:0, platceDPH:false, dphLimit:2000000, slevaPredemPct:5, fakSplatnost:5, fakSplatnostZal:3, fakRok:0, fakPoradi:0, minZiskOsHod:450, minTrzbaB2C:0, minTrzbaB2B:0, minCenaB2C:8000, vikendPct:25, expresPct:15, nabRok:0, nabPoradi:0};}
@@ -4366,7 +4364,7 @@ function defMilniky(){return [
  {id:"m11",faze:2,nazev:"Vlastní dodávka nebo valník s vozíkem",castka:250000,
   proc:"Konec placení dopravy a půjčoven. Spočítej si návratnost v kalkulačce níž — vyplatí se až od určitého počtu zakázek měsíčně."},
  {id:"m12",faze:2,nazev:"Shoz na suť / stavební výtah",castka:40000,
-  proc:"Vynáška z pater je nejdražší a nejnamáhavější práce (2. patro 1 400 Kč/m³). Shoz ji zlevní na zlomek — a to je čistý zisk, protože klientovi účtuješ stejně."},
+  proc:"Vynáška z pater je nejdražší a nejnamáhavější práce. Shoz ji zlevní na zlomek — a to je čistý zisk, protože klientovi účtuješ stejně."},
  {id:"m13",faze:2,nazev:"Bezprašná fréza na omítky s odsáváním",castka:35000,
   proc:"Omítky jsou nejhůř placená a nejnamáhavější práce v ceníku. Fréza je zrychlí a umožní účtovat příplatek za bezprašnost."},
  {id:"m14",faze:2,nazev:"Diamantová pila na beton",castka:45000,
@@ -4824,7 +4822,7 @@ function fillHdr(){
   $("#jZalohaCastka").value=J.zalohaCastka||""; $("#jZalohaSplatnost").value=J.zalohaSplatnost; $("#jZalohaZaplaceno").value=J.zalohaZaplaceno;
   $("#jDoplatekCastka").value=J.doplatekCastka||""; $("#jDoplatekSplatnost").value=J.doplatekSplatnost; $("#jDoplatekZaplaceno").value=J.doplatekZaplaceno;
   $("#jTerminOd").value=J.terminOd; $("#jTerminDo").value=J.terminDo;
-  $("#jVzdalenost").value=J.vzdalenost; $("#jVytahNaSut").checked=J.vytahNaSut; $("#jRucniNoseni").checked=J.rucniNoseni;
+  $("#jVzdalenost").value=J.vzdalenost; $("#jVytahNaSut").checked=J.vytahNaSut; $("#jRucniNoseni").checked=J.rucniNoseni; if($("#jShoz"))$("#jShoz").checked=!!J.shoz;
   $("#jKmDopravce").value=J.kmDopravce; $("#jDnyKontejneru").value=J.dnyKontejneru;
   fillDopravceSelect();
 }
@@ -5051,13 +5049,8 @@ function renderVynaska(v){
   if(y.t<=0&&y.m3<=0){el.innerHTML="<span class='hint'>Zatím není co nosit — přidej bourací práce a suť se spočítá sama.</span>";return}
   const n=S.nastaveni;
   const usporaVytah=y.vytahOK&&y.patra>0
-    ? (vynJadro(y.t,y.m3,y.patra,false,J.vzdalenost,J.rucniNoseni).hodiny-y.hodiny)*y.sazba : 0;
-  const casti=[];
-  casti.push("<b>"+y.cestyKolecko+"×</b> kolečko po rovině ("+fmt0.format(n.vynCyklusSek||240)+" s"+
-    (y.vzdNavic>0?" + "+y.vzdNavic+"× "+fmt0.format(n.vynVzdalenostSek||25)+" s za vzdálenost":"")+") = "+fmt1.format(y.hodKolecko)+" h");
-  if(y.patra>0)casti.push("<b>"+y.cestyKbelik+"×</b> kbelík do "+y.patra+". podlaží"+
-    (y.vytahOK?" <span class='ok'>(výtah ×"+fmt1.format(n.vynVytahKoef)+")</span>":"")+" = "+fmt1.format(y.hodPatra)+" h");
-  if(y.rucni!==1)casti.push("ztížené ruční nošení ×"+fmt1.format(y.rucni));
+    ? (vynJadro(y.t,y.m3,y.patra,false,J.vzdalenost,J.rucniNoseni,vynOpt(J)).hodiny-y.hodiny)*y.sazba : 0;
+  const casti=vynCasti(y);
   el.innerHTML=
     "<div style='display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:baseline'>"+
       "<b style='font-size:19px'>"+fmt0.format(y.cenaT)+" Kč za tunu</b>"+
@@ -5067,15 +5060,15 @@ function renderVynaska(v){
     "<div class='hint' style='margin-top:6px;border-top:1px solid var(--line);padding-top:6px'>"+
       "<b>"+fmt1.format(y.t)+" t</b> / <b>"+fmt1.format(y.m3)+" m³</b> suti &nbsp;→&nbsp; <b>"+
       fmt1.format(y.hodiny)+" hodin</b> × "+fmt0.format(y.sazba)+" Kč/h"+
-      " &nbsp;·&nbsp; tempo <b>"+fmt1.format(y.tZaHod)+" t/hod</b>"+
-      (y.patra>0&&!y.vytahOK?" &nbsp;·&nbsp; <span class='ne'>"+y.patra+". podlaží po schodech</span>":"")+
+      " &nbsp;·&nbsp; tempo <b>"+fmt1.format(y.tZaHod)+" t/hod</b> na člověka"+
+      (y.patra>0&&!y.vytahOK&&!y.shoz?" &nbsp;·&nbsp; <span class='ne'>"+y.patra+". podlaží po schodech</span>":"")+
       (usporaVytah>0?" &nbsp;·&nbsp; <span class='ok'>výtah šetří "+kc(usporaVytah)+"</span>":"")+
     "</div>"+
     "<div class='hint' style='margin-top:6px'>"+
       (y.ridiObjem
         ? "<span class='ne'>⚠ Počet cest řídí objem, ne váha.</span> Podle váhy by stačilo "+y.cestVaha+" cest, ale lehká objemná suť (jádro, SDK, izolace, sanita) naplní kolečko dřív — reálně "+y.cestObjem+" cest."
         : "Počet cest řídí váha ("+y.cestVaha+" cest); objemově by stačilo "+y.cestObjem+". Typické pro hutnou suť — beton, cihly, potěry.")+
-    "</div>";
+    "</div>"+(typeof vynDoplnekHTML==="function"?vynDoplnekHTML(y):"");
 }
 
 /* ---------- kalkulace: materiál a ostatní ---------- */
@@ -5135,36 +5128,15 @@ function maNosne(){return J.prace.some(r=>{const kat=r.kat||((S.cenik.find(i=>i.
 function vynKoefy(){   /* zpětná kompatibilita: orientační h/t pro hustou suť 1,3 t/m³ */
   const n=S.nastaveni;
   return {
-    zaklad:(1000/(n.vynKolecko||65))*(n.vynCyklusSek||240)/3600,
-    patro:(1000/(n.vynKbelik||40))*(n.vynPatroSek||35)/3600
+    zaklad:(1000/(n.vynKolecko||65))*(n.vynCyklusSek||270)/3600,
+    patro:(1000/(n.vynKbelik||25))*(n.vynPatroSek||50)/3600
   };
 }
 /* jádro výpočtu — použitelné i mimo otevřenou zakázku (nastavení, uložené zakázky, šablony) */
-function vynJadro(t,m3,patra,vytahOK,vzdalenost,rucniNoseni){
-  const n=S.nastaveni;
-  t=Math.max(0,t||0); m3=Math.max(0,m3||0); patra=Math.max(0,patra||0);
-  const koefP=vytahOK?(n.vynVytahKoef>=0?n.vynVytahKoef:0.25):1;
-  const vzdNavic=Math.max(0,Math.ceil(((vzdalenost||0)-10)/10));
-  const rucni=rucniNoseni?(n.vynRucniKoef||1):1;
-  /* vodorovný přesun kolečkem — naplní se vahou NEBO objemem, podle toho co dojde dřív */
-  const cestVaha=t*1000/(n.vynKolecko||65);
-  const cestObjem=m3/(n.vynKoleckoM3||0.065);
-  const cestyKolecko=Math.max(cestVaha,cestObjem);
-  const sekKolecko=(n.vynCyklusSek||240)+vzdNavic*(n.vynVzdalenostSek||25);
-  /* svislá doprava kbelíky po schodech */
-  const cestVahaK=t*1000/(n.vynKbelik||40), cestObjemK=m3/(n.vynKbelikM3||0.040);
-  const cestyKbelik=patra>0?Math.max(cestVahaK,cestObjemK):0;
-  const sekPatra=patra*(n.vynPatroSek||35)*koefP;
-  const hodiny=((cestyKolecko*sekKolecko)+(cestyKbelik*sekPatra))/3600*rucni;
-  return {t,m3,patra,vytahOK:!!vytahOK,vzdNavic,rucni,hodiny,
-    cestyKolecko:Math.round(cestyKolecko),cestyKbelik:Math.round(cestyKbelik),
-    cestVaha:Math.round(cestVaha),cestObjem:Math.round(cestObjem),ridiObjem:cestObjem>cestVaha,
-    hodKolecko:cestyKolecko*sekKolecko/3600*rucni, hodPatra:cestyKbelik*sekPatra/3600*rucni,
-    hodT:t>0?hodiny/t:0, hodM3:m3>0?hodiny/m3:0};
-}
+/* vynJadro(…) — viz modul VYNÁŠKA v2 */
 function vynaskaVypocet(sut){
   const n=S.nastaveni, s=sut||sutCelkem();
-  const r=vynJadro(s.t,s.m3,J.patro,!!(J.vytah&&J.vytahNaSut),J.vzdalenost,J.rucniNoseni);
+  const r=vynJadro(s.t,s.m3,J.patro,!!(J.vytah&&J.vytahNaSut),J.vzdalenost,J.rucniNoseni,vynOpt(J));
   const sazba=(J.cenik==="b2b"?(n.vynSazba||0)*0.9:(n.vynSazba||0))*prirKoef();
   return Object.assign(r,{sazba, cena:r.hodiny*sazba,
     cenaT:r.t>0?r.hodiny*sazba/r.t:0, cenaM3:r.m3>0?r.hodiny*sazba/r.m3:0,
@@ -5473,7 +5445,7 @@ $("#zakTab").addEventListener("click",e=>{
     J=JSON.parse(JSON.stringify(z)); J.id=null; J.nazev=z.nazev+" (kopie)"; J.cisloNab=""; J.cisloDod=0;
     J.skutHodiny=0; J.skutKont=0; J.skutKm=0; J.skutPozn=""; J.fotky=[]; J.viceprace=[];
     J.cisloFakZal=""; J.cisloFakKon=""; J.status="nabídka";
-    ["platby","smlouva","predani","vs","nabVystaveno","nabPlatnostDo","nabCeny","bezSmlouvy","terminOd","terminDo","zalohaCastka","zalohaSplatnost","doplatekCastka","doplatekSplatnost","zalohaZaplacenoFak","doplatekZaplacenoFak","rezervaRadek","dz","zapis","denik"].forEach(k=>delete J[k]);
+    ["platby","smlouva","predani","vs","nabVystaveno","nabPlatnostDo","nabCeny","bezSmlouvy","terminOd","terminDo","zalohaCastka","zalohaSplatnost","doplatekCastka","doplatekSplatnost","zalohaZaplacenoFak","doplatekZaplacenoFak","rezervaRadek","vynModel","dz","zapis","denik"].forEach(k=>delete J[k]);
     J.zalohaZaplaceno=""; J.doplatekZaplaceno=""; J.duvodProhry=""; J.cenaViteze=0; J.poznProhry="";
     delete J.ulozeno; normJob(J); S.job=J; fillAll(); save();
     document.querySelector("nav button[data-tab=kalkulace]").click();
@@ -5955,7 +5927,7 @@ function sablonaPouzit(){
 
 /* ========== přenos zakázky textem (kód DK1|…) ========== */
 const ZAK_POLE=["nazev","klient","adresa","poznamka","zdroj","cenik","dph","patro","vytah","vytahNaSut",
-  "vzdalenost","rucniNoseni","odvozRezim","lide","najati","kmDopravce","dnyKontejneru","skladkovne","rezerva","provize",
+  "vzdalenost","rucniNoseni","shoz","vynModel","odvozRezim","lide","najati","kmDopravce","dnyKontejneru","skladkovne","rezerva","provize",
   "sleva","slevaDuvod","prirazka","platbaPredem","nabidnoutPredem","odpadModel","trideni","poplatky","zabor","zaborM2","zaborDny","zaborSazba","followup","smlouva","prohlidka","povoleni","bid","diamant","neprod","skutVynaskaH","strojeHod","zarizeniId","odvozSami",
   "km","dopravaUctovat","vikend","expres","terminOd","terminDo","prace","material","ostatni","kontejnery","odpady","dopSlozky"];
 function zakDoTextu(z){
@@ -6225,9 +6197,9 @@ function soubor02(){
     bc(d.dnyZdarma)+" | "+bc(d.cenaDen)+" | "+(typeof dopSlText==="function"?dopSlText(d):"—")+" |").join("\n");
   const kont=(S.kontejnery||[]).map(k=>"| "+k.nazev+" | "+bc(k.objem)+" | "+bc(k.nosnost)+" | "+bc(k.nakup)+" |").join("\n");
   /* ukázkové body kalibrace vynášky, spočtené právě teď */
-  const uk=[[0,false,10],[1,false,10],[2,false,10],[3,false,10],[3,true,10],[5,false,30]].map(([p,v,d])=>{
-    const a=vynJadro(1,1/1.3,p,v,d,false), b=vynJadro(1,1/0.25,p,v,d,false);
-    return "| "+(p===0?"přízemí":p+". patro"+(v?" s výtahem":" po schodech"))+", "+d+" m | "+
+  const uk=[[0,false,10],[1,false,10],[2,false,10],[3,false,10],[3,true,10],[3,false,10,true],[5,false,30]].map(([p,v,d,sh])=>{
+    const a=vynJadro(1,1/1.3,p,v,d,false,{shoz:sh,bezMontaze:true}), b=vynJadro(1,1/0.25,p,v,d,false,{shoz:sh,bezMontaze:true});
+    return "| "+(p===0?"přízemí":p+". patro"+(sh?" se shozem (bez montáže)":v?" s výtahem":" po schodech"))+", "+d+" m | "+
       Math.round(a.hodiny*(n.vynSazba||0))+" | "+Math.round(a.hodiny*(n.vynSazba||0)*1.3)+" | "+
       Math.round(b.hodiny*(n.vynSazba||0))+" |";
   }).join("\n");
@@ -6275,29 +6247,49 @@ se prodělává.
 **Vynáška NENÍ podle váhy.** Je podle **počtu cest**, a počet cest určuje
 váha **nebo** objem — podle toho, co dojde dřív.
 
+**Počítá se udržitelné celodenní tempo jednoho člověka, ne sprint.** Dřív tu bylo
+40 kg po schodech a 35 s na patro — to vydrží člověk pár cest, ne celý den, a model
+tím přeceňoval, kolik toho vyneseme. Hodinová sazba zůstává, mění se doba.
+
 ### Parametry
 | Co | Kolik unese | Čas |
 |---|---|---|
-| Kolečko (po rovině) | ${bc(n.vynKolecko)} kg **nebo** ${bc(n.vynKoleckoM3)} m³ | ${bc(n.vynCyklusSek)} s na cyklus |
-| Kbelík (po schodech) | ${bc(n.vynKbelik)} kg **nebo** ${bc(n.vynKbelikM3)} m³ | ${bc(n.vynPatroSek)} s na patro |
+| Kolečko (naložit + převézt + vysypat) | ${bc(n.vynKolecko)} kg **nebo** ${bc(n.vynKoleckoM3)} m³ | ${bc(n.vynCyklusSek)} s na cyklus |
+| Po schodech (kbelík nebo pytel) | ${bc(n.vynKbelik)} kg **nebo** ${bc(n.vynKbelikM3)} m³ | ${bc(n.vynSchodyRezieSek)} s režie na cestu + ${bc(n.vynPatroSek)} s na každé patro |
 
-- Za každých celých 10 m nad 10 m vzdálenosti: **+${bc(n.vynVzdalenostSek)} s na cestu**.
-- Výtah, do kterého **se smí** suť: svislá doprava se násobí **${bc(n.vynVytahKoef)}×**.
-  Vodorovný přesun kolečkem zůstává celý.
+- Cyklus kolečka: naložit lopatou a rukama ~130 s, 10 m tam a zpět ~40 s, vysypat do
+  kontejneru ~50 s, oddech ~20 %.
+- Patro: dolů s nákladem a nahoru naprázdno. Režie: naložit kbelík/pytel, donést ke
+  schodům, dole vysypat.
+- ${bc(n.vynKbelik)} kg na cestu po schodech: zákonný limit pro časté ruční zvedání a přenášení je
+  30 kg (muži) a kumulativně 10 t za osmihodinovou směnu (NV 361/2007 Sb.). Víc se celý den
+  unést nedá — a každá tuna z patra se bere do ruky aspoň dvakrát.
+- Za každých celých 10 m nad 10 m vzdálenosti: **+${bc(n.vynVzdalenostSek)} s na cestu kolečkem**.
+- Výtah, do kterého **se smí** suť: čas na patrech se násobí **${bc(n.vynVytahKoef)}×**,
+  režie cesty i kolečko zůstávají.
+- **Shoz** z okna rovnou do kontejneru: po schodech se nenosí vůbec a vzdálenost ke kontejneru
+  odpadá — zbyde jen kolečko (naložit, k oknu, vysypat) + **${bc(n.vynShozH)} h** montáž a demontáž
+  na zakázku. Potřebuje kontejner pod oknem (často zábor). V DKT1 klíč \`shoz: ano\`.
 - Ztížené ruční nošení (úzké schody, bez kolečka): celé × ${bc(n.vynRucniKoef)}.
-- Sazba za vynášku: **${bc(n.vynSazba)} Kč/h**.
+- Koeficient vynášky z našich hotových zakázek: × ${bc(n.vynKoef>0?n.vynKoef:1)}.
+- Sazba za vynášku: **${bc(n.vynSazba)} Kč/h** (osobohodina).
 
 ### Postup
 \`\`\`
-cesty_kolečkem = max( tuny × 1000 / ${bc(n.vynKolecko)} ,  m³ / ${bc(n.vynKoleckoM3)} )
-sekund_na_cestu = ${bc(n.vynCyklusSek)} + (celých desítek metrů nad 10 m) × ${bc(n.vynVzdalenostSek)}
-hodiny_vodorovně = cesty_kolečkem × sekund_na_cestu / 3600
+cesty_kolečkem  = max( tuny × 1000 / ${bc(n.vynKolecko)} ,  m³ / ${bc(n.vynKoleckoM3)} )
+sekund_kolečko  = ${bc(n.vynCyklusSek)} + (celých desítek metrů nad 10 m) × ${bc(n.vynVzdalenostSek)}      (se shozem jen ${bc(n.vynCyklusSek)})
+hodiny_kolečko  = cesty_kolečkem × sekund_kolečko / 3600
 
-cesty_kbelíkem = max( tuny × 1000 / ${bc(n.vynKbelik)} ,  m³ / ${bc(n.vynKbelikM3)} )     (jen když je patro > 0)
-hodiny_svisle = cesty_kbelíkem × patra × ${bc(n.vynPatroSek)} × (výtah ? ${bc(n.vynVytahKoef)} : 1) / 3600
+cesty_schody    = max( tuny × 1000 / ${bc(n.vynKbelik)} ,  m³ / ${bc(n.vynKbelikM3)} )     (jen když je patro > 0 a není shoz)
+sekund_cesta    = ${bc(n.vynSchodyRezieSek)} + patra × ${bc(n.vynPatroSek)} × (výtah ? ${bc(n.vynVytahKoef)} : 1)
+hodiny_schody   = cesty_schody × sekund_cesta / 3600
 
-vynáška = (hodiny_vodorovně + hodiny_svisle) × (ruční ? ${bc(n.vynRucniKoef)} : 1) × ${bc(n.vynSazba)} Kč
+hodiny = (hodiny_kolečko + hodiny_schody) × (ruční ? ${bc(n.vynRucniKoef)} : 1) × ${bc(n.vynKoef>0?n.vynKoef:1)} + (shoz ? ${bc(n.vynShozH)} : 0)
+vynáška = hodiny × ${bc(n.vynSazba)} Kč
 \`\`\`
+
+Vynášku ani snos z patra **nedávej do DKT1 jako vlastní položku** — kalkulačka ji spočítá
+sama z \`patro\`, \`vytah\`, \`vzdalenost\`, \`rucni\` a \`shoz\`. V rozpadu ji jen ukaž.
 
 ### Proč to takhle je
 Umakartové bytové jádro váží 0,8 t, ale má **3,2 m³**. Panely se nedají
@@ -6316,8 +6308,10 @@ Hutná suť = 1,3 t/m³ (beton, cihly). Lehká objemná = 0,25 t/m³ (jádro, SD
 |---|---|---|---|
 ${uk}
 
-Kontrola proti trhu: **2. patro po schodech musí u hutné suti vyjít kolem
-1 400 Kč/m³** — to je střed toho, za co se odnos suti prodává (1 200–1 600).
+Kontrola proti trhu: odnos suti se prodává za 1 200–1 600 Kč/m³ — to odpovídá přízemí
+až 1. patru. **Z vyšších pater po schodech vychází reálný čas dráž a tak to má být.**
+Nesnižuj vynášku, aby cena vypadala jako u konkurence — navrhni místo toho výtah (když
+ho SVJ povolí) nebo shoz. Kde se to nedá, je vynáška z patra prostě drahá práce.
 
 ## 4. Kontejnery a likvidace
 
@@ -6565,6 +6559,7 @@ patro: 0                  (0 = přízemí)
 vytah: ano                (ano jen když se do něj SMÍ suť)
 vzdalenost: 15            (metry od dveří domu ke kontejneru)
 rucni: ne                 (ano = ztížené ruční nošení bez koleček)
+shoz: ne                  (ano = shoz z okna rovnou do kontejneru — jen když to jde a je domluvený)
 km: 12                    (kilometry k dopravci; když nevíš, dej 15)
 dny: 3                    (kolik dní bude kontejner stát; když nevíš, dej 3)
 lide: ${bc(n.lide)}
@@ -7129,11 +7124,14 @@ function brief(uplny){
   p("");
   p("=== JAK SE POČÍTÁ VYNÁŠKA SUTI (tohle se plete nejčastěji) ===");
   p("Vynáška NENÍ podle váhy. Je podle POČTU CEST, a cesty určuje váha NEBO objem — podle toho, co dojde dřív.");
-  p("Kolečko uveze "+(n.vynKolecko||65)+" kg NEBO "+(n.vynKoleckoM3||0.065)+" m³. Jeden cyklus trvá "+(n.vynCyklusSek||240)+" s.");
-  p("Kbelík (po schodech) uveze "+(n.vynKbelik||40)+" kg NEBO "+(n.vynKbelikM3||0.04)+" m³, "+(n.vynPatroSek||35)+" s na patro navíc.");
-  p("Za každých 10 m nad 10 m vzdálenosti: +"+(n.vynVzdalenostSek||25)+" s na cestu.");
-  p("Výtah, do kterého se smí suť, zlevní svislou dopravu na "+(n.vynVytahKoef||0.25)+"× (vodorovný přesun zůstává).");
-  p("POSTUP: cesty = max(tuny×1000/kg_na_kolečko, m³/objem_kolečka). Pak hodiny = cesty × cyklus / 3600.");
+  p("Počítá se udržitelné celodenní tempo jednoho člověka, ne sprint (hodinová sazba zůstává, mění se doba).");
+  p("Kolečko uveze "+(n.vynKolecko||65)+" kg NEBO "+(n.vynKoleckoM3||0.065)+" m³. Jeden cyklus (naložit, převézt 10 m, vysypat, oddech) trvá "+(n.vynCyklusSek||270)+" s.");
+  p("Po schodech (kbelík nebo pytel) "+(n.vynKbelik||25)+" kg NEBO "+(n.vynKbelikM3||0.04)+" m³ na cestu: "+(n.vynSchodyRezieSek>=0?n.vynSchodyRezieSek:20)+" s režie + "+(n.vynPatroSek||50)+" s na každé patro (limit pro časté přenášení je 30 kg).");
+  p("Za každých 10 m nad 10 m vzdálenosti: +"+(n.vynVzdalenostSek||25)+" s na cestu kolečkem.");
+  p("Výtah, do kterého se smí suť, zkrátí čas na patrech na "+(n.vynVytahKoef||0.25)+"× (režie cesty i kolečko zůstávají).");
+  p("Shoz z okna do kontejneru: po schodech se nenosí, vzdálenost odpadá, + "+(n.vynShozH>=0?n.vynShozH:3)+" h montáž na zakázku. Když to jde, navrhni ho (DKT1 shoz: ano).");
+  p("Koeficient vynášky podle našich hotových zakázek: ×"+(n.vynKoef>0?n.vynKoef:1)+".");
+  p("POSTUP: kolečko = max(tuny×1000/kg, m³/objem) cest × cyklus; po schodech = max(tuny×1000/kg, m³/objem) cest × (režie + patra × s_na_patro × výtah). Hodiny = součet / 3600 × ruční × koeficient (+ montáž shozu).");
   p("Pozor na lehkou objemnou suť — umakartové jádro váží 0,8 t, ale má 3,2 m³. Kolečko se naplní objemem");
   p("dávno před "+(n.vynKolecko||65)+" kg, takže cest je několikanásobek. Sádrokarton, izolace a sanita stejně.");
   p("Aplikace si vynášku i kontejnery dopočítá sama — ty ji jen zmíň v rozpadu, do DKT1 ji NEDÁVEJ.");
@@ -7266,7 +7264,7 @@ function zakZTextuDKT(text){
   const textova = {nazev:"nazev", klient:"klient", adresa:"adresa", poznamka:"poznamka", zdroj:"zdroj"};
   const ciselna = {patro:"patro", vzdalenost:"vzdalenost", km:"kmDopravce", rezerva:"rezerva",
     prirazka:"prirazka", sleva:"sleva", lide:"lide", dny:"dnyKontejneru"};
-  const logicka = {vytah:"vytah", rucni:"rucniNoseni", predem:"platbaPredem"};
+  const logicka = {vytah:"vytah", rucni:"rucniNoseni", shoz:"shoz", predem:"platbaPredem"};
   /* ceník se musí načíst dřív než položky, aby se ceny vzaly ze správné hladiny */
   const mCenik = String(text).match(/^\s*cenik\s*[:=]\s*(.*)$/im);
   z.cenik = mCenik && /b2b/i.test(mCenik[1]) ? "b2b" : "b2c";
@@ -8526,7 +8524,7 @@ function planZak(z){
   const n=S.nastaveni;
   const t=(z.prace||[]).reduce((a,r)=>a+(r.mnozstvi||0)*(r.sutT||0),0);
   const m3=(z.prace||[]).reduce((a,r)=>a+(r.mnozstvi||0)*(r.sutM3||0),0);
-  const vyn=vynJadro(t,m3,z.patro,!!(z.vytah&&z.vytahNaSut!==false),z.vzdalenost||10,z.rucniNoseni).hodiny;
+  const vyn=vynJadro(t,m3,z.patro,!!(z.vytah&&z.vytahNaSut!==false),z.vzdalenost||10,z.rucniNoseni,vynOpt(z)).hodiny;
   return {hod:hod+vyn, kont:(z.kontejnery||[]).reduce((a,r)=>a+(r.pocet||0),0), km:z.km||0};
 }
 function renderRealita(){
@@ -8559,6 +8557,7 @@ function renderRealita(){
       alert("Koeficient nastaven na "+fmt1.format(novy)+"×.");
     };
   } else kal.innerHTML="";
+  if(typeof vynKalibraceRender==="function")vynKalibraceRender();
 }
 /* ---------- adresář klientů ---------- */
 function fillKlientSelect(){
@@ -8861,7 +8860,7 @@ const nMap=[["nFirma","firma",1],["nIco","ico",1],["nDic","dic",1],["nAdresaFirm
   ["nKmProdej","kmProdej"],["nPausal","pausal"],["nMinZisk","minZiskOsHod"],["nMinTrzbaB2C","minTrzbaB2C"],["nMinTrzbaB2B","minTrzbaB2B"],["nMinCena","minCenaB2C"],["nVikendPct","vikendPct"],["nExpresPct","expresPct"],["nKoefVykon","koefVykon"],["nVynSazba","vynSazba"],
   ["nVynKolecko","vynKolecko"],["nVynKoleckoM3","vynKoleckoM3"],["nVynCyklusSek","vynCyklusSek"],
   ["nVynKbelik","vynKbelik"],["nVynKbelikM3","vynKbelikM3"],["nVynPatroSek","vynPatroSek"],
-  ["nVynVzdalenostSek","vynVzdalenostSek"],["nVynVytahKoef","vynVytahKoef"],["nVynRucniKoef","vynRucniKoef"],
+  ["nVynVzdalenostSek","vynVzdalenostSek"],["nVynSchodyRezieSek","vynSchodyRezieSek"],["nVynShozH","vynShozH"],["nVynKoef","vynKoef"],["nVynVytahKoef","vynVytahKoef"],["nVynRucniKoef","vynRucniKoef"],
   ["nKontCenaKm","kontCenaKm"],["nKontDnyZdarma","kontDnyZdarma"],["nKontCenaDen","kontCenaDen"],["nKontRezerva","kontRezerva"],
   ["nDphLimit","dphLimit"],["nSlevaPredem","slevaPredemPct"],["nSkladkovneSmes","skladkovneSmes"],["nVykupKov","vykupKov"],["nTrideniHodT","trideniHodT"],["nFakSplatnostZal","fakSplatnostZal"],
   ["nZnacka","znacka",1],["nSpisZn","spisZn",1],["nJednatel","jednatel",1],["nTelefon","telefon",1],["nEmail","email",1],["nWeb","web",1],["nSwift","swift",1]];
@@ -8871,14 +8870,15 @@ $("#nPlatceDPH").addEventListener("change",e=>{S.nastaveni.platceDPH=e.target.ch
 function fillNastaveni(){if(typeof hnedFillNastaveni==="function")hnedFillNastaveni();if(typeof hnedVychozi==="function")hnedVychozi();if($("#nLikvidaceJakoSmes"))$("#nLikvidaceJakoSmes").checked=!!S.nastaveni.likvidaceJakoSmes;nMap.forEach(([id,k])=>{$("#"+id).value=S.nastaveni[k]});$("#nPlatceDPH").checked=!!S.nastaveni.platceDPH;vynUkazka();}
 /* názorná tabulka, jak sazby dopadnou na typické situace */
 function vynUkazka(){
+  if(typeof vynPruvodceRender==="function")vynPruvodceRender();
   const n=S.nastaveni, el=$("#vynUkazka"); if(!el)return;
   const k=vynKoefy();
   const zh=$("#vynZakladHint"), ph=$("#vynPatroHint");
   if(zh)zh.textContent=fmt1.format(1000/(n.vynKolecko||65))+" cyklů na tunu → "+fmt1.format(k.zaklad)+" h/t ("+fmt1.format(1/k.zaklad)+" t/hod po rovině)";
-  if(ph)ph.textContent=fmt1.format(1000/(n.vynKbelik||40))+" cest na tunu → "+fmt1.format(k.patro)+" h/t za patro";
+  if(ph)ph.textContent=fmt1.format(1000/(n.vynKbelik||25))+" cest na tunu → "+fmt1.format(k.patro)+" h/t za patro + "+fmt1.format(1000/(n.vynKbelik||25)*(n.vynSchodyRezieSek||0)/3600)+" h/t režie";
   const sc=[["Přízemí, do 10 m",0,false,10,false],["1. patro po schodech",1,false,10,false],
     ["2. patro po schodech",2,false,10,false],["3. patro po schodech",3,false,10,false],
-    ["3. patro s výtahem",3,true,10,false],["5. patro, 30 m, ručně",5,false,30,true]];
+    ["3. patro s výtahem",3,true,10,false],["3. patro se shozem (bez montáže)",3,false,10,false,true],["5. patro, 30 m, ručně",5,false,30,true]];
   const HUSTA=1.3, LEHKA=0.25;   /* t/m³: beton a cihly × umakartové jádro, SDK, izolace */
   let h="<div class='tscroll' style='margin-top:12px'><table><thead><tr><th>Situace</th>"+
     "<th class='r'>Hutná suť<br><span class='hint'>Kč/t</span></th>"+
@@ -8886,8 +8886,8 @@ function vynUkazka(){
     "<th class='r'>Lehká objemná<br><span class='hint'>Kč/t</span></th>"+
     "<th class='r'>Lehká objemná<br><span class='hint'>Kč/m³</span></th>"+
     "<th class='r'>10 t hutné<br><span class='hint'>vynese za</span></th></tr></thead><tbody>";
-  sc.forEach(([lbl,p,v,d,r])=>{
-    const a=vynJadro(1,1/HUSTA,p,v,d,r), b=vynJadro(1,1/LEHKA,p,v,d,r);
+  sc.forEach(([lbl,p,v,d,r,sh])=>{
+    const a=vynJadro(1,1/HUSTA,p,v,d,r,{shoz:sh,bezMontaze:true}), b=vynJadro(1,1/LEHKA,p,v,d,r,{shoz:sh,bezMontaze:true});
     const kcA=a.hodiny*(n.vynSazba||0), kcB=b.hodiny*(n.vynSazba||0);
     h+="<tr><td>"+lbl+"</td>"+
       "<td class='r num' style='font-weight:700'>"+fmt0.format(kcA)+" Kč</td>"+
@@ -8897,7 +8897,7 @@ function vynUkazka(){
       "<td class='r num'>"+fmt1.format(a.hodiny*10)+" h</td></tr>";
   });
   el.innerHTML=h+"</tbody></table>"+
-    "<p class='hint' style='margin:8px 0 0'>Sloupec <b>Kč/m³ u hutné suti</b> je pro srovnání s trhem — odnos suti se prodává za <b>1 200–1 600 Kč/m³</b>, střed pásma je 1 400. Tam má vyjít 2. patro po schodech.</p>"+
+    "<p class='hint' style='margin:8px 0 0'>Sloupec <b>Kč/m³ u hutné suti</b> je pro srovnání s trhem — odnos suti se prodává za <b>1 200–1 600 Kč/m³</b>, což odpovídá přízemí až 1. patru. Z vyšších pater po schodech vychází reálný čas dráž — tam nabídni výtah nebo shoz, nesnižuj vynášku.</p>"+
     "<p class='hint' style='margin:6px 0 0'><b>Lehká objemná suť</b> (umakartové jádro, sádrokarton, izolace, sanita — cca 0,25 t/m³) stojí <b>za tunu několikanásobek</b>, protože kolečko se naplní objemem dávno před 65 kg. Za m³ vychází o něco levněji než hutná, protože se jí do kolečka vejde víc. <b>Proto se vynáška nikdy nesmí počítat jen z tonáže.</b></p></div>";
 }
 
@@ -18950,7 +18950,8 @@ function stKontext(zdroj, z){
   let vyn = {hodiny:0, t:0}, sut = {t:0, m3:0};
   const puv = J; J = z; try { sut = sutCelkem(); vyn = vynaskaVypocet(sut); } catch (e) {} finally { J = puv; }
   const dia = typeof brDiamant === "function" ? (() => { const p = J; J = z; try { return brDiamant(z); } catch (e) { return {radky:[]}; } finally { J = p; } })() : {radky:[]};
-  return {zdroj, z, lide:+z.lide || 2, h, praceH:s.praceH || 0, text:t, patro:+z.patro || 0, vytahSut:!!(z.vytah && z.vytahNaSut), sutT:+sut.t || 0, vynH:+vyn.hodiny || 0,
+  return {zdroj, z, lide:+z.lide || 2, h, praceH:s.praceH || 0, text:t, patro:+z.patro || 0, vytahSut:!!(z.vytah && z.vytahNaSut), sutT:+sut.t || 0, vynH:+vyn.hodiny || 0, shoz:!!z.shoz && (+z.patro || 0) > 0,
+    vynShozH:(() => { try { return typeof vynJadro === "function" ? vynJadro(+sut.t || 0, +sut.m3 || 0, +z.patro || 0, !!(z.vytah && z.vytahNaSut), z.vzdalenost, z.rucniNoseni, {model:z.vynModel === 1 ? 1 : 2, shoz:!z.shoz}).hodiny : 0; } catch (e) { return 0; } })(),
     krytiny:m2(/koberc|pvc|lino|marmolea|vinyl|korek|plovouc|parket|lepen/), dlazba:m2(/dlazb/), obklad:m2(/obklad/), betonH, diamant:(dia.radky || []).length > 0,
     statika:/nosn|otvor|prekl|strop|priruv|prostup/.test(t), drazky:/drazk|ryh|frezov/.test(t), otvoryBeton:/otvor|prostup|jadrov/.test(t) && /beton|zelez/.test(t), dny:Math.max(1, Math.ceil((s.praceH || 0) / Math.max(1, (+z.lide || 2) * (+(S.nastaveni || {}).hodDen || 8))))};
 }
@@ -18970,7 +18971,8 @@ const ST_PRAVIDLA = [
   {id:"elektro", z:"d", co:"Prodlužovací kabely + rozvaděč s chráničem", hledej:/prodluz|rozvad|chranic/, kdy:k => k.praceH > 0, proc:() => "bezpečné napájení strojů (revize!)"},
   {id:"diamant", z:"d", co:"Jádrová vrtačka / stěnová pila (diamant)", hledej:/jadrov|stenov|diamantov.*(pila|vrt)/, kdy:k => k.diamant, proc:() => "řezání a vrtání diamantem je v kalkulaci", jinak:"subdodávka nebo půjčovna"},
   /* demolice — zrychlí nebo ulehčí práci */
-  {id:"shoz", z:"d", efekt:true, co:"Shoz na suť (shozový žlab)", hledej:/shoz/, kdy:k => k.patro >= 2 && !k.vytahSut && k.sutT >= 3, proc:k => fmt1.format(k.sutT) + " t z " + k.patro + ". patra bez výtahu — vynáška " + fmt0.format(k.vynH) + " h se může zkrátit zhruba na polovinu (oknem rovnou do kontejneru)"},
+  {id:"shozN", z:"d", co:"Shoz na suť (shozový žlab)", hledej:/shoz/, kdy:k => k.shoz, proc:k => "zakázka počítá se shozem z " + k.patro + ". patra — bez něj by vynáška trvala " + fmt0.format(k.vynShozH) + " h místo " + fmt0.format(k.vynH) + " h; domluv kontejner pod oknem"},
+  {id:"shoz", z:"d", efekt:true, co:"Shoz na suť (shozový žlab)", hledej:/shoz/, kdy:k => !k.shoz && k.patro >= 2 && !k.vytahSut && k.sutT >= 3, proc:k => fmt1.format(k.sutT) + " t z " + k.patro + ". patra bez výtahu — vynáška " + fmt0.format(k.vynH) + " h, se shozem oknem rovnou do kontejneru zhruba " + fmt0.format(k.vynShozH) + " h (zaškrtni Shoz u vynášky)"},
   {id:"skrabka", z:"d", efekt:true, co:"Elektrická podlahová škrabka (stripper)", hledej:/skrabk|stripper/, kdy:k => k.krytiny + k.dlazba >= 25, proc:k => fmt0.format(k.krytiny + k.dlazba) + " m² lepených krytin / dlažby — strojem několikrát rychleji než ručně a bez bolavých zad"},
   {id:"drazkovacka", z:"d", efekt:true, co:"Drážkovací fréza s odsáváním", hledej:/drazk|frez/, kdy:k => k.drazky, proc:() => "drážky čistě a bez prachu místo brusky"},
   {id:"robot", z:"d", efekt:true, co:"Demoliční robot (pronájem)", hledej:/robot|brokk/, kdy:k => k.betonH >= 40, proc:k => "beton a mazaniny " + fmt0.format(k.betonH) + " h ručního bourání — robot šetří ruce i dny; cenu ověř v půjčovně", jinak:"pronájem i s obsluhou"},
@@ -20453,6 +20455,151 @@ if (typeof document !== "undefined" && document.addEventListener) {
   }, true);
 }
 
+/* ================= VYNÁŠKA v2 — reálné celodenní tempo (28. 9. 2026) =================
+   Původní čísla byla naladěná na tržní cenu odnosu (1 200–1 600 Kč/m³), ne na čas. 40 kg po schodech a 35 s na patro
+   je sprint, ne tempo na celý den — kalkulačka tak přeceňovala, kolik toho člověk vynese.
+   Nový model (sazba Kč/h se nemění, mění se doba):
+   • po schodech 25 kg na cestu — zákonný limit pro častou ruční manipulaci je 30 kg (muži) a 10 t za směnu celkem,
+   • 50 s na každé patro — dolů s nákladem a nahoru naprázdno, udržitelně celý den,
+   • 20 s režie na každou cestu po schodech — naložit kbelík/pytel, donést ke schodům, dole vysypat,
+   • kolečko 270 s na cyklus — naložit ~130 s, 10 m tam a zpět ~40 s, vysypat do kontejneru ~50 s, oddech ~20 %,
+   • shoz z okna do kontejneru: po schodech se nenosí, vzdálenost odpadá, + montáž a demontáž,
+   • koeficient vynášky z vašich hotových zakázek (skutečné hodiny vynášky v „Po dokončení“).
+   Zakázky uložené před změnou počítají dál postaru (J.vynModel = 1), dokud je nepřepočítáš — ať nesedí jinak než odeslaná nabídka. */
+const VYN_V2 = {vynCyklusSek:270, vynKbelik:25, vynKbelikM3:0.040, vynPatroSek:50, vynSchodyRezieSek:20, vynShozH:3, vynKoef:1};
+const VYN_V1_KLICE = ["vynKolecko", "vynKoleckoM3", "vynCyklusSek", "vynKbelik", "vynKbelikM3", "vynPatroSek", "vynVzdalenostSek", "vynVytahKoef", "vynRucniKoef"];
+function vynMigrace(){
+  if (S.vynV2) return;
+  const n = S.nastaveni;
+  n.vynV1 = {}; VYN_V1_KLICE.forEach(k => { n.vynV1[k] = n[k]; });
+  Object.assign(n, VYN_V2);
+  (S.zakazky || []).forEach(z => { if (z && z.vynModel === undefined) z.vynModel = 1; });
+  if (S.job && S.job.vynModel === undefined && (S.job.id || (S.job.prace || []).length)) S.job.vynModel = 1;
+  S.vynV2 = true;
+  if (typeof save === "function") save();
+}
+/* parametry podle verze modelu: 1 = uložené zakázky z doby před změnou (snímek tehdejšího nastavení) */
+function vynParam(model, bezKoef){
+  const n = S.nastaveni, s = model === 1 && n.vynV1 ? Object.assign({}, n, n.vynV1) : n, v1 = model === 1;
+  return {kolecko:s.vynKolecko || 65, koleckoM3:s.vynKoleckoM3 || 0.065, cyklus:s.vynCyklusSek || (v1 ? 240 : 270),
+    kbelik:s.vynKbelik || (v1 ? 40 : 25), kbelikM3:s.vynKbelikM3 || 0.040, patroSek:s.vynPatroSek || (v1 ? 35 : 50),
+    rezie:v1 ? 0 : (n.vynSchodyRezieSek >= 0 ? n.vynSchodyRezieSek : 20),
+    vzdSek:s.vynVzdalenostSek >= 0 ? s.vynVzdalenostSek : 25, vytahKoef:s.vynVytahKoef >= 0 ? s.vynVytahKoef : 0.25,
+    rucniKoef:s.vynRucniKoef || 1, koef:v1 || bezKoef ? 1 : (n.vynKoef > 0 ? n.vynKoef : 1),
+    shozH:n.vynShozH >= 0 ? n.vynShozH : 3, model:v1 ? 1 : 2};
+}
+/* jádro výpočtu — použitelné i mimo otevřenou zakázku (nastavení, uložené zakázky, šablony, rychlá cena)
+   opt = {model: 1|2, shoz: bool, bezKoef: bool} */
+function vynJadro(t, m3, patra, vytahOK, vzdalenost, rucniNoseni, opt){
+  opt = opt || {};
+  const P = vynParam(opt.model, opt.bezKoef);
+  t = Math.max(0, t || 0); m3 = Math.max(0, m3 || 0); patra = Math.max(0, patra || 0);
+  const shoz = !!opt.shoz && patra > 0 && P.model === 2;
+  const koefP = vytahOK && !shoz ? P.vytahKoef : 1;
+  const vzdNavic = shoz ? 0 : Math.max(0, Math.ceil(((vzdalenost || 0) - 10) / 10));
+  const rucni = rucniNoseni ? P.rucniKoef : 1;
+  /* kolečko: naložit, převézt, vysypat — naplní se vahou NEBO objemem, podle toho, co dojde dřív */
+  const cestVaha = t * 1000 / P.kolecko, cestObjem = m3 / P.koleckoM3;
+  const cestyKolecko = Math.max(cestVaha, cestObjem);
+  const sekKolecko = P.cyklus + vzdNavic * P.vzdSek;
+  /* po schodech: kbelíky nebo pytle, zase váha NEBO objem */
+  const cestVahaK = t * 1000 / P.kbelik, cestObjemK = m3 / P.kbelikM3;
+  const cestyKbelik = patra > 0 && !shoz ? Math.max(cestVahaK, cestObjemK) : 0;
+  const sekCesta = patra > 0 ? P.rezie + patra * P.patroSek * koefP : 0;
+  const hodKolecko = cestyKolecko * sekKolecko / 3600 * rucni * P.koef;
+  const hodPatra = cestyKbelik * sekCesta / 3600 * rucni * P.koef;
+  const hodShoz = shoz && !opt.bezMontaze && (t > 0 || m3 > 0) ? P.shozH : 0;
+  const hodiny = hodKolecko + hodPatra + hodShoz;
+  return {t, m3, patra, vytahOK:!!vytahOK && !shoz, shoz, vzdNavic, rucni, hodiny, P, koef:P.koef, model:P.model, sekCesta,
+    cestyKolecko:Math.round(cestyKolecko), cestyKbelik:Math.round(cestyKbelik),
+    cestVaha:Math.round(cestVaha), cestObjem:Math.round(cestObjem), ridiObjem:cestObjem > cestVaha,
+    hodKolecko, hodPatra, hodShoz, hodT:t > 0 ? hodiny / t : 0, hodM3:m3 > 0 ? hodiny / m3 : 0};
+}
+function vynOpt(z){ z = z || J; return {model:z && z.vynModel === 1 ? 1 : 2, shoz:!!(z && z.shoz)}; }
+/* řádky rozpisu v kartě vynášky */
+function vynCasti(y){
+  const P = y.P, c = [];
+  c.push("<b>" + y.cestyKolecko + "×</b> kolečko " + (y.shoz ? "k oknu a do shozu" : "ke kontejneru") + " (" + fmt0.format(P.cyklus) + " s" +
+    (y.vzdNavic > 0 ? " + " + y.vzdNavic + "× " + fmt0.format(P.vzdSek) + " s za vzdálenost" : "") + ") = " + fmt1.format(y.hodKolecko) + " h");
+  if (y.patra > 0 && !y.shoz) c.push("<b>" + y.cestyKbelik + "×</b> po schodech s " + fmt0.format(P.kbelik) + " kg z " + y.patra + ". podlaží (" +
+    (P.rezie ? fmt0.format(P.rezie) + " s + " : "") + y.patra + " × " + fmt0.format(P.patroSek) + " s" + (y.vytahOK ? " <span class='ok'>× výtah " + fmt1.format(P.vytahKoef) + "</span>" : "") + ") = " + fmt1.format(y.hodPatra) + " h");
+  if (y.shoz) c.push("<span class='ok'>shoz z " + y.patra + ". podlaží</span> — po schodech se nenosí, montáž a demontáž " + fmt1.format(y.hodShoz) + " h");
+  if (y.rucni !== 1) c.push("ztížené ruční nošení ×" + fmt1.format(y.rucni));
+  if (y.koef !== 1) c.push("koeficient vynášky podle vašich zakázek ×" + fmt1.format(y.koef));
+  return c;
+}
+/* doplněk pod rozpisem: stará zakázka, co by ušetřil shoz, tempo na člověka */
+function vynDoplnekHTML(y){
+  let h = "";
+  if (y.t > 0 && y.hodiny > 0) h += "<div class='hint' style='margin-top:6px'>Jeden člověk za 8 h: <b>" + fmt1.format(8 * y.t / y.hodiny) + " t</b> suti" +
+    (y.patra > 0 && !y.shoz ? " — to je " + fmt0.format(8 * y.t / y.hodiny * 1000 / y.P.kbelik) + " cest po schodech" : "") + ".</div>";
+  if (y.model === 1) {
+    const nove = vynJadro(y.t, y.m3, y.patra, !!(J.vytah && J.vytahNaSut), J.vzdalenost, J.rucniNoseni, {model:2, shoz:J.shoz}).hodiny * y.sazba;
+    h += "<div class='warnbox' style='margin:8px 0 0'>🕰<span>Zakázka je uložená před změnou tempa vynášky a počítá postaru (" + fmt0.format(y.P.kbelik) + " kg, " + fmt0.format(y.P.patroSek) +
+      " s na patro), ať sedí s odeslanou nabídkou. Podle reálného tempa by vynáška stála <b>" + kc(nove) + "</b> (" + (nove >= y.cena ? "+" : "") + kc(nove - y.cena) + ").</span>" +
+      "<button type='button' class='b' id='vynNaNovy'>Přepočítat podle reálného tempa</button></div>";
+  } else if (!y.shoz && y.patra >= 2 && y.t >= 2) {
+    const se = vynJadro(y.t, y.m3, y.patra, y.vytahOK, J.vzdalenost, J.rucniNoseni, {model:2, shoz:true}).hodiny * y.sazba;
+    if (se < y.cena * 0.85) h += "<div class='hint' style='margin-top:6px'>💡 Se <b>shozem</b> z okna rovnou do kontejneru by vynáška stála " + kc(se) +
+      " — o <span class='ok'>" + kc(y.cena - se) + " méně</span> (i s montáží). Potřebuje kontejner pod oknem a zábor.</div>";
+  }
+  return h;
+}
+/* průvodce: čísla podle aktuálního nastavení (hutná suť 1,3 t/m³) */
+function vynPruvodceRender(){
+  const el = document.getElementById("vynPruvodceSc"); if (!el) return;
+  const saz = S.nastaveni.vynSazba || 0;
+  el.innerHTML = [["přízemí, do 10 m", 0, false, 10, false], ["1. patro po schodech", 1, false, 10, false], ["2. patro po schodech", 2, false, 10, false],
+    ["3. patro po schodech", 3, false, 10, false], ["3. patro s výtahem", 3, true, 10, false], ["3. patro se shozem (bez montáže)", 3, false, 10, false, true],
+    ["5. patro, 30 m, ručně bez kolečka", 5, false, 30, true]].map(([l, p, v, d, r, sh]) => {
+    const y = vynJadro(1, 1 / 1.3, p, v, d, r, {shoz:sh, bezMontaze:true});
+    return "<li>" + l + " — <b>" + fmt0.format(y.hodiny * saz) + " Kč/t</b> (" + fmt0.format(y.hodiny * saz * 1.3) + " Kč/m³), jeden člověk za 8 h vynese " + fmt1.format(8 / y.hodiny) + " t</li>";
+  }).join("");
+}
+/* ---------- kalibrace podle skutečných hodin vynášky ---------- */
+function vynSutZak(z){
+  return {t:(z.prace || []).reduce((a, r) => a + (r.mnozstvi || 0) * (r.sutT || 0), 0), m3:(z.prace || []).reduce((a, r) => a + (r.mnozstvi || 0) * (r.sutM3 || 0), 0)};
+}
+function vynKalibraceData(){
+  let plan = 0, skut = 0, pocet = 0;
+  (S.zakazky || []).filter(z => (+z.skutVynaskaH || 0) > 0).forEach(z => {
+    const s = vynSutZak(z);
+    const h = vynJadro(s.t, s.m3, z.patro, !!(z.vytah && z.vytahNaSut !== false), z.vzdalenost || 10, z.rucniNoseni, {model:2, shoz:z.shoz, bezKoef:true}).hodiny;
+    if (h > 0) { plan += h; skut += +z.skutVynaskaH; pocet++; }
+  });
+  return {plan, skut, pocet, R:plan > 0 ? skut / plan : 0};
+}
+function vynKalibraceRender(){
+  const el = document.getElementById("kalibraceVyn"); if (!el) return;
+  const k = vynKalibraceData(), stary = S.nastaveni.vynKoef > 0 ? S.nastaveni.vynKoef : 1;
+  if (!k.pocet) { el.innerHTML = "<p class='hint' style='margin:10px 0 0'>📐 <b>Tempo vynášky:</b> u hotové zakázky zapiš v „Po dokončení“ skutečné hodiny vynášky. Po 3 zakázkách aplikace tempo vynášky doladí podle vás.</p>"; return; }
+  const novy = Math.round(k.R * 100) / 100;
+  el.innerHTML = "<div class='warnbox' style='margin:10px 0 0'>📐<span><b>Tempo vynášky:</b> na " + k.pocet + " " + (k.pocet === 1 ? "zakázce" : "zakázkách") + " model " + fmt1.format(k.plan) + " h, skutečnost " + fmt1.format(k.skut) + " h (" +
+    (k.R >= 1 ? "o " + fmt0.format((k.R - 1) * 100) + " % pomalejší" : "o " + fmt0.format((1 - k.R) * 100) + " % rychlejší") + " než model)." +
+    (k.pocet >= 3 ? " Koeficient vynášky se změní z " + fmt1.format(stary) + "× na <b>" + fmt1.format(novy) + "×</b>." : " Nastavit půjde od 3 zakázek (teď " + k.pocet + ").") + "</span>" +
+    (k.pocet >= 3 && Math.abs(novy - stary) >= 0.02 ? "<button class='b' type='button' id='vynKalibrovat' data-k='" + novy + "'>Nastavit ×" + fmt1.format(novy) + "</button>" : "") + "</div>";
+}
+
+if (typeof document !== "undefined" && document.addEventListener) {
+  document.addEventListener("change", e => {
+    if (e.target && e.target.id === "jShoz") { J.shoz = e.target.checked; recalc(); save(); }
+  });
+  document.addEventListener("click", e => {
+    const t = e.target; if (!t) return;
+    if (t.id === "vynNaNovy") {
+      const podepsano = J.smlouva || ["domluveno", "probíhá", "hotovo"].includes(J.status);
+      if (!confirm("Přepočítat vynášku podle reálného tempa?" + (podepsano ? "\n\nPozor: zakázka už je domluvená — cena se změní proti nabídce/smlouvě." : ""))) return;
+      delete J.vynModel; recalc(); save(); if (typeof postupSyncUlozene === "function") postupSyncUlozene("demolice");
+      return;
+    }
+    if (t.id === "vynKalibrovat") {
+      const k = +t.dataset.k; if (!(k > 0)) return;
+      if (!confirm("Nastavit koeficient vynášky na " + fmt1.format(k) + "×?\n\nZmění se odhad hodin vynášky u nových a otevřených zakázek. Kdykoli lze vrátit v Nastavení → Vynáška suti.")) return;
+      S.nastaveni.vynKoef = k; save(); if (typeof fillNastaveni === "function") fillNastaveni(); recalc(); vynKalibraceRender();
+    }
+  });
+}
+
 /* ================= ROADMAPA — co řeší velké firmy =================
    Samostatná záložka: seznam věcí, na kterých velké demoliční, dopravní a odpadové firmy dělají marži
    (nebo se chrání před ztrátou), rozdělený do fází. Nic z toho zatím není naprogramované v kalkulaci —
@@ -21003,9 +21150,10 @@ const NAPOVEDA = [
   ["#nTrideniHodT", "Čas na třídění", "Kolik hodin navíc na tunu suti stojí házet čistou suť a směs do dvou kontejnerů. Započítá se do dnů a zisku na hodinu, když kalkulačka třídění zvolí."],
   ["#nLikvidaceJakoSmes", "Úspora z třídění pro firmu", "Zapnuto: klient platí likvidaci jako nevytříděnou, i když třídíte — rozdíl zůstane vám jako marže. Vypnuto: klient platí skutečnou (levnější) likvidaci a vaše nabídka je levnější."],
   ["#jSkladkovne", "Účtovat likvidaci", "Skládkovné (poplatek za uložení suti podle tonáže) se klientovi účtuje s marží z Nastavení. Vypni jen tehdy, když si likvidaci zajišťuje klient sám."],
-  ["h2:kalkulace:Vynáška a přesun suti", "Vynáška suti", "Nejpodceňovanější položka rozpočtu. Počítá se <b>z tonáže suti</b>: kolik cest s kolečkem nebo kbelíky, kolik pater po schodech, jak daleko ke kontejneru. Hodiny × sazba vynášky = cena. Sazby a časy cest jsou v Nastavení → Vynáška suti."],
+  ["h2:kalkulace:Vynáška a přesun suti", "Vynáška suti", "Nejpodceňovanější položka rozpočtu. Počítá se <b>z tonáže a objemu suti</b>: kolik cest s kolečkem, kolik cest po schodech (25 kg na cestu) a z kolikátého patra, jak daleko ke kontejneru. Časy jsou <b>celodenní tempo jednoho člověka</b>, ne sprint — hodiny × sazba vynášky = cena.<br><br>Pod rozpisem vidíš, kolik suti vynese jeden člověk za 8 h, a když by se vyplatil <b>shoz</b>, kolik ušetří. Zakázky uložené před změnou tempa (září 2026) počítají postaru, dokud je tlačítkem nepřepočítáš. Časy cest jsou v Nastavení → Vynáška suti."],
   ["#jVzdalenost", "Vzdálenost ke kontejneru", "Metry od místa bourání ke kontejneru nebo autu. Každých 10 m navíc přidá čas na každou cestu tam a zpět."],
   ["#jVytahNaSut", "Výtah lze použít na suť", "Když správce dovolí vozit suť výtahem (a výtah vydrží), ušetří to většinu práce s patry. Bez souhlasu správce nepočítej — poškozený výtah je drahý."],
+  ["#jShoz", "Shoz z okna do kontejneru", "Shozový žlab z okna rovnou do kontejneru pod oknem. Po schodech se pak nenosí vůbec a vzdálenost ke kontejneru odpadá — zbyde jen naložit, donést k oknu a vysypat, plus jednorázová montáž a demontáž (výchozí 3 osobohodiny). Z vyšších pater to bývá <b>polovina ceny vynášky</b> i méně.<br><br>Potřebuje kontejner přímo pod oknem (na ulici často zábor) a volné okno. Shoz vlastní nebo půjčený — půjčovné dej do Ostatní."],
   ["#jRucniNoseni", "Ruční nošení bez kolečka", "Úzké nebo točité schodiště, kam nejde kolečko — nosí se v kbelících. Vynáška se tím prodraží (přirážka v Nastavení)."],
   ["h2:kalkulace:Materiál", "Materiál", "Materiál na zakázku s nákupní a prodejní cenou: ocelové nosníky, fólie, pytle, <b>kotouče a spotřební materiál, který fakturujete klientovi</b>. Prodej jde do ceny, nákup do nákladů, rozdíl je marže."],
   ["h2:kalkulace:Příplatky, režie a další", "Příplatky, rezerva, sleva, přirážka", "Všechno, co upraví cenu nad samotné práce: rezerva na skryté konstrukce, provize, sleva pro klienta, interní přirážka, doprava, víkend a expres, platba předem. Pořadí použití: naceň poctivě → když je zisk nízký, zvedni interní přirážku → slevu dávej až nakonec a vědomě."],
@@ -21181,7 +21329,8 @@ const NAPOVEDA = [
   ["h2:cenik:Prahy rentability", "Prahy rentability", "Pod jaká čísla nejít: minimální zisk na osobu a hodinu (pod ním varování a tlačítko Dorovnat přes interní přirážku), minimální denní tržba party, minimální cena zakázky. K tomu prodejní sazba dopravy, paušál výjezdu, příplatky a <b>koeficient výkonu party</b>."],
   ["#nMinZisk", "Minimální zisk na osobu a hodinu", "Pod touto hodinovkou kalkulace zčervená a nabídne „Dorovnat“ — zvedne interní přirážku tak, aby zakázka držela minimum."],
   ["#nKoefVykon", "Koeficient výkonu party", "1,0 = pracujete rychlostí norem RTS; 1,3 = o 30 % pomaleji (na začátku normální). Násobí odhad hodin a dní. Po 5 zakázkách ho spočítá Přehled firmy z reálných dat."],
-  ["h2:cenik:Vynáška suti — sazby", "Vynáška suti — sazby", "Z čeho se počítá vynáška: hodinová sazba (nejtěžší práce — drž vysoko), kolik unese kolečko a kbelíky, délka cesty, čas na patro a na každých 10 m, úspora s výtahem. Změny se projeví ve všech kalkulacích."],
+  ["h2:cenik:Vynáška suti — sazby", "Vynáška suti — sazby", "Z čeho se počítá vynáška: hodinová sazba (nejtěžší práce — drž vysoko), kolik unese kolečko a kolik jedna cesta po schodech, délka cyklu kolečka, čas na patro, režie každé cesty po schodech, čas na každých 10 m, úspora s výtahem a montáž shozu.<br><br>Výchozí čísla jsou <b>celodenní udržitelné tempo</b>: 25 kg po schodech (zákonný limit pro časté zvedání a přenášení je 30 kg a 10 t za směnu), 50 s na patro dolů a zpátky, 20 s režie, kolečko 270 s. Změny se projeví ve všech nových a otevřených kalkulacích."],
+  ["#nVynKoef", "Koeficient vynášky", "Vaše skutečné tempo proti modelu. 1,0 = počítá se modelem, 1,2 = nosíte o 20 % pomaleji, 0,9 = o 10 % rychleji. <b>Nenastavuj ho od oka</b> — u hotových zakázek zapiš v „Po dokončení“ skutečné hodiny vynášky a po 3 zakázkách ti Přehled koeficient spočítá a nabídne."],
   ["css:#dopSlInfo:⚙ Pod každým dopravcem", "Další položky ceníku dopravce", "Každý dopravce účtuje jinak. Pod řádkem dopravce rozklikni <b>⚙ Další položky ceníku</b> a zapni jen to, co si ten konkrétní dopravce účtuje: <b>složení a naložení</b> (Kč/úkon nebo za čas), <b>hydraulická ruka</b>, <b>vozidlo za hodinu</b> (hodiny zadáš, nebo se odhadnou z km), čekání, víkend/svátek, plachta, administrace a vážení, mýto, palivový příplatek a jiný poplatek s vlastním názvem.<br><br>U každé položky vybereš <b>účtovat vždy</b>, nebo <b>jen když zaškrtnu u zakázky</b> (typicky ruka, čekání, plachta). <b>Pravidla ceníku</b> říkají, jak dopravce počítá km (1×, 2× tam i zpět, 4× přistavení i odvoz), kolik km je v paušálu a jaké má minimum.<br><br>Zadáním ceny se položka sama zapne. Co zapneš, přičte se k nákupní ceně kontejneru, projeví se v porovnání „kdo je levnější“ a v rozpisu u zakázky. Dopravce z průzkumu přinese položky předvyplněné (⚠ ověřit)."],
   ["h2:cenik:Dopravci kontejnerů", "Dopravci kontejnerů", "Ceny jednotlivých dopravců: Kč/km, dny zdarma, další den a paušál za každý typ kontejneru. Porovnání ukáže, kdo je nejlevnější pro zadanou vzdálenost a počet dní."],
   ["h2:cenik:Kontejnery", "Kontejnery", "Typy kontejnerů (objem, nosnost, nákupní a prodejní cena), ze kterých se navrhuje odvoz suti."],
@@ -21295,6 +21444,7 @@ if (typeof document !== "undefined" && document.body) napNaplanuj();
 /* ---------- init ---------- */
 function fillAll(){fillHdr();fillNastaveni();renderPrace();renderKont();renderMat();renderOst();renderVP();renderFotky();renderDZ();renderOdp();renderDopravci();renderNKont();renderCenik();renderRychle();renderSablonyZak();renderSablony();renderRecenze();renderMilniky();renderInvestice();zakCount();syncVybava();renderPrehled();renderLogoNahled();renderBankStav();renderSyncStav();recalc();}
 if(typeof dkMigrace==="function")dkMigrace();
+if(typeof vynMigrace==="function")vynMigrace();
 fillAll();
 if(syncZapnuto()){syncPrevzitOtisky();syncNaplanuj(600);}
 </script>
