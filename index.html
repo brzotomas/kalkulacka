@@ -746,6 +746,14 @@ button[data-sml='tisk']:disabled{opacity:.45;cursor:not-allowed}
 .st-chybi b,.st-servis b{color:var(--bad)}
 .plat-nast td input{width:100%;min-width:70px}
 
+/* doprava ze stanic */
+.dop-box{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+.dop-hl{margin:0 0 6px;font-size:14px}
+.dop-volby{margin:4px 0 8px}
+.dop-volby .f b{padding-top:6px}
+.dop-tab td .hint{font-size:11.5px}
+.dop-nast td input{width:100%;min-width:120px}
+
 /* navigace po sekcích */
 :root{--hdrH:64px}
 .sum{top:calc(var(--hdrH) + 10px)}
@@ -1045,6 +1053,7 @@ body.zamceno{overflow:hidden}
           <button class="b p" id="balikZip">📦 Stáhnout celý balík (ZIP)</button>
           <button class="b" id="balikInstrukce">📋 Zkopírovat instrukce projektu</button>
           <button class="b" id="balikNahled">👁 Náhled souborů</button>
+          <button class="b" id="dopZprava">📋 Zpráva k fotkám (adresa, doprava, patro)</button>
         </div>
         <div id="balikStav" class="hint" style="margin-top:6px"></div>
         <div id="balikSeznam" style="margin-top:10px;display:none"></div>
@@ -1183,11 +1192,12 @@ body.zamceno{overflow:hidden}
       <label class="f">Sleva pro klienta (% z celkové ceny)<input id="jSleva" type="number" min="0" step="0.5"><span class="hint">viditelná sleva na konci nabídky — jde celá z tvého zisku</span></label>
       <label class="f">Důvod slevy (uvidí ho klient)<input id="jSlevaDuvod" placeholder="např. Sleva stálému zákazníkovi" list="slevaDuvody"><span class="hint">vytiskne se v nabídce i na faktuře</span></label>
       <label class="f">Interní přirážka k práci (%)<input id="jPrirazka" type="number" min="-50" step="1"><span class="hint" id="prirazkaHint"></span></label>
-      <label class="f">Doprava celkem (km, všechny jízdy)<input id="jKm" type="number" min="0" step="1"><span class="hint" id="dopravaHint"></span></label>
+      <label class="f">Doprava celkem (km, všechny jízdy — počítá se ze stanic)<input id="jKm" type="number" min="0" step="1"><span class="hint" id="dopravaHint"></span></label>
       <div class="f" style="justify-content:flex-end"><span>&nbsp;</span><label class="chk"><input id="jDopravaUctovat" type="checkbox"> Dopravu účtovat klientovi</label></div>
       <div class="f" style="justify-content:flex-end"><span>&nbsp;</span><label class="chk"><input id="jVikend" type="checkbox"> Práce o víkendu / svátku</label></div>
       <div class="f" style="justify-content:flex-end"><span>&nbsp;</span><label class="chk"><input id="jExpres" type="checkbox"> Expresní termín</label></div>
     </div>
+    <div id="dopBox" class="dop-box"></div>
     <div class="vybg" style="margin-top:14px">💰 Platba předem — sleva výměnou za jistotu peněz</div>
     <div class="grid g2" style="margin-top:8px">
       <div class="f" style="justify-content:flex-start"><label class="chk"><input id="jPlatbaPredem" type="checkbox"> <b>Klient platí celou částku předem</b></label><span class="hint">uplatní se sleva z Nastavení, záloha se nastaví na 100 %</span></div>
@@ -1890,6 +1900,11 @@ body.zamceno{overflow:hidden}
   </div>
 
   <div class="card">
+    <h2>🏠 Stanice — odkud vyjíždíme</h2>
+    <div id="dopStaniceNast"></div>
+  </div>
+
+  <div class="card">
     <h2>💳 Platební plány podle velikosti zakázky</h2>
     <div id="platDruhyNast"></div>
   </div>
@@ -2005,6 +2020,8 @@ body.zamceno{overflow:hidden}
     <p style="margin:0 0 10px"><b>Kde na stránce jsem:</b> na širokém monitoru je vlevo seznam sekcí záložky ve skupinách (např. Zakázka, Nacenění, Odpad, Peníze, Realizace) a zvýrazní se ta, ve které právě jsi. Na menší obrazovce a na telefonu je název aktuální sekce v liště nahoře — klepnutím otevřeš seznam a skočíš kamkoliv, <b>↑</b> vrátí nahoru. Na telefonu je v Kalkulaci dole lišta s cenou a ziskem, <b>Souhrn ↓</b> skočí na celý rozpis.</p>
 
     <p style="margin:0 0 10px"><b>Co dělat dál:</b> nahoře v Kalkulaci i ve Vyklízení je <b>🧭 Postup zakázky</b> — ukazuje, kde zakázka je (cena → klient → nabídka → smlouva → záloha → práce → předání → faktura → zaplaceno), a u aktuálního kroku má tlačítko, které ho udělá. Stav zakázky se přepíná tamtéž. <b>Platby</b> vybereš kliknutím (40 / 60 … po týdnech, předem se slevou) a propíšou se do nabídky, smlouvy i faktur.</p>
+
+    <p style="margin:0 0 10px"><b>Doprava:</b> jezdíme ze tří stanic — <b>Zábřeh</b> (hlavní), <b>Brno – Královo Pole</b> a <b>Guntramovice</b>. První cesta na zakázku vede ze Zábřehu a poslední zpět do něj, všechny cesty mezi tím z nejbližší stanice (tam parta přespí), takže se <b>nepočítá ubytování</b>. Kilometry se spočítají samy z adresy zakázky (Kalkulace → Příplatky, režie a další → 🚐 Doprava; ve Vyklízení pod Cenou na místě). Stanice upravíš v Ceník a nastavení → 🏠 Stanice.</p>
 
     <div class="vybg">Záložky — k čemu je která</div>
     <div class="tscroll"><table class="nap-tab">
@@ -2397,7 +2414,7 @@ body.zamceno{overflow:hidden}
       <li><b>Cena = přímé náklady ÷ (1 − cílová marže).</b> Přímé náklady jsou likvidace, auto, pytle a <b>práce všech lidí na zakázce za plnou cenu hodiny — 425 Kč, i když ji děláte vy</b>. Tolik stojí dobrý zaměstnanec za 40 000 hrubého s odvody, když 3/4 času stráví na zakázkách. Tak cena unese lidi, až je vezmete, a vy dva nemusíte být v dodávce.</li>
       <li><b>Cílová hrubá marže 40 %</b> (spodní hranice 35 %) platí režii firmy, marketing, další auta a zisk. Přeplněné byty a sběratelé 45 %, znečištěné prostory 45 %, silná kontaminace a byty po úmrtí 55 %, partneři a opakované zakázky pro firmy 35 %. U zakázky jde marži přepsat ručně.</li>
       <li><b>Patro, výtah, vzdálenost i zaplnění jsou vždy v ceně</b> — přes hodiny práce a cesty. 3+1 ve 4. patře bez výtahu je o ~3 500 Kč dražší než v přízemí, 50 km daleko o ~5 500 Kč dražší než 15 km od základny.</li>
-      <li><b>Jezdíte po celé Moravě:</b> posádka dojíždí každý den ze základny a odpad vozí do nejbližšího zařízení u zakázky (výchozí 10 km, u zakázky jde zadat skutečnou vzdálenost). Na silnici mezi městy počítá 65 km/h, ve městě 40.</li>
+      <li><b>Jezdíte po celé Moravě:</b> posádka jezdí ze stanic (první a poslední cesta z hlavní stanice v Zábřehu, mezi tím z nejbližší stanice — bez ubytování) a odpad vozí do nejbližšího zařízení u zakázky (výchozí 10 km, u zakázky jde zadat skutečnou vzdálenost). Na silnici mezi městy počítá 65 km/h, ve městě 40.</li>
       <li><b>Auto</b> = kilometry (8 Kč/km — nafta, servis, pneu) + den posádky (600 Kč — splátka nebo odpis, pojištění, parkování; na krátké zakázce podíl dne, nejméně půl).</li>
       <li><b>Kontejner u domu místo jízd dodávkou</b> (zaškrtnutí u zakázky): žádné jízdy s odpadem ani vykládka, dodávka veze jen posádku; kontejner 10 m³ za přistavení a odvoz 2 000 Kč (nastavíš v Sazbách), odpad podle vážení. Od 3 jízd dodávkou kalkulačka spočítá obě varianty a v „Zkontrolovat“ napíše, která vyjde levněji. S vlastní dodávkou a zařízením kousek od zakázky většinou vyhraje dodávka; kontejner se vyplatí, když je zařízení daleko nebo je kontejner levný.</li>
       <li><b>Minimum výjezdu</b> 3 900 Kč (pár kusů 3 900, jen vynáška 2 900). Konkurence vozí jednu pračku za 1 200–1 900 Kč — nesnažte se ji porazit; malé odvozy spojte do trasy, nebo je nechte jít.</li>
@@ -2522,6 +2539,7 @@ body.zamceno{overflow:hidden}
         <tr><td><code>06-PRIKLADY.md</code></td><td>tři hotové zakázky i s postupem — na nich se dá ověřit, že počítá správně</td></tr>
         <tr><td><code>07-CENIK-UPLNY.csv</code></td><td>všechny položky ceníku</td></tr>
         <tr><td><code>08-CENIK-JADRO.csv</code></td><td>zkrácený ceník — jen to, co reálně používáme</td></tr>
+        <tr><td><code>10-DOPRAVA-ZE-STANIC.md</code></td><td>naše stanice (Zábřeh, Brno, Guntramovice) a pravidlo dopravy — Claude pak nepočítá ubytování ani cesty jen ze Zábřehu</td></tr>
         <tr><td><code>09-STROJE-A-NARADI.md</code></td><td>naše stroje a nářadí — Claude podle něj řekne, co vzít, co chybí a co by práci zrychlilo</td></tr>
       </tbody>
     </table></div>
@@ -4657,7 +4675,7 @@ document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()
   if(b.dataset.tab==="plan")renderPlan();
   if(b.dataset.tab==="stroje"&&typeof renderStroje==="function")renderStroje();
   if(b.dataset.tab==="zpravy"){renderSablony();renderRecenze();}
-  if(b.dataset.tab==="cenik"){if(typeof platRenderNast==="function")platRenderNast();renderDopravciNejlepsi();if(typeof renderBrZarizeni==="function")renderBrZarizeni();}
+  if(b.dataset.tab==="cenik"){if(typeof platRenderNast==="function")platRenderNast();if(typeof dopRenderNast==="function")dopRenderNast();renderDopravciNejlepsi();if(typeof renderBrZarizeni==="function")renderBrZarizeni();}
   if(b.dataset.tab==="rust"){renderMilniky();renderInvestice();if(typeof renderBrStrojePrehled==="function")renderBrStrojePrehled();}
 }));
 
@@ -5126,6 +5144,7 @@ function vypocet(){
   const kontN=J.kontejnery.reduce((a,r)=>a+(r.nakup||0)*(r.pocet||0),0);
   const sklN=J.skladkovne?odp.naklad:0;
   const sklP=J.skladkovne?odp.prodej:0;
+  if(typeof dopSyncKm==="function")dopSyncKm(J,hodiny);
   const dopravaN=(J.km||0)*n.km;
   const dopravaP=(J.dopravaUctovat&&(J.km||0)>0)? Math.max((J.km||0)*(n.kmProdej||0), n.pausal||0) : 0;
   const ostP=J.ostatni.reduce((a,r)=>a+(r.prodej||0),0);
@@ -5211,6 +5230,7 @@ function recalc(){
   if(typeof renderBrStroje==="function")renderBrStroje();
   if(typeof stRenderPotreby==="function")stRenderPotreby("demolice");
   if(typeof postupRender==="function"){postupRender("demolice");postupVitej();}
+  if(typeof dopRender==="function"){dopRender("demolice");dopAuto("demolice");}
   if(typeof renderBrZarVybrane==="function")renderBrZarVybrane();
   if(typeof brRenderPredaniStav==="function")brRenderPredaniStav();
   if(typeof platRender==="function")platRender("demolice");
@@ -6013,6 +6033,7 @@ Funguje to z telefonu, z počítače, odkudkoliv. Nic se nemusí instalovat.
 | 07-CENIK-UPLNY.csv | všech ${S.cenik.length} položek ceníku |
 | 08-CENIK-JADRO.csv | zkrácený ceník — to, co reálně používáme |
 | 09-STROJE-A-NARADI.md | naše stroje a nářadí — co vzít na zakázku, co chybí, co zrychlí práci |
+| 10-DOPRAVA-ZE-STANIC.md | odkud jezdíme (stanice), jak se počítá doprava, km do měst — žádné ubytování |
 
 ## Jak to používat každý den
 
@@ -6041,7 +6062,7 @@ function soubor01(){
   return `# Kdo jsi a jak pracuješ
 
 Jsi rozpočtář firmy ${n.firma||"(naše firma)"} — děláme interiérové demolice
-v Zábřehu a okolí. Parta jsou ${n.lide||2} lidi, ${n.hodDen||9} hodin denně.
+po celé Moravě ze stanic ${typeof dopNazvy==="function"?dopNazvy():"Zábřeh"}. Parta jsou ${n.lide||2} lidi, ${n.hodDen||9} hodin denně.
 Nacenuješ zakázky z fotek, popisu a měr, které ti pošlu z prohlídky.
 
 Chovej se jako člověk, který u nás dělá roky: znáš ceník zpaměti, víš, kde se
@@ -6063,6 +6084,9 @@ nezůstala viset na něčem, co se nedomluvilo dopředu.
    v jednom code bloku, bez komentářů uvnitř bloku.
 6. **Ceny materiálu, které nemáš z ceníku, označíš jako ODHAD K OVĚŘENÍ.**
    Půjčovné a ocel se liší dodavatel od dodavatele o tisíce.
+7. **Dopravu počítáš ze stanic** podle souboru 10-DOPRAVA-ZE-STANIC.md: první cesta
+   z hlavní stanice, poslední zpět do ní, všechny mezi tím z nejbližší stanice.
+   **Ubytování nikdy** — na noc máme vlastní stanici.
 
 ## Postup, kterým jdeš pokaždé
 
@@ -6075,7 +6099,7 @@ Projdi kontrolní seznam ze souboru 03-CO-SE-PTAT.md. Když chybí něco
 z kategorie „bez tohohle to nejde", **zeptej se a počkej na odpověď**.
 Když chybí něco méně zásadního, zvol rozumný předpoklad a napiš ho.
 
-Zásadní je vždycky: podlaží, výtah a jestli se do něj smí suť, vzdálenost ke
+Zásadní je vždycky: přesná adresa (z ní se počítá doprava ze stanic), podlaží, výtah a jestli se do něj smí suť, vzdálenost ke
 kontejneru, tloušťky a materiál konstrukcí, stáří domu.
 
 ### Krok 3 — vyber položky z ceníku
@@ -6098,7 +6122,8 @@ V tomhle pořadí:
 1. **Co jsem pochopil** — rozsah prací, jednou větou.
 2. **Co jsem si domyslel** — odrážky, každá označená.
 3. **Rozpad ceny** — tabulka: položka, množství, Kč/MJ, celkem.
-4. **Vynáška a odvoz** — kolik suti, kolik cest, kolik kontejnerů a proč.
+4. **Vynáška, odvoz a doprava party** — kolik suti, kolik cest, kolik kontejnerů a proč;
+   doprava po cestách ze stanic (soubor 10): odkud, kolikrát, km celkem a náklad — bez ubytování.
 5. **Cena celkem** a **kolik na tom vyděláme na osobohodinu**.
 6. **Na co si dát pozor** — rizika, co musí zajistit objednatel, co ověřit.
 7. **Stroje a nářadí na zakázku** — podle souboru 09-STROJE-A-NARADI.md: co vzít, co chybí (půjčit / koupit), co zrychlí práci.
@@ -6276,7 +6301,12 @@ Ceny, které nemáš z ceníku, **označ jako ODHAD K OVĚŘENÍ**:
 
 ## 6. Doprava party
 
+Jezdíme ze stanic (${typeof dopNazvy==="function"?dopNazvy():"Zábřeh"}). Přesné pravidlo a km do měst jsou
+v souboru **10-DOPRAVA-ZE-STANIC.md**. Krátce: první cesta z hlavní stanice, poslední zpět
+do ní, všechny mezi tím z nejbližší stanice. **Ubytování nikdy.**
+
 \`\`\`
+km     = 2 × km(hlavní stanice → zakázka) + 2 × km(nejbližší stanice → zakázka) × (dny − 1)
 náklad = km × ${bc(n.km)} Kč
 klientovi = max(km × ${bc(n.kmProdej)} Kč, paušál ${bc(n.pausal)} Kč)
 \`\`\`
@@ -6432,7 +6462,7 @@ a ona z něj udělá hotovou zakázku — nabídku, fakturu, protokol, evidenci 
   nepřekládej. Když ID neexistuje, kalkulačka položku zahodí a upozorní mě.
 - Desetinná čísla s tečkou i s čárkou — obojí projde.
 - Množství vždycky v MJ té položky (m², bm, ks, m³, kpl).
-- **Vynášku, kontejnery, skládkovné ani dopravu do bloku NEDÁVEJ.**
+- **Vynášku, kontejnery, skládkovné, dopravu party ani ubytování do bloku NEDÁVEJ.**
   Kalkulačka si je spočítá sama z položek. Kdybys je tam dal, počítaly by se dvakrát.
 - Neznámé klíče se přeskočí a vypíšou jako varování — nevadí, ale nedělej to schválně.
 - Markdown ohraničení (\`\`\`) kolem bloku nevadí, kalkulačka ho ignoruje.
@@ -6443,7 +6473,7 @@ a ona z něj udělá hotovou zakázku — nabídku, fakturu, protokol, evidenci 
 DKT1
 nazev: krátký název zakázky
 klient: jméno nebo firma
-adresa: ulice, město
+adresa: ulice číslo, obec   (úplná — kalkulačka z ní sama spočítá dopravu ze stanic)
 poznamka: co musí být vyřešené před nástupem
 zdroj: odkud zakázka přišla
 cenik: b2c                (b2c = domácnost, b2b = subdodávka; když vynecháš, bere se b2c)
@@ -6904,7 +6934,8 @@ function balikSoubory(){
     {nazev:"06-PRIKLADY.md",          obsah:soubor06()},
     {nazev:"07-CENIK-UPLNY.csv",      obsah:cenikCSV(S.cenik,"Úplný ceník")},
     {nazev:"08-CENIK-JADRO.csv",      obsah:cenikCSV(jadro,"Zkrácený ceník — co reálně používáme")},
-    {nazev:"09-STROJE-A-NARADI.md",   obsah:typeof stClaudeMD==="function"?stClaudeMD():"# Stroje a nářadí\n"}
+    {nazev:"09-STROJE-A-NARADI.md",   obsah:typeof stClaudeMD==="function"?stClaudeMD():"# Stroje a nářadí\n"},
+    {nazev:"10-DOPRAVA-ZE-STANIC.md", obsah:typeof dopClaudeMD==="function"?dopClaudeMD("demolice"):"# Doprava\n"}
   ];
 }
 function balikStav(t,zprava){
@@ -6928,7 +6959,8 @@ function renderBalikSeznam(){
         "06-PRIKLADY.md":"tři hotové zakázky i s postupem — na ověření",
         "07-CENIK-UPLNY.csv":"všech "+S.cenik.length+" položek",
         "08-CENIK-JADRO.csv":"zkrácený ceník, "+cenikJadro().length+" položek",
-        "09-STROJE-A-NARADI.md":"naše stroje a nářadí — co vzít, co chybí, co zrychlí práci"
+        "09-STROJE-A-NARADI.md":"naše stroje a nářadí — co vzít, co chybí, co zrychlí práci",
+        "10-DOPRAVA-ZE-STANIC.md":"odkud jezdíme: stanice, pravidlo cest, km do měst — bez ubytování"
       }[x.nazev]||"";
       return "<tr><td><code>"+esc(x.nazev)+"</code></td><td class='hint'>"+esc(popis)+"</td>"+
         "<td class='r num'>"+Math.max(1,Math.round(x.obsah.length/1024))+" kB</td>"+
@@ -7002,7 +7034,7 @@ function brief(uplny){
   p("4) Na konec dej blok DKT1 (formát je popsaný dole) v jednom code bloku, ať ho zkopíruju do aplikace.");
   p("");
   p("=== MOJE FIRMA A SAZBY ===");
-  p("Parta: "+(n.lide||2)+" lidi, "+(n.hodDen||9)+" h/den. Interiérové demolice, Zábřeh a okolí.");
+  p("Parta: "+(n.lide||2)+" lidi, "+(n.hodDen||9)+" h/den. Interiérové demolice po celé Moravě, jezdíme ze stanic "+(typeof dopNazvy==="function"?dopNazvy():"Zábřeh")+" — první a poslední cesta z hlavní stanice, mezi tím z nejbližší, bez ubytování.");
   p("DPH: "+(n.platceDPH?"jsme plátci":"NEJSME plátci DPH — k ceně se nic nepřičítá, cena je konečná"));
   p("Rezerva na skryté konstrukce: "+(n.rezerva||0)+" % z ceny práce (dávej ji vždy).");
   p("Minimální zisk, pod který nesmím jít: "+(n.minZiskOsHod||0)+" Kč na osobu a hodinu.");
@@ -7273,6 +7305,7 @@ $("#importZakBtn").addEventListener("click",()=>{
   }
   $("#importZak").value="";
   fillAll(); save();
+  if(typeof dopAuto==="function")dopAuto("demolice");
   const v=vypocet();
   let zprava="<span class='ok'>Zakázka načtena — "+J.prace.length+" prací, cena "+kc(v.celkem)+
     (dopocteno?" ("+dopocteno+" položek oceněno podle tvého ceníku)":"")+".</span>";
@@ -11821,8 +11854,10 @@ function vykCas(z, s, r){
   const naMisteZaDen = Math.max(3, (+s.hodDen || 8) - 2 * jizdaH(km));
   const odvozH = jenVynaska ? 0 : jizdy * s.vykladkaH + Math.max(0, jizdy - 1) * 2 * jizdaH(kmZar);
   const dny = Math.max(1, Math.ceil((hodMisto + odvozH) / naMisteZaDen - 1e-9));
-  const kmCelkem = Math.max(10, 2 * km * dny + (jenVynaska ? 0 : Math.max(0, jizdy - dny) * 2 * kmZar));
-  const cestaH = Math.max(10 / rychl, 2 * jizdaH(km) * dny + (jenVynaska ? 0 : Math.max(0, jizdy - dny) * 2 * jizdaH(kmZar)));
+  /* první cesta z hlavní stanice a poslední zpět do ní; ostatní dny z nejbližší stanice (km) */
+  const dopN = typeof dopVykNavic === "function" ? dopVykNavic(z, km) : {km:0, kmZ:km};
+  const kmCelkem = Math.max(10, 2 * km * dny + 2 * dopN.km + (jenVynaska ? 0 : Math.max(0, jizdy - dny) * 2 * kmZar));
+  const cestaH = Math.max(10 / rychl, 2 * jizdaH(km) * dny + 2 * Math.max(0, jizdaH(dopN.kmZ) - jizdaH(km)) + (jenVynaska ? 0 : Math.max(0, jizdy - dny) * 2 * jizdaH(kmZar)));
   const vykladkaH = jenVynaska ? 0 : jizdy * s.vykladkaH;
   const os = misto + (cestaH + vykladkaH) * lide;
   return {sluzba, stav, sekNaNos, priprava, vynaska, misto, lide, jizdy, km, kmZar, kmCelkem, cestaH, vykladkaH, os, hodMisto, dny, kont, kontKs};
@@ -12419,10 +12454,11 @@ function renderVyklizeni(){
       cislo("patro", "Patro", "", "1", "0 = přízemí") +
       vyber("vytah", "Výtah", [["ne", "Není nebo nejde použít"], ["maly", "Malý — vejdou se jen drobné věci"], ["velky", "Velký — vejde se i nábytek"]]) +
       cislo("vzdalenost", "Od vchodu k autu", "m", "5", "") +
-      cislo("km", "Km od základny", "jedna cesta", "1", sl === "vynaska" ? "jen cesta posádky" : "odpad vozíme do zařízení u zakázky — vzdálenost níž v Naše marže a rizika") +
+      cislo("km", "Km od nejbližší stanice", "jedna cesta", "1", sl === "vynaska" ? "jen cesta posádky" : "odpad vozíme do zařízení u zakázky — vzdálenost níž v Naše marže a rizika") +
       cislo("lide", "Lidí na zakázce", "", "1", "") +
       vyber("stav", "Stav prostoru", vykStavy().map(x => [x[0], x[1]])) +
     "</div>" +
+    "<div id='vkDopBox' class='dop-box'></div>" +
     "<div class='vk3-checks'><label class='chk'><input type='checkbox' data-vkb='rozebirat'" + (v.rozebirat ? " checked" : "") + "> Rozebírat nábytek</label>" +
       (v.balicek === "predat" && sl === "odvoz" ? "" : "<label class='chk'><input type='checkbox' data-vkb='uklid'" + (v.uklid ? " checked" : "") + "> Hrubý úklid</label>") +
       (sl !== "vynaska" ? "<label class='chk'><input type='checkbox' data-vkb='kontejner'" + (v.kontejner ? " checked" : "") + "> Kontejner u domu místo jízd dodávkou</label>" : "") +
@@ -12436,7 +12472,7 @@ function renderVyklizeni(){
       (soupis || sl === "kusy" ? "" : "<button class='b' type='button' id='vkTypicky'>Rozepsat po věcech →</button>") + "</div></div>";
 
   h += "<details class='card vk3-det' id='vkClaudeDet'><summary><h2 style='display:inline'>📸 Nacenit z fotek přes Claude</h2> <span class='hint'>— soupis a cena z fotek do pár minut</span></summary><div style='margin-top:10px'>" +
-    "<ol class='vk3-kroky'><li><b>Jednou:</b> stáhni balík (13 souborů) a v Claudovi založ projekt „Vyklízení — nacenění“: obsah souboru 01 do instrukcí, ostatní do znalostí, zapni vyhledávání na webu. Návod je v souboru 00.</li>" +
+    "<ol class='vk3-kroky'><li><b>Jednou:</b> stáhni balík (14 souborů) a v Claudovi založ projekt „Vyklízení — nacenění“: obsah souboru 01 do instrukcí, ostatní do znalostí, zapni vyhledávání na webu. Návod je v souboru 00.</li>" +
       "<li><b>Na místě rychle:</b> 2–4 fotky a napiš <b>RYCHLE</b> + dispozici, m², patro a km — do 2 minut rozpětí ceny, nejnižší cena a 3 otázky.</li>" +
       "<li><b>Pevná cena:</b> nafoť všechny místnosti, otevřené skříně, sklep, balkon a štítky spotřebičů, pošli se <b>zprávou k fotkám</b> (tlačítko níž).</li>" +
       "<li><b>Claude vrátí</b> soupis, ověřené prodejní ceny, plán likvidace, cenu, jak vydělat víc a blok <code>VYK1</code> — vlož ho sem. Další dotazy: <b>PRODEJ</b>, <b>LIKVIDACE</b>, <b>ZPRÁVA</b>, <b>KONTROLA</b>.</li></ol>" +
@@ -12721,6 +12757,7 @@ function vykPrepocet(){
   if (typeof platSync === "function") { platSync("vyklizeni", VK); platRender("vyklizeni"); }
   if (typeof postupRender === "function") postupRender("vyklizeni");
   if (typeof stRenderPotreby === "function") stRenderPotreby("vyklizeni");
+  if (typeof dopRender === "function") { dopRender("vyklizeni"); dopAuto("vyklizeni"); }
   const s = S.vykSazby, el = $("#vkVysledek");
   const r = vykVypocet();
   if (r.ok && typeof hnKontrolaPlatnosti === "function") hnKontrolaPlatnosti(VK, "vyklizeni").forEach(w => r.varovani.push(w));
@@ -12955,7 +12992,7 @@ function vkZpravaKFotkam(){
   return ["Nacenit vyklízení.", "Služba: " + sl[1] + " (" + sl[2] + ")", "Adresa: " + (v.adresa || "…"),
     vykSluzbaId(v) === "kusy" ? "Věci: …" : "Prostor: " + (d ? d[1] : "…") + ", plocha " + (+v.plocha > 0 ? v.plocha + " m²" : "… m²") + ", " + (p ? p[1].toLowerCase() : "…") + ((v.doplnky || []).length ? ", navíc " + v.doplnky.join(", ") : ""),
     "Patro: " + v.patro + ", výtah: " + ({ne:"není / nejde použít", maly:"malý (jen drobné věci)", velky:"velký (vejde se nábytek)"}[v.vytah]) + ", od vchodu k autu: " + v.vzdalenost + " m",
-    "Km od základny (jedna cesta): " + v.km, "Rozebírat nábytek: " + (v.rozebirat ? "ano" : "ne") + ", hrubý úklid: " + (v.uklid ? "ano" : "ne") + (v.vikend ? ", o víkendu" : "") + (v.expres ? ", expres" : ""), "Stav: " + (st ? st[1] : ""),
+    (typeof dopRadekDoZpravy === "function" ? dopRadekDoZpravy("vyklizeni", v) : "Km od základny (jedna cesta): " + v.km), "Rozebírat nábytek: " + (v.rozebirat ? "ano" : "ne") + ", hrubý úklid: " + (v.uklid ? "ano" : "ne") + (v.vikend ? ", o víkendu" : "") + (v.expres ? ", expres" : ""), "Stav: " + (st ? st[1] : ""),
     "Co zůstává: " + (v.rozsahText || "…"), "Poznámky: …", "", "Fotky přikládám (všechny místnosti, otevřené skříně, sklep, balkon, schodiště). Vrať soupis, co jde prodat, cenu a blok VYK1."].join("\n");
 }
 /* zprávy klientovi — vyplní se údaji otevřené zakázky */
@@ -13322,7 +13359,7 @@ function vkZalozBourani(){
   if (!VK.id || !S.vyklizeni.some(x => x.id === VK.id)) { if (!vykUlozitZakazku(true)) return; }
   const d = defJob(S.nastaveni);
   Object.assign(d, {id:uid(), nazev:"Bourání — " + VK.nazev, klient:VK.klient || "", klientId:VK.klientId || "", adresa:VK.adresa || "", zdroj:VK.zdroj || "",
-    patro:+VK.patro || 0, vytah:VK.vytah !== "ne", km:2 * (+VK.km || 0), status:"nabídka", vyklizeniId:VK.id, poznamka:"Navazuje na vyklizení „" + VK.nazev + "“."});
+    patro:+VK.patro || 0, vytah:VK.vytah !== "ne", km:2 * (+VK.km || 0), doprava:VK.doprava ? JSON.parse(JSON.stringify(VK.doprava)) : undefined, gps:VK.gps, dopravaStanice:VK.dopravaStanice, status:"nabídka", vyklizeniId:VK.id, poznamka:"Navazuje na vyklizení „" + VK.nazev + "“."});
   const snap = JSON.parse(JSON.stringify(d)); snap.ulozeno = new Date().toISOString(); snap.vysCelkem = 0; snap.vysZisk = 0;
   S.zakazky.unshift(snap);
   VK.demoliceId = snap.id; vykUloz(); vykUlozitZakazku(true);
@@ -13687,7 +13724,7 @@ function vkSoubor01(){
   return `# Instrukce projektu — rozpočtář vyklízení
 
 ## Kdo jsi
-Jsi zkušený rozpočtář a obchodník vyklízecí firmy ${n.firma || "(naše firma)"}${n.znacka ? " (" + n.znacka + ")" : ""} se základnou v Zábřehu.
+Jsi zkušený rozpočtář a obchodník vyklízecí firmy ${n.firma || "(naše firma)"}${n.znacka ? " (" + n.znacka + ")" : ""} se stanicemi ${typeof dopNazvy === "function" ? dopNazvy() : "Zábřeh"} — dopravu počítáš podle souboru 13-DOPRAVA-ZE-STANIC.md (první a poslední cesta z hlavní stanice, mezi tím z nejbližší, ubytování nikdy).
 Parta jsou zatím 2 lidé s vlastní dodávkou, vyklízíme byty, domy, sklepy, půdy a garáže **po celé Moravě**. Stavíme firmu, která poroste:
 cena musí zaplatit dobře placené lidi, auto a odpad a nechat firmě marži — ne jen „něco na hodinu“ pro majitele.
 Tvůj úkol: z fotek a údajů co nejrychleji a nejpřesněji určit **rozsah, čas, náklady, cenu a marži** — a najít,
@@ -13729,7 +13766,7 @@ Postup níže, odpověď ve struktuře „Formát odpovědi“.
 
 ## Postup plného nacenění
 1. **Třídění zadání:** druh služby (s odvozem / jen vynáška / pár kusů), balíček (výchozí **Vyklidit a předat**), dispozice a **plocha v m²**, zaplnění, sklep/půda/garáž,
-   patro a výtah (vejde se nábytek?), metry k autu, km od základny (Zábřeh) a km od zakázky k nejbližšímu zařízení na odpad,
+   patro a výtah (vejde se nábytek?), metry k autu, přesná adresa (z ní kalkulačka spočítá km od nejbližší stanice) a km od zakázky k nejbližšímu zařízení na odpad,
    termín (víkend, expres), stav prostoru (kontaminace?), jestli jde o partnera (realitka, správce — opakované zakázky).
 2. **Soupis po místnostech** z fotek: věc (ID z katalogu), počet v MJ katalogu, poznámka. Zvlášť sklep, půda, balkon, garáž.
    Hlídej těžká břemena (piano, trezor, litinová vana) a nebezpečný odpad (barvy, chemie, eternit, azbest).
@@ -13743,7 +13780,7 @@ Postup níže, odpověď ve struktuře „Formát odpovědi“.
 1. **Shrnutí** — jedna věta: co, kde, kolik m³, kolik dní, cena.
 2. **Předpoklady** — odrážky (co jsem si domyslel, co nevidím).
 3. **Soupis po místnostech** — tabulka: věc | ID | počet | m³ | pozn.
-4. **Objem, hmotnost, jízdy, člověkohodiny, dny.**
+4. **Objem, hmotnost, jízdy, člověkohodiny, dny** a **doprava ze stanic** (odkud, cesty × km, bez ubytování).
 5. **Cena pro klienta** (pevná, případně rozpětí) · **platební plán** (kalkulačka ho navrhne podle velikosti zakázky — od 40 / 60 po platby po týdnech) · **hrubá marže % a hrubý zisk Kč** · **nejníž** · po položkách pro srovnání · o kolik jsme nad trhem.
 6. **Odprodej a výkup** — tabulka: věc | výkupní cena/ks | jistota | kanál | zdroj ověření | protiúčet ano/ne; součet jistý/možný.
 7. **Likvidace** — tabulka proudů: druh | kód | kg | kam | Kč; úspora tříděním.
@@ -13794,13 +13831,13 @@ Stav prostoru (násobek času): ${vykStavy().map(x => x[1] + " " + String(x[2]).
 Hrubý úklid: ${s.minUklidM2} člověkominuta na m² podlahy.
 
 ## 3. Doprava — jezdíme po celé Moravě
-Odpad vozíme do **nejbližšího zařízení u zakázky** (sběrný dvůr pro firmy, překladiště, skládka), ne zpátky na základnu. Posádka každý den dojíždí ze základny.
+Odpad vozíme do **nejbližšího zařízení u zakázky** (sběrný dvůr pro firmy, překladiště, skládka), ne zpátky na základnu. Posádka jezdí ze stanic: první cesta z hlavní stanice, poslední zpět do ní, mezi tím z nejbližší stanice (13-DOPRAVA-ZE-STANIC.md). Ubytování nikdy.
 ${KB}
 jízdy s odpadem = max(1, objem / ${s.objemVozu} m³, kg / ${s.nosnost} kg)      — nahoru (jen vynáška: bez odvozu)
 km k zařízení   = zadaná vzdálenost od zakázky, jinak menší z (km od základny, ${s.kmZarizeni} km)
 jedna jízda (h) = prvních 20 km / ${s.rychlost} km/h + zbytek / ${s.rychlostDalka} km/h
 dny             = (hodiny na místě + vykládky + jízdy k zařízení) / (${s.hodDen} h − cesta tam a zpět)   — nahoru
-km celkem       = 2 × km od základny × dny + (jízdy − dny) × 2 × km k zařízení   (poslední jízda dne jede přes zařízení domů)
+km celkem       = 2 × km od nejbližší stanice × dny + 2 × (km z hlavní stanice − km od nejbližší stanice) + (jízdy − dny) × 2 × km k zařízení   (poslední jízda dne jede přes zařízení domů)
 cesta           = čas všech jízd × lidé;   vykládka = jízdy × ${s.vykladkaH} h × lidé
 ${KB}
 **Kontejner u domu** (\`kontejner: ano\`): žádné jízdy s odpadem ani vykládka, dodávka veze jen posádku; kontejnerů = objem / ${s.kontejnerM3} m³,
@@ -13867,7 +13904,7 @@ Když to nedrží marži (o ${s.gmCil - s.gmPartner} bodů pod cílovou), přid�
 ## 6b. Po položkách (každá složka zvlášť)
 ${KB}
 práce        = max(${s.hMin} h, hodiny na místě nahoru na 15 min) × lidé × ${t(s.pPraceOsH)} Kč/čl.h
-výjezd       = ${t(s.pVyjezd)} Kč (doprava do ${s.pKmZdarma} km od základny)
+výjezd       = ${t(s.pVyjezd)} Kč (doprava do ${s.pKmZdarma} km od nejbližší stanice)
 doprava      = (km celkem − 2 × ${s.pKmZdarma}) × ${t(s.pKm)} Kč/km         — všechny jízdy tam i zpět
 čas na cestě = (km celkem − 2 × ${s.pKmZdarma}) / ${s.rychlostDalka} km/h × lidé × ${t(s.pCestaOsH)} Kč/čl.h
 vykládka     = jízdy × ${t(s.vykladka)} Kč; likvidace = náklad podle váhy × ${t(1 + s.prirazka, 2)}; pytle a fólie × ${t(1 + s.prirazka, 2)}
@@ -13965,7 +14002,7 @@ stav: bezne            (bezne | prasne | lehka | silna)
 patro: 3
 vytah: ne              (ne | maly | velky — velky = vejde se nábytek)
 vzdalenost: 15         (metry od vchodu k autu)
-km: 20                 (km od základny v Zábřehu, jedna cesta)
+km: 20                 (km od nejbližší stanice, jedna cesta — kalkulačka ho z adresy přepočítá)
 lide: 2
 rozebirat: ano
 uklid: ne
@@ -14309,7 +14346,7 @@ function vykBalikSoubory(){
   return [{nazev:"00-ZACNI-TADY.md", obsah:vkSoubor00()}, {nazev:"01-INSTRUKCE-PROJEKTU.md", obsah:vkSoubor01()}, {nazev:"02-JAK-POCITAT.md", obsah:vkSoubor02()},
     {nazev:"03-CO-FOTIT-A-ZJISTIT.md", obsah:vkSoubor03()}, {nazev:"04-FORMAT-VYK1.md", obsah:vkSoubor04()}, {nazev:"05-ODPRODEJ-A-VYKUP.md", obsah:vkSoubor05()},
     {nazev:"06-LIKVIDACE-KAM-S-CIM.md", obsah:vkSoubor06()}, {nazev:"07-RIZIKA-A-PRAVIDLA.md", obsah:vkSoubor07()}, {nazev:"08-EKONOMIKA-A-MARZE.md", obsah:vkSoubor08()},
-    {nazev:"09-VZOROVE-ZAKAZKY.md", obsah:vkSoubor09()}, {nazev:"10-KATALOG-VECI.csv", obsah:"﻿" + vkSoubor10()}, {nazev:"11-TRH-ODPADY-VYKUP.csv", obsah:"﻿" + vkSoubor11()}, {nazev:"12-NASE-VYBAVENI.md", obsah:typeof stClaudeMD === "function" ? stClaudeMD() : "# Vybavení\n"}];
+    {nazev:"09-VZOROVE-ZAKAZKY.md", obsah:vkSoubor09()}, {nazev:"10-KATALOG-VECI.csv", obsah:"﻿" + vkSoubor10()}, {nazev:"11-TRH-ODPADY-VYKUP.csv", obsah:"﻿" + vkSoubor11()}, {nazev:"12-NASE-VYBAVENI.md", obsah:typeof stClaudeMD === "function" ? stClaudeMD() : "# Vybavení\n"}, {nazev:"13-DOPRAVA-ZE-STANIC.md", obsah:typeof dopClaudeMD === "function" ? dopClaudeMD("vyklizeni") : "# Doprava\n"}];
 }
 function vkStahniBalik(){
   const st = $("#vkImportStav");
@@ -17260,6 +17297,7 @@ if (typeof document !== "undefined" && document.addEventListener) {
 const BR_ZAR_CENY = [["sut", "Čistá suť 17 01 07"], ["stavSmes", "Stavební směs 17 09 04"], ["objemny", "Objemný 20 03 07"], ["smes", "Směsný komunální 20 03 01"], ["drevo", "Dřevo"]];
 function brZarizeni(){ if (!Array.isArray(S.zarizeni)) S.zarizeni = []; return S.zarizeni; }
 async function brGeokod(adresa){
+  if (typeof dopGeokod === "function") return dopGeokod(adresa);
   const r = await fetch("https://photon.komoot.io/api/?limit=1&lat=49.6&lon=17.25&q=" + encodeURIComponent(adresa + ", Česko"));
   if (!r.ok) throw new Error("vyhledání adresy selhalo (" + r.status + ")");
   const d = await r.json(), f = (d.features || [])[0]; if (!f) throw new Error("adresu se nepodařilo najít");
@@ -18510,13 +18548,13 @@ const SNAV_SKUPINY = {
     ["Firma a sazby", /^(Výsledky vyklízení|Posádky|Ekonomika firmy|Sazby|Trh)/]],
   prehled:[["Tento týden", /^(Pondělní|Měsíční výsledky|Růstový)/], ["Peníze", /^(Peníze na|Výdaje firmy)/], ["Obchod", /^(Zdroje zakázek|Proč prohráváme|Partneři|Adresář)/],
     ["Odhady a práce", /^(Plán vs\. realita|Práce, na kterých|Přesnost odhadů)/], ["Provoz", /^(Nářadí|Evidence odpadů)/]],
-  cenik:[["Ceny", /^(Ceník prací|Diamantové|Prahy rentability|Vynáška suti)/], ["Odpad a kontejnery", /^(Zařízení na odpad|Dopravci|Kontejnery)/], ["Firma a nastavení", /^(Firma na dokladech|Výchozí hodnoty|Podmínky nabídky|Zámek|Data)/]],
+  cenik:[["Ceny", /^(Ceník prací|Diamantové|Prahy rentability|Vynáška suti)/], ["Odpad a kontejnery", /^(Zařízení na odpad|Dopravci|Kontejnery)/], ["Firma a nastavení", /^(Firma na dokladech|Výchozí hodnoty|Firma a výchozí|Stanice|Platební plány|Podmínky nabídky|Zámek|Data)/]],
   faktury:[["Doklady", /^(Vydané faktury|Párování|Výdaje)/], ["Daně a účetní", /^(Daně|Pro účetní)/], ["Nastavení", /^(Synchronizace|Zkušební)/]]
 };
 const SNAV_IKONY = [[/^Začít rychle/, "⚡"], [/^Postup zakázky/, "🧭"], [/^Jak s kalkulačkou/, "👋"], [/^Zakázka a nabídka/, "📁"], [/^Zakázka/, "📁"], [/^Bourací práce/, "🔨"], [/^Vynáška/, "🏋"], [/^Materiál/, "🧱"], [/^Příplatky/, "➕"], [/^Odvoz suti/, "🚛"],
   [/^Evidence odpadů/, "♻️"], [/^Platby/, "💳"], [/^Vícepráce/, "🧩"], [/^Fotodokumentace/, "📷"], [/^Denní zápis/, "📝"], [/^Po dokončení/, "✅"], [/^Ekonomika zakázky/, "📊"], [/^Měsíční výsledky/, "📅"],
   [/^Zdroje zakázek/, "📣"], [/^Plán vs\. realita/, "🎯"], [/^Adresář/, "👥"], [/^Nářadí/, "🔧"], [/^Peníze na cestě/, "💸"], [/^Proč prohráváme/, "🤔"], [/^Růstový/, "📈"], [/^Výdaje/, "🧾"],
-  [/^Vydané faktury/, "🧾"], [/^Párování/, "🏦"], [/^Daně/, "🏛"], [/^Pro účetní/, "📦"], [/^Synchronizace/, "🔄"], [/^Firma na dokladech/, "🏢"], [/^Výchozí hodnoty/, "⚙️"], [/^Ceník prací/, "📋"],
+  [/^Vydané faktury/, "🧾"], [/^Párování/, "🏦"], [/^Daně/, "🏛"], [/^Pro účetní/, "📦"], [/^Synchronizace/, "🔄"], [/^Firma na dokladech/, "🏢"], [/^Výchozí hodnoty/, "⚙️"], [/^Ceník prací/, "📋"], [/^Stanice/, "🏠"], [/^Platební plány/, "💳"],
   [/^(Kontejnery|Dopravci)/, "🚛"], [/^Prahy/, "📏"], [/^Data/, "💾"], [/^Uložené zakázky/, "🗂"], [/^Cena pro klienta/, "💰"], [/^Marže/, "📊"], [/^Srovnání s trhem/, "⚖️"], [/^Zkontrolovat/, "✔️"],
   [/^Sazby/, "⚙️"], [/^Jak účtovat/, "🧮"], [/^Trh/, "🔎"], [/^Nasmlouvané/, "📅"], [/^Zprávy klientovi/, "✉️"], [/^Uložené/, "🗂"]];
 const SNAV_NAZVY_ZALOZEK = {rychla:"Rychlá cena", kalkulace:"Kalkulace", vyklizeni:"Vyklízení", zakazky:"Zakázky", plan:"Plán", stroje:"Stroje a nářadí", zpravy:"Zprávy", rust:"Růst a investice", faktury:"Faktury a daně", prehled:"Přehled firmy", cenik:"Ceník a nastavení", pruvodce:"Průvodce", roadmapa:"Roadmapa"};
@@ -19150,6 +19188,407 @@ if (typeof document !== "undefined" && document.addEventListener) {
   document.addEventListener("change", e => { if (e.target.id === "postupStav") postupNastavStav("demolice", e.target.value); });
 }
 
+/* ================= 🚐 DOPRAVA ZE STANIC =================
+   Firma má víc stanic, odkud parta vyjíždí a kde i přespí (hlavní Zábřeh + Brno + Guntramovice).
+   Pravidlo: první cesta na zakázku vede z hlavní stanice, poslední cesta zpět do hlavní stanice,
+   všechny cesty mezi tím jsou z nejbližší stanice — tam parta přespí, ubytování se nepočítá.
+     km celkem = 2 × km(hlavní → zakázka) + 2 × km(nejbližší → zakázka) × (dny − 1)
+   Vzdálenosti po silnici (OSRM) z adresy zakázky; adresa se hledá jen v Česku (Nominatim, záložně Photon). */
+const DOP_STANICE_VYCHOZI = [
+  {id:"zabreh", nazev:"Zábřeh", adresa:"Dvořákova 1267/15, 789 01 Zábřeh", lat:49.87921, lon:16.86698, hlavni:true},
+  {id:"brno", nazev:"Brno – Královo Pole", adresa:"Kostelní zmola 1904/8a, 612 00 Brno", lat:49.23887, lon:16.59683},
+  {id:"guntramovice", nazev:"Guntramovice", adresa:"Guntramovice 110, 747 87 Budišov nad Budišovkou", lat:49.79891, lon:17.57090}
+];
+/* silniční km a minuty z výchozích stanic [Zábřeh, Brno, Guntramovice] do měst (OSRM, 28. 9. 2026) — pro Clauda */
+const DOP_TAB_IDS = ["zabreh", "brno", "guntramovice"];
+const DOP_MESTA = [["Zábřeh", 49.88291, 16.8725, [1, 126, 68], [2, 98, 79]],
+  ["Šumperk", 49.96555, 16.97057, [15, 138, 71], [15, 108, 82]],
+  ["Mohelnice", 49.77695, 16.91962, [15, 112, 65], [16, 85, 68]],
+  ["Jeseník", 50.22964, 17.2046, [58, 185, 74], [72, 165, 93]],
+  ["Olomouc", 49.59406, 17.25114, [48, 84, 45], [38, 70, 52]],
+  ["Litovel", 49.70133, 17.07588, [33, 99, 48], [29, 80, 56]],
+  ["Uničov", 49.77118, 17.12139, [26, 107, 43], [31, 89, 50]],
+  ["Šternberk", 49.73071, 17.29885, [41, 101, 28], [48, 91, 33]],
+  ["Prostějov", 49.47215, 17.1118, [63, 66, 65], [48, 57, 71]],
+  ["Přerov", 49.45538, 17.45086, [74, 91, 79], [55, 71, 71]],
+  ["Hranice", 49.54818, 17.73474, [93, 123, 54], [65, 89, 58]],
+  ["Lipník nad Bečvou", 49.52731, 17.5861, [79, 108, 66], [57, 79, 64]],
+  ["Kroměříž", 49.29842, 17.39298, [97, 71, 102], [69, 56, 84]],
+  ["Holešov", 49.33372, 17.57868, [96, 86, 101], [70, 67, 85]],
+  ["Zlín", 49.22677, 17.66674, [111, 101, 116], [81, 78, 95]],
+  ["Otrokovice", 49.20883, 17.53539, [102, 92, 107], [71, 68, 85]],
+  ["Vsetín", 49.33898, 17.99615, [137, 124, 84], [106, 108, 93]],
+  ["Valašské Meziříčí", 49.47161, 17.97159, [118, 148, 65], [85, 110, 73]],
+  ["Rožnov pod Radhoštěm", 49.4588, 18.14298, [130, 160, 77], [98, 123, 86]],
+  ["Uherské Hradiště", 49.0681, 17.46639, [123, 82, 128], [90, 83, 105]],
+  ["Uherský Brod", 49.02531, 17.64644, [134, 95, 139], [104, 95, 118]],
+  ["Hodonín", 48.85639, 17.12347, [150, 78, 169], [121, 68, 140]],
+  ["Břeclav", 48.7594, 16.88131, [172, 64, 175], [116, 57, 140]],
+  ["Kyjov", 49.01045, 17.12249, [135, 58, 156], [108, 64, 128]],
+  ["Vyškov", 49.27782, 16.99944, [86, 44, 88], [64, 41, 87]],
+  ["Blansko", 49.36365, 16.64424, [85, 21, 111], [89, 29, 120]],
+  ["Boskovice", 49.4878, 16.66016, [68, 39, 104], [70, 43, 113]],
+  ["Brno", 49.19224, 16.61134, [120, 7, 122], [85, 16, 109]],
+  ["Znojmo", 48.85543, 16.04895, [184, 74, 186], [134, 72, 157]],
+  ["Třebíč", 49.21588, 15.88108, [192, 78, 194], [134, 67, 158]],
+  ["Jihlava", 49.39606, 15.59031, [205, 91, 207], [137, 69, 160]],
+  ["Žďár nad Sázavou", 49.5629, 15.93919, [105, 87, 155], [108, 75, 160]],
+  ["Svitavy", 49.75621, 16.4689, [52, 67, 102], [49, 74, 101]],
+  ["Moravská Třebová", 49.75815, 16.66415, [35, 69, 85], [34, 76, 86]],
+  ["Česká Třebová", 49.90216, 16.4472, [42, 89, 117], [47, 94, 115]],
+  ["Ústí nad Orlicí", 49.97376, 16.39417, [45, 99, 126], [51, 106, 127]],
+  ["Lanškroun", 49.91244, 16.61185, [26, 91, 94], [32, 95, 108]],
+  ["Králíky", 50.08432, 16.76037, [33, 121, 100], [36, 129, 111]],
+  ["Bruntál", 49.98851, 17.46529, [64, 138, 32], [70, 127, 37]],
+  ["Rýmařov", 49.93204, 17.27146, [45, 132, 34], [51, 117, 41]],
+  ["Krnov", 50.08989, 17.70408, [87, 162, 43], [94, 151, 54]],
+  ["Opava", 49.9389, 17.90242, [143, 173, 36], [105, 129, 43]],
+  ["Hlučín", 49.89675, 18.18704, [143, 173, 59], [99, 124, 67]],
+  ["Kravaře", 49.93213, 18.00443, [153, 184, 45], [102, 126, 50]],
+  ["Vítkov", 49.77581, 17.75179, [124, 154, 14], [92, 116, 18]],
+  ["Budišov nad Budišovkou", 49.79497, 17.62892, [73, 164, 4], [86, 127, 7]],
+  ["Bílovec", 49.75677, 18.01623, [121, 151, 41], [80, 105, 48]],
+  ["Ostrava", 49.8354, 18.29298, [147, 177, 73], [97, 122, 68]],
+  ["Havířov", 49.78011, 18.43685, [155, 185, 81], [108, 132, 78]],
+  ["Karviná", 49.85427, 18.54166, [170, 200, 96], [120, 144, 90]],
+  ["Frýdek-Místek", 49.68563, 18.34834, [141, 171, 76], [96, 120, 75]],
+  ["Nový Jičín", 49.59488, 18.01026, [114, 144, 48], [76, 101, 56]],
+  ["Kopřivnice", 49.59891, 18.14521, [125, 155, 63], [87, 112, 66]],
+  ["Příbor", 49.64011, 18.14381, [124, 154, 58], [83, 107, 61]],
+  ["Frenštát pod Radhoštěm", 49.54742, 18.21171, [137, 167, 71], [97, 121, 75]],
+  ["Odry", 49.66222, 17.8303, [107, 137, 32], [72, 97, 38]],
+  ["Fulnek", 49.71264, 17.90316, [117, 147, 32], [78, 103, 39]],
+  ["Studénka", 49.71375, 18.06108, [121, 151, 47], [81, 106, 52]],
+  ["Třinec", 49.67792, 18.6712, [169, 199, 104], [113, 137, 92]],
+  ["Český Těšín", 49.7464, 18.6261, [165, 196, 100], [109, 133, 88]]];
+const dopKm = x => fmt0.format(Math.round(x || 0)) + " km";
+function dopStanice(){
+  const n = S.nastaveni || (S.nastaveni = {});
+  if (!Array.isArray(n.stanice) || !n.stanice.length) n.stanice = JSON.parse(JSON.stringify(DOP_STANICE_VYCHOZI));
+  n.stanice.forEach(s => { if (!s.id) s.id = "st" + uid(); });
+  if (!n.stanice.some(s => s.hlavni)) n.stanice[0].hlavni = true;
+  let hl = false; n.stanice.forEach(s => { if (s.hlavni) { if (hl) s.hlavni = false; hl = true; } });
+  const h = n.stanice.find(s => s.hlavni);
+  if (!String(n.zakladna || "").trim() && h) { n.zakladna = h.adresa; if (h.lat) n.zakladnaGps = {adresa:h.adresa, lat:h.lat, lon:h.lon, popis:h.nazev}; }
+  return n.stanice;
+}
+function dopHlavni(){ const s = dopStanice(); return s.find(x => x.hlavni) || s[0]; }
+function dopPodpis(){ return dopStanice().filter(s => s.lat && s.lon).map(s => s.id + ":" + (+s.lat).toFixed(3) + "," + (+s.lon).toFixed(3)).join("|"); }
+function dopNazvy(){ return dopStanice().map(s => s.nazev + (s.hlavni ? " (hlavní)" : "")).join(", "); }
+
+/* ---------- hledání adresy jen v Česku ----------
+   Nominatim (volný text, pak ulice + číslo + obec — u nás mají domy č. p./č. o.), záložně Photon; výsledek mimo Česko se zahodí. */
+const DOP_CZ = p => p && p.lat > 48.5 && p.lat < 51.1 && p.lon > 12 && p.lon < 18.9;
+const dopZkrat = s => String(s || "").split(",").map(x => x.trim()).filter(x => x && !/^okres |kraj$|^Česko$|^\d{3} ?\d{2}$/.test(x)).slice(0, 3).join(", ");
+async function dopGeokod(adresa){
+  const a = String(adresa || "").replace(/\s+/g, " ").trim(); if (!a) throw new Error("chybí adresa");
+  const casti = a.split(",").map(x => x.trim()).filter(Boolean);
+  const mesto = casti.slice(1).join(" ").replace(/\b\d{3}\s?\d{2}\b/g, "").trim();
+  const u = /^(.*?)\s+(\d+[a-zA-Z]?(?:\/\d+[a-zA-Z]?)?)$/.exec(casti[0] || "");
+  /* obec musí být opravdu součástí nalezené adresy (ne jen „okres Olomouc“) */
+  const obecKl = mesto ? bezDiakritiky(mesto).toLowerCase().split(/\s*[-–]\s*/)[0].trim() : "";
+  const shodaObce = t => !obecKl || String(t || "").split(",").map(x => bezDiakritiky(x.trim()).toLowerCase()).filter(x => x && !/^okres |kraj$/.test(x)).some(x => x === obecKl || x.includes(obecKl) || (obecKl.includes(x) && x.length > 3));
+  const nom = async (param, kontrola) => {
+    const r = await fetch("https://nominatim.openstreetmap.org/search?format=json&limit=3&countrycodes=cz&accept-language=cs&" + param);
+    if (!r.ok) return null;
+    const d = await r.json(), f = (d || []).find(x => DOP_CZ({lat:+x.lat, lon:+x.lon}) && (!kontrola || shodaObce(x.display_name)));
+    return f ? {lat:+f.lat, lon:+f.lon, popis:dopZkrat(f.display_name)} : null;
+  };
+  const photon = async (q, kontrola) => {
+    const r = await fetch("https://photon.komoot.io/api/?limit=5&lat=49.6&lon=17.25&bbox=12.09,48.55,18.86,51.06&q=" + encodeURIComponent(q));
+    if (!r.ok) return null;
+    const d = await r.json(), f = (d.features || []).find(x => { const p = x.properties || {}; return p.countrycode === "CZ" && (!kontrola || shodaObce([p.city, p.town, p.village, p.district, p.name].filter(Boolean).join(","))); });
+    if (!f) return null;
+    const p = f.properties || {}, [lon, lat] = f.geometry.coordinates;
+    return {lat, lon, popis:[p.street ? p.street + (p.housenumber ? " " + p.housenumber : "") : p.name, p.city || p.town || p.village || p.county].filter(Boolean).join(", ")};
+  };
+  const pokusy = [];
+  if (u && mesto) pokusy.push(() => nom("street=" + encodeURIComponent(u[2].split("/").pop() + " " + u[1]) + "&city=" + encodeURIComponent(mesto), true));
+  pokusy.push(() => nom("q=" + encodeURIComponent(a), !!mesto));
+  if (casti.length > 1) pokusy.push(() => nom("q=" + encodeURIComponent(casti[0]), true));
+  pokusy.push(() => photon(a, !!mesto));
+  if (casti.length > 1) pokusy.push(() => photon(casti[0], true));
+  for (const p of pokusy) { try { const x = await p(); if (x) return x; } catch (e) {} }
+  /* aspoň ulice nebo obec — přibližně */
+  const hrube = [];
+  if (u && mesto) hrube.push(() => nom("street=" + encodeURIComponent(u[1]) + "&city=" + encodeURIComponent(mesto), true));
+  if (mesto) hrube.push(() => nom("city=" + encodeURIComponent(mesto)));
+  hrube.push(() => nom("q=" + encodeURIComponent(casti[casti.length - 1])));
+  for (const p of hrube) { try { const x = await p(); if (x) return Object.assign(x, {priblizne:true}); } catch (e) {} }
+  throw new Error("adresu „" + a + "“ se nepodařilo najít — napiš ji jako „Ulice číslo, Obec“");
+}
+/* km a minuty po silnici z bodu do všech stanic (když OSRM nejde: vzdušně × 1,3 a 60 km/h) */
+async function dopKeStanicim(bod){
+  const st = dopStanice().filter(s => s.lat && s.lon), km = {}, min = {};
+  try {
+    const r = await fetch("https://router.project-osrm.org/table/v1/driving/" + [bod].concat(st).map(p => (+p.lon).toFixed(5) + "," + (+p.lat).toFixed(5)).join(";") + "?sources=0&annotations=distance,duration");
+    const d = await r.json(); if (d.code !== "Ok") throw new Error("osrm");
+    st.forEach((s, i) => { const m = d.distances[0][i + 1], t = d.durations[0][i + 1]; if (m != null) { km[s.id] = Math.round(m / 100) / 10; min[s.id] = Math.round(t / 60); } });
+    return {km, min, silnice:true};
+  } catch (e) {
+    st.forEach(s => { km[s.id] = Math.round(brVzdusne(bod, s) * 13) / 10; min[s.id] = Math.round(km[s.id]); });
+    return {km, min, silnice:false};
+  }
+}
+const dopBezi = {};
+/* změří zakázku: poloha adresy + km ke stanicím → z.doprava; u vyklízení nastaví i km od nejbližší stanice */
+async function dopZmer(zdroj, z){
+  z = z || (zdroj === "vyklizeni" ? VK : J);
+  if (!z || !String(z.adresa || "").trim()) throw new Error("zakázka nemá adresu");
+  const adresa = z.adresa;
+  const bod = z.gps && z.gps.adresa === adresa && z.gps.lat ? z.gps : Object.assign(await dopGeokod(adresa), {adresa});
+  z.gps = bod;
+  const k = await dopKeStanicim(bod);
+  z.doprava = {adresa, lat:bod.lat, lon:bod.lon, popis:bod.popis || "", priblizne:!!bod.priblizne, km:k.km, min:k.min, silnice:k.silnice, podpis:dopPodpis(), datum:faDnes()};
+  if (zdroj === "vyklizeni" && !z.dopravaRucne) { const p = dopPlan(z, 1); if (p) z.km = Math.round(p.kmB); }
+  return z.doprava;
+}
+function dopPlatne(z){ return !!(z && z.doprava && z.doprava.km && z.doprava.adresa === z.adresa); }
+/* plán jízd pro počet dní práce */
+function dopPlan(z, dny){
+  const d = z && z.doprava; if (!d || !d.km) return null;
+  const hl = dopHlavni(), st = dopStanice().filter(s => d.km[s.id] != null);
+  if (d.km[hl.id] == null || !st.length) return null;
+  const N = Math.max(1, Math.ceil((+dny || 1) - 1e-6));
+  const volba = z.dopravaStanice && z.dopravaStanice !== "auto" ? st.find(s => s.id === z.dopravaStanice) : null;
+  /* nejbližší = nejkratší čas jízdy (čas party je dražší než kilometry), při shodě méně km */
+  const cas = s => d.min && d.min[s.id] != null ? d.min[s.id] : d.km[s.id];
+  const nejblizsi = st.slice().sort((a, b) => cas(a) - cas(b) || d.km[a.id] - d.km[b.id] || (a.hlavni ? -1 : b.hlavni ? 1 : 0))[0];
+  const b = volba || nejblizsi, kmZ = d.km[hl.id], kmB = d.km[b.id];
+  const minZ = d.min && d.min[hl.id] != null ? d.min[hl.id] : kmZ, minB = d.min && d.min[b.id] != null ? d.min[b.id] : kmB;
+  const zBaze = b.id !== hl.id && N > 1;
+  const km = zBaze ? 2 * kmZ + 2 * kmB * (N - 1) : 2 * kmZ * N, kmJenZ = 2 * kmZ * N;
+  const min = zBaze ? 2 * minZ + 2 * minB * (N - 1) : 2 * minZ * N;
+  const cesty = zBaze ? [[hl.nazev + " → zakázka", 1, kmZ, "první cesta"], [b.nazev + " ↔ zakázka", 2 * (N - 1), kmB, "mezi dny (parta spí na stanici " + b.nazev + ")"], ["zakázka → " + hl.nazev, 1, kmZ, "poslední cesta"]]
+    : [[hl.nazev + " ↔ zakázka", 2 * N, kmZ, N > 1 ? "každý den tam a zpět" : "tam a zpět"]];
+  return {N, hl, b, nejblizsi, kmZ, kmB, km:Math.round(km), kmJenZ:Math.round(kmJenZ), uspora:Math.max(0, Math.round(kmJenZ - km)), hodiny:min / 60, minB, zBaze, cesty, daleko:minB > 75, stary:d.podpis !== dopPodpis()};
+}
+/* demolice: km celkem se drží podle plánu (volá vypocet); ručně zadané km mají přednost */
+function dopDnyDemolice(z, hodiny){ const n = S.nastaveni || {}; return hodiny > 0 ? hodiny / (Math.max(1, z.lide || 1) * (+n.hodDen || 8)) : 1; }
+function dopSyncKm(z, hodiny){
+  if (!z || z.dopravaRucne || !dopPlatne(z)) return;
+  const p = dopPlan(z, dopDnyDemolice(z, hodiny)); if (p) z.km = p.km;
+}
+/* vyklízení: km v zakázce = od nejbližší stanice; první a poslední cesta z hlavní stanice je navíc */
+function dopVykNavic(z, km){
+  if (!z || z.dopravaRucne || !dopPlatne(z)) return {km:0, kmZ:km};
+  const p = dopPlan(z, 1); if (!p) return {km:0, kmZ:km};
+  return {km:Math.max(0, p.kmZ - km), kmZ:Math.max(km, p.kmZ)};
+}
+/* ---------- karta dopravy v kalkulaci a ve vyklízení ---------- */
+function dopBoxHTML(zdroj){
+  const z = zdroj === "vyklizeni" ? VK : J, zd = " data-dopz='" + zdroj + "'"; if (!z) return "";
+  const hl = dopHlavni(), st = dopStanice();
+  let h = "<div class='dop-hl'><b>🚐 Doprava party ze stanic</b> <span class='hint'>" + esc(dopNazvy()) + "</span></div>";
+  if (!String(z.adresa || "").trim()) return h + "<p class='hint' style='margin:0'>Doplň adresu zakázky — z ní se spočítá, ze které stanice jezdit a kolik km to dá (první a poslední cesta ze stanice " + esc(hl.nazev) + ", mezi tím z nejbližší stanice, bez ubytování).</p>";
+  if (dopBezi[zdroj]) return h + "<p class='hint' style='margin:0'>Hledám adresu a počítám vzdálenosti po silnici…</p>";
+  const d = z.doprava, chyba = dopBoxHTML.chyba && dopBoxHTML.chyba[zdroj];
+  if (!dopPlatne(z)) return h + (chyba ? "<p class='ne' style='margin:0 0 6px'>" + esc(chyba) + "</p>" : "") +
+    "<p style='margin:0 0 6px'>" + (d && d.adresa ? "Adresa se změnila — vzdálenosti je potřeba spočítat znovu." : "Vzdálenost ke stanicím ještě není spočítaná.") + "</p><button type='button' class='b prim' data-dop='zmer'" + zd + ">🧭 Spočítat dopravu z adresy</button>";
+  const v = zdroj === "vyklizeni" ? (() => { try { return vykVypocet(z); } catch (e) { return null; } })() : null;
+  const dny = zdroj === "vyklizeni" ? (v && v.ok ? v.cas.dny : 1) : dopDnyDemolice(z, (() => { try { return vypocet().hodiny; } catch (e) { return 0; } })());
+  const p = dopPlan(z, dny); if (!p) return h + "<button type='button' class='b' data-dop='zmer'" + zd + ">🧭 Spočítat dopravu z adresy</button>";
+  const n = S.nastaveni || {}, kcKm = zdroj === "vyklizeni" ? +(S.vykSazby || {}).vuzKm || 0 : +n.km || 0;
+  h += "<p style='margin:0 0 6px'>Zakázka: <b>" + esc(d.popis || z.adresa) + "</b>" + (d.priblizne ? " <span class='ne'>(nalezeno jen přibližně — zpřesni adresu)</span>" : "") +
+    ". Po silnici: " + st.filter(s => d.km[s.id] != null).map(s => (s.id === p.b.id ? "<b>" : "") + esc(s.nazev) + " " + dopKm(d.km[s.id]) + (d.min && d.min[s.id] != null ? " (" + fmt0.format(d.min[s.id]) + " min)" : "") + (s.id === p.b.id ? "</b>" : "")).join(" · ") +
+    (d.silnice ? "" : " <span class='hint'>(odhad vzdušně × 1,3 — trasu se nepodařilo spočítat)</span>") + "</p>";
+  h += "<div class='grid g3 dop-volby'><label class='f'>Mezi dny jezdíme ze stanice<select data-dop='stanice'" + zd + "><option value='auto'" + (!z.dopravaStanice || z.dopravaStanice === "auto" ? " selected" : "") + ">nejbližší (" + esc(p.nejblizsi.nazev) + ")</option>" +
+    st.filter(s => d.km[s.id] != null).map(s => "<option value='" + esc(s.id) + "'" + (z.dopravaStanice === s.id ? " selected" : "") + ">" + esc(s.nazev) + "</option>").join("") + "</select></label>" +
+    "<div class='f'><span>" + (zdroj === "vyklizeni" ? "Dní práce (z výpočtu)" : "Dní práce (odhad z hodin)") + "</span><b style='font-size:17px'>" + p.N + "</b></div>" +
+    "<div class='f'><span>Km celkem</span><b style='font-size:17px'>" + dopKm(p.km) + "</b></div></div>";
+  h += "<div class='tscroll'><table class='odp-tab dop-tab'><thead><tr><th>Cesta</th><th class='r'>Kolikrát</th><th class='r'>Km</th><th class='r'>Celkem</th></tr></thead><tbody>" +
+    p.cesty.map(c => "<tr><td>" + esc(c[0]) + "<div class='hint'>" + esc(c[3]) + "</div></td><td class='r'>" + c[1] + "×</td><td class='r'>" + dopKm(c[2]) + "</td><td class='r'>" + dopKm(c[1] * c[2]) + "</td></tr>").join("") +
+    "<tr><td colspan='3'><b>Celkem</b></td><td class='r'><b>" + dopKm(p.km) + "</b></td></tr></tbody></table></div>";
+  h += "<p style='margin:6px 0 0'>Náklad na dopravu asi <b>" + kc(p.km * kcKm) + "</b> (" + fmt1.format(kcKm) + " Kč/km) · za volantem asi <b>" + fmt1.format(p.hodiny) + " h</b> · <b>bez ubytování</b>" +
+    (p.zBaze ? " — mezi dny parta spí na stanici " + esc(p.b.nazev) : "") + "." + (p.uspora > 0 ? " Kdyby se jezdilo každý den ze stanice " + esc(p.hl.nazev) + ", bylo by to " + dopKm(p.kmJenZ) + " (o " + dopKm(p.uspora) + " víc)." : "") + "</p>";
+  if (p.daleko) h += "<div class='warnbox' style='margin:6px 0 0'>⚠️<span>I z nejbližší stanice je to " + fmt0.format(p.minB) + " min jízdy jedním směrem — denně přes " + fmt1.format(2 * p.minB / 60) + " h v autě. Zvaž ubytování u zakázky (zadej ho ručně do vlastních položek) nebo delší pracovní dny.</span></div>";
+  if (p.stary) h += "<p class='hint' style='margin:6px 0 0'>Stanice se od výpočtu změnily. <button type='button' class='mini' data-dop='zmer'" + zd + ">↻ Přepočítat</button></p>";
+  const rucne = z.dopravaRucne;
+  if (rucne) h += "<p class='hint' style='margin:6px 0 0'><b>Km jsou zadané ručně</b> (" + dopKm(zdroj === "vyklizeni" ? z.km : z.km) + (zdroj === "vyklizeni" ? " jedna cesta" : "") + ") — plán výš se do ceny nepočítá. <button type='button' class='mini' data-dop='auto'" + zd + ">↺ Počítat podle stanic</button></p>";
+  else h += "<p class='hint' style='margin:6px 0 0'>" + (zdroj === "vyklizeni" ? "Do ceny jde km od stanice " + esc(p.b.nazev) + " (" + dopKm(p.kmB) + ") pro každodenní cesty a první a poslední cesta ze stanice " + esc(p.hl.nazev) + "." : "Tahle čísla jsou v poli „Doprava celkem“ a v ceně.") + " Když km přepíšeš ručně, má ruční číslo přednost.</p>";
+  return h;
+}
+function dopRender(zdroj){
+  const el = document.getElementById(zdroj === "vyklizeni" ? "vkDopBox" : "dopBox"); if (!el || el.contains(document.activeElement) && document.activeElement.tagName === "SELECT") return;
+  try { el.innerHTML = dopBoxHTML(zdroj); } catch (e) { el.innerHTML = "<p class='hint'>Dopravu se nepodařilo zobrazit (" + esc(e.message) + ").</p>"; }
+  if (zdroj !== "vyklizeni") { const k = document.getElementById("jKm"); if (k && document.activeElement !== k && J) k.value = J.km || ""; }
+}
+async function dopZmerUI(zdroj){
+  const z = zdroj === "vyklizeni" ? VK : J; if (!z || dopBezi[zdroj]) return;
+  dopBezi[zdroj] = true; dopBoxHTML.chyba = dopBoxHTML.chyba || {}; dopBoxHTML.chyba[zdroj] = ""; dopRender(zdroj);
+  try { await dopZmer(zdroj, z); }
+  catch (e) { dopBoxHTML.chyba[zdroj] = "Nepovedlo se: " + (e.message || "chyba") + "."; }
+  dopBezi[zdroj] = false;
+  if (zdroj === "vyklizeni") { if (typeof vykUloz === "function") vykUloz(); if (typeof vkUlozitTise === "function") vkUlozitTise(); if (typeof renderVyklizeni === "function") renderVyklizeni(); }
+  else { save(); if (typeof recalc === "function") recalc(); }
+  dopRender(zdroj);
+}
+
+/* ---------- nastavení: stanice ---------- */
+function dopRenderNast(){
+  const el = document.getElementById("dopStaniceNast"); if (!el || el.contains(document.activeElement) && document.activeElement.tagName !== "BUTTON") return;
+  const st = dopStanice();
+  el.innerHTML = "<p class='hint' style='margin:0 0 8px'>Odkud parta vyjíždí a kde přespí. <b>První cesta</b> na každou zakázku vede z hlavní stanice a <b>poslední</b> zpět do ní; <b>všechny cesty mezi tím</b> jsou z nejbližší stanice — ubytování se proto nepočítá. Z adresy zakázky se vzdálenosti spočítají po silnici samy. Stejná pravidla dostane Claude v balíku (soubor 10).</p>" +
+    "<div class='tscroll'><table class='odp-tab dop-nast'><thead><tr><th>Hlavní</th><th>Název</th><th>Adresa</th><th>Poloha</th><th></th></tr></thead><tbody>" +
+    st.map((s, i) => "<tr><td><input type='radio' name='dopHlavni' data-dopn='hlavni' data-i='" + i + "'" + (s.hlavni ? " checked" : "") + " aria-label='Hlavní stanice'></td>" +
+      "<td><input data-dopn='nazev' data-i='" + i + "' value='" + esc(s.nazev || "") + "'></td><td><input data-dopn='adresa' data-i='" + i + "' value='" + esc(s.adresa || "") + "' style='min-width:220px'></td>" +
+      "<td>" + (s.lat && s.lon ? "<span class='ok'>✓</span> <span class='hint'>" + (+s.lat).toFixed(4) + ", " + (+s.lon).toFixed(4) + "</span>" : "<button type='button' class='mini' data-dopn='najit' data-i='" + i + "'>📍 Najít</button>") + "</td>" +
+      "<td>" + (st.length > 1 ? "<button type='button' class='mini' data-dopn='smazat' data-i='" + i + "' aria-label='Smazat stanici'>✕</button>" : "") + "</td></tr>").join("") +
+    "</tbody></table></div><div class='btnrow'><button type='button' class='b' data-dopn='pridat'>+ Přidat stanici</button><span class='hint' id='dopNastStav'></span></div>";
+}
+async function dopNajitStanici(i){
+  const s = dopStanice()[i]; if (!s) return; const st = document.getElementById("dopNastStav");
+  if (st) st.textContent = "Hledám " + s.adresa + "…";
+  try { const b = await dopGeokod(s.adresa); s.lat = +b.lat.toFixed(5); s.lon = +b.lon.toFixed(5); if (st) st.textContent = "✓ " + s.nazev + ": " + (b.popis || "") + (b.priblizne ? " (jen přibližně — zpřesni adresu)" : ""); }
+  catch (e) { if (st) st.textContent = "✗ " + e.message; }
+  const h = dopHlavni(); if (h === s) { S.nastaveni.zakladna = s.adresa; S.nastaveni.zakladnaGps = s.lat ? {adresa:s.adresa, lat:s.lat, lon:s.lon, popis:s.nazev} : null; }
+  save(); dopRenderNast(); dopTabulkaObnov();
+}
+/* tabulka km ze stanic do měst pro Clauda: výchozí je spočítaná, po změně stanic se přepočítá (OSRM) */
+function dopTabulka(){
+  const st = dopStanice().filter(s => s.lat && s.lon), n = S.nastaveni || {};
+  const vych = st.length === 3 && st.every(s => { const v = DOP_STANICE_VYCHOZI.find(x => x.id === s.id); return v && Math.abs(v.lat - s.lat) < 0.002 && Math.abs(v.lon - s.lon) < 0.002; });
+  if (vych) return {st, radky:DOP_MESTA.map(m => ({mesto:m[0], km:st.map(s => m[3][DOP_TAB_IDS.indexOf(s.id)]), min:st.map(s => m[4][DOP_TAB_IDS.indexOf(s.id)])}))};
+  const t = n.dopTabulka;
+  if (t && t.podpis === dopPodpis()) return {st, radky:DOP_MESTA.map((m, i) => ({mesto:m[0], km:st.map(s => (t.km[s.id] || [])[i]), min:st.map(s => (t.min[s.id] || [])[i])}))};
+  return null;
+}
+async function dopTabulkaObnov(){
+  const st = dopStanice().filter(s => s.lat && s.lon); if (!st.length || dopTabulka()) return;
+  try {
+    const r = await fetch("https://router.project-osrm.org/table/v1/driving/" + st.concat(DOP_MESTA.map(m => ({lat:m[1], lon:m[2]}))).map(p => (+p.lon).toFixed(5) + "," + (+p.lat).toFixed(5)).join(";") + "?sources=" + st.map((_, i) => i).join(";") + "&annotations=distance,duration");
+    const d = await r.json(); if (d.code !== "Ok") return;
+    const km = {}, min = {};
+    st.forEach((s, i) => { km[s.id] = DOP_MESTA.map((_, j) => Math.round(d.distances[i][st.length + j] / 1000)); min[s.id] = DOP_MESTA.map((_, j) => Math.round(d.durations[i][st.length + j] / 60)); });
+    S.nastaveni.dopTabulka = {podpis:dopPodpis(), km, min}; save();
+  } catch (e) {}
+}
+
+/* ---------- pro Clauda: soubor s pravidly dopravy a tabulkou vzdáleností ---------- */
+function dopClaudeMD(druh){
+  const st = dopStanice(), hl = dopHlavni(), n = S.nastaveni || {}, t = dopTabulka(), vyk = druh === "vyklizeni";
+  const kcKm = vyk ? +(S.vykSazby || {}).vuzKm || 0 : +n.km || 0;
+  const op = t ? t.radky.find(r => r.mesto === "Opava") : null, iG = t ? t.st.findIndex(s => s.id === "guntramovice") : -1, iZ = t ? t.st.findIndex(s => s.id === hl.id) : -1;
+  const priklad = op && iG >= 0 && iZ >= 0 ? {z:op.km[iZ], g:op.km[iG]} : {z:143, g:36};
+  const kmP = 2 * priklad.z + 8 * priklad.g;
+  return `# Doprava ze stanic — odkud jezdíme a jak počítáš cestu
+
+Nejezdíme jen ze stanice ${hl.nazev}. Máme **${st.length} stanice**, ze kterých parta vyjíždí a **kde i přespí**:
+
+| Stanice | Adresa | |
+|---|---|---|
+${st.map(s => "| **" + s.nazev + "** | " + s.adresa + " | " + (s.hlavni ? "hlavní — tady každá zakázka začíná i končí" : "vedlejší — odtud se jezdí mezi dny") + " |").join("\n")}
+
+## Pravidlo — takhle počítáš dopravu vždycky
+
+1. **První cesta** na zakázku vede z hlavní stanice (**${hl.nazev}**).
+2. **Poslední cesta** ze zakázky vede zpátky do hlavní stanice.
+3. **Všechny cesty mezi tím** (večer „domů“, ráno zpátky) jsou z **nejbližší stanice** k zakázce (nejkratší čas jízdy) — tam parta přespí.
+4. **Ubytování NIKDY nepočítáš** — na noc máme vlastní stanici. Ani hotel, ani penzion, ani „diety za noc venku“. Výjimka jen tehdy, když ti ji výslovně napíšu.
+5. Jednodenní zakázka: tam a zpět z hlavní stanice.
+
+\`\`\`
+km celkem = 2 × km(${hl.nazev} → zakázka) + 2 × km(nejbližší stanice → zakázka) × (dny práce − 1)
+když je nejbližší stanice ${hl.nazev}: km celkem = 2 × km(${hl.nazev} → zakázka) × dny práce
+náklad    = km celkem × ${fmt1.format(kcKm)} Kč/km${vyk ? "" : "   (klientovi jen když se doprava účtuje: max(km × " + fmt1.format(+n.kmProdej || 0) + " Kč, paušál " + fmt0.format(+n.pausal || 0) + " Kč))"}
+\`\`\`
+
+Čas v autě se počítá do hodin party (lidi × hodiny jízdy). Proto záleží na tom, ze které stanice jedeme.
+
+### Příklad
+Zakázka v Opavě, ${5} dní práce: ${hl.nazev} → Opava ${priklad.z} km (1×), Guntramovice ↔ Opava ${priklad.g} km (8×), Opava → ${hl.nazev} ${priklad.z} km (1×)
+= 2 × ${priklad.z} + 8 × ${priklad.g} = **${kmP} km**, ubytování **0 Kč**. Kdyby se jezdilo každý den ze stanice ${hl.nazev}, bylo by to ${10 * priklad.z} km — to je špatně.
+
+## Vzdálenosti po silnici (km · minuty jedním směrem)
+
+${t ? "| Město | " + t.st.map(s => s.nazev).join(" | ") + " | Nejbližší stanice |\n|---|" + t.st.map(() => "---|").join("") + "---|\n" +
+  t.radky.map(r => { const i = r.km.reduce((b, x, j) => x != null && (b < 0 || (r.min[j] != null ? r.min[j] : x) < (r.min[b] != null ? r.min[b] : r.km[b])) ? j : b, -1); return "| " + r.mesto + " | " + r.km.map((x, j) => x == null ? "—" : x + " km · " + r.min[j] + " min").join(" | ") + " | " + (i >= 0 ? t.st[i].nazev : "—") + " |"; }).join("\n")
+  : "_(tabulka se přepočítává po změně stanic — zatím odhadni vzdálenost podle mapy)_"}
+
+## Jak s tím pracuješ
+
+- Z adresy zakázky urči **nejbližší stanici** a km (vezmi nejbližší město z tabulky a přičti cestu do obce; označ **ODHAD**).
+- V rozpadu ceny napiš dopravu po cestách: „1× ${hl.nazev} → zakázka, N× stanice ↔ zakázka, 1× zakázka → ${hl.nazev}“, km celkem a náklad.
+- **Kalkulačka si km spočítá sama přesně po silnici z adresy** — proto v bloku ${vyk ? "VYK1 dej do `km:` vzdálenost od nejbližší stanice (jedna cesta)" : "DKT1 dopravu party ani ubytování nepiš (žádný řádek `ostatni:` s dopravou nebo ubytováním)"}; hlavně napiš **úplnou adresu** (ulice, číslo, obec).
+- Když je i nejbližší stanice přes ~75 minut jízdy, napiš to do „Na co si dát pozor“ (denně přes 2,5 h v autě) — ubytování ale do ceny nedávej, rozhodnu já.
+`;
+}
+/* zpráva ke fotkám pro Clauda — demolice (vyklízení má vlastní) */
+function dopRadekDoZpravy(zdroj, z){
+  z = z || (zdroj === "vyklizeni" ? VK : J);
+  const p = dopPlatne(z) ? dopPlan(z, zdroj === "vyklizeni" ? (() => { try { const r = vykVypocet(z); return r.ok ? r.cas.dny : 1; } catch (e) { return 1; } })() : dopDnyDemolice(z, (() => { try { return vypocet().hodiny; } catch (e) { return 0; } })())) : null;
+  if (!p) return "Doprava: počítej ze stanic podle souboru s dopravou (" + dopNazvy() + ") — první a poslední cesta ze stanice " + dopHlavni().nazev + ", mezi tím z nejbližší stanice, bez ubytování.";
+  const d = z.doprava;
+  return "Doprava (spočítáno po silnici): " + dopStanice().filter(s => d.km[s.id] != null).map(s => s.nazev + " " + Math.round(d.km[s.id]) + " km").join(", ") + ". Nejbližší stanice " + p.b.nazev + ". Počítej: 1× stanice " + p.hl.nazev + " → zakázka, " + (p.zBaze ? 2 * (p.N - 1) + "× " + p.b.nazev + " ↔ zakázka, " : "") + "1× zpět na stanici " + p.hl.nazev + " — bez ubytování.";
+}
+function dopZpravaDemolice(){
+  const z = J, n = S.nastaveni || {};
+  return ["Nacenit demolici.", "Adresa: " + (z.adresa || "… (ulice, číslo, obec)"), "Patro: " + (z.patro || 0) + ", výtah: " + (z.vytah ? (z.vytahNaSut ? "ano, smí se do něj suť" : "je, ale suť do něj nesmí") : "není"),
+    "Od domu ke kontejneru: " + (z.vzdalenost || "…") + " m", "Parta: " + Math.max(1, z.lide || n.lide || 2) + " lidi, " + (n.hodDen || 8) + " h denně", dopRadekDoZpravy("demolice", z),
+    "Termín: " + (z.terminOd ? faDatum(z.terminOd) : "…"), "Co se bourá: …", "Tloušťky a materiál zdí: …", "Poznámky: " + (z.poznamka || "…"), "",
+    "Fotky a míry přikládám. Vrať rozpad ceny, dopravu po cestách, co vzít za stroje a blok DKT1."].join("\n");
+}
+if (typeof document !== "undefined" && document.addEventListener) {
+  document.addEventListener("click", e => {
+    const b = e.target.closest && e.target.closest("[data-dop], [data-dopn], #dopZprava"); if (!b) return;
+    if (b.id === "dopZprava") {
+      const t = dopZpravaDemolice(), hotovo = () => { const p = b.textContent; b.textContent = "✓ Zkopírováno"; setTimeout(() => { b.textContent = p; }, 1500); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(hotovo, () => prompt("Zkopíruj zprávu:", t)); else prompt("Zkopíruj zprávu:", t);
+      return;
+    }
+    if (b.dataset.dop === "zmer") { dopZmerUI(b.dataset.dopz || "demolice"); return; }
+    if (b.dataset.dop === "auto") {
+      const zdroj = b.dataset.dopz || "demolice", z = zdroj === "vyklizeni" ? VK : J; z.dopravaRucne = false;
+      if (zdroj === "vyklizeni") { const p = dopPlan(z, 1); if (p) z.km = Math.round(p.kmB); if (typeof vykUloz === "function") vykUloz(); if (typeof renderVyklizeni === "function") renderVyklizeni(); }
+      else { save(); recalc(); }
+      dopRender(zdroj); return;
+    }
+    const a = b.dataset.dopn; if (!a || b.tagName !== "BUTTON") return;
+    const st = dopStanice(), i = +b.dataset.i;
+    if (a === "pridat") { st.push({id:"st" + uid(), nazev:"Nová stanice", adresa:"", lat:null, lon:null}); save(); dopRenderNast(); }
+    else if (a === "smazat" && st[i] && confirm("Smazat stanici „" + st[i].nazev + "“?")) { const byla = st[i].hlavni; st.splice(i, 1); if (byla && st[0]) st[0].hlavni = true; save(); dopRenderNast(); dopTabulkaObnov(); }
+    else if (a === "najit") dopNajitStanici(i);
+  });
+  document.addEventListener("change", e => {
+    const t = e.target;
+    if (t.dataset && t.dataset.dop === "stanice") {
+      const zdroj = t.dataset.dopz || "demolice", z = zdroj === "vyklizeni" ? VK : J; z.dopravaStanice = t.value;
+      if (zdroj === "vyklizeni") { z.dopravaRucne = false; const p = dopPlan(z, 1); if (p) z.km = Math.round(p.kmB); if (typeof vykUloz === "function") vykUloz(); if (typeof renderVyklizeni === "function") renderVyklizeni(); }
+      else { z.dopravaRucne = false; save(); recalc(); }
+      return;
+    }
+    if (t.dataset && t.dataset.dopn) {
+      const st = dopStanice(), i = +t.dataset.i, s = st[i]; if (!s) return;
+      if (t.dataset.dopn === "hlavni") { st.forEach((x, j) => { x.hlavni = j === i; }); S.nastaveni.zakladna = s.adresa; S.nastaveni.zakladnaGps = s.lat ? {adresa:s.adresa, lat:s.lat, lon:s.lon, popis:s.nazev} : null; save(); dopRenderNast(); return; }
+      if (t.dataset.dopn === "nazev") { s.nazev = t.value.trim() || s.nazev; save(); return; }
+      if (t.dataset.dopn === "adresa") { s.adresa = t.value.trim(); s.lat = s.lon = null; save(); dopNajitStanici(i); return; }
+    }
+    /* nová adresa zakázky → spočítat dopravu */
+    if (t.id === "jAdresa" && J && String(J.adresa || "").trim() && !J.dopravaRucne) setTimeout(() => dopZmerUI("demolice"), 50);
+    if (t.matches && t.matches("[data-vkt='adresa']") && VK && String(VK.adresa || "").trim() && !VK.dopravaRucne) setTimeout(() => dopZmerUI("vyklizeni"), 50);
+  });
+  /* ručně přepsané km mají přednost před plánem */
+  document.addEventListener("input", e => {
+    if (e.target.id === "jKm" && J) J.dopravaRucne = true;
+    if (e.target.matches && e.target.matches("#vkForm [data-vk='km']") && typeof VK !== "undefined" && VK) VK.dopravaRucne = true;
+  }, true);
+}
+/* automatické změření: jen u nabídek, jen jednou pro adresu, ne během psaní adresy; ručně zadané km se nepřepisují */
+const dopZkouseno = {}, dopCasovac = {};
+function dopAuto(zdroj){
+  const z = zdroj === "vyklizeni" ? VK : J;
+  if (!z || dopBezi[zdroj] || (typeof window !== "undefined" && (window.dopBezSite || location.protocol === "file:"))) return;
+  if (z.dopravaRucne == null && !z.doprava && zdroj !== "vyklizeni" && +z.km > 0) z.dopravaRucne = true;
+  if (!String(z.adresa || "").trim() || dopPlatne(z) || z.dopravaRucne || (z.status || "nabídka") !== "nabídka") return;
+  if (typeof navigator !== "undefined" && navigator.onLine === false) return;
+  const klic = zdroj + "|" + (z.id || "") + "|" + z.adresa; if (dopZkouseno[klic]) return;
+  clearTimeout(dopCasovac[zdroj]);
+  dopCasovac[zdroj] = setTimeout(() => {
+    const a = document.activeElement; if (a && (a.id === "jAdresa" || (a.matches && a.matches("[data-vkt='adresa']")))) return;
+    dopZkouseno[klic] = true; dopZmerUI(zdroj);
+  }, 1200);
+}
+
 /* ================= ROADMAPA — co řeší velké firmy =================
    Samostatná záložka: seznam věcí, na kterých velké demoliční, dopravní a odpadové firmy dělají marži
    (nebo se chrání před ztrátou), rozdělený do fází. Nic z toho zatím není naprogramované v kalkulaci —
@@ -19711,7 +20150,8 @@ const NAPOVEDA = [
   ["#jSleva", "Sleva pro klienta", "Viditelná sleva na konci nabídky. <b>Jde celá z tvého zisku</b>. Dávej ji jen s důvodem a jen když zisk na hodinu zůstane nad tvým minimem."],
   ["#jSlevaDuvod", "Důvod slevy", "Vytiskne se v nabídce i na faktuře. Klient vidí, proč slevu dostal (stálý zákazník, více zakázek), a příště ji nebere jako samozřejmost."],
   ["#jPrirazka", "Interní přirážka", "Zvedne ceny práce i vynášky o zadané procento. <b>Klient ji nevidí</b> — nabídka ukáže jen vyšší jednotkové ceny, žádný řádek „přirážka“. Používej, když je zisk na hodinu nízký, místo abys osekával rezervu."],
-  ["#jKm", "Doprava celkem", "Kilometry všech jízd na zakázku dohromady (tam i zpět, všechny dny). Náklad = km × nákladová sazba; klientovi se účtuje km × prodejní sazba, nejméně paušál výjezdu."],
+  ["#jKm", "Doprava celkem", "Kilometry všech jízd na zakázku dohromady. <b>Počítají se samy ze stanic</b> podle adresy zakázky a odhadu dní: první cesta ze stanice Zábřeh, poslední zpět do ní, všechny cesty mezi tím z nejbližší stanice (tam parta přespí — žádné ubytování). Rozpis je hned pod polem. Když číslo přepíšeš ručně, má přednost (tlačítko ↺ vrátí výpočet). Náklad = km × nákladová sazba; klientovi se účtuje km × prodejní sazba, nejméně paušál výjezdu."],
+  ["css:#dopBox .dop-hl:🚐", "Doprava party ze stanic", "Z adresy zakázky se po silnici spočítá vzdálenost ke všem stanicím (Ceník a nastavení → 🏠 Stanice). Mezi dny se jezdí z nejbližší stanice, první a poslední cesta je ze stanice Zábřeh. Tabulka ukazuje cesty, kolikrát, km a celkem; pod ní náklad, čas za volantem a kolik km se ušetří proti ježdění každý den ze Zábřehu. Stanici jde vybrat i ručně."],
   ["#jDopravaUctovat", "Dopravu účtovat klientovi", "Zaškrtnuto = doprava je v ceně jako řádek. Nezaškrtnuto = doprava je jen tvůj náklad (třeba u zakázky v místě)."],
   ["#jVikend", "Práce o víkendu / svátku", "Příplatek k práci (výchozí v Nastavení). Víkendová práce vás stojí volno — ať se zaplatí."],
   ["#jExpres", "Expresní termín", "Příplatek, když klient chce začít hned a musíte přeskládat plán. Spěch se platí."],
@@ -19757,7 +20197,8 @@ const NAPOVEDA = [
   ["[data-vk='patro']", "Patro", "Patro bez výtahu přidá čas na každé nošení — a tím i cenu (u 3+1 ve 4. patře bez výtahu zhruba +3 500 Kč proti přízemí)."],
   ["[data-vks='vytah']", "Výtah", "Velký výtah (vejde se nábytek) ušetří většinu práce s patry, malý jen polovinu. Nejde-li použít, počítá se po schodech."],
   ["[data-vk='vzdalenost']", "Od vchodu k autu", "Metry od vchodu k místu, kde zastaví dodávka. Každých 10 m navíc přidá čas na nošení."],
-  ["[data-vk='km']", "Km od základny", "Jedna cesta ze základny k zakázce. Posádka dojíždí každý den tam a zpět, čas v autě se počítá jako práce. Odpad se vozí do zařízení u zakázky, ne zpět na základnu."],
+  ["[data-vk='km']", "Km od nejbližší stanice", "Jedna cesta od nejbližší stanice (Zábřeh, Brno, Guntramovice) k zakázce — spočítá se sama z adresy. Posádka jezdí každý den z nejbližší stanice, první a poslední cestu navíc ze stanice Zábřeh; ubytování se nepočítá. Čas v autě se počítá jako práce. Odpad se vozí do nejbližšího zařízení u zakázky. Ruční přepis má přednost."],
+  ["css:#vkDopBox .dop-hl:🚐", "Doprava party ze stanic", "Rozpis cest pro tuhle zakázku: odkud, kolikrát a kolik km. Počítá se z adresy zakázky po silnici; stanici jde vybrat i ručně."],
   ["[data-vk='lide']", "Lidí na zakázce", "Kolik lidí pojede. Víc lidí = rychleji hotovo, ale víc hodin na cestě. Třetí člověk se vyplatí jen na velkých vícedenních zakázkách."],
   ["[data-vks='stav']", "Stav prostoru", "Běžný, prašný (sklepy, půdy), znečištěný (holubi, skelná vata) nebo silná kontaminace (po úmrtí). Ztížené prostředí zvedá čas i cílovou marži (až 55 %). Ochranné pomůcky a dezinfekci domluv předem."],
   ["[data-vkb='rozebirat']", "Rozebírat nábytek", "Zaškrtnuto = nábytek se rozebere (víc času, ale vejde se do auta a líp se nosí). Bez rozebírání se jen vynáší."],
@@ -19766,7 +20207,7 @@ const NAPOVEDA = [
   ["[data-vkb='expres']", "Expres do 48 h", "Příplatek, když klient potřebuje hotovo hned a musíte přeskládat plán."],
   ["css:#vkForm .vk3-lbl:Cenový test", "Cenový test", "Když v Sazbách zapneš cenový test, nové nabídky se střídají v hladinách A (běžná), B (+10 %) a C (+20 %). Výsledky vyklízení pak ukážou, která hladina vydělá nejvíc na jednu poptávku. Hladinu jde u zakázky změnit."],
   ["css:#vkForm .vk3-lbl:Vytížení firmy", "Vytížení firmy", "Jak moc máte plno. Posune cílovou marži u všech nabídek: <b>volno −5</b>, <b>plno +5</b>, <b>nabito +10</b> bodů. Když jste plní na dva týdny dopředu, jste levní — cena má říkat, že na to nemáte čas."],
-  ["sum:vyklizeni:📸 Nacenit z fotek", "Nacenit z fotek přes Claude", "Jednou stáhneš balík (13 souborů) a založíš v Claudovi projekt. Pak pošleš fotky a Claude vrátí soupis věcí, co se dá prodat, plán likvidace, cenu a blok <b>VYK1</b> — vložíš ho sem a zakázka se vyplní. Po úpravách v kalkulačce balík znovu nahraj do projektu."],
+  ["sum:vyklizeni:📸 Nacenit z fotek", "Nacenit z fotek přes Claude", "Jednou stáhneš balík (14 souborů) a založíš v Claudovi projekt. Pak pošleš fotky a Claude vrátí soupis věcí, co se dá prodat, plán likvidace, cenu a blok <b>VYK1</b> — vložíš ho sem a zakázka se vyplní. Po úpravách v kalkulačce balík znovu nahraj do projektu."],
   ["h2:vyklizeni:📋 Soupis věcí", "Soupis věcí", "Přesnější než rychlý odhad: přidáváš věci vyhledáváním (skříň, lednice, pytel…). Každá má objem, hmotnost, čas rozebrání a nošení a druh odpadu. Kovy a elektro se počítají zvlášť (výkup, zpětný odběr zdarma)."],
   ["h2:vyklizeni:💰 Odprodej a výkup", "Odprodej a výkup", "Věci s hodnotou: výkupní cena, jistota prodeje a kam prodat. <b>Protiúčet</b> = věc převezmete a odečtete z ceny (klient platí méně, vy věc prodáte). Jistý a možný prodej se do ceny nepočítá — ukazuje, kolik můžete vydělat navíc."],
   ["h2:vyklizeni:Zakázka a nabídka", "Zakázka a nabídka", "Klient, termín, způsob účtování, stav, sleva, záloha a naše marže. Odtud se tiskne nabídka, vystavují faktury a posílají zprávy. Zakázku průběžně ukládej — jen uložené se počítají do výsledků."],
@@ -19846,6 +20287,7 @@ const NAPOVEDA = [
   ["#nKontRezerva", "Rezerva místa v kontejnerech", "Návrh kontejnerů počítá s volným místem — suť se nedá skládat jako kostky a nikdo nechce objednávat další kontejner kvůli půl kubíku."],
   ["#nKm", "Nákladová sazba dopravy", "Kolik vás stojí kilometr auta (nafta, servis, odpis). Přesněji ji spočítá Ekonomika firmy → Auto a přenese jedním tlačítkem."],
   ["#nRezerva", "Výchozí rezerva", "Rezerva na skryté konstrukce pro nové zakázky demolic (% z práce)."],
+  ["h2:cenik:🏠 Stanice", "Stanice — odkud vyjíždíme", "Místa, odkud parta vyjíždí a kde přespí. <b>Hlavní stanice</b> (Zábřeh) je začátek a konec každé zakázky; ostatní (Brno, Guntramovice) se použijí pro cesty mezi dny, když jsou blíž. Z adresy zakázky se pak doprava spočítá sama a nepočítá se ubytování. Nová stanice: + Přidat stanici, vyplň adresu — poloha se najde sama. Stejná pravidla i s tabulkou km do měst dostane Claude v balíku (soubor 10, u vyklízení 13)."],
   ["h2:cenik:💳 Platební plány", "Platební plány podle velikosti zakázky", "Tady nastavíš, jak se platby dělí a od jaké ceny (a délky prací) se který plán doporučí. Rozdělení píšeš jako 40/40/20: první číslo záloha, poslední doplatek po předání, mezi nimi průběžné platby po etapách. U plánu „po týdnech“ jen zálohu a doplatek — zbytek se rozdělí na platby po každém týdnu práce. U zakázky jde plán vždycky změnit kliknutím."],
   ["h2:cenik:📄 Podmínky nabídky", "Podmínky nabídky a poplatky", "Pravidla, která se <b>samy propíšou do každé nabídky</b> demolic i vyklízení. Klient je vidí dopředu, takže když pak účtuješ zmařený výjezd nebo čekání, není o čem diskutovat. Nastavení 0 = podmínka se v nabídce neuvede."],
   ["[data-hn='zmarenyVyjezd']", "Zmařený výjezd", "Paušál, když přijedete v domluvený čas a práce nejde začít: nejsou klíče, nepustí správce, byt není vyklizený, nejde proud. Jeden zmařený den party je 8–10 tisíc ušlé tržby. Fakturu vystavíš tlačítkem <b>⏱ Zmařený výjezd / čekání</b> u zakázky."],
