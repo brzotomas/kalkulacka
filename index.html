@@ -824,6 +824,9 @@ td .dsz-grid input[type=checkbox]{width:auto}
 .dr-tab input{border:1px solid var(--line);border-radius:6px;padding:3px 5px;background:var(--ground);color:var(--ink)}
 #kontTab.dr-auto input.kNak,#kontTab.dr-auto input.kPro{pointer-events:none;opacity:.6}
 
+/* cenový snímek zakázky */
+.snimek-box{border-left:4px solid var(--line);background:var(--surface2);border-radius:0 10px 10px 0;padding:8px 12px;margin:0 0 10px;font-size:13.5px}
+
 /* navigace po sekcích */
 :root{--hdrH:64px}
 .sum{top:calc(var(--hdrH) + 10px)}
@@ -1381,6 +1384,7 @@ body.zamceno{overflow:hidden}
     </div>
   </div>
 
+  <div id="snimekInfo"></div>
   <div class="btnrow" style="margin-bottom:20px">
     <button class="b prim" id="ulozit">💾 Uložit zakázku</button>
     <button class="b" id="tisk">🖨 Vygenerovat nabídku (tisk / PDF)</button>
@@ -2445,7 +2449,8 @@ body.zamceno{overflow:hidden}
       <li><b>Přihlášení:</b> bez hesla — napíšeš e-mail, přijde šestimístný kód, opíšeš ho. Na každém zařízení jednou.</li>
       <li><b>Bez internetu</b> aplikace funguje dál, změny se řadí do fronty a odešlou se samy. Stav vidíš jako tečku u „Faktury a daně“ v menu: zelená = synchronizováno, žlutá = offline, červená = chyba.</li>
       <li><b>Čísla faktur</b> přiděluje databáze. Když dva lidi vystaví fakturu ve stejnou chvíli, druhý dostane další číslo — nikdy nevzniknou dvě stejná. Vystavení faktury proto potřebuje internet.</li>
-      <li><b>Když dva upraví stejnou zakázku</b>, platí novější změna. Různé zakázky a faktury se nepřepisují nikdy.</li>
+      <li><b>Synchronizuje se všechno</b>: zakázky, vyklízení, faktury, výdaje, ceník, nastavení, dopravci, zařízení, stroje, šablony, Roadmapa… Na každém zařízení zůstane jen rozpracovaný koncept, který ještě není uložený, a PIN.</li>
+      <li><b>Když se totéž změní na dvou zařízeních</b>, změny se sloučí: ceník a seznamy po položkách, nastavení a zakázky po polích. Přepíše se jen to, co se opravdu změnilo na obou místech — tam platí novější.</li>
       <li>Nic se v databázi skutečně nemaže, jen se označí jako smazané — faktury se musí archivovat.</li>
     </ul>
   </div></details>
@@ -4746,7 +4751,7 @@ migrate();
 if(!S.job) S.job=defJob(S.nastaveni);
 let J=S.job;
 let saveT;
-function save(){S.job=J; clearTimeout(saveT); saveT=setTimeout(()=>{try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){} if(typeof syncZapnuto==="function"&&syncZapnuto())syncNaplanuj();},300)}
+function save(){S.job=J; if(typeof snimekDoplnit==="function")snimekDoplnit(); clearTimeout(saveT); saveT=setTimeout(()=>{try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){} if(typeof syncZapnuto==="function"&&syncZapnuto())syncNaplanuj();},300)}
 
 /* ---------- pomůcky ---------- */
 const $=s=>document.querySelector(s);
@@ -5173,7 +5178,7 @@ function vynKoefy(){   /* zpětná kompatibilita: orientační h/t pro hustou su
 }
 /* jádro výpočtu — použitelné i mimo otevřenou zakázku (nastavení, uložené zakázky, šablony) */
 /* vynJadro(…) — viz modul VYNÁŠKA v2 */
-function vynaskaVypocet(sut){
+function vynaskaVypocetZaklad(sut){
   const n=S.nastaveni, s=sut||sutCelkem();
   const r=vynJadro(s.t,s.m3,J.patro,!!(J.vytah&&J.vytahNaSut),J.vzdalenost,J.rucniNoseni,vynOpt(J));
   const sazba=(J.cenik==="b2b"?(n.vynSazba||0)*0.9:(n.vynSazba||0))*prirKoef();
@@ -5199,7 +5204,7 @@ function slevaSlozky(){
   return s;
 }
 function slevaPct(){return slevaSlozky().reduce((a,x)=>a+x.pct,0);}
-function vypocet(){
+function vypocetZaklad(){
   const n=S.nastaveni;
   const dia=typeof brDiamant==="function"?brDiamant(J):{P:0,N:0,hod:0,radky:[]};
   const prace=(J.prace.reduce((a,r)=>a+(r.mnozstvi||0)*(r.cena||0),0)+dia.P)*prirKoef();
@@ -5306,6 +5311,7 @@ function recalc(){
   renderKontRozpis(v);
   if(typeof dopSlRenderZak==="function")dopSlRenderZak();
   if(typeof dopRozpisRender==="function")dopRozpisRender(v);
+  if(typeof snimekRender==="function")snimekRender(v);
   if(typeof renderOdpadDruhy==="function")renderOdpadDruhy(v);
   if(typeof hnRenderPlatnost==="function")hnRenderPlatnost();
   if(typeof hnRenderZabor==="function")hnRenderZabor();
@@ -5490,7 +5496,7 @@ $("#zakTab").addEventListener("click",e=>{
     J=JSON.parse(JSON.stringify(z)); J.id=null; J.nazev=z.nazev+" (kopie)"; J.cisloNab=""; J.cisloDod=0;
     J.skutHodiny=0; J.skutKont=0; J.skutKm=0; J.skutPozn=""; J.fotky=[]; J.viceprace=[];
     J.cisloFakZal=""; J.cisloFakKon=""; J.status="nabídka";
-    ["platby","smlouva","predani","vs","nabVystaveno","nabPlatnostDo","nabCeny","bezSmlouvy","terminOd","terminDo","zalohaCastka","zalohaSplatnost","doplatekCastka","doplatekSplatnost","zalohaZaplacenoFak","doplatekZaplacenoFak","rezervaRadek","vynModel","dz","zapis","denik"].forEach(k=>delete J[k]);
+    ["platby","smlouva","predani","vs","nabVystaveno","nabPlatnostDo","nabCeny","bezSmlouvy","terminOd","terminDo","zalohaCastka","zalohaSplatnost","doplatekCastka","doplatekSplatnost","zalohaZaplacenoFak","doplatekZaplacenoFak","rezervaRadek","vynModel","snimek","dz","zapis","denik"].forEach(k=>delete J[k]);
     J.zalohaZaplaceno=""; J.doplatekZaplaceno=""; J.duvodProhry=""; J.cenaViteze=0; J.poznProhry="";
     delete J.ulozeno; normJob(J); S.job=J; fillAll(); save();
     document.querySelector("nav button[data-tab=kalkulace]").click();
@@ -8584,7 +8590,7 @@ $("#odbList").addEventListener("click",e=>{
 });
 /* ---------- zdroje zakázek ---------- */
 /* ---------- plán vs. realita + kalibrace norem ---------- */
-function planZak(z){
+function planZakZaklad(z){
   const kv=S.nastaveni.koefVykon>0?S.nastaveni.koefVykon:1;
   const hod=(z.prace||[]).reduce((a,r)=>a+(r.mnozstvi||0)*(r.hod||0),0)*kv;
   const n=S.nastaveni;
@@ -11455,27 +11461,150 @@ function syncZaznam(druh, obj, fotoSrc){
 function syncSmazat(druh, id){ if (syncZapnuto()) syncDoFronty(druh, id, {id}, null, true); }
 function faZmena(f){ save(); syncZaznam("faktura", f); if ($("#tab-faktury").classList.contains("on")) renderDane(); }
 
-/* zakázky a nastavení se mění na stovce míst — místo háčků porovnáme otisk při ukládání */
+/* ---------- změny: všechno kromě rozpracovaných konceptů, po částech, se slučováním ----------
+   Dřív šlo nastavení, ceník a další jako jeden balík a vyhrával poslední zápis — zařízení, které si po otevření samo
+   doplnilo výchozí hodnoty, pak poslalo celý starý balík a přepsalo novější ceník z jiného zařízení.
+   Teď: každá část stavu (ceník, nastavení, dopravci, zařízení, stroje, šablony, vyklízení…) je samostatný záznam
+   druh "stav", id = název části, a zakázky/vyklízení jsou záznamy po jednom. Zařízení si pamatuje, v jaké podobě
+   záznam naposledy sladilo se serverem (SY.baze = otisky po položkách/polích). Když se změní na obou stranách,
+   sloučí se: ceník a seznamy po položkách (podle id), nastavení a zakázky po polích — vyhraje ta strana, která danou
+   položku opravdu změnila. Starší verze aplikace záznamy "stav" po částech umí přečíst (data {část: hodnota}). */
+const SYNC_BEZ = new Set(["job", "vykJob", "zakazky", "faktury", "vydaje", "vyklizeni", "vitejVideno", "vykTestPoradi"]);
+function syncStavKlice(){ return Object.keys(S).filter(k => !SYNC_BEZ.has(k) && !/V\d+$/.test(k) && k[0] !== "_" && S[k] !== undefined && typeof S[k] !== "function"); }
 let syncOtisky = {};
-function syncOtisk(x){ const s = JSON.stringify(x); let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return h + ":" + s.length; }
-function syncZkontrolujZmeny(){
-  if (!syncZapnuto()) return;
-  const stav = syncStavData(), o = syncOtisk(stav);
-  if (syncOtisky["stav|firma"] !== undefined && syncOtisky["stav|firma"] !== o) syncDoFronty("stav", "firma", stav);
-  syncOtisky["stav|firma"] = o;
-  [["zakazka", S.zakazky], ["vyklizeni", S.vyklizeni]].forEach(([druh, pole]) => (pole || []).forEach(z => {
-    const k = druh + "|" + z.id, oz = syncOtisk(z);
-    if (syncOtisky[k] !== undefined && syncOtisky[k] !== oz) syncDoFronty(druh, z.id, z);
-    if (syncOtisky[k] === undefined && !syncPrvniNacteni) syncDoFronty(druh, z.id, z);
-    syncOtisky[k] = oz;
-  }));
+function syncOtisk(x){ const s = JSON.stringify(x); if (s === undefined) return "u"; let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return h + ":" + s.length; }
+/* otisk po položkách (seznam s id) nebo po polích (objekt) — pro slučování */
+function syncPopis(v){
+  if (Array.isArray(v) && v.length && v.every(x => x && typeof x === "object" && x.id != null)) { const p = {}; v.forEach(x => { p[String(x.id)] = syncOtisk(x); }); return {t:"a", h:syncOtisk(v), p}; }
+  if (v && typeof v === "object" && !Array.isArray(v)) { const p = {}; Object.keys(v).forEach(k => { p[k] = syncOtisk(v[k]); }); return {t:"o", h:syncOtisk(v), p}; }
+  return {t:"v", h:syncOtisk(v)};
 }
-let syncPrvniNacteni = true;
-function syncPrevzitOtisky(){
-  syncOtisky = {"stav|firma":syncOtisk(syncStavData())};
-  (S.zakazky || []).forEach(z => { syncOtisky["zakazka|" + z.id] = syncOtisk(z); });
-  (S.vyklizeni || []).forEach(z => { syncOtisky["vyklizeni|" + z.id] = syncOtisk(z); });
-  syncPrvniNacteni = false;
+function syncSloucit(local, remote, base){
+  if (!base) return remote;                                   /* neznámý základ: platí server */
+  if (syncOtisk(local) === base.h) return remote;             /* tady beze změny */
+  if (syncOtisk(remote) === base.h) return local;             /* na serveru beze změny */
+  const p = base.p || {};
+  if (base.t === "o" && local && remote && typeof local === "object" && typeof remote === "object" && !Array.isArray(local) && !Array.isArray(remote)) {
+    const out = {};
+    new Set([...Object.keys(remote), ...Object.keys(local)]).forEach(k => {
+      const inL = k in local, inR = k in remote, lZmena = inL ? syncOtisk(local[k]) !== p[k] : p[k] !== undefined;
+      if (lZmena) { if (inL) out[k] = local[k]; } else if (inR) out[k] = remote[k];
+    });
+    return out;
+  }
+  if (base.t === "a" && Array.isArray(local) && Array.isArray(remote)) {
+    const L = new Map(local.filter(x => x && x.id != null).map(x => [String(x.id), x])), out = [], hotovo = new Set();
+    remote.forEach(x => {
+      const id = String(x && x.id), bh = p[id]; hotovo.add(id);
+      if (L.has(id)) { const lx = L.get(id); out.push(syncOtisk(lx) !== bh ? lx : x); }
+      else if (!(bh !== undefined && syncOtisk(x) === bh)) out.push(x);   /* smazané tady a na serveru nezměněné → pryč */
+    });
+    local.forEach(x => { const id = String(x && x.id); if (hotovo.has(id)) return; const bh = p[id]; if (bh === undefined || syncOtisk(x) !== bh) out.push(x); });
+    return out;
+  }
+  return local;
+}
+function syncPopisZaznamu(z){ return z.smazano ? null : syncPopis(z.druh === "stav" ? (z.data || {})[z.id] : z.data); }
+function syncBazeUloz(z, popis){
+  if (!["stav", "zakazka", "vyklizeni"].includes(z.druh) || (z.druh === "stav" && z.id === "firma")) return;
+  SY.baze = SY.baze || {}; const id = z.druh + "|" + z.id;
+  if (z.smazano) delete SY.baze[id]; else if (popis) SY.baze[id] = popis;
+}
+function syncZkontrolujZmeny(){
+  if (!syncZapnuto() || SY.bazeVerze !== 2) return;
+  SY.baze = SY.baze || {};
+  syncStavKlice().forEach(k => { const b = SY.baze["stav|" + k]; if (!b || syncOtisk(S[k]) !== b.h) syncDoFronty("stav", k, {[k]: S[k]}); });
+  [["zakazka", S.zakazky], ["vyklizeni", S.vyklizeni]].forEach(([druh, pole]) => {
+    const ids = new Set();
+    (pole || []).forEach(z => { if (!z || !z.id) return; ids.add(String(z.id)); const b = SY.baze[druh + "|" + z.id]; if (!b || syncOtisk(z) !== b.h) syncDoFronty(druh, z.id, z); });
+    Object.keys(SY.baze).forEach(k => { const i = k.indexOf("|"); if (k.slice(0, i) === druh && !ids.has(k.slice(i + 1))) syncDoFronty(druh, k.slice(i + 1), {id:k.slice(i + 1)}, null, true); });
+  });
+}
+function syncPrevzitOtisky(){ /* od verze 2 se základ sladění ukládá při odeslání a stažení — tady už není co převzít */ }
+/* stažený záznam: sloučit s místní verzí; vrací true, když se u nás něco změnilo */
+function syncPrijmi(z, zacatek){
+  const potvrzeno = syncPotvrzeno.get(z.druh + "|" + z.id);
+  if (potvrzeno && potvrzeno >= zacatek) return false;       /* stažení začalo před odesláním mé změny — přijde znovu */
+  if (z.druh === "stav") {
+    if (z.id === "firma") { if (SY.perKlic) return false; let c = false; Object.keys(z.data || {}).forEach(k => { if (syncPrijmiKlic(k, z.data[k])) c = true; }); return c; }
+    return syncPrijmiKlic(z.id, (z.data || {})[z.id]);
+  }
+  if (z.druh === "zakazka" || z.druh === "vyklizeni") return syncPrijmiZaznam(z);
+  if (SY.fronta.some(q => q.druh === z.druh && q.id === z.id)) return false;   /* faktury, výdaje: moje neodeslaná změna je novější */
+  const pole = z.druh === "faktura" ? "faktury" : z.druh === "vydaj" ? "vydaje" : null; if (!pole) return false;
+  if (!Array.isArray(S[pole])) S[pole] = [];
+  const ix = S[pole].findIndex(x => x.id === z.id);
+  if (z.smazano) { if (ix >= 0) { S[pole].splice(ix, 1); return true; } return false; }
+  if (ix >= 0 && syncOtisk(S[pole][ix]) === syncOtisk(z.data)) return false;
+  if (ix >= 0) S[pole][ix] = z.data; else S[pole].push(z.data);
+  return true;
+}
+function syncPrijmiKlic(k, remote){
+  if (remote === undefined || SYNC_BEZ.has(k) || /V\d+$/.test(k)) return false;
+  SY.baze = SY.baze || {};
+  const id = "stav|" + k, local = S[k], merged = local === undefined ? remote : syncSloucit(local, remote, SY.baze[id]);
+  SY.baze[id] = syncPopis(remote);
+  const zmena = syncOtisk(merged) !== syncOtisk(local);
+  S[k] = merged;
+  const qi = SY.fronta.findIndex(q => q.druh === "stav" && q.id === k);
+  if (syncOtisk(merged) === syncOtisk(remote)) { if (qi >= 0) SY.fronta.splice(qi, 1); } else syncDoFronty("stav", k, {[k]: merged});
+  return zmena;
+}
+function syncPrijmiZaznam(z){
+  const pole = z.druh === "zakazka" ? "zakazky" : "vyklizeni", id = z.druh + "|" + z.id;
+  if (!Array.isArray(S[pole])) S[pole] = [];
+  SY.baze = SY.baze || {};
+  const ix = S[pole].findIndex(x => x.id === z.id), qi = SY.fronta.findIndex(q => q.druh === z.druh && q.id === z.id);
+  if (z.smazano) { delete SY.baze[id]; if (qi >= 0) SY.fronta.splice(qi, 1); if (ix >= 0) { S[pole].splice(ix, 1); return true; } return false; }
+  if (ix < 0 && SY.baze[id]) {
+    /* tady smazaná: když ji na serveru mezitím nikdo neupravil, smazání platí; úprava jinde smazání ruší */
+    if (syncOtisk(z.data) === SY.baze[id].h) return false;
+    if (qi >= 0 && SY.fronta[qi].smazano) SY.fronta.splice(qi, 1);
+  }
+  const local = ix >= 0 ? S[pole][ix] : undefined, merged = local === undefined ? z.data : syncSloucit(local, z.data, SY.baze[id]);
+  SY.baze[id] = syncPopis(z.data);
+  const zmena = local === undefined || syncOtisk(merged) !== syncOtisk(local);
+  if (ix >= 0) S[pole][ix] = merged; else S[pole].push(merged);
+  if (syncOtisk(merged) === syncOtisk(z.data)) { const q = SY.fronta.findIndex(x => x.druh === z.druh && x.id === z.id); if (q >= 0) SY.fronta.splice(q, 1); }
+  else syncDoFronty(z.druh, z.id, merged);
+  /* otevřená zakázka: když na ní zrovna nepracuješ (je stejná jako uložená), převezme se */
+  if (zmena && local && z.druh === "zakazka" && typeof J !== "undefined" && J && J.id === z.id && syncOtisk(J) === syncOtisk(local)) { J = S.job = JSON.parse(JSON.stringify(merged)); normJob(J); }
+  if (zmena && local && z.druh === "vyklizeni" && typeof VK !== "undefined" && VK && VK.id === z.id && syncOtisk(VK) === syncOtisk(local)) { VK = S.vykJob = JSON.parse(JSON.stringify(merged)); }
+  return zmena;
+}
+/* první spuštění nové synchronizace: stáhnout celý stav a všechny zakázky, zapamatovat si základ */
+async function syncStahniVse(filtr){
+  const out = []; let od = 0;
+  for (;;) {
+    const r = await syncFetch("/rest/v1/zaznamy?select=druh,id,data,smazano,upraveno&" + filtr + "&order=upraveno.asc&limit=1000&offset=" + od, {headers:{Accept:"application/json"}});
+    const rows = await syncJson(r) || []; out.push(...rows);
+    if (rows.length < 1000) break; od += rows.length;
+  }
+  return out;
+}
+async function syncInitBaze(){
+  SY.baze = {};
+  const rows = await syncStahniVse("druh=in.(stav,zakazka,vyklizeni)");
+  const perKlic = new Set(rows.filter(z => z.druh === "stav" && z.id !== "firma" && !z.smazano).map(z => z.id)), hodnoty = {};
+  rows.filter(z => z.druh === "stav" && !z.smazano).forEach(z => {
+    if (z.id === "firma") Object.keys(z.data || {}).forEach(k => { if (!perKlic.has(k)) hodnoty[k] = z.data[k]; });
+    else if (z.data && z.data[z.id] !== undefined) hodnoty[z.id] = z.data[z.id];
+  });
+  const cekaStav = SY.fronta.some(q => q.druh === "stav");
+  Object.keys(hodnoty).forEach(k => { if (SYNC_BEZ.has(k) || /V\d+$/.test(k)) return; SY.baze["stav|" + k] = syncPopis(hodnoty[k]); if (!cekaStav) S[k] = hodnoty[k]; });
+  SY.fronta = SY.fronta.filter(q => !(q.druh === "stav" && q.id === "firma"));
+  rows.filter(z => z.druh === "zakazka" || z.druh === "vyklizeni").forEach(z => {
+    const pole = z.druh === "zakazka" ? "zakazky" : "vyklizeni"; if (!Array.isArray(S[pole])) S[pole] = [];
+    const ix = S[pole].findIndex(x => x.id === z.id), ceka = SY.fronta.some(q => q.druh === z.druh && q.id === z.id);
+    if (z.smazano) { if (ix >= 0 && !ceka) S[pole].splice(ix, 1); return; }
+    SY.baze[z.druh + "|" + z.id] = syncPopis(z.data);
+    if (ceka) return;
+    const puvodni = ix >= 0 ? S[pole][ix] : null;
+    if (ix >= 0) S[pole][ix] = z.data; else S[pole].push(z.data);
+    if (z.druh === "zakazka" && typeof J !== "undefined" && J && J.id === z.id && puvodni && syncOtisk(J) === syncOtisk(puvodni)) { J = S.job = JSON.parse(JSON.stringify(z.data)); normJob(J); }
+  });
+  SY.bazeVerze = 2; SY.perKlic = true; syncUloz();
+  return true;
 }
 
 /* ---------- odeslání fronty ---------- */
@@ -11488,6 +11617,7 @@ function syncPotvrd(z){ syncPotvrzeno.set(z.druh + "|" + z.id, Date.now()); }
 async function syncOdeslat(){
   while (SY.fronta.length) {
     const davka = SY.fronta.slice(0, 50);
+    const popisy = davka.map(syncPopisZaznamu);   /* co přesně odchází — základ pro příští sloučení */
     const r = await syncFetch("/rest/v1/zaznamy?on_conflict=druh,id", {method:"POST",
       headers:{"Content-Type":"application/json", Prefer:"resolution=merge-duplicates,return=minimal"},
       body:JSON.stringify(davka.map(z => ({druh:z.druh, id:z.id, data:z.data, cislo:z.cislo, smazano:z.smazano})))});
@@ -11504,7 +11634,7 @@ async function syncOdeslat(){
       continue;
     }
     await syncJson(r);
-    davka.forEach(syncPotvrd);
+    davka.forEach(syncPotvrd); davka.forEach((z, i) => syncBazeUloz(z, popisy[i]));
     /* během odesílání mohla přibýt nebo nahradit jiná změna (třeba smazání) — odebrat jen to, co opravdu odešlo */
     SY.fronta = SY.fronta.filter(q => !davka.includes(q)); syncUloz();
   }
@@ -11521,24 +11651,7 @@ async function syncStahnout(){
     const r = await syncFetch("/rest/v1/zaznamy?select=druh,id,data,smazano,upraveno&upraveno=gt." + encodeURIComponent(od) +
       "&order=upraveno.asc&limit=500", {headers:{Accept:"application/json"}});
     const rows = await syncJson(r) || [];
-    rows.forEach(z => {
-      const cekaLokalne = SY.fronta.some(q => q.druh === z.druh && q.id === z.id);
-      if (cekaLokalne) return;                      /* moje neodeslaná změna je novější */
-      const potvrzeno = syncPotvrzeno.get(z.druh + "|" + z.id);
-      if (potvrzeno && potvrzeno >= zacatek) return; /* stažení začalo před odesláním mé změny — příště přijde znovu (překryv 5 min) */
-      if (z.druh === "stav") {
-        if (syncOtisk(syncStavData()) === syncOtisk(Object.assign(syncStavData(), z.data))) return;
-        zmen++; SYNC_STAV_KLICE.forEach(k => { if (z.data[k] !== undefined) S[k] = z.data[k]; }); return; }
-      const pole = z.druh === "faktura" ? "faktury" : z.druh === "vydaj" ? "vydaje" : z.druh === "zakazka" ? "zakazky" : z.druh === "vyklizeni" ? "vyklizeni" : null;
-      if (!pole) return;
-      if (!Array.isArray(S[pole])) S[pole] = [];
-      const ix = S[pole].findIndex(x => x.id === z.id);
-      if (z.smazano) { if (ix >= 0) { S[pole].splice(ix, 1); zmen++; } return; }
-      if (ix >= 0 && syncOtisk(S[pole][ix]) === syncOtisk(z.data)) return;   /* stejné, jen z překryvného okna */
-      zmen++;
-      if (ix >= 0) S[pole][ix] = z.data; else S[pole].push(z.data);
-      if (z.druh === "zakazka" && J && J.id === z.id && !syncOtevrenaUpravena()) { J = S.job = JSON.parse(JSON.stringify(z.data)); normJob(J); }
-    });
+    rows.forEach(z => { if (syncPrijmi(z, zacatek)) zmen++; });
     if (rows.length && rows[rows.length - 1].upraveno > nejnovejsi) nejnovejsi = rows[rows.length - 1].upraveno;
     if (rows.length < 500) break;
     od = nejnovejsi;
@@ -11555,9 +11668,11 @@ async function syncKolo(){
   if (!navigator.onLine) { SY.stav = "offline"; renderSyncStav(); return; }
   syncBezi = true; SY.stav = "bezi"; renderSyncStav();
   try {
+    if (SY.bazeVerze !== 2 && await syncInitBaze()) { try { localStorage.setItem(LS, JSON.stringify(S)); } catch (e) {} fillAll(); renderAktivniZalozku(); }
+    /* nejdřív stáhnout a sloučit s místními změnami, pak odeslat — jinak by se cizí změna stejného záznamu slepě přepsala */
     syncZkontrolujZmeny();
-    await syncOdeslat();
     const zmen = await syncStahnout();
+    await syncOdeslat();
     await syncDohnatFotky();
     if (zmen) { try { localStorage.setItem(LS, JSON.stringify(S)); } catch (e) {} fillAll(); syncPrevzitOtisky(); renderAktivniZalozku(); }
     SY.stav = "ok"; SY.posledniKolo = new Date().toISOString(); if (!/má číslo/.test(SY.chyba)) SY.chyba = "";
@@ -11621,16 +11736,14 @@ async function syncDohnatFotky(){
 
 /* ---------- první připojení: nahrát, co už je v zařízení ---------- */
 async function syncPrvniNahrani(){
+  if (SY.bazeVerze !== 2) await syncInitBaze();
   await syncStahnout();
   const vzdalene = new Set();
   const r = await syncFetch("/rest/v1/zaznamy?select=druh,id&limit=10000", {headers:{Accept:"application/json"}});
   (await syncJson(r) || []).forEach(z => vzdalene.add(z.druh + "|" + z.id));
-  if (!vzdalene.has("stav|firma")) syncDoFronty("stav", "firma", syncStavData());
-  (S.zakazky || []).forEach(z => { if (!vzdalene.has("zakazka|" + z.id)) syncDoFronty("zakazka", z.id, z); });
-  (S.vyklizeni || []).forEach(z => { if (!vzdalene.has("vyklizeni|" + z.id)) syncDoFronty("vyklizeni", z.id, z); });
   (S.vydaje || []).forEach(v => { if (!vzdalene.has("vydaj|" + v.id)) { syncDoFronty("vydaj", v.id, v); if (v.foto) v.fotoCeka = true; } });
   (S.faktury || []).forEach(f => { if (!vzdalene.has("faktura|" + f.id)) syncDoFronty("faktura", f.id, f, f.cislo); });
-  syncPrevzitOtisky();
+  syncZkontrolujZmeny();   /* stav, zakázky a vyklízení, které server ještě nemá */
   await syncOdeslat();
 }
 
@@ -12477,8 +12590,8 @@ let VK = null, vkHledatText = "", vkTipy = [], vkVlastniOtevreno = false;
 
 function vykKat(){ return Array.isArray(S.vykKatalog) && S.vykKatalog.length ? S.vykKatalog : vykVychoziKatalog(); }
 function vykPlatce(){ return !!(S.nastaveni && S.nastaveni.platceDPH); }
-function vykVypocet(v){ return vykSpocitej(v || VK, S.vykSazby, vykKat(), vykPlatce()); }
-function vykSkutecnost(v){ return vykVyuctuj(v || VK, S.vykSazby, vykKat(), vykPlatce(), Date.now()); }
+function vykVypocet(v){ v = v || VK; return vykSpocitej(v, vykSnimekSazby(v), vykSnimekKatalog(v), vykSnimekPlatce(v)); }
+function vykSkutecnost(v){ v = v || VK; return vykVyuctuj(v, vykSnimekSazby(v), vykSnimekKatalog(v), vykSnimekPlatce(v), Date.now()); }
 const vykPct = x => Math.round((x || 0) * 10000) / 100;
 function vkDelka(h){ const m = Math.round((h || 0) * 60); return Math.floor(m / 60) + " h " + String(m % 60).padStart(2, "0") + " min"; }
 function vkLok(iso){ if (!iso) return ""; const d = new Date(iso); if (isNaN(d)) return ""; d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); }
@@ -12699,7 +12812,7 @@ function renderVyklizeni(){
     "<label class='chk' style='margin-top:8px'><input type='checkbox' data-vkb='predem'" + (v.predem ? " checked" : "") + "> Klient platí celou částku předem — sleva 5 %, záloha 100 %</label>" +
     (!v.predem ? "<label class='chk'><input type='checkbox' data-vkb='nabidnoutPredem'" + (v.nabidnoutPredem !== false ? " checked" : "") + "> Nabídnout v nabídce i druhou, levnější cenu při platbě předem</label>" : "") +
     "<div class='vk3-lbl' style='margin-top:12px'>Platby</div><div id='vkPlatPlan'></div>" +
-    "<div class='btnrow'><button class='b prim' type='button' id='vkUlozit'>💾 Uložit</button><button class='b' type='button' id='vkTisk'>🖨 Nabídka</button>" +
+    "<div id='vkSnimekInfo'></div><div class='btnrow'><button class='b prim' type='button' id='vkUlozit'>💾 Uložit</button><button class='b' type='button' id='vkTisk'>🖨 Nabídka</button>" +
       "<button class='b' type='button' id='vkFakZal'>🧾 Zálohová faktura</button><button class='b' type='button' id='vkFakKon'>🧾 Konečná faktura</button><button class='b' type='button' id='vkZmareny'>⏱ Zmařený výjezd / čekání</button><button class='b' type='button' id='vkProverit'>🔍 Prověřit klienta</button><button class='b' type='button' id='vkSmlouva'>📝 Smlouva</button><button class='b' type='button' id='vkZarizeni'>🧭 Kam s odpadem</button>" +
       "<button class='b' type='button' id='vkNova'>Nová zakázka</button><button class='b' type='button' id='vkModel'>Modelový příklad</button></div>" +
     "<div class='vk-zpravy'><select id='vkZpravaVyber'>" + VYK_ZPRAVY.map((z, i) => "<option value='" + i + "'>" + esc(z[0]) + "</option>").join("") + "</select>" +
@@ -12929,6 +13042,7 @@ function vkCistoNaHod(r){
   return x.naHodMajitele;
 }
 function vykPrepocet(){
+  if (typeof snimekRenderVk === "function") setTimeout(snimekRenderVk, 0);
   if (typeof platSync === "function") { platSync("vyklizeni", VK); platRender("vyklizeni"); }
   if (typeof postupRender === "function") postupRender("vyklizeni");
   if (typeof stRenderPotreby === "function") stRenderPotreby("vyklizeni");
@@ -15320,7 +15434,7 @@ function odpKontOdhad(m3, t, druh){
   }
   return odpKontCache.get(k);
 }
-function odpadRozpis(sut){
+function odpadRozpisZaklad(sut){
   const o = odpNast(), d = {cista:{t:0, m3:0}, smes:{t:0, m3:0}, kov:{t:0, m3:0}};
   (J.prace || []).forEach(r => { const x = d[odpadDruh(r)]; x.t += (r.mnozstvi || 0) * (r.sutT || 0); x.m3 += (r.mnozstvi || 0) * (r.sutM3 || 0); });
   if (J.odpadModel !== 2) {
@@ -21348,6 +21462,105 @@ if (typeof document !== "undefined" && document.addEventListener) {
   }, true);
 }
 
+/* ================= CENOVÝ SNÍMEK ZAKÁZKY =================
+   Uložená zakázka si drží vlastní ceny: řádky prací mají cenu, normu a suť už od přidání; snímek k nim přidá
+   sazby a nastavení z doby uložení (vynáška, likvidace, přirážky, výkon party, doprava, víkend, kontejnery,
+   vybraný dopravce a zařízení). Výpočet uložené zakázky pak běží nad snímkem — pozdější změna ceníku nebo
+   Nastavení se hotových ani rozpracovaných zakázek netýká, dokud se výslovně nepřecení.
+   Firemní údaje a číselné řady (účet, adresa, čísla faktur a nabídek) se do snímku nedávají — ty jsou vždy aktuální.
+   Vyklízení: snímek sazeb vyklízení, katalogu věcí a plátcovství DPH. */
+const SNIMEK_BEZ = new Set(["firma", "ico", "dic", "adresaFirmy", "bankUcet", "iban", "swift", "znacka", "spisZn", "jednatel", "telefon", "email", "web",
+  "logo", "podpis", "razitko", "posledniDanPovinnost", "dphLimit", "fakRok", "fakPoradi", "nabRok", "nabPoradi", "kanaly", "cfPolozky"]);
+const snKopie = x => x == null ? x : JSON.parse(JSON.stringify(x));
+function snimekNastaveni(){
+  const n = S.nastaveni || {}, o = {};
+  Object.keys(n).forEach(k => { const v = n[k]; if (SNIMEK_BEZ.has(k) || /^mig/.test(k) || v === undefined || (typeof v === "string" && v.length > 400)) return; o[k] = snKopie(v); });
+  return o;
+}
+function snimekDemolice(z){
+  const d = z && z.dopravceId ? (S.dopravci || []).find(x => x.id === z.dopravceId) : null;
+  const zar = z && z.zarizeniId ? (S.zarizeni || []).find(x => x.id === z.zarizeniId) : null;
+  return {datum:new Date().toISOString().slice(0, 10), nastaveni:snimekNastaveni(), kontejnery:snKopie(S.kontejnery || []), dopravce:snKopie(d) || null, zarizeni:snKopie(zar) || null};
+}
+function snimekVyklizeni(v){
+  /* z katalogu jen věci, které zakázka opravdu má (šetří místo); ostatní se vezmou z aktuálního katalogu */
+  const ids = new Set([...((v && v.polozky) || []).map(p => p && p.id), ...((v && v.doplnky) || [])]);
+  const kat = typeof vykKat === "function" ? vykKat() : S.vykKatalog || [];
+  return {datum:new Date().toISOString().slice(0, 10), vykSazby:snKopie(S.vykSazby || {}), katalog:snKopie(kat.filter(k => k && ids.has(k.id))),
+    platce:typeof vykPlatce === "function" ? vykPlatce() : !!(S.nastaveni || {}).platceDPH};
+}
+/* výpočet nad snímkem: dočasně podstrčí nastavení, kontejnery, dopravce a zařízení ze snímku (nové položky Nastavení zůstanou aktuální) */
+let snimekHloubka = 0;
+function snimekSpust(z, fn, args){
+  const sn = z && z.snimek;
+  if (snimekHloubka > 0 || !sn || !sn.nastaveni) return fn.apply(null, args || []);
+  const puv = {nastaveni:S.nastaveni, kontejnery:S.kontejnery, dopravci:S.dopravci, zarizeni:S.zarizeni};
+  const nahrad = (arr, x) => { if (!x) return arr; const a = (arr || []).slice(), i = a.findIndex(q => q.id === x.id); if (i >= 0) a[i] = x; else a.push(x); return a; };
+  S.nastaveni = Object.assign({}, puv.nastaveni, sn.nastaveni);
+  if (Array.isArray(sn.kontejnery)) S.kontejnery = sn.kontejnery;
+  S.dopravci = nahrad(puv.dopravci, sn.dopravce); S.zarizeni = nahrad(puv.zarizeni, sn.zarizeni);
+  snimekHloubka++;
+  try { return fn.apply(null, args || []); }
+  finally { snimekHloubka--; S.nastaveni = puv.nastaveni; S.kontejnery = puv.kontejnery; S.dopravci = puv.dopravci; if (puv.zarizeni === undefined) delete S.zarizeni; else S.zarizeni = puv.zarizeni; }
+}
+function vypocet(){ return snimekSpust(J, vypocetZaklad); }
+function vynaskaVypocet(sut){ return snimekSpust(J, vynaskaVypocetZaklad, [sut]); }
+function odpadRozpis(sut){ return snimekSpust(J, odpadRozpisZaklad, [sut]); }
+function planZak(z){ return snimekSpust(z, planZakZaklad, [z]); }
+function vykSnimekSazby(v){ const sn = v && v.snimek; return sn && sn.vykSazby ? Object.assign({}, S.vykSazby, sn.vykSazby) : S.vykSazby; }
+function vykSnimekKatalog(v){
+  const sn = v && v.snimek, kat = vykKat(); if (!sn || !Array.isArray(sn.katalog) || !sn.katalog.length) return kat;
+  const m = new Map(sn.katalog.map(k => [k.id, k]));
+  return kat.map(k => m.get(k.id) || k).concat(sn.katalog.filter(k => !kat.some(x => x.id === k.id)));
+}
+function vykSnimekPlatce(v){ const sn = v && v.snimek; return sn && sn.platce != null ? sn.platce : vykPlatce(); }
+
+/* uložené zakázky bez snímku ho dostanou (poprvé při aktualizaci = ceny k dnešku); otevřená zakázka převezme snímek uložené */
+function snimekDoplnit(){
+  (S.zakazky || []).forEach(z => { if (z && !z.snimek) z.snimek = snimekDemolice(z); });
+  (S.vyklizeni || []).forEach(v => { if (v && !v.snimek) v.snimek = snimekVyklizeni(v); });
+  if (typeof J !== "undefined" && J && J.id && !J.snimek) { const z = (S.zakazky || []).find(x => x.id === J.id); if (z && z.snimek) J.snimek = snKopie(z.snimek); }
+  if (typeof VK !== "undefined" && VK && VK.id && !VK.snimek) { const v = (S.vyklizeni || []).find(x => x.id === VK.id); if (v && v.snimek) VK.snimek = snKopie(v.snimek); }
+}
+function snimekDatum(sn){ return sn && sn.datum ? sn.datum.split("-").reverse().map(Number).join(". ") : ""; }
+/* o kolik by se cena změnila podle dnešního ceníku — počítá se nad kopií zakázky, ať se otevřená zakázka nezmění */
+function snimekRozdil(v){
+  if (!J || !J.snimek) return 0;
+  const puv = J; let nove = null;
+  try { J = snKopie(puv); J.snimek = null; nove = vypocetZaklad().celkem; } catch (e) {} finally { J = puv; }
+  return nove == null ? 0 : Math.round(nove - (v ? v.celkem : vypocet().celkem));
+}
+function snimekRender(v){
+  const el = document.getElementById("snimekInfo"); if (!el) return;
+  if (!J || !J.snimek) { el.innerHTML = J && !J.id ? "<p class='hint' style='margin:0 0 8px'>Nová zakázka počítá s aktuálním ceníkem a Nastavením. Při prvním uložení si ceny zamkne.</p>" : ""; return; }
+  const r = snimekRozdil(v);
+  el.innerHTML = "<div class='snimek-box'>🔒 <b>Ceny zakázky jsou zamčené k " + snimekDatum(J.snimek) + "</b> <span class='hint'>— ceník, sazby a nastavení z toho dne. Pozdější změny v Ceníku a nastavení se jí netýkají.</span>" +
+    (r ? " <span class='hint'>Podle dnešního ceníku by vyšla " + (r > 0 ? "o " + kc(r) + " dráž" : "o " + kc(-r) + " levněji") + ".</span>" : "") +
+    " <button type='button' class='mini' id='snimekPrecenit'>↻ Přecenit podle aktuálního ceníku</button></div>";
+}
+function snimekPrecenit(){
+  const podepsano = J.smlouva || ["domluveno", "probíhá", "hotovo"].includes(J.status);
+  if (!confirm("Přecenit zakázku podle aktuálního ceníku a Nastavení?\n\nCeny a normy prací se vezmou z ceníku, sazby (vynáška, likvidace, přirážky, doprava, kontejnery…) z Nastavení." +
+    (podepsano ? "\n\nPozor: zakázka je domluvená nebo hotová — cena se změní proti nabídce, smlouvě i fakturám." : "") + "\n\nPak zakázku ulož.")) return;
+  (J.prace || []).forEach(r => { const it = r.polozkaId && (S.cenik || []).find(x => x.id === r.polozkaId); if (it) { r.cena = it[J.cenik] || it.b2c; r.hod = it.hod; r.sutT = it.sutT; r.sutM3 = it.sutM3; } });
+  delete J.vynModel; J.snimek = snimekDemolice(J);
+  if (typeof prepocitatKontejnery === "function") prepocitatKontejnery();
+  if (typeof renderPrace === "function") renderPrace();
+  recalc(); save();
+}
+function snimekRenderVk(){
+  const el = document.getElementById("vkSnimekInfo"); if (!el || typeof VK === "undefined" || !VK) return;
+  el.innerHTML = VK.snimek ? "<div class='snimek-box'>🔒 <b>Ceny zakázky jsou zamčené k " + snimekDatum(VK.snimek) + "</b> <span class='hint'>— sazby a katalog vyklízení z toho dne.</span> <button type='button' class='mini' id='vkSnimekPrecenit'>↻ Přecenit podle aktuálních sazeb</button></div>" : "";
+}
+if (typeof document !== "undefined" && document.addEventListener) document.addEventListener("click", e => {
+  const t = e.target; if (!t) return;
+  if (t.id === "snimekPrecenit") { snimekPrecenit(); return; }
+  if (t.id === "vkSnimekPrecenit") {
+    if (!confirm("Přecenit vyklízení podle aktuálních sazeb a katalogu?")) return;
+    VK.snimek = snimekVyklizeni(VK); if (typeof vykUloz === "function") vykUloz(); if (typeof vkUlozitTise === "function") vkUlozitTise(); if (typeof vykPrepocet === "function") vykPrepocet();
+  }
+});
+
 /* ================= ROADMAPA — co řeší velké firmy =================
    Samostatná záložka: seznam věcí, na kterých velké demoliční, dopravní a odpadové firmy dělají marži
    (nebo se chrání před ztrátou), rozdělený do fází. Nic z toho zatím není naprogramované v kalkulaci —
@@ -22019,7 +22232,7 @@ const NAPOVEDA = [
   ["h2:faktury:Výdaje a doklady", "Výdaje a doklady", "Nákupy firmy (nafta, nářadí, materiál, služby) s kategorií a fotkou účtenky. Snižují základ daně a jdou účetní. „Vyfotit účtenku“ funguje i z mobilu."],
   ["h2:faktury:Daně a výsledek hospodaření", "Daně a výsledek", "Výnosy z faktur − výdaje = výsledek hospodaření, odhad <b>daně z příjmů 21 %</b> a kolik si můžete vyplatit po <b>srážkové dani 15 %</b>. Říká i, kolik % z každé faktury si odkládat na daň. ⓘ u daní vysvětluje, proč jsou dvě."],
   ["h2:faktury:Pro účetní", "Pro účetní", "Jedním tlačítkem ZIP s fakturami, výdaji a přehledy za zvolené období — pošleš účetní a nemusíte nic přepisovat. Faktury jsou v něm i ve formátu ISDOC (složka isdoc/): Pohoda, Money, ABRA Flexi a další je naimportují samy. Jednotlivou fakturu v ISDOC stáhneš tlačítkem ISDOC v seznamu dokladů — hodí se i pro firmy, které e-faktury chtějí."],
-  ["h2:faktury:Synchronizace", "Synchronizace", "Stejná data na telefonu, počítači i u parťáka přes Supabase. Po přihlášení e-mailem se změny posílají samy. Bez synchronizace je všechno jen v tomto prohlížeči — pak dělej zálohy (Ceník a nastavení → Data)."],
+  ["h2:faktury:Synchronizace", "Synchronizace", "Stejná data na telefonu, počítači i u parťáka přes Supabase — zakázky, faktury, ceník, nastavení, dopravci, stroje, šablony, prostě všechno. Po přihlášení e-mailem se změny posílají samy a změny z více zařízení se slučují po položkách, nic se nepřepíše celým balíkem. Bez synchronizace je všechno jen v tomto prohlížeči — pak dělej zálohy (Ceník a nastavení → Data)."],
   ["sum:faktury:🧪 Zkušební data", "Zkušební data", "Smaže všechny doklady — jen na vyzkoušení fakturace před ostrým provozem. Ostré doklady se nemažou, ale stornují."],
 
   /* ---------------- PŘEHLED FIRMY ---------------- */
