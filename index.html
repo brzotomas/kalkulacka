@@ -848,6 +848,9 @@ td .dsz-grid input[type=checkbox]{width:auto}
 .oj-akce input{width:76px}
 .oj-sum{font-size:14px;margin:6px 0 0}
 .oj-klient{border-left:4px solid var(--accent);background:var(--surface2);border-radius:0 10px 10px 0;padding:8px 12px;font-size:14px;margin:10px 0 12px}
+.oj-v-h{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:0 0 2px}
+.oj-dopad{margin:8px 0 0;padding-top:8px;border-top:1px solid var(--line);display:grid;gap:3px}
+#odvEko .odv-eko-h{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:10px 16px 2px}
 .oj-por{margin:10px 0 0;font-size:13.5px}
 .oj-por summary{cursor:pointer;font-weight:600}
 .oj-por > div{padding:3px 0}
@@ -1462,6 +1465,7 @@ body.zamceno{overflow:hidden}
     <div id="sumTrzby"></div>
     <div id="sumNaklady"></div>
     <div class="sumline total"><span>Klient zaplatí celkem</span><b id="sumCelkem"></b></div>
+    <div class="sumline sub" id="sumSeZvlast" style="display:none"></div>
     <div class="sumline"><span id="dphLabel">DPH</span><b id="sumDph" class="num"></b></div>
     <div class="sumline"><span>Záloha podle plánu</span><b id="sumZaloha" class="num"></b></div>
     <div class="zisk">
@@ -5447,14 +5451,15 @@ function recalc(){
   $("#sumTrzby").innerHTML=t;
   let nk="";
   const nkRow=(l,x)=>x?"<div class='sumline sub'><span>"+l+"</span><b style='color:var(--bad)'>−"+kc(x)+"</b></div>":"";
-  nk+=nkRow(v.odvN?"Doprava suti (nákup)":"Kontejnery (nákup)",v.kontN)+nkRow(v.odvN?"Likvidace (nákup)":"Skládkovné",v.sklN)+nkRow("Materiál (nákup)",v.matN)+
+  nk+=nkRow(v.odvN?"Doprava suti (nákup)":"Kontejnery (nákup)",v.kontN)+(v.sklN<0?"<div class='sumline sub'><span>Výkup kovů (snižuje náklady)</span><b class='ok'>+"+kc(-v.sklN)+"</b></div>":nkRow(v.odvN?"Likvidace (nákup)":"Skládkovné",v.sklN))+nkRow("Materiál (nákup)",v.matN)+
       nkRow("Doprava "+(J.km||0)+" km",v.dopravaN)+nkRow("Provize",v.provize)+nkRow("Najatí pracovníci",v.najatiN)+nkRow("Vlastní položky (náklad)",v.ostN)+nkRow("Zábor (poplatky)",v.zaborN);
-  if(nk)nk="<div class='sumline' style='margin-top:6px'><span><b>Náklady</b></span><b style='color:var(--bad)'>−"+kc(v.naklady)+"</b></div>"+nk;
+  if(nk)nk="<div class='sumline' style='margin-top:6px'><span><b>Náklady</b></span><b style='color:var(--bad)'>"+(v.naklady<0?"+"+kc(-v.naklady):"−"+kc(v.naklady))+"</b></div>"+nk;
   $("#sumNaklady").innerHTML=nk;
   if(typeof renderDmProjekt==="function")renderDmProjekt();
   renderPredem(v);
   if(typeof renderDmZisk==="function")renderDmZisk(v);
   $("#sumCelkem").textContent=kc(v.celkem);
+  {const zs=document.getElementById("sumSeZvlast"),zc=v.odvZ&&v.odvZ.celkem>0?v.odvZ.celkem*(1+(v.sazba||0)):0;if(zs){zs.style.display=zc?"":"none";zs.innerHTML=zc?"<span>i se zvlášť účtovaným odvozem / likvidací (~"+kc(zc)+")</span><b>~"+kc(v.celkem+zc)+"</b>":"";}}
   if(J.dph==="rc"){$("#dphLabel").textContent="DPH 21 % — odvádí odběratel (informativně)";$("#sumDph").textContent=kc(v.dphInfo);}
   else if(J.dph==="ne"){$("#dphLabel").textContent="DPH — neplátce";$("#sumDph").textContent=kc(0);}
   else{$("#dphLabel").textContent="DPH "+(v.sazba*100)+" %";$("#sumDph").textContent=kc(v.dph);}
@@ -20305,10 +20310,15 @@ const ODV_REZIMY = [
 ];
 function odvRezim(z){ z = z || (typeof J !== "undefined" ? J : null); return z && ODV_REZIMY.some(r => r[0] === z.odvozRezim) ? z.odvozRezim : "komplet"; }
 function odvRezimVychozi(){ const r = (S.nastaveni || {}).odvozRezimVychozi; return ODV_REZIMY.some(x => x[0] === r) ? r : "likvZvlast"; }
-function odvPrirazka(){ return Math.max(0, +(S.nastaveni || {}).likvPrirazka || 0); }
+/* přirážka „za zajištění“ k částkám účtovaným zvlášť podle skutečnosti — u zakázky jde přepsat (J.odvRez.zvlast), jinak z Nastavení */
+function odvPrirazka(z){
+  z = z || (typeof J !== "undefined" ? J : null);
+  const p = z && z.odvRez ? z.odvRez.zvlast : "";
+  return Math.max(0, p !== "" && p != null && isFinite(+p) ? +p : +(S.nastaveni || {}).likvPrirazka || 0);
+}
 /* úprava prodeje a nákladů odvozu/likvidace podle režimu (volá vypocet) */
 function odvUprava(z, odp, kontP, kontN){
-  const rez = odvRezim(z), prir = 1 + odvPrirazka() / 100, vykup = (odp && odp.vykup) || 0;
+  const rez = odvRezim(z), prir = 1 + odvPrirazka(z) / 100, vykup = (odp && odp.vykup) || 0;
   const lik = (odp && odp.likvidace) || 0, kryto = odvKryto(z, odp), balicek = kryto > 0 && kryto >= lik - 0.5;
   const r = {rezim:rez, balicek, kryto, likv:0, likvNaklad:Math.max(0, lik - kryto), odvoz:0, celkem:0, kontP, kontN, sklN:balicek ? -vykup : 0, sklP:0};
   if (rez === "komplet") {
@@ -20318,7 +20328,7 @@ function odvUprava(z, odp, kontP, kontN){
   }
   if (rez === "bezOdvozu") { r.kontP = r.kontN = 0; return r; }
   r.likv = Math.round(r.likvNaklad * prir); r.sklN = -vykup;
-  if (rez === "odvozZvlast") { r.odvoz = Math.round(kontN * prir); r.kontP = 0; r.kontN = 0; }
+  if (rez === "odvozZvlast") { r.odvozNaklad = kontN; r.odvoz = Math.round(kontN * prir); r.kontP = 0; r.kontN = 0; }
   r.celkem = r.likv + r.odvoz;
   return r;
 }
@@ -20384,7 +20394,7 @@ function odvPredmetVeta(z){
 function odvSmlouvaVety(z, spotr){
   const rez = odvRezim(z); if (rez === "komplet" || rez === "bezOdvozu") return [];
   let v = null; { const p = J; J = z; try { v = vypocet(); } catch (e) {} finally { J = p; } }
-  const x = v && v.odvZ ? v.odvZ : {likv:0, odvoz:0}, prir = odvPrirazka();
+  const x = v && v.odvZ ? v.odvZ : {likv:0, odvoz:0}, prir = odvPrirazka(z);
   return ["Cena díla <b>nezahrnuje " + (rez === "odvozZvlast" ? "odvoz odpadu (přistavení, odvoz a pronájem kontejnerů) ani " : "") + "poplatky za převzetí a uložení odpadu v oprávněném zařízení</b>. Tyto náklady objednatel uhradí ve výši, kterou zařízení" + (rez === "odvozZvlast" ? " a dopravce" : "") +
     " skutečně naúčtuj" + (rez === "odvozZvlast" ? "í" : "e") + (typeof odvLikvJednotka === "function" && odvLikvJednotka(v) === "kont" ? " podle skutečného počtu vývozů kontejnerů (paušál za kontejner)" : typeof odvLikvJednotka === "function" && odvLikvJednotka(v) === "mix" ? " podle počtu vývozů kontejnerů a zvážené hmotnosti odpadu" : " podle zvážené hmotnosti a druhu odpadu") + (prir ? ", navýšené o " + prir + " % za zajištění" : ", bez přirážky") + ". Orientační odhad je " + kc((x.likv || 0) + (x.odvoz || 0)) +
     ". Zhotovitel je vyúčtuje po dokončení samostatnou fakturou, jejíž přílohou budou " + (typeof odvLikvJednotka === "function" && odvLikvJednotka(v) === "kont" ? "doklady dopravce o vývozech" : "vážní lístky a doklady zařízení") + "; splatnost je stejná jako u doplatku."];
@@ -20397,7 +20407,7 @@ function odvSazbaKodu(kod){
   return /^17 01 0[1-7]|^17 05 04|^17 01 07/.test(k) ? n.cista : n.smes;
 }
 function odvFakturaRadky(z){
-  const prir = 1 + odvPrirazka() / 100, radky = [];
+  const prir = 1 + odvPrirazka(z) / 100, radky = [];
   let v = null; { const p = J; J = z; try { v = vypocet(); } catch (e) {} finally { J = p; } }
   const ev = (z.odpady || []).filter(r => +r.tuny > 0 && !/^17 04/.test(String(r.kod || "")));
   const jed = typeof odvLikvJednotka === "function" ? odvLikvJednotka(v) : "vaha";
@@ -21773,36 +21783,56 @@ function odpVariantaHTML(nazev, x, o){
 function odvEkoRender(v){
   const el = document.getElementById("odvEko"); if (!el || !v) return;
   if (el.contains(document.activeElement)) { const t = el.querySelector(".odv-eko-tab"); if (t) t.innerHTML = odvEkoTabHTML(v); return; }
-  if (J.odvCena !== 2) {
+  if (J.odvCena !== 2 && !v.odvN) {
     el.innerHTML = "<p class='hint' style='margin:0 0 6px'>Tahle zakázka počítá postaru — klient platí pevné prodejní ceny kontejnerů (" + kc(v.kontP) + "), nezávisle na dopravci.</p>" +
       "<button type='button' class='b' id='odvCenaZapnout'>Počítat z nákladu (rezerva + přirážka)</button>";
     return;
   }
-  const r = odvRezNast(J), n = S.nastaveni || {};
+  const rez = (v.odvZ || {}).rezim || "komplet", n = S.nastaveni || {}, jr = J.odvRez || {};
   const inp = (k, val, ph, w) => "<input type='number' min='0' step='any' data-odvrez='" + k + "' value='" + (val === "" || val == null ? "" : val) + "' placeholder='" + ph + "' style='width:" + (w || 64) + "px'>";
-  const jr = J.odvRez || {};
-  el.innerHTML = "<div class='odv-eko-tab'>" + odvEkoTabHTML(v) + "</div>" +
-    "<div class='odv-eko-in'><span>Rezerva</span> " + inp("pct", jr.pct, String(odvC_cislo(n.odvRezPct, 10))) + " % <span>min.</span> " + inp("min", jr.min, String(odvC_cislo(n.odvRezMin, 1000)), 76) + " Kč" +
-    " <span>· přirážka</span> " + inp("marze", jr.marze, String(odvC_cislo(n.odvozMarze, 20))) + " %</div>" +
-    "<p class='hint' style='margin:4px 0 0'>Rezerva kryje nepřesnost odhadu: použije se vyšší z procenta a minima (malá zakázka → minimum, velká → procento). Prázdné = z Nastavení.</p>";
+  let h = "<div class='odv-eko-tab'>" + odvEkoTabHTML(v) + "</div>";
+  /* rezerva a přirážka se týkají jen toho, co je v ceně zakázky; zvlášť účtované jde podle dokladů (+ případná přirážka za zajištění) */
+  if (rez === "komplet" || rez === "likvZvlast")
+    h += "<div class='odv-eko-in'><span>V ceně: rezerva</span> " + inp("pct", jr.pct, String(odvC_cislo(n.odvRezPct, 10))) + " % <span>min.</span> " + inp("min", jr.min, String(odvC_cislo(n.odvRezMin, 1000)), 76) + " Kč" +
+      " <span>· přirážka</span> " + inp("marze", jr.marze, String(odvC_cislo(n.odvozMarze, 20))) + " %</div>" +
+      "<p class='hint' style='margin:4px 0 0'>Rezerva a přirážka se přičítají k tomu, co je <b>v ceně zakázky</b> (" + (rez === "komplet" ? "doprava i likvidace" : "jen doprava") + "). Rezerva kryje nepřesnost odhadu — použije se vyšší z procenta a minima.</p>";
+  if (rez === "likvZvlast" || rez === "odvozZvlast")
+    h += "<div class='odv-eko-in'><span>Zvlášť: přirážka za zajištění</span> " + inp("zvlast", jr.zvlast, String(Math.max(0, +n.likvPrirazka || 0))) + " %</div>" +
+      "<p class='hint' style='margin:4px 0 0'><b>Zvlášť</b> = není v ceně zakázky. V nabídce a smlouvě je jako orientační částka a po odvozu ji klientovi vyfakturuješ podle skutečných dokladů (vážní lístky, doklad dopravce) tlačítkem 🧾 Vyúčtovat v kartě Odvoz suti. Rezerva tu není potřeba — klient platí skutečnost. 0 % = přesně za kolik nakoupíme.</p>";
+  if (rez !== "bezOdvozu") h += "<p class='hint' style='margin:4px 0 0'>Prázdné = z Nastavení.</p>";
+  el.innerHTML = h;
 }
 function odvEkoTabHTML(v){
-  const c = v.odvC, z = v.odvZ || {}, rez = z.rezim || "komplet", dop = (S.dopravci || []).find(d => d.id === J.dopravceId), zar = (S.zarizeni || []).find(x => x.id === J.zarizeniId);
+  const c = v.odvC, z = v.odvZ || {}, rez = z.rezim || "komplet", dop = (S.dopravci || []).find(d => d.id === J.dopravceId), zar = (S.zarizeni || []).find(x => x.id === J.zarizeniId), ov = v.odvN;
   const ks = (J.kontejnery || []).reduce((a, r) => a + ((r.pocet || 0) > 0 ? r.pocet : 0), 0);
-  const likvOdhad = v.odp ? Math.max(0, (v.dopR ? v.dopR.likvN : v.odp.likvidace) || 0) : 0;
+  const likvOdhad = ov ? ov.likv : v.odp ? Math.max(0, (v.dopR ? v.dopR.likvN : v.odp.likvidace) || 0) : 0;
   const R = (t, h, cls) => "<div class='sumline" + (cls ? " " + cls : "") + "'><span>" + t + "</span><b class='num'>" + h + "</b></div>";
-  let h = "";
+  const H = t => "<div class='odv-eko-h'>" + t + "</div>";
   if (rez === "bezOdvozu") return R("Odvoz a likvidaci zajistí klient", "—");
-  const ov = v.odvN, likvO = ov ? ov.likv : likvOdhad;
-  h += R((ov ? (ov.mod === "rucne" ? "Doprava · zadaná ručně" : "Doprava: " + ov.jizdy + " " + ojJizdTxt(ov.jizdy)) : "Doprava: " + ks + " " + (ks === 1 ? "kontejner" : ks > 1 && ks < 5 ? "kontejnery" : "kontejnerů")) + (dop ? " · " + esc(dop.nazev) : ov ? "" : " · výchozí ceny"), kc(c ? c.kontN : v.kontN));
-  h += R("Likvidace" + (ov && ov.mod === "rucne" ? " · zadaná ručně" : ov && ov.likvVcene ? " · v ceně jízdy" : zar ? " · " + esc(zar.nazev) : " · výchozí sazby") + (rez === "komplet" ? " (odhad, v ceně)" : " — zvlášť podle skutečnosti"), rez === "komplet" ? kc(c ? c.likvN : likvO) : "<span class='hint'>~" + kc(likvO) + "</span>", "sub");
-  if (!c) return h + R("Klientovi v ceně zakázky", kc(v.kontP + v.sklP), "total");
-  if (rez === "odvozZvlast") return h + R("V ceně zakázky", "0 Kč") + R("Zvlášť podle skutečnosti", "~" + kc(z.celkem || 0));
-  h += R("Rezerva na odhad (" + fmt0.format(c.r.pct) + " %, min. " + kc(c.r.min) + ")", kc(c.rez), "sub");
-  h += R("Naše přirážka " + fmt0.format(c.r.marze) + " %", kc(c.prirazka), "sub");
-  h += R("Klientovi v ceně zakázky", kc(c.celkem), "total");
-  if (rez === "likvZvlast" && z.likv) h += R("+ zvlášť likvidace podle vážních lístků", "~" + kc(z.likv), "sub");
-  h += R("Zisk na dopravě a likvidaci", "<span class='ok'>" + kc(c.celkem - c.base) + "</span>");
+  const dopL = (ov ? (ov.mod === "rucne" ? "Doprava · zadaná ručně" : "Doprava: " + ov.jizdy + " " + ojJizdTxt(ov.jizdy)) : "Doprava: " + ks + " " + (ks === 1 ? "kontejner" : ks > 1 && ks < 5 ? "kontejnery" : "kontejnerů")) + (dop ? " · " + esc(dop.nazev) : ov ? "" : " · výchozí ceny");
+  const likvL = "Likvidace" + (ov && ov.mod === "rucne" ? " · zadaná ručně" : ov && ov.likvVcene ? " · v ceně jízdy" : zar ? " · " + esc(zar.nazev) : " · výchozí sazby");
+  const dopN = rez === "odvozZvlast" ? (z.odvozNaklad || 0) : (c ? c.kontN : v.kontN), zvN = (z.likvNaklad || 0) + (rez === "odvozZvlast" ? dopN : 0);
+  let h = "", zisk = 0;
+  if (rez === "odvozZvlast") h += H("V ceně zakázky") + R("Odvoz ani likvidace v ceně nejsou", "0 Kč");
+  else if (c) {
+    h += H("V ceně zakázky") + R(dopL, kc(c.kontN));
+    if (rez === "komplet") h += R(likvL + " (odhad)", kc(c.likvN));
+    h += R("Rezerva na odhad (" + fmt0.format(c.r.pct) + " %, min. " + kc(c.r.min) + ")", kc(c.rez), "sub") + R("Naše přirážka " + fmt0.format(c.r.marze) + " %", kc(c.prirazka), "sub") + R("Klientovi v ceně zakázky", kc(c.celkem), "total");
+    zisk += c.celkem - c.base;
+  } else {
+    h += R(dopL, kc(v.kontN)) + R(likvL, kc(likvOdhad), "sub") + R("Klientovi v ceně zakázky", kc(v.kontP + v.sklP), "total");
+    zisk += v.kontP + v.sklP - v.kontN - Math.max(0, v.sklN || 0);
+  }
+  if (rez === "likvZvlast" || rez === "odvozZvlast") {
+    const pz = odvPrirazka(J);
+    h += H("Zvlášť podle skutečnosti — faktura po odvozu");
+    if (rez === "odvozZvlast") h += R(dopL, "~" + kc(dopN), "sub");
+    h += R(likvL, "~" + kc(z.likvNaklad || 0), "sub");
+    if (pz) h += R("Přirážka za zajištění " + fmt0.format(pz) + " %", "~" + kc((z.celkem || 0) - zvN), "sub");
+    h += R("Klient zaplatí zvlášť", "~" + kc(z.celkem || 0), "total");
+    zisk += (z.celkem || 0) - zvN;
+  }
+  h += R("Náš zisk na dopravě a likvidaci", "<span class='ok'>" + kc(zisk) + "</span>");
   return h;
 }
 
@@ -21940,8 +21970,8 @@ function ojVypocet(z, odp){
   proudy.forEach(p => { p.jizdy = ojJizdy(p.t, p.m3, jz); });
   const jizdyAuto = proudy.reduce((a, p) => a + p.jizdy, 0), jr = ojC(o.jizdy), jizdy = jr != null ? Math.max(0, Math.round(jr)) : jizdyAuto;
   const likvVcene = jz.likv === "vcene", radky = [];
-  if (jr != null) { if (jizdy > 0) radky.push({typ:"doprava", popis:"odvoz suti autem (" + ojNos(jz) + ")", mn:jizdy, mj:"jízda", cena:cj.cena}); }
-  else proudy.forEach(p => { if (p.jizdy > 0) radky.push({typ:"doprava", popis:"odvoz suti autem — " + p.nazev + " " + ojF2.format(Math.round(p.t * 100) / 100) + " t", mn:p.jizdy, mj:"jízda", cena:cj.cena, druh:p.k}); });
+  if (jr != null) { if (jizdy > 0) radky.push({typ:"doprava", popis:"jízdy autem (" + ojNos(jz) + ")", mn:jizdy, mj:"jízda", cena:cj.cena}); }
+  else proudy.forEach(p => { if (p.jizdy > 0) radky.push({typ:"doprava", popis:"jízda autem — " + p.nazev + " " + ojF2.format(Math.round(p.t * 100) / 100) + " t", mn:p.jizdy, mj:"jízda", cena:cj.cena, druh:p.k}); });
   if (!likvVcene) proudy.forEach(p => { if (p.t > 0.0005) radky.push({typ:"likv", popis:"likvidace — " + p.nazev + " (" + zarN + ")", mn:Math.round(p.t * 100) / 100, mj:"t", cena:p.sazba, castka:p.t * p.sazba, druh:p.k}); });
   radky.forEach(r => { if (r.castka == null) r.castka = r.mn * r.cena; });
   const doprava = radky.filter(r => r.typ !== "likv").reduce((a, r) => a + r.castka, 0), likv = radky.filter(r => r.typ === "likv").reduce((a, r) => a + r.castka, 0);
@@ -22040,14 +22070,35 @@ function ojRozpisHTML(ov, v){
   if (v.odp && v.odp.vykup > 0) h += "<p class='hint oj-p'>Kovy (" + fmt0.format(((v.odp.druhy || {}).kov || {t:0}).t * 1000) + " kg) do kontejneru nepatří — odvezeme je do výkupu (~" + kc(v.odp.vykup) + ", snižuje náš náklad).</p>";
   return h;
 }
+/* dopad třídění na klienta a na nás: celá zakázka spočítaná tříděně i netříděně (cena zakázky + co se účtuje zvlášť) */
+function ojSrovDopad(){
+  const out = {}, puv = J;
+  try {
+    ["ano", "ne"].forEach(t => {
+      J = snKopie(puv); J.trideni = t; const v = vypocet(), zv = (v.odvZ && v.odvZ.celkem) || 0;
+      out[t] = {cena:v.celkem, zvlast:zv * (1 + (v.sazba || 0)), klient:v.celkem + zv * (1 + (v.sazba || 0)), zisk:v.ziskBezRezervy + (v.odvZ ? zv - (v.odvZ.likvNaklad || 0) - (v.odvZ.odvozNaklad || 0) : 0)};
+    });
+  } catch (e) { return null; } finally { J = puv; }
+  return out;
+}
 function ojSrovHTML(ov, v){
   const s = ov.srov, o = v.odp; if (!s) return "";
   const r = (nm, x, on) => "<div class='oj-v" + (on ? " on" : "") + "'>" + (on ? "▶ " : "") + "<b>" + nm + "</b>: " + x.jizdy + " " + ojJizdTxt(x.jizdy) + " → doprava " + kc(x.doprava) +
     (ov.likvVcene ? "" : " + likvidace " + kc(x.likv)) + (x.prace ? " + třídění ~" + fmt1.format(o.hodTrid) + " h " + kc(x.prace) : "") + " = <b>" + kc(x.celkem) + "</b></div>";
-  const usp = s.smes.celkem - s.trid.celkem;
-  return "<div class='odp-verdikt " + (usp > 0 ? "ano" : "ne") + "'>" + r("Tříděně", s.trid, o.tridit) + r("Nevytříděně (vše jako směs)", s.smes, !o.tridit) +
-    "<div class='odp-zaver'>" + (usp > 0 ? "✓ Třídit se vyplatí — ušetří kolem <b>" + kc(usp) + "</b>." : "Třídit se nevyplatí — jízda navíc stojí víc, než se ušetří na likvidaci.") +
-    " Počítá se <b>" + (o.tridit ? "tříděně" : "jako směs") + "</b>" + (o.rezim === "auto" ? " (automaticky)." : " (ručně).") + "</div></div>";
+  const usp = s.smes.celkem - s.trid.celkem, rez = (v.odvZ || {}).rezim || "komplet", dp = ojSrovDopad();
+  let h = "<div class='odp-verdikt " + (usp > 0 ? "ano" : "ne") + "'><div class='oj-v-h'>Náklad na odvoz a likvidaci</div>" + r("Tříděně", s.trid, o.tridit) + r("Nevytříděně (vše jako směs)", s.smes, !o.tridit) +
+    "<div class='odp-zaver'>" + (usp > 0 ? "✓ Třídit se vyplatí — náklad je nižší o <b>" + kc(usp) + "</b>." : "Třídit se nevyplatí — jízda navíc stojí víc, než se ušetří na likvidaci.") +
+    " Počítá se <b>" + (o.tridit ? "tříděně" : "jako směs") + "</b>" + (o.rezim === "auto" ? " (automaticky)." : " (ručně).") + "</div>";
+  if (dp) {
+    const kl = x => kc(x.klient) + (x.zvlast > 0.5 ? " <span class='hint'>(zakázka " + kc(x.cena) + " + zvlášť ~" + kc(x.zvlast) + ")</span>" : "");
+    h += "<div class='oj-dopad'><div><b>Klient zaplatí celkem</b>: tříděně " + kl(dp.ano) + " · netříděně " + kl(dp.ne) + "</div>" +
+      "<div><b>Náš zisk ze zakázky</b>: tříděně " + kc(dp.ano.zisk) + " · netříděně " + kc(dp.ne.zisk) + "</div>" +
+      "<div class='hint'>" + (rez === "likvZvlast" ? "Likvidace se účtuje zvlášť, takže úsporu z třídění dostane klient na samostatné faktuře. V ceně zakázky je jen doprava — proto je cena zakázky při třídění " + (s.trid.jizdy > s.smes.jizdy ? "vyšší (jízda navíc)" : "jiná") + ", i když klient celkově zaplatí " + (dp.ano.klient < dp.ne.klient ? "méně" : "víc") + "."
+        : rez === "odvozZvlast" ? "Odvoz i likvidace se účtují zvlášť podle skutečnosti — úspora z třídění jde celá klientovi; v ceně zakázky se nemění nic."
+        : rez === "komplet" ? "Všechno je v ceně zakázky — levnější odvoz a likvidace sníží cenu pro klienta (rezerva a přirážka se počítají z nižšího nákladu)."
+        : "Odvoz zajišťuje klient.") + " Třídění stojí naši práci navíc (~" + fmt1.format(o.hodTrid || 0) + " h).</div></div>";
+  }
+  return h + "</div>";
 }
 let ojPorOtevreno = false;
 function ojPorovHTML(v){
@@ -22065,10 +22116,11 @@ function ojPorovHTML(v){
 }
 function ojKlientHTML(v){
   const c = v.odvC, z = v.odvZ || {}; if (!c) return "";
+  const pz = odvPrirazka(J), pzT = pz ? " + přirážka za zajištění " + fmt0.format(pz) + " %" : "";
   if (z.rezim === "bezOdvozu") return "<div class='oj-klient'>Odvoz si zajistí klient — v ceně zakázky nic.</div>";
-  if (z.rezim === "odvozZvlast") return "<div class='oj-klient'>V ceně zakázky nic — odvoz i likvidace se vyúčtují zvlášť podle skutečnosti, orientačně <b>" + kc(z.celkem || 0) + "</b>.</div>";
-  return "<div class='oj-klient'>V ceně zakázky: náklad " + kc(c.base) + " + rezerva " + kc(c.rez) + " + přirážka " + fmt0.format(c.r.marze) + " % = <b>" + kc(c.celkem) + "</b>" +
-    (z.rezim === "likvZvlast" && z.likv ? " · likvidace zvlášť podle vážních lístků ~<b>" + kc(z.likv) + "</b>" : "") + " <span class='hint'>(co je v ceně, vybereš níže)</span></div>";
+  if (z.rezim === "odvozZvlast") return "<div class='oj-klient'><b>V ceně zakázky nic.</b> Po odvozu klientovi vyfakturuješ zvlášť podle skutečných dokladů: doprava ~" + kc(z.odvozNaklad || 0) + " + likvidace ~" + kc(z.likvNaklad || 0) + pzT + " = orientačně <b>" + kc(z.celkem || 0) + "</b>. V nabídce a smlouvě je to jako orientační částka.</div>";
+  return "<div class='oj-klient'>V ceně zakázky: " + (z.rezim === "likvZvlast" ? "doprava " : "náklad ") + kc(c.base) + " + rezerva " + kc(c.rez) + " + přirážka " + fmt0.format(c.r.marze) + " % = <b>" + kc(c.celkem) + "</b>" +
+    (z.rezim === "likvZvlast" && z.likv ? " · likvidaci vyfakturuješ zvlášť podle vážních lístků, orientačně <b>" + kc(z.likv) + "</b>" + (pz ? " (vč. přirážky " + fmt0.format(pz) + " %)" : "") : "") + " <span class='hint'>(co je v ceně, vybereš níže)</span></div>";
 }
 function ojSutHTML(v, chips){
   const o = v.odp || {}, d = o.druhy || {};
@@ -22826,7 +22878,7 @@ const NAPOVEDA = [
   ["h2:kalkulace:Odvoz suti a likvidace", "Odvoz suti a likvidace", "Kolik suti vznikne (z norem u každé práce), <b>jakého druhu</b> a v kolika kontejnerech ji odvezete. Čistá suť (beton, cihly, keramika) stojí na likvidaci zlomek ceny směsi (sádrokarton, izolace, PVC, dřevo) — kalkulačka porovná „tříděně vs. nevytříděně“ i s kontejnery a vybere levnější. Kovy jdou do výkupu. Vyber <b>dopravce</b> — nákupní ceny kontejnerů se spočítají z jeho paušálu, km a dní na stavbě. „Navrhnout podle suti“ navrhne kontejnery s rezervou místa (suť se nedá skládat jako kostky). Prodejní cena kontejneru je tvoje marže na odvozu."],
   ["#jDopravce", "Dopravce", "Firma, která přistaví a odveze kontejner. Jejich ceny zadáš v Nastavení → Dopravci. Nejlevnější dopravce se mění podle vzdálenosti a počtu dní — porovnání v Nastavení počítá pro konkrétní zakázku.<br><br>Když má dopravce nastavené <b>🧾 Sazby a podmínky</b> (jak účtuje dopravu), objeví se pod výběrem <b>Přesný rozpis dopravce</b>: zadáš účtované km, hodiny vozidla, úkony ruky a kontejnerodny <b>za celou zakázku</b> a tuny odpadu. Prázdné pole = neznámé (rozpis je pak označený jako neúplný), 0 = nic, odhad se dá zapnout a je vždy vidět. Výsledek je rozpis množství × sazba = náklad a cena klientovi s přirážkou. Staré zakázky počítají postaru, dokud rozpis nezapneš.<br><br>Když má dopravce <b>vlastní kontejnery</b>, v řádcích kontejnerů se nabízí jen jeho. Když má zapnuté <b>další položky ceníku</b> (složení a naložení, ruka, vůz za hodinu…), objeví se pod výběrem rámeček <b>Příplatky dopravce</b>: zaškrtni, co u této zakázky bude (ruka přes plot, čekání při nakládce, plachta, víkend). Nákupní cena kontejneru se hned přepočítá."],
   ["#jZarizeni", "Likvidace — zařízení", "Kam dopravce suť veze a za kolik (Separex, sběrný dvůr, recyklace…). Z ceníku zařízení se počítá likvidace čisté suti a směsi a z toho i srovnání, jestli se vyplatí třídit. Zařízení a jejich ceny přidáš v Ceník a nastavení → ♻️ Zařízení na odpad. „Výchozí sazby“ = ceny z Nastavení."],
-  ["h2:kalkulace:🚛 Doprava a likvidace", "Doprava a likvidace", "Co nás stojí doprava kontejnerů (vybraný dopravce) a likvidace (vybrané zařízení) a co za to zaplatí klient. Klientovi = (náklad + rezerva na odhad) × (1 + naše přirážka). <b>Rezerva</b> kryje nepřesnost odhadu — použije se vyšší z procenta a minima: u malé zakázky pevné minimum, u velké procento. Při „likvidaci zvlášť“ je v ceně jen doprava a likvidace se vyúčtuje podle skutečnosti.<br><br>Sazby jsou v Nastavení (🚛 Odvoz a likvidace), u zakázky je můžeš přepsat. Změna dopravce nebo zařízení se do ceny propíše hned."],
+  ["h2:kalkulace:🚛 Doprava a likvidace", "Doprava a likvidace", "Co nás stojí doprava (vybraný dopravce) a likvidace (vybrané zařízení) a co za to zaplatí klient. Karta má dvě části podle toho, co je v ceně (volíš v kartě Odvoz suti):<br><br><b>V ceně zakázky</b> — klientovi = (náklad + rezerva na odhad) × (1 + naše přirážka). Rezerva kryje nepřesnost odhadu (vyšší z procenta a minima). Při „všechno v ceně“ se to týká dopravy i likvidace, při „likvidaci zvlášť“ jen dopravy.<br><br><b>Zvlášť podle skutečnosti</b> — není v ceně zakázky. V nabídce a smlouvě je jako orientační částka a po odvozu ji klientovi vyfakturuješ podle skutečných dokladů (vážní lístky, doklad dopravce) tlačítkem 🧾 Vyúčtovat. Rezerva se tu nepočítá — klient platí skutečnost; můžeš přidat jen přirážku za zajištění (0 % = přesně za nákup).<br><br>Výchozí sazby jsou v Nastavení (🚛 Odvoz a likvidace), u zakázky je přepíšeš přímo v kartě."],
   ["#jKmDopravce", "Vzdálenost dopravce → stavba", "Km od dopravce ke stavbě. Dopravci účtují dopravu kontejneru podle km — proto může být vzdálenější dopravce s levnějšími km výhodnější na dlouhé trasy. Kolikrát se km počítají (1×, tam i zpět, přistavení i odvoz) a kolik km je v paušálu, nastavíš u dopravce v <b>Pravidlech ceníku</b>."],
   ["#jDnyKontejneru", "Dní na stavbě", "Jak dlouho kontejner stojí u stavby. Pár dní bývá v ceně, každý další den se platí pronájem. Plánuj odvoz tak, aby kontejner nestál zbytečně."],
   ["#nSkladkovne", "Likvidace čisté suti", "Kolik stojí tuna čisté suti (beton, cihly, tvárnice, keramika, omítky) v zařízení, kam vozíte. Čistá = bez sádry, izolací, dřeva a plastů. Recyklační střediska ji berou levně, protože z ní dělají recyklát."],
