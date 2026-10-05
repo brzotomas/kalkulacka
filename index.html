@@ -1489,7 +1489,7 @@ body.zamceno{overflow:hidden}
       <div class="sumline" style="padding:2px 0 0"><span>Zisk / hod. / osoba</span><b id="kZiskHod" class="num"></b></div>
     </div>
     <div class="kpis">
-      <div class="kpi"><div class="v" id="kDny"></div><div class="l">Odhad dní</div></div>
+      <div class="kpi"><div class="v" id="kDny"></div><div class="l">Odhad práce</div><div class="hint" id="kOsHod" style="font-size:11.5px;margin-top:2px"></div></div>
       <div class="kpi"><div class="v" id="kOsoba"></div><div class="l">Zisk / os. celkem</div></div>
       <div class="kpi"><div class="v" id="kTrzbaDen"></div><div class="l">Tržba / den</div></div>
       <div class="kpi"><div class="v" id="kZiskDen"></div><div class="l">Zisk / os. / den</div></div>
@@ -5482,7 +5482,9 @@ function recalc(){
   $("#sumRezervaInfo").textContent=v.rezerva?("+ rezerva "+J.rezerva+" % (pojistka na skryté konstrukce): "+kc(v.rezerva)+" → s rezervou "+kc(v.zisk)+" ⓘ"):"";
   $("#kTrzbaHod").textContent=v.hodiny>0?kc(v.trzba/(v.hodiny/Math.max(1,J.lide||1)))+"/h":"—";
   $("#kZiskHod").textContent=v.hodiny>0?kc(v.zisk/v.hodiny)+"/h":"—";
-  $("#kDny").textContent=v.dny?fmt1.format(v.dny):"—";
+  {const lide=Math.max(1,J.lide||1),pul=x=>Math.ceil(x*2-1e-9)/2,osTxt=x=>Math.abs(x-Math.round(x))>0.01?"osobohodiny":x===1?"osobohodina":x>=2&&x<=4?"osobohodiny":"osobohodin",hd=+(S.nastaveni||{}).hodDen||8,dTxt=d=>Math.abs(d-Math.round(d))>0.05?"dne":Math.round(d)===1?"den":Math.round(d)<5?"dny":"dní";
+  $("#kDny").textContent=v.hodiny>0?fmt1.format(pul(v.hodiny/lide))+" h práce":"—";
+  const oh=document.getElementById("kOsHod");if(oh)oh.textContent=v.hodiny>0?"dohromady "+fmt1.format(pul(v.hodiny))+" "+osTxt(pul(v.hodiny))+(lide>1?" ("+lide+" "+(lide<5?"lidé":"lidí")+")":"")+(v.dny>=1?" · ≈ "+fmt1.format(v.dny)+" "+dTxt(v.dny)+" po "+fmt1.format(hd)+" h":""):"";}
   $("#kOsoba").textContent=kc(v.zisk/v.majitele);
   $("#kTrzbaDen").textContent=v.dny?kc(v.trzba/v.dny):"—";
   const zod=v.dny?v.zisk/v.majitele/v.dny:0;
@@ -23189,7 +23191,7 @@ const NAPOVEDA = [
   ["h2:kalkulace:🧰 Stroje a nářadí na zakázce", "Stroje a nářadí na zakázce", "Nahoře: <b>co vzít</b> na tuhle zakázku podle prací (bourání → kladivo, obklady → SDS-plus, suť → kolečka a pytle, nosné zdi → stojky…), co z toho máte, <b>co chybí</b> (půjčit / koupit) a <b>co by práci zrychlilo</b> (shoz na suť z vyšších pater, podlahová škrabka, demoliční robot…). 📋 zkopíruje seznam pro partu. Dole: kolik hodin který stroj poběží a kolik stojí jeho opotřebení — počítá se do skutečného zisku. Seznam strojů je v záložce 🛠 Stroje."],
   ["h2:kalkulace:⏱ Skutečnost po pracích", "Skutečnost po pracích", "Kolik která práce opravdu trvala proti plánu z normy — stačí vyplnit ty, které znáš. Neproduktivní čas (čekání, přesuny, nákupy, úklid) se nenaceňuje, ale platí se; když ho zapisuješ, uvidíš, kolik tě stojí. Součet přeneseš do „Po dokončení“. Z více zakázek pak Přehled firmy ukáže, které práce máš v ceníku levně."],
   ["css:#brSkutCard .vk3-lbl:Souhrn po dokončení", "Souhrn po dokončení", "Skutečné hodiny, kontejnery a km po zakázce. Přehled firmy z nich porovná plán s realitou a po 5 zakázkách nabídne přepočet norem — odhady budou čím dál přesnější."],
-  ["h2:kalkulace:Ekonomika zakázky", "Ekonomika zakázky", "Souhrn vpravo: tržba, náklady, cena pro klienta s DPH, záloha a <b>čistý zisk firmy bez rezervy</b>. Dole tržba a zisk na hodinu party a na osobu, odhad dní. Varování upozorní na nízký zisk, malou zakázku nebo kolizi termínu."],
+  ["h2:kalkulace:Ekonomika zakázky", "Ekonomika zakázky", "Souhrn vpravo: tržba, náklady, cena pro klienta s DPH, záloha a <b>čistý zisk firmy bez rezervy</b>. Dole tržba a zisk na hodinu party a na osobu a odhad práce: kolik hodin bude parta na místě a kolik osobohodin to dá dohromady (z norem prací, vynášky, víceprací a třídění). Varování upozorní na nízký zisk, malou zakázku nebo kolizi termínu."],
   ["h2:kalkulace:💰 Skutečný zisk zakázky", "Skutečný zisk zakázky", "Kolik opravdu zůstane po všem: materiál, kontejnery, doprava, lidé (zaměstnanec, DPP, IČO), opotřebení nářadí, podíl fixních nákladů firmy, <b>daň 21 %</b> a <b>15 % z dividendy</b>. „Na hodinu majitele“ je číslo do kapsy. ⓘ u daní vysvětluje, proč se daní dvakrát."],
   ["sum:kalkulace:💼 Ekonomika firmy", "Ekonomika firmy", "Společné nastavení pro demolice i vyklízení: mzdy a sazby lidí, nářadí, auto, fixní náklady, daně, cíl čistého na hodinu. Z něj se počítají karty „Skutečný zisk zakázky“ a měsíc firmy. Stačí nastavit jednou a občas aktualizovat."],
 
