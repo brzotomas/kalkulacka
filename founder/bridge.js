@@ -55,33 +55,64 @@
       importOwn:value=>{if(!isObject(value)||value.kind!=='founder-os')throw new Error('Vyber zálohu Founder OS, nikoli kalkulačky.');const next=copy(validateOwn(value.data));return change(draft=>{Object.keys(draft).forEach(k=>delete draft[k]);Object.assign(draft,next);if(!draft.jobFacts)draft.jobFacts={};});}
     });
   }
+  /* Carrying-out hours exactly like the calculator: vynParam + vynJadro (models 1 and 2, aggregated),
+     model 3 per work row like vynHodinyPolozky (+ chute assembly once). Hours only, never prices.
+     Defaults for stair overhead, chute assembly and pace factor mirror the calculator's vynParam. */
+  function vynParams(settings,model,bezKoef){
+    const n=settings,v1=model===1,s=v1&&isObject(n.vynV1)?Object.assign({},n,n.vynV1):n;
+    return {kolecko:s.vynKolecko||65,koleckoM3:s.vynKoleckoM3||0.065,cyklus:s.vynCyklusSek||(v1?240:270),
+      kbelik:s.vynKbelik||(v1?40:25),kbelikM3:s.vynKbelikM3||0.040,patroSek:s.vynPatroSek||(v1?35:50),
+      rezie:v1?0:(n.vynSchodyRezieSek>=0?n.vynSchodyRezieSek:20),
+      vzdSek:s.vynVzdalenostSek>=0?s.vynVzdalenostSek:25,vytahKoef:s.vynVytahKoef>=0?s.vynVytahKoef:0.25,
+      rucniKoef:s.vynRucniKoef||1,koef:v1||bezKoef?1:(n.vynKoef>0?n.vynKoef:1),
+      shozH:n.vynShozH>=0?n.vynShozH:3,model:v1?1:2};
+  }
+  function vynHours(settings,t,m3,patra,vytahOK,vzdalenost,rucniNoseni,opt){
+    const P=vynParams(settings,opt.model,opt.bezKoef);
+    t=Math.max(0,t||0);m3=Math.max(0,m3||0);patra=Math.max(0,patra||0);
+    const shoz=!!opt.shoz&&patra>0&&P.model===2;
+    const koefP=vytahOK&&!shoz?P.vytahKoef:1;
+    const vzdNavic=shoz?0:Math.max(0,Math.ceil(((vzdalenost||0)-10)/10));
+    const rucni=rucniNoseni?P.rucniKoef:1;
+    const cestyKolecko=Math.max(t*1000/P.kolecko,m3/P.koleckoM3);
+    const sekKolecko=P.cyklus+vzdNavic*P.vzdSek;
+    const cestyKbelik=patra>0&&!shoz?Math.max(t*1000/P.kbelik,m3/P.kbelikM3):0;
+    const sekCesta=patra>0?P.rezie+patra*P.patroSek*koefP:0;
+    const hodKolecko=cestyKolecko*sekKolecko/3600*rucni*P.koef;
+    const hodPatra=cestyKbelik*sekCesta/3600*rucni*P.koef;
+    const hodShoz=shoz&&!opt.bezMontaze&&(t>0||m3>0)?P.shozH:0;
+    return hodKolecko+hodPatra+hodShoz;
+  }
   /* Reconstruct only saved planned labor, never prices. Uses the calculator's
-     existing persisted labor parameters; absent parameters stay unknown. */
+     existing persisted labor parameters; absent base parameters stay unknown. */
   function planJob(job,settings){
     if(Number.isFinite(job.vysHodiny)&&job.vysHodiny>=0)return {hod:Math.max(0,job.vysHodiny-(job.viceprace||[]).filter(x=>x.stav==='odsouhlaseno').reduce((s,x)=>s+(Number.isFinite(x.hod)?x.hod:0),0))};
     if(!Array.isArray(job.prace)||!isObject(settings))return {hod:null};
-    let base=0,tonnes=0,volume=0;
+    let base=0,tonnes=0,volume=0;const rows=[];
     for(const item of job.prace){
       if(!Number.isFinite(item.mnozstvi)||item.mnozstvi<0||!Number.isFinite(item.hod)||item.hod<0)return {hod:null};
-      base+=item.mnozstvi*item.hod;tonnes+=item.mnozstvi*(Number.isFinite(item.sutT)?item.sutT:0);volume+=item.mnozstvi*(Number.isFinite(item.sutM3)?item.sutM3:0);
+      const t=item.mnozstvi*(Number.isFinite(item.sutT)?item.sutT:0),m3=item.mnozstvi*(Number.isFinite(item.sutM3)?item.sutM3:0);
+      base+=item.mnozstvi*item.hod;tonnes+=t;volume+=m3;if(t>0||m3>0)rows.push({t,m3});
     }
     if(!(settings.koefVykon>0))return {hod:null};
     if(tonnes===0&&volume===0)return {hod:base*settings.koefVykon};
     const required=['vynKolecko','vynKoleckoM3','vynKbelik','vynKbelikM3','vynCyklusSek','vynVzdalenostSek','vynPatroSek','vynVytahKoef','vynRucniKoef'];
     if(required.some(k=>!Number.isFinite(settings[k])||settings[k]<0)||required.slice(0,4).some(k=>settings[k]===0))return {hod:null};
     const distance=Number.isFinite(job.vzdalenost)?job.vzdalenost:10, floors=Math.max(0,job.patro||0);
-    const wheelTrips=Math.max(tonnes*1000/settings.vynKolecko,volume/settings.vynKoleckoM3);
-    const bucketTrips=floors>0?Math.max(tonnes*1000/settings.vynKbelik,volume/settings.vynKbelikM3):0;
-    const horizontalSeconds=settings.vynCyklusSek+Math.max(0,Math.ceil((distance-10)/10))*settings.vynVzdalenostSek;
-    const verticalSeconds=floors*settings.vynPatroSek*(job.vytah&&job.vytahNaSut!==false?settings.vynVytahKoef:1);
-    const transport=(wheelTrips*horizontalSeconds+bucketTrips*verticalSeconds)/3600*(job.rucniNoseni?settings.vynRucniKoef:1);
+    /* same inputs as the calculator's vynaskaVypocet: lift only when rubble may go in it, model 3 per row */
+    const lift=!!(job.vytah&&job.vytahNaSut),manual=!!job.rucniNoseni,chute=!!job.shoz;
+    let transport;
+    if(job.vynModel===3){
+      transport=rows.reduce((sum,r)=>sum+vynHours(settings,r.t,r.m3,floors,lift,distance,manual,{model:2,shoz:chute,bezMontaze:true}),0)
+        +(chute&&floors>0&&rows.length?(settings.vynShozH>=0?+settings.vynShozH:3):0);
+    }else transport=vynHours(settings,tonnes,volume,floors,lift,distance,manual,{model:job.vynModel===1?1:2,shoz:chute});
     return {hod:base*settings.koefVykon+transport};
   }
   function projectSource(value){
     validateSource(value);
     const select=(object,keys)=>Object.fromEntries(keys.filter(k=>Object.hasOwn(object,k)).map(k=>[k,copy(object[k])]));
-    const settings=['koefVykon','vynKolecko','vynKoleckoM3','vynKbelik','vynKbelikM3','vynCyklusSek','vynVzdalenostSek','vynPatroSek','vynVytahKoef','vynRucniKoef'];
-    const fields=['id','nazev','status','dph','vysCelkem','vysZisk','vysNaklady','vysHodiny','skutHodiny','terminOd','terminDo','duvodProhry','zalohaCastka','zalohaZaplaceno','zalohaSplatnost','doplatekCastka','doplatekZaplaceno','doplatekSplatnost','vzdalenost','patro','vytah','vytahNaSut','rucniNoseni'];
+    const settings=['koefVykon','vynKolecko','vynKoleckoM3','vynKbelik','vynKbelikM3','vynCyklusSek','vynVzdalenostSek','vynPatroSek','vynVytahKoef','vynRucniKoef','vynSchodyRezieSek','vynShozH','vynKoef','vynV1'];
+    const fields=['id','nazev','status','dph','vysCelkem','vysZisk','vysNaklady','vysHodiny','skutHodiny','terminOd','terminDo','duvodProhry','zalohaCastka','zalohaZaplaceno','zalohaSplatnost','doplatekCastka','doplatekZaplaceno','doplatekSplatnost','vzdalenost','patro','vytah','vytahNaSut','rucniNoseni','shoz','vynModel'];
     const facts=['leadDate','quoteDate','wonDate','completedDate','actualDirectCosts','actualRevenue','onTimeStart','reworkHours'];
     return {nastaveni:select(value.nastaveni,settings),zakazky:value.zakazky.map(job=>({...select(job,fields),prace:(job.prace||[]).map(x=>select(x,['mnozstvi','hod','sutT','sutM3'])),denniZapis:(job.denniZapis||[]).map(x=>select(x,['datum','lide','hodiny'])),viceprace:(job.viceprace||[]).map(x=>select(x,['stav','hod'])),founder:select(job.founder||{},facts)})),vyklizeni:(value.vyklizeni||[]).map(job=>select(job,['id','status']))};
   }

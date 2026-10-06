@@ -45,14 +45,33 @@ test('estimated costs remain estimates while actual costs are required for gross
 });
 test('new planned labor reconstruction matches the existing calculator without loading its UI or mutating it',()=>{
   const source=fs.readFileSync(process.env.FOUNDER_REFERENCE_HTML||path.join(__dirname,'../index.html'),'utf8');
-  const start=source.indexOf('function vynJadro('),end=source.indexOf('function vynaskaVypocet(',start);
-  const settings={koefVykon:1.3,vynKolecko:65,vynKoleckoM3:.065,vynKbelik:40,vynKbelikM3:.04,vynCyklusSek:240,vynVzdalenostSek:25,vynPatroSek:35,vynVytahKoef:.25,vynRucniKoef:1.35};
-  const context=vm.createContext({S:{nastaveni:settings}});vm.runInContext(source.slice(start,end),context);
-  for(const floor of [0,3,6])for(const lift of [false,true])for(const manual of [false,true]){
-    const job={patro:floor,vytah:lift,vytahNaSut:true,vzdalenost:30,rucniNoseni:manual,prace:[{mnozstvi:4,hod:2,sutT:.2,sutM3:.4}]};
-    const actual=Bridge.planJob(job,settings).hod,expected=8*1.3+context.vynJadro(.8,1.6,floor,lift,30,manual).hodiny;
-    assert.ok(Math.abs(actual-expected)<1e-8);
+  /* vynParam + vynJadro (models 1 and 2) and the per-row model 3 helpers, cut straight from the calculator */
+  const cut=(from,to)=>{const start=source.indexOf(from),end=source.indexOf(to,start);assert.ok(start>=0&&end>start,'calculator is missing '+from);return source.slice(start,end);};
+  const code=cut('function vynParam(','function vynOpt(')+'\n'+cut('function vynPolozky(','function vynV3Zakazka(');
+  /* older saved settings without stair overhead, chute or pace factor, and the current ones */
+  const legacy={koefVykon:1.3,vynKolecko:65,vynKoleckoM3:.065,vynKbelik:40,vynKbelikM3:.04,vynCyklusSek:240,vynVzdalenostSek:25,vynPatroSek:35,vynVytahKoef:.25,vynRucniKoef:1.35};
+  const current={...legacy,vynKbelik:25,vynKbelikM3:.03,vynCyklusSek:280,vynVzdalenostSek:30,vynPatroSek:45,vynVytahKoef:.35,vynRucniKoef:1.4,vynSchodyRezieSek:25,vynShozH:4,vynKoef:1.15,
+    vynV1:{vynKolecko:65,vynKoleckoM3:.065,vynCyklusSek:240,vynKbelik:40,vynKbelikM3:.04,vynPatroSek:35,vynVzdalenostSek:25,vynVytahKoef:.25,vynRucniKoef:1.35}};
+  const prace=[{mnozstvi:4,hod:2,sutT:.2,sutM3:.4},{mnozstvi:1,hod:10,sutT:.8,sutM3:3.2},{mnozstvi:2,hod:.5,sutT:0,sutM3:0}];
+  const t=prace.reduce((s,r)=>s+r.mnozstvi*r.sutT,0),m3=prace.reduce((s,r)=>s+r.mnozstvi*r.sutM3,0);
+  let checked=0;
+  for(const settings of [legacy,current]){
+    const frozen=JSON.stringify(settings),context=vm.createContext({S:{nastaveni:settings}});vm.runInContext(code,context);
+    const base=(4*2+1*10+2*.5)*settings.koefVykon;
+    for(const model of [undefined,1,2,3])for(const floor of [0,3,6])for(const lift of [false,true])for(const manual of [false,true])for(const chute of [false,true]){
+      const job={vynModel:model,patro:floor,vytah:lift,vytahNaSut:true,vzdalenost:30,rucniNoseni:manual,shoz:chute,prace};
+      const carrying=model===3?context.vynHodinyPolozky(context.vynPolozky(prace),floor,lift,30,manual,chute).hodiny
+        :context.vynJadro(t,m3,floor,lift,30,manual,{model:model===1?1:2,shoz:chute}).hodiny;
+      assert.ok(Math.abs(Bridge.planJob(job,settings).hod-(base+carrying))<1e-8,JSON.stringify({model,floor,lift,manual,chute}));
+      checked++;
+    }
+    assert.equal(JSON.stringify(settings),frozen);
   }
+  assert.equal(checked,2*4*3*2*2*2);
+  /* the projected source keeps everything the reconstruction needs */
+  const job={id:'j',vynModel:3,patro:2,vytah:true,vytahNaSut:true,vzdalenost:30,rucniNoseni:true,shoz:true,prace};
+  const projected=Bridge.projectSource({nastaveni:current,zakazky:[job]});
+  assert.equal(Bridge.planJob(projected.zakazky[0],projected.nastaveni).hod,Bridge.planJob(job,current).hod);
 });
 test('cash freshness, healthy boolean people signal, experiment conditions and average revenue cohort',()=>{
   assert.equal(Engine.evaluateExperiment({result:8,successThreshold:6,comparison:'gte',conditionsMet:true}),'VALIDATED');

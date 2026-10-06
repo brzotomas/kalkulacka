@@ -2087,7 +2087,7 @@ body.zamceno{overflow:hidden}
     <h2>Vynáška suti — ceník (Kč za tunu)</h2>
     <p class="hint" style="margin:0 0 10px">Cena vynášky = <b>přepočtené tuny × (základ + vzdálenost + patra)</b>. Na tempu party ani na časech níž nezávisí. Lehká suť se počítá objemem: 1 m³ = 1 t (po řádcích prací). Ceny bez DPH.</p>
     <div class="grid g3">
-      <label class="f">Základ (Kč/t)<input id="nVynCenaZaklad" type="number" min="0" step="10"><span class="hint">naložit a odvézt kolečkem, přízemí, do 10 m · odnos suti v Praze od 1 600 Kč/m³ − 12 % ≈ 1 080 Kč/t; ÚRS 997013211 890 Kč/t (B2B 2024, vč. 50 m a 1. patra)</span></label>
+      <label class="f">Základ (Kč/t)<input id="nVynCenaZaklad" type="number" min="0" step="10"><span class="hint" id="vynCenaZakladM3"></span><span class="hint">naložit a odvézt kolečkem, přízemí, do 10 m · Odnos suti v Praze od 1 600 Kč/m³ − 7 % = 1 482 Kč/m³ = 1 140 Kč/t při 1,3 t/m³ · ÚRS 997013211 890 Kč/t (B2B 2024, vč. 50 m a 1. patra)</span></label>
       <label class="f">Každých dalších 10 m (Kč/t)<input id="nVynCena10m" type="number" min="0" step="5"><span class="hint">za každých započatých 10 m nad 10 m · rozpočty 2024–25: 40–102 Kč/t (ÚRS 997013219)</span></label>
       <label class="f">1. patro po schodech (Kč/t)<input id="nVynCenaPatro1" type="number" min="0" step="10"><span class="hint">čas modelu (režie + patro, 25 kg) × 715 Kč/h</span></label>
       <label class="f">Každé další patro po schodech (Kč/t)<input id="nVynCenaPatroDalsi" type="number" min="0" step="10"><span class="hint">0,5 h/t × 715 Kč/h</span></label>
@@ -2095,7 +2095,7 @@ body.zamceno{overflow:hidden}
       <label class="f">Každé další patro výtahem (Kč/t)<input id="nVynCenaVytahDalsi" type="number" min="0" step="5"><span class="hint">0,5 h/t × 0,35 × 715 Kč/h</span></label>
       <label class="f">Shoz — montáž a demontáž (Kč za zakázku)<input id="nVynCenaShoz" type="number" min="0" step="100"><span class="hint">4 h × 715 Kč/h · se shozem se neúčtují patra ani vzdálenost</span></label>
       <label class="f">Ruční nošení bez koleček (× cena)<input id="nVynCenaRucniKoef" type="number" min="1" step="0.05"><span class="hint">úzké nebo točité schody</span></label>
-      <label class="f">Lehká suť — kolik tun je 1 m³<input id="nVynCenaRhoLehka" type="number" min="0.1" step="0.05"><span class="hint">kolečko 65 kg ↔ 65 l · lehká suť pak vyjde 1 080 Kč/m³ (odnos stavebního odpadu od 1 200 Kč/m³ − 10 %)</span></label>
+      <label class="f">Lehká suť — kolik tun je 1 m³<input id="nVynCenaRhoLehka" type="number" min="0.1" step="0.05"><span class="hint">kolečko 65 kg ↔ 65 l · lehká suť pak vyjde 1 140 Kč/m³ (odnos stavebního odpadu od 1 200 Kč/m³ − 5 %)</span></label>
       <label class="f">Hlídat výdělek aspoň (Kč za hodinu vynášky)<input id="nVynMinKcHod" type="number" min="0" step="10"><span class="hint">zaměstnanec 2026 stojí 265–358 Kč na fakturovatelnou hodinu + režie · pod tím karta vynášky varuje, cenu nemění</span></label>
     </div>
     <div id="vynUkazka"></div>
@@ -3007,7 +3007,7 @@ material: Fólie a pytle | 800 | 1100</pre>
       <li><b>Lehká objemná suť se počítá objemem.</b> Kolečko se naplní buď 65 kg, nebo 65 litry. Umakartové jádro, sádrokarton, izolace, kuchyně, dveře a sanita proto jdou podle objemu: 1 m³ = 1 t. Počítá se po řádcích prací — jádro + 3 t cihel je 6,2 t, ne 5,5 t ze součtu.</li>
       <li><b>Kolik to vychází</b> podle aktuálního ceníku (hutná suť 1,3 t/m³):
         <ul id="vynPruvodceSc"></ul>
-        Trh: odnos suti v Praze od 1 600 Kč/m³, odnos stavebního odpadu od 1 200 Kč/m³ (my −10 až −15 %).</li>
+        Trh: odnos suti v Praze od 1 600 Kč/m³, odnos stavebního odpadu od 1 200 Kč/m³ (my −5 až −8 %).</li>
       <li><b>Čas je jen pro plán a zisk na hodinu.</b> Počet cest kolečkem a po schodech, tempo a koeficient z vašich zakázek určují odhad hodin (dny, plán, zisk na osobohodinu) — cenu nemění. Když vyjde vynáška pod hlídaných 600 Kč za hodinu, karta vynášky varuje.</li>
       <li><b>Výtah a shoz jsou největší úspora.</b> Zeptej se, jestli smíte vozit suť výtahem (samotná existence výtahu nestačí, SVJ to často zakazuje), a jestli jde dát kontejner pod okno se shozem. Obojí je v kartě vynášky jako zaškrtávátko a kalkulačka hned ukáže rozdíl.</li>
       <li><b>Vzdálenost ke kontejneru</b> se měří od místa bourání k autu. Každých započatých 10 m nad 10 m přidá k ceně za tunu.</li>
@@ -4243,6 +4243,7 @@ function defCenik(){return [
  {id:"elektro",kat:KAT[11],nazev:"Demontáž elektroinstalace (byt)",mj:"m²",b2c:52,b2b:47,sutT:0.002,sutM3:0.01,hod:0.07,hvezd:2,kod:"—"},
  {id:"uklid",kat:KAT[11],nazev:"Hrubý úklid po bourání (byt do 80 m²)",mj:"kpl",b2c:4370,b2b:3933,sutT:0,sutM3:0,hod:6,hvezd:2,kod:"—"},
  {id:"zakryti",kat:KAT[11],nazev:"Zakrytí a ochrana ploch fólií",mj:"m²",b2c:24,b2b:22,sutT:0,sutM3:0,hod:0.033,hvezd:1,kod:"—"},
+ {id:"sut-shrnuti",kat:KAT[11],nazev:"Shrnutí a naložení stávající rozházené suti (bez bourání)",mj:"m³",b2c:429,b2b:386,sutT:1.3,sutM3:1.0,hod:0.6,hvezd:5,kod:"—"},
 ];}
 function defKontejnery(){return [
  {id:"k3", nazev:"3 m³ – čistá suť",     objem:3, nosnost:4.5, nakup:2600, prodej:3800},
@@ -4251,7 +4252,7 @@ function defKontejnery(){return [
  {id:"k9", nazev:"9 m³ – směsný odpad",  objem:9, nosnost:3,   nakup:5800, prodej:7200},
 ];}
 function defNastaveni(){return {firma:"", lide:2, hodDen:9, sazbaNajaty:250, odvozMarze:20, skladkovne:610, skladkovneSmes:2250, vykupKov:4, trideniHodT:0.25, likvidaceJakoSmes:false, km:15, kmProdej:25, pausal:600, rezerva:12, zaloha:40,
-  vynSazba:715, vynCenaZaklad:1080, vynCena10m:90, vynCenaPatro1:550, vynCenaPatroDalsi:350, vynCenaVytah1:320, vynCenaVytahDalsi:125, vynCenaShoz:2900, vynCenaRucniKoef:1.4, vynCenaRhoLehka:1.0, vynMinKcHod:600, vynKolecko:65, vynKoleckoM3:0.065, vynCyklusSek:270,
+  vynSazba:715, vynCenaZaklad:1140, vynCena10m:90, vynCenaPatro1:550, vynCenaPatroDalsi:350, vynCenaVytah1:320, vynCenaVytahDalsi:125, vynCenaShoz:2900, vynCenaRucniKoef:1.4, vynCenaRhoLehka:1.0, vynMinKcHod:600, vynKolecko:65, vynKoleckoM3:0.065, vynCyklusSek:270,
   vynKbelik:25, vynKbelikM3:0.040, vynPatroSek:50, vynVzdalenostSek:25, vynSchodyRezieSek:20, vynShozH:3, vynKoef:1,
   vynVytahKoef:0.25, vynRucniKoef:1.35, koefVykon:1.0,
   kontCenaKm:32, kontDnyZdarma:3, kontCenaDen:180, kontRezerva:18,
@@ -6478,7 +6479,7 @@ Hutná suť = 1,3 t/m³ (beton, cihly). Lehká objemná = 0,25 t/m³ (jádro, SD
 ${uk}
 
 Kontrola proti trhu: odnos suti v Praze od 1 600 Kč/m³, odnos stavebního odpadu od
-1 200 Kč/m³ (nám −10 až −15 %). ÚRS 997013211: 890 Kč/t (B2B, 2024).
+1 200 Kč/m³ (nám −5 až −8 %). ÚRS 997013211: 890 Kč/t (B2B, 2024).
 
 ## 4. Kontejnery a likvidace
 
@@ -22645,8 +22646,11 @@ if (typeof document !== "undefined" && document.addEventListener) {
    SDK, izolace, sanita) se účtuje objemem, hutná vahou; objemné kusy nevyplní mezery v hutné suti, proto ne ze součtu.
    Čas = fyzikální model vynJadro po stejných řádcích — plán, dny, zisk na osobohodinu, kalibrace. Cenu nikdy nemění.
    Zakázky uložené před změnou (vynModel 1, 2 nebo nevyplněno) počítají dál hodiny × sazba (vynaskaVypocetZaklad beze změny). */
-const VYN_V3 = {vynCenaZaklad:1080, vynCena10m:90, vynCenaPatro1:550, vynCenaPatroDalsi:350,
+const VYN_V3 = {vynCenaZaklad:1140, vynCena10m:90, vynCenaPatro1:550, vynCenaPatroDalsi:350,
   vynCenaVytah1:320, vynCenaVytahDalsi:125, vynCenaShoz:2900, vynCenaRucniKoef:1.4, vynCenaRhoLehka:1.0, vynMinKcHod:600};
+/* položka ceníku na suť, která už leží (shrnout z podlahy, rozbít velké kusy, vytřídit příměsi) — vynášku k ní kalkulačka dopočítá ze suti;
+   0,6 Nh/m³ × 715 Kč/h = 429 Kč/m³ */
+const VYN_SUT_SHRNUTI = {id:"sut-shrnuti", kat:"Ostatní práce", nazev:"Shrnutí a naložení stávající rozházené suti (bez bourání)", mj:"m³", b2c:429, b2b:386, sutT:1.3, sutM3:1.0, hod:0.6, hvezd:5, kod:"—"};
 /* sazby v Kč, které posouvá hromadná změna cen */
 const VYN_V3_CENY = ["vynCenaZaklad", "vynCena10m", "vynCenaPatro1", "vynCenaPatroDalsi", "vynCenaVytah1", "vynCenaVytahDalsi", "vynCenaShoz"];
 
@@ -22701,13 +22705,22 @@ function vynV3Zakazka(z, sut){
 }
 /* jednorázová migrace: ceník vynášky do Nastavení, zakázky bez modelu = dosavadní výpočet (2) */
 function vynMigraceV3(){
-  if (S.vynV3) return;
   const n = S.nastaveni || (S.nastaveni = {});
-  Object.keys(VYN_V3).forEach(k => { if (n[k] === undefined || n[k] === null || n[k] === "") n[k] = VYN_V3[k]; });
-  (S.zakazky || []).forEach(z => { if (z && z.vynModel === undefined) z.vynModel = 2; });
-  if (S.job && S.job.vynModel === undefined) S.job.vynModel = S.job.id || (S.job.prace || []).length ? 2 : 3;
-  S.vynV3 = true;
-  if (typeof save === "function") save();
+  let zmena = false;
+  if (!S.vynV3) {
+    Object.keys(VYN_V3).forEach(k => { if (n[k] === undefined || n[k] === null || n[k] === "") n[k] = VYN_V3[k]; });
+    (S.zakazky || []).forEach(z => { if (z && z.vynModel === undefined) z.vynModel = 2; });
+    if (S.job && S.job.vynModel === undefined) S.job.vynModel = S.job.id || (S.job.prace || []).length ? 2 : 3;
+    S.vynV3 = true; zmena = true;
+  }
+  /* základ blíž k trhu (1 080 → 1 140 Kč/t): přepíše se jen původní výchozí hodnota, jinou ručně zadanou nechá */
+  if (!S.vynV3b) { if (+n.vynCenaZaklad === 1080) n.vynCenaZaklad = 1140; S.vynV3b = true; zmena = true; }
+  /* nová položka ceníku — jen když v uloženém ceníku chybí (smazanou už nevrací) */
+  if (!S.cenikSutShrnuti) {
+    if (Array.isArray(S.cenik) && !S.cenik.some(i => i && i.id === VYN_SUT_SHRNUTI.id)) S.cenik.push(Object.assign({}, VYN_SUT_SHRNUTI));
+    S.cenikSutShrnuti = true; zmena = true;
+  }
+  if (zmena && typeof save === "function") save();
 }
 
 /* ---------- karta vynášky v zakázce (model 3) ---------- */
@@ -22726,12 +22739,12 @@ function vynRenderV3(v){
   if (J.cenik === "b2b") koefTxt.push("× 0,9 B2B");
   if ((+J.prirazka || 0) !== 0) koefTxt.push("× " + fmt1.format(1 + (+J.prirazka || 0) / 100) + " přirážka");
   const rozpis = "<b>" + fmt1.format(y.tp) + " t</b>" + (y.tpObjem > 0.05 ? " (z toho " + fmt1.format(y.tpObjem) + " t lehké suti počítané objemem)" : "") +
-    " × (" + casti.join(" + ") + ")" + (koefTxt.length ? " " + koefTxt.join(" ") : "") + " = <b>" + fmt0.format(y.kcT) + " Kč/t</b>" +
+    " × (" + casti.join(" + ") + ")" + (koefTxt.length ? " " + koefTxt.join(" ") : "") + " = <b>" + fmt0.format(y.kcT) + " Kč/t</b> (" + fmt0.format(y.kcT * 1.3) + " Kč/m³ hutné suti)" +
     (y.pausal ? " + montáž a demontáž shozu " + kc(y.pausal) : "") + " → <b>" + kc(y.cena) + "</b>";
   const cas = "Odhad času: <b>" + fmt1.format(y.hodiny) + " h</b> (kolečko " + y.cestyKolecko + " cest" + (y.cestyKbelik ? ", schody " + y.cestyKbelik + " cest" : "") +
     (y.hodShoz ? ", shoz " + fmt1.format(y.hodShoz) + " h" : "") + ", koeficient tempa ×" + fmt1.format(y.koef) + ") → <b>" + fmt0.format(y.kcHod) + " Kč za hodinu vynášky</b>";
   let h = "<div style='display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:baseline'>" +
-      "<b style='font-size:19px'>" + fmt0.format(y.kcT) + " Kč za tunu</b><b style='font-size:19px'>" + kc(y.cena) + " celkem</b></div>" +
+      "<b style='font-size:19px'>" + fmt0.format(y.kcT) + " Kč/t = " + fmt0.format(y.kcT * 1.3) + " Kč/m³ hutné suti</b><b style='font-size:19px'>" + kc(y.cena) + " celkem</b></div>" +
     "<div class='hint' style='margin-top:6px'>" + rozpis + "</div>" +
     "<div class='hint' style='margin-top:6px;border-top:1px solid var(--line);padding-top:6px'>" + cas +
       " <span class='hint'>— čas je jen pro plán a zisk na hodinu, cenu nemění</span></div>";
@@ -22767,7 +22780,9 @@ function vynUkazkaData(){
   });
 }
 function vynUkazkaV3(){
-  const n = S.nastaveni, el = document.getElementById("vynUkazka"); if (!el) return;
+  const n = S.nastaveni, el = document.getElementById("vynUkazka"), zm = document.getElementById("vynCenaZakladM3");
+  if (zm) zm.textContent = "= " + fmt0.format((+n.vynCenaZaklad || 0) * 1.3) + " Kč/m³ hutné suti (při 1,3 t/m³)";
+  if (!el) return;
   const min = +n.vynMinKcHod || 0;
   let h = "<div class='tscroll' style='margin-top:12px'><table><thead><tr><th>Situace</th><th class='r'>Kč/t<br><span class='hint'>hutná</span></th><th class='r'>Kč/m³<br><span class='hint'>hutná (1,3 t/m³)</span></th>" +
     "<th class='r'>Kč/m³<br><span class='hint'>lehká (0,25 t/m³)</span></th><th class='r'>10 t hutné<br><span class='hint'>hodin (× koef.)</span></th><th class='r'>Kč/h<br><span class='hint'>cena ÷ čas</span></th></tr></thead><tbody>";
@@ -22777,7 +22792,7 @@ function vynUkazkaV3(){
       "<td class='r num" + (min && x.kcH < min ? " ne" : "") + "' style='font-weight:700'>" + fmt0.format(x.kcH) + " Kč</td></tr>";
   });
   el.innerHTML = h + "</tbody></table></div>" +
-    "<p class='hint' style='margin:8px 0 0'>Kontrola proti trhu: odnos suti v Praze od <b>1 600 Kč/m³</b>, odnos stavebního odpadu od <b>1 200 Kč/m³</b> (nám −10 až −15 %). ÚRS 997013211: <b>890 Kč/t</b> (B2B, 2024).</p>" +
+    "<p class='hint' style='margin:8px 0 0'>Kontrola proti trhu: odnos suti v Praze od <b>1 600 Kč/m³</b>, odnos stavebního odpadu od <b>1 200 Kč/m³</b> (nám −5 až −8 %). ÚRS 997013211: <b>890 Kč/t</b> (B2B, 2024).</p>" +
     "<p class='hint' style='margin:4px 0 0'>Sloupec <b>Kč/h</b> = cena ÷ odhad času podle časů v kartě níž. Pod " + fmt0.format(min) + " Kč/h je červeně — tam zkontroluj čas, nebo nabízej výtah či shoz. Shoz má navíc paušál " + kc(+n.vynCenaShoz || 0) + " na zakázku.</p>";
 }
 
